@@ -56,6 +56,6 @@ Sub-components get the same structure in their own folder inside their parent's 
 
 ## Conventions
 
-- **Branches**: `main` is production, `develop` the integration branch. Start every ticket branch from an up-to-date `develop` and open its pull request against `develop`. Only release pull requests from `develop` target `main`.
+- **Branches**: `main` is production, `develop` the integration and default branch. A ruleset refuses direct pushes to both: every change goes through a pull request with passing checks. Start every ticket branch from an up-to-date `develop` and open its pull request against `develop`. Only release pull requests from `develop` target `main`.
 - **Commits**: Conventional Commits enforced via commitlint + husky (`feat:`, `fix:`, `refactor:`, etc.). They set the next version and `CHANGELOG.md`, which release-please writes: never edit the changelog by hand, and use `feat`/`fix` only for changes a visitor of the site would notice, since those appear in it.
 - **Formatting and linting**: on commit, lint-staged runs `eslint --fix` then Prettier on staged files, one after the other (`--concurrent false`, as both write the same files). A lint error stops the commit.
