@@ -160,8 +160,8 @@ export const comparePage = ({ page, status, servedHtml, builtHtml }) => {
 /**
  * Parameters of {@link renderSmokeTestReport}.
  * @typedef {object} RenderSmokeTestReportParams
- * @property {string} [siteUrl] - Site that was checked, e.g. `https://issoufi.fr`. Defaults to an
- * empty string.
+ * @property {string} [siteUrl] - Site that was checked, e.g. `https://issoufi.fr`. Missing or not
+ * a string, it is left empty.
  * @property {PageCheck[]} [pages] - Pages requested on the site, from {@link getPageChecks}.
  * Defaults to none, `null` included.
  * @property {string[]} [problems] - Problems found on those pages, from {@link comparePage}.
@@ -181,19 +181,20 @@ export const comparePage = ({ page, status, servedHtml, builtHtml }) => {
  *   pages: [{ file: 'index.html', route: '/', status: 200 }],
  * }); // '## Smoke test\n\n✅ https://issoufi.fr serves `/` (200) as built.\n'
  */
-export const renderSmokeTestReport = ({ siteUrl = '', pages, problems }) => {
+export const renderSmokeTestReport = ({ siteUrl, pages, problems }) => {
+  const site = typeof siteUrl === 'string' ? siteUrl : '';
   const listedProblems = toList(problems).filter(problem => typeof problem === 'string');
   const listedPages = toList(pages).filter(isPageCheck);
 
   const hasProblems = listedProblems.length > 0;
   if (hasProblems) {
     const list = listedProblems.map(problem => `- ${problem}`).join('\n');
-    return `## Smoke test\n\n❌ ${siteUrl}:\n\n${list}\n`;
+    return `## Smoke test\n\n❌ ${site}:\n\n${list}\n`;
   }
 
   const hasPages = listedPages.length > 0;
-  if (!hasPages) return `## Smoke test\n\n❌ ${siteUrl}: no page of the build was checked.\n`;
+  if (!hasPages) return `## Smoke test\n\n❌ ${site}: no page of the build was checked.\n`;
 
   const routes = listedPages.map(({ route, status }) => `\`${route}\` (${status})`).join(', ');
-  return `## Smoke test\n\n✅ ${siteUrl} serves ${routes} as built.\n`;
+  return `## Smoke test\n\n✅ ${site} serves ${routes} as built.\n`;
 };

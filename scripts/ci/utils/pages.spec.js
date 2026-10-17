@@ -210,8 +210,8 @@ describe('renderSmokeTestReport', () => {
     expect(renderSmokeTestReport({ siteUrl, pages, problems: [null] })).toContain('✅');
   });
 
-  it('leaves the site URL empty when it is missing', () => {
-    expect(renderSmokeTestReport({ pages: [pages[0]] })).toBe(
+  it.each([undefined, null, '', 42, { href: siteUrl }])('leaves the site URL %o empty', url => {
+    expect(renderSmokeTestReport({ siteUrl: url, pages: [pages[0]] })).toBe(
       '## Smoke test\n\n✅  serves `/` (200) as built.\n',
     );
   });
