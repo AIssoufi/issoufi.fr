@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom';
+import { Link } from 'react-router';
 import styled, { th } from '@xstyled/styled-components';
 
 export const Container = styled.section`

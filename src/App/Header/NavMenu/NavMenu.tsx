@@ -1,4 +1,4 @@
-import { NavLink } from 'react-router-dom';
+import { NavLink } from 'react-router';
 
 import DownloadIcon from './icons/download.svg?react';
 import { CtaButton, Nav, NavItem, NavList } from './NavMenu.styled';

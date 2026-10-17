@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next';
-import { useLocation } from 'react-router-dom';
+import { useLocation } from 'react-router';
 
 import StatusMessage from '../../components/StatusMessage';
 import { NotFoundPage } from './NotFound.styled';
