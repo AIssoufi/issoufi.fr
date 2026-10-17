@@ -49,15 +49,20 @@ const listStyleRules = () =>
  */
 const declaredStyle = ({ element, property, media = '' }) => {
   const classSelectors = [...element.classList].map(className => `.${className}`);
+  const isRuleOfElement = entry => {
+    const isInMedia = entry.media === media;
+    return isInMedia && classSelectors.includes(entry.rule.selectorText);
+  };
   const values = listStyleRules()
-    .filter(entry => entry.media === media && classSelectors.includes(entry.rule.selectorText))
+    .filter(isRuleOfElement)
     .map(({ rule }) => rule.style.getPropertyValue(property));
   return values.findLast(Boolean) ?? '';
 };
 
 /**
  * `white-space` that the element inherits from the closest element declaring one, since jsdom
- * does not compute inherited values; `normal` when none declares it.
+ * does not compute inherited values; `normal` when none declares it. Only reads the rules outside
+ * media queries.
  */
 const inheritedWhiteSpace = element => {
   for (let node = element; node; node = node.parentElement) {
@@ -162,8 +167,9 @@ describe('Project', () => {
       await userEvent.click(screen.getByText('Tout afficher (4)'));
 
       const css = [...document.querySelectorAll('style')].map(style => style.textContent).join('');
-      expect(css).toContain(TWO_COLUMNS);
-      expect(css).not.toContain('=>');
+      expect(css).toContain(`row-gap:${theme.space[5]}`);
+      expect(css).toMatch(new RegExp(`@media \\(min-width: ?${theme.screens.tablet}\\)`));
+      expect(css).not.toMatch(/=>|\bfunction\b|\bprops\b/);
     });
 
     it.each([
