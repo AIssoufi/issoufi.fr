@@ -20,7 +20,7 @@
 ### Prerequisites
 
 - [Node.js](https://nodejs.org/) 24 (see `.nvmrc`)
-- [pnpm](https://pnpm.io/)
+- [pnpm](https://pnpm.io/) 10.34.7, pinned by the `packageManager` field of `package.json`. Any recent pnpm switches to this version automatically inside the project.
 
 ### Installation
 
