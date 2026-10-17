@@ -3,6 +3,10 @@ import { Btn, Indicator, Wrapper } from './LangToggle.styled';
 
 const LANGS = ['fr', 'en'] as const;
 
+/**
+ * Floating FR/EN switch that changes the i18next language, with an indicator sliding under the
+ * active language. The choice is not persisted: each visit starts in French.
+ */
 const LangToggle = () => {
   const { i18n } = useTranslation();
   const activeIndex = LANGS.indexOf(i18n.language as (typeof LANGS)[number]);

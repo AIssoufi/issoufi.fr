@@ -25,24 +25,42 @@ import {
   Thumbnail,
 } from './Project.styled';
 
+/** One project card, as stored in `.data/*-projects.json`. */
 interface ProjectItemData {
+  /** Unique id: the React key and the key of the like state. */
   id: number;
+  /** Project name, shown as the card title and the thumbnail alt text. */
   name: string;
+  /** Kind of project, e.g. "Application web" or "Site vitrine". */
   type: string;
+  /** Absolute URL of the screenshot in `public/`, e.g. `/chess.png`. */
   imageUrl: string;
+  /** Page opened in a new tab when the card is clicked. The card is not a link when missing. */
   url?: string;
+  /** Technologies, shown under the name separated by ` · `. */
   tools: string[];
+  /** Initial number of likes. */
   likeCount: number;
+  /** Whether the visitor's like is initially set. */
   isLikedByOwnUser: boolean;
 }
 
+/** Props of {@link Project}. */
 interface ProjectProps {
+  /** Section heading, already translated. */
   title?: string;
+  /** Cards to show, three per page, or all at once after "Show all". @default [] */
   projects?: ProjectItemData[];
 }
 
+/** Like count and liked flag of each card, by project id. Kept in memory only, never saved. */
 type LikeState = Record<number, { count: number; liked: boolean }>;
 
+/**
+ * Section of project cards with a title, paginated three at a time with previous and next
+ * buttons, or showing all cards after "Show all". Cards tilt toward the mouse, link to the
+ * project when it has a `url`, and have a like button whose state is kept in memory only.
+ */
 const Project = ({ title, projects = [] }: ProjectProps) => {
   const { t } = useTranslation();
   const [currentPage, setCurrentPage] = useState(0);

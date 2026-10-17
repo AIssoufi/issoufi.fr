@@ -19,6 +19,10 @@ import {
 
 const BG_IMAGE = '/experiences.jpeg';
 
+/**
+ * Experiences page: a timeline of the professional experiences, most recent first, with their
+ * roles, projects and technologies. Texts come from the `exp` translations.
+ */
 export const Experiences = () => {
   const { t } = useTranslation();
 

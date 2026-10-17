@@ -16,6 +16,12 @@ import {
   Title,
 } from './Home.styled';
 
+/**
+ * Home page: the animated job title and subtitle, with links to the projects and experiences
+ * pages, over a particle background. A glow follows the cursor, the content shifts slightly with
+ * it, and the buttons are pulled toward it. Listeners and animation frames are removed on unmount.
+ * Must be rendered inside a router.
+ */
 export const Home = () => {
   const { t } = useTranslation();
   const contentRef = useRef<HTMLDivElement>(null);

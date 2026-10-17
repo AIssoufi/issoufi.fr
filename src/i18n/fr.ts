@@ -1,3 +1,7 @@
+/**
+ * French translations: the default and fallback language. Also the source of the static page
+ * metadata generated at build time.
+ */
 export const fr = {
   meta: {
     home: {

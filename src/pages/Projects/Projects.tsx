@@ -8,6 +8,10 @@ import { ProjectsPage } from './Projects.styled';
 
 const BG_IMAGE = '/projects.jpeg';
 
+/**
+ * Projects page: the personal and freelance project sections, with their data read from
+ * `.data/personal-projects.json` and `.data/freelance-projects.json`.
+ */
 export const Projects = () => {
   const { t } = useTranslation();
 

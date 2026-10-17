@@ -1,3 +1,4 @@
+/** English translations. Must keep exactly the same keys as the French ones in `fr.ts`. */
 export const en = {
   meta: {
     home: {

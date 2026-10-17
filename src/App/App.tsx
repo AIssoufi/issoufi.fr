@@ -6,6 +6,10 @@ import LangToggle from './LangToggle/LangToggle';
 
 import { WebApp } from './App.styled';
 
+/**
+ * Root of the application: the router, the header, the language toggle, the document metadata
+ * and the routes. Unknown paths render {@link NotFound} at the requested URL, without redirecting.
+ */
 function App() {
   return (
     <Router>
