@@ -16,6 +16,17 @@ export const toNonNegativeNumber = value => {
 };
 
 /**
+ * Tells whether a limit read from a constant or a parameter is usable: a finite number above 0.
+ * @param {unknown} value - Limit to check, such as a budget or a size in bytes.
+ * @returns {boolean} False for 0, a negative number, `NaN`, `Infinity` and a value that is not a
+ * number.
+ * @example
+ * isPositiveNumber(500_000); // true
+ * isPositiveNumber('500000'); // false
+ */
+export const isPositiveNumber = value => toNonNegativeNumber(value) > 0;
+
+/**
  * Formats a size in kilobytes with one decimal, the unit of Vite's build report.
  * @param {unknown} bytes - Size in bytes. An invalid size is shown as `0.0 kB`.
  * @returns {string} The formatted size, e.g. `224.9 kB`.

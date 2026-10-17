@@ -1,4 +1,9 @@
-import { formatKilobytes, formatPercent, toNonNegativeNumber } from './numbers.mjs';
+import {
+  formatKilobytes,
+  formatPercent,
+  isPositiveNumber,
+  toNonNegativeNumber,
+} from './numbers.mjs';
 
 describe('toNonNegativeNumber', () => {
   it.each([
@@ -13,6 +18,19 @@ describe('toNonNegativeNumber', () => {
     'gives 0 for %s',
     value => {
       expect(toNonNegativeNumber(value)).toBe(0);
+    },
+  );
+});
+
+describe('isPositiveNumber', () => {
+  it.each([1, 0.5, 500_000, Number.MAX_SAFE_INTEGER])('accepts %s', value => {
+    expect(isPositiveNumber(value)).toBe(true);
+  });
+
+  it.each([0, -0, -1, NaN, Infinity, -Infinity, undefined, null, '500000', {}, []])(
+    'rejects %s',
+    value => {
+      expect(isPositiveNumber(value)).toBe(false);
     },
   );
 });

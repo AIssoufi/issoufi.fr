@@ -1,6 +1,6 @@
 // @ts-check
 import { ASSETS_SUBDIR, IMAGE_FILE_PATTERN, SCRIPT_FILE_PATTERN } from '../constants.mjs';
-import { formatKilobytes, toNonNegativeNumber } from './numbers.mjs';
+import { formatKilobytes, isPositiveNumber, toNonNegativeNumber } from './numbers.mjs';
 
 /**
  * A file of the build and its sizes.
@@ -73,7 +73,7 @@ export const isBudgetedScript = path => {
  * }); // { totalGzipBytes: 224_940, isOverBudget: false }
  */
 export const checkScriptBudget = ({ scripts = [], budgetBytes }) => {
-  const isValidBudget = toNonNegativeNumber(budgetBytes) > 0;
+  const isValidBudget = isPositiveNumber(budgetBytes);
   if (!isValidBudget) throw new RangeError(`Invalid script budget: ${budgetBytes}`);
 
   const totalGzipBytes = scripts.reduce(
@@ -108,7 +108,7 @@ export const checkScriptBudget = ({ scripts = [], budgetBytes }) => {
  * }); // [{ path: 'chess.png', bytes: 928_988 }]
  */
 export const findLargeImages = ({ files = [], limitBytes }) => {
-  const isValidLimit = toNonNegativeNumber(limitBytes) > 0;
+  const isValidLimit = isPositiveNumber(limitBytes);
   if (!isValidLimit) throw new RangeError(`Invalid image size limit: ${limitBytes}`);
 
   const isLargeImage = (/** @type {unknown} */ file) =>
@@ -153,7 +153,7 @@ export const renderBundleReport = ({
   largeImages = [],
   largeImageBytes,
 }) => {
-  const isValidImageLimit = toNonNegativeNumber(largeImageBytes) > 0;
+  const isValidImageLimit = isPositiveNumber(largeImageBytes);
   if (!isValidImageLimit) throw new RangeError(`Invalid image size limit: ${largeImageBytes}`);
 
   const listedScripts = scripts.filter(isBuildFile);
