@@ -7,12 +7,19 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ```bash
 pnpm dev          # Start dev server on http://localhost:3000
 pnpm build        # Type-check + production build (tsc && vite build)
+pnpm size         # After a build: fails over the gzip budget of scripts/ci/constants.mjs
+pnpm smoke-test <url> # After a build: checks that a deployed site serves the pages of dist/
 pnpm preview      # Preview production build
+pnpm typecheck    # Type-check only (tsc --noEmit)
+pnpm lint         # ESLint (eslint.config.js)
 pnpm test         # Run tests once
 pnpm test:watch   # Run tests in watch mode
+pnpm test:coverage # Run tests with coverage; fails below COVERAGE_THRESHOLDS (vite.config.ts)
+pnpm format:check # Check Prettier formatting, as the CI does
+pnpm format       # Format every file with Prettier
 ```
 
-There is no lint command — formatting is handled automatically by Prettier via lint-staged on commit.
+ESLint uses the recommended rules of ESLint, typescript-eslint, React Hooks (with the React Compiler rules) and React Refresh. Formatting is handled automatically by Prettier via lint-staged on commit.
 
 ## Architecture
 
@@ -31,7 +38,7 @@ Personal portfolio SPA built with React 19 + TypeScript + Vite.
 
 Sub-components get the same structure in their own folder inside their parent's folder. A component shared by several sub-components of a parent sits at the root of that parent's folder. Components shared across pages live in `src/components/` (e.g. `StatusMessage`). Props are optional by default, and components must render without crashing when a prop is missing.
 
-**Styling and design tokens**: `src/theme/tokens.ts` holds the primitive scales (palette, spacing, font sizes…) and `src/theme/theme.ts` the semantic tokens, following the xstyled theme conventions (`colors` with `-aNN` alpha variants, `space`, `fontSizes`, `radii`, `shadows`, `zIndices`, `durations`, `timingFunctions`, `screens`…). Import `styled`, `css`, `keyframes`, `createGlobalStyle`, `ThemeProvider` and `th` from `@xstyled/styled-components` only, never from `styled-components` directly (a test enforces it). Styled-components read the tokens with the `th` helpers (`th.color('accent-a55')`, `th.space(16)`, `th.radius('md')`, `th('screens.tablet')`); color names are type-checked, and `src/theme/theme.spec.jsx` checks that every token used in a style file exists. JavaScript code (canvas, inline styles) imports `theme` directly. `App` provides the `ThemeProvider` and `GlobalStyle` (which replaced `index.css`). Never write a raw color, spacing, font size, radius, shadow, duration, z-index or breakpoint in a style file: look for an existing token first, then add one to the right scale.
+**Styling and design tokens**: `src/theme/tokens.ts` holds the primitive scales (palette, spacing, font sizes…) and `src/theme/theme.ts` the semantic tokens, following the xstyled theme conventions (`colors` with `-aNN` alpha variants, `space`, `fontSizes`, `radii`, `shadows`, `zIndices`, `durations`, `timingFunctions`, `screens`…). Import `styled`, `css`, `keyframes`, `createGlobalStyle`, `ThemeProvider` and `th` from `@xstyled/styled-components` only, never from `styled-components` directly (ESLint and a test enforce it). Styled-components read the tokens with the `th` helpers (`th.color('accent-a55')`, `th.space(16)`, `th.radius('md')`, `th('screens.tablet')`); color names are type-checked, and `src/theme/theme.spec.jsx` checks that every token used in a style file exists. JavaScript code (canvas, inline styles) imports `theme` directly. `App` provides the `ThemeProvider` and `GlobalStyle` (which replaced `index.css`). Never write a raw color, spacing, font size, radius, shadow, duration, z-index or breakpoint in a style file: look for an existing token first, then add one to the right scale.
 
 **Logic, constants and hooks**: magic numbers are named constants with their unit (`constants.ts` next to their users), computations are pure helpers in `utils.ts` with tests, and stateful effects are hooks in `hooks/useThing/` with tests (see `src/pages/Home/hooks`).
 
@@ -45,7 +52,10 @@ Sub-components get the same structure in their own folder inside their parent's 
 
 **Tests**: Vitest + Testing Library. Test files are `*.spec.jsx`, co-located with their component. Setup file at `src/setupTests.ts` extends Vitest with `@testing-library/jest-dom`. Components that need routing must be wrapped with `<BrowserRouter>` in tests.
 
+**CI and deployment**: `.github/workflows/ci.yml` checks formatting, lint, types, tests with coverage thresholds and the bundle size, builds, then deploys the `dist` artifact to Cloudflare Pages (project `issoufi-fr`) with Wrangler and smoke-tests it: `main` goes to production at issoufi.fr, any other branch to a preview. Cloudflare's own automatic builds are paused. The helpers of the CI scripts are in `scripts/ci/utils.mjs`, with tests.
+
 ## Conventions
 
-- **Commits**: Conventional Commits enforced via commitlint + husky (`feat:`, `fix:`, `refactor:`, etc.)
-- **Formatting**: Prettier runs automatically on staged files via lint-staged — no manual formatting needed
+- **Branches**: `main` is production, `develop` the integration and default branch. A ruleset refuses direct pushes to both: every change goes through a pull request with passing checks. Start every ticket branch from an up-to-date `develop` and open its pull request against `develop`. Only release pull requests from `develop` target `main`.
+- **Commits**: Conventional Commits enforced via commitlint + husky (`feat:`, `fix:`, `refactor:`, etc.). They set the next version and `CHANGELOG.md`, which release-please writes: never edit the changelog by hand, and use `feat`/`fix` only for changes a visitor of the site would notice, since those appear in it.
+- **Formatting and linting**: on commit, lint-staged runs `eslint --fix` then Prettier on staged files, one after the other (`--concurrent false`, as both write the same files). A lint error stops the commit.

@@ -1,4 +1,4 @@
-import Lottie from 'lottie-web';
+import Lottie, { type AnimationItem } from 'lottie-web';
 import { useEffect, useRef } from 'react';
 
 import burgerMenuData from './burger-menu.json';
@@ -20,12 +20,15 @@ interface BurgerMenuProps {
  * The parent owns the open state and passes it back through `isOpen`.
  */
 const BurgerMenu = ({ isOpen = false, onOpen, onClose }: BurgerMenuProps) => {
-  const menuBurgerEl = useRef<any>(null);
-  const lottieRef = useRef<any>(null);
+  const menuBurgerEl = useRef<HTMLDivElement>(null);
+  const lottieRef = useRef<AnimationItem | null>(null);
 
   useEffect(() => {
+    const container = menuBurgerEl.current;
+    if (!container) return;
+
     const lottieInstance = Lottie.loadAnimation({
-      container: menuBurgerEl.current as Element,
+      container,
       renderer: 'svg',
       loop: false,
       autoplay: false,

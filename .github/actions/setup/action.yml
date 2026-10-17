@@ -1,0 +1,18 @@
+name: Setup
+description: >-
+  Installs pnpm (version from the packageManager field of package.json), Node.js (version from
+  .nvmrc) and the project dependencies, with the pnpm store cached between runs. Run it after
+  actions/checkout.
+
+runs:
+  using: composite
+  steps:
+    - uses: pnpm/action-setup@v6
+
+    - uses: actions/setup-node@v7
+      with:
+        node-version-file: .nvmrc
+        cache: pnpm
+
+    - run: pnpm install --frozen-lockfile
+      shell: bash
