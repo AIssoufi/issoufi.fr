@@ -11,6 +11,7 @@ import {
   NOT_FOUND_PAGE_FILE,
   TITLE_TAG_PATTERN,
 } from '../constants.mjs';
+import { toList } from './lists.mjs';
 
 /**
  * A page of the build to request on the deployed site.
@@ -50,7 +51,8 @@ export const isPageCheck = value => {
  * Lists the routes to check from the HTML files at the root of the build. Each page is served at
  * its name without the extension, `index.html` at `/`, and an unknown path must get
  * `404.html` with a 404 status.
- * @param {string[]} [fileNames] - File names at the root of the build. Defaults to none.
+ * @param {string[]} [fileNames] - File names at the root of the build. Defaults to none, `null`
+ * included.
  * @returns {PageCheck[]} One check per HTML file, other files are ignored.
  * @example
  * getPageChecks(['index.html', 'projects.html', '404.html', 'robots.txt']);
@@ -60,8 +62,8 @@ export const isPageCheck = value => {
  * //   { file: '404.html', route: '/smoke-test-page-that-does-not-exist', status: 404 },
  * // ]
  */
-export const getPageChecks = (fileNames = []) =>
-  fileNames
+export const getPageChecks = fileNames =>
+  toList(fileNames)
     .filter(file => typeof file === 'string' && HTML_FILE_PATTERN.test(file))
     .map(file => {
       const isNotFoundPage = file === NOT_FOUND_PAGE_FILE;
@@ -154,9 +156,9 @@ export const comparePage = ({ page, status, servedHtml, builtHtml }) => {
  * @property {string} [siteUrl] - Site that was checked, e.g. `https://issoufi.fr`. Defaults to an
  * empty string.
  * @property {PageCheck[]} [pages] - Pages requested on the site, from {@link getPageChecks}.
- * Defaults to none.
+ * Defaults to none, `null` included.
  * @property {string[]} [problems] - Problems found on those pages, from {@link comparePage}.
- * Defaults to none.
+ * Defaults to none, `null` included.
  */
 
 /**
@@ -172,9 +174,9 @@ export const comparePage = ({ page, status, servedHtml, builtHtml }) => {
  *   pages: [{ file: 'index.html', route: '/', status: 200 }],
  * }); // '## Smoke test\n\n✅ https://issoufi.fr serves `/` (200) as built.\n'
  */
-export const renderSmokeTestReport = ({ siteUrl = '', pages = [], problems = [] }) => {
-  const listedProblems = problems.filter(problem => typeof problem === 'string');
-  const listedPages = pages.filter(isPageCheck);
+export const renderSmokeTestReport = ({ siteUrl = '', pages, problems }) => {
+  const listedProblems = toList(problems).filter(problem => typeof problem === 'string');
+  const listedPages = toList(pages).filter(isPageCheck);
 
   const hasProblems = listedProblems.length > 0;
   if (hasProblems) {

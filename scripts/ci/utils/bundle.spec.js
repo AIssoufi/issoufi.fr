@@ -78,8 +78,8 @@ describe('checkScriptBudget', () => {
     expect(checkScriptBudget({ scripts, budgetBytes: 200 }).isOverBudget).toBe(true);
   });
 
-  it('gives 0 without scripts', () => {
-    expect(checkScriptBudget({ budgetBytes: 200 })).toEqual({
+  it.each([undefined, null, 'assets/index.js', {}])('gives 0 for the scripts %o', scripts => {
+    expect(checkScriptBudget({ scripts, budgetBytes: 200 })).toEqual({
       totalGzipBytes: 0,
       isOverBudget: false,
     });
@@ -124,8 +124,8 @@ describe('findLargeImages', () => {
     expect(findLargeImages({ files, limitBytes: 500 })).toEqual(files);
   });
 
-  it('gives an empty list without files', () => {
-    expect(findLargeImages({ limitBytes: 500 })).toEqual([]);
+  it.each([undefined, null, 'chess.png', {}])('gives an empty list for the files %o', files => {
+    expect(findLargeImages({ files, limitBytes: 500 })).toEqual([]);
   });
 
   it('ignores entries without a path or with an invalid size', () => {
@@ -160,13 +160,16 @@ describe('renderScriptsTable', () => {
     );
   });
 
-  it.each([undefined, []])('shows only the header and a total of 0 for the scripts %s', list => {
-    expect(renderScriptsTable({ scripts: list })).toBe(
-      ['| File | Size | Gzip |', '| --- | ---: | ---: |', '| **Total** | | **0.0 kB** |'].join(
-        '\n',
-      ),
-    );
-  });
+  it.each([undefined, null, [], {}])(
+    'shows only the header and a total of 0 for the scripts %o',
+    list => {
+      expect(renderScriptsTable({ scripts: list })).toBe(
+        ['| File | Size | Gzip |', '| --- | ---: | ---: |', '| **Total** | | **0.0 kB** |'].join(
+          '\n',
+        ),
+      );
+    },
+  );
 
   it('leaves out the entries that are not build files', () => {
     const table = renderScriptsTable({
@@ -206,7 +209,7 @@ describe('renderLargeImagesSection', () => {
     );
   });
 
-  it.each([undefined, [], [null, { bytes: 900_000 }, { path: '' }]])(
+  it.each([undefined, null, [], {}, [null, { bytes: 900_000 }, { path: '' }]])(
     'gives an empty string for the images %o',
     largeImages => {
       expect(renderLargeImagesSection({ largeImages, largeImageBytes: 500_000 })).toBe('');
@@ -319,9 +322,24 @@ describe('renderBundleReport', () => {
     },
   );
 
-  it('reports a total of 0 without scripts', () => {
-    const report = renderBundleReport({ budgetBytes: 250_000, largeImageBytes: 500_000 });
-    expect(report).toContain('| **Total** | | **0.0 kB** |');
-    expect(report).toContain('✅ Within budget');
+  it.each([undefined, null])('reports a total of 0 and no image for the lists %s', list => {
+    const report = renderBundleReport({
+      scripts: list,
+      budgetBytes: 250_000,
+      largeImages: list,
+      largeImageBytes: 500_000,
+    });
+    expect(report).toBe(
+      [
+        '## Bundle size',
+        '',
+        '| File | Size | Gzip |',
+        '| --- | ---: | ---: |',
+        '| **Total** | | **0.0 kB** |',
+        '',
+        '✅ Within budget: 0.0 kB gzip for a budget of 250.0 kB.',
+        '',
+      ].join('\n'),
+    );
   });
 });

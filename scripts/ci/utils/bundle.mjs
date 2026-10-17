@@ -1,5 +1,6 @@
 // @ts-check
 import { ASSETS_SUBDIR, IMAGE_FILE_PATTERN, SCRIPT_FILE_PATTERN } from '../constants.mjs';
+import { toList } from './lists.mjs';
 import { formatKilobytes, isPositiveNumber, toNonNegativeNumber } from './numbers.mjs';
 
 /**
@@ -48,7 +49,8 @@ export const isBudgetedScript = path => {
 /**
  * Parameters of {@link checkScriptBudget}.
  * @typedef {object} CheckScriptBudgetParams
- * @property {BuildFile[]} [scripts] - Scripts and style sheets of the build. Defaults to none.
+ * @property {BuildFile[]} [scripts] - Scripts and style sheets of the build. Defaults to none,
+ * `null` included.
  * @property {number} budgetBytes - Maximum total gzip size. The total may equal it.
  */
 
@@ -72,11 +74,11 @@ export const isBudgetedScript = path => {
  *   budgetBytes: 250_000,
  * }); // { totalGzipBytes: 224_940, isOverBudget: false }
  */
-export const checkScriptBudget = ({ scripts = [], budgetBytes }) => {
+export const checkScriptBudget = ({ scripts, budgetBytes }) => {
   const isValidBudget = isPositiveNumber(budgetBytes);
   if (!isValidBudget) throw new RangeError(`Invalid script budget: ${budgetBytes}`);
 
-  const totalGzipBytes = scripts.reduce(
+  const totalGzipBytes = toList(scripts).reduce(
     (total, file) => total + toNonNegativeNumber(file?.gzipBytes),
     0,
   );
@@ -86,7 +88,8 @@ export const checkScriptBudget = ({ scripts = [], budgetBytes }) => {
 /**
  * Parameters of {@link findLargeImages}.
  * @typedef {object} FindLargeImagesParams
- * @property {BuildFile[]} [files] - Files of the build, of any type. Defaults to none.
+ * @property {BuildFile[]} [files] - Files of the build, of any type. Defaults to none, `null`
+ * included.
  * @property {number} limitBytes - Size above which an image is listed. An image of exactly this
  * size is not.
  */
@@ -107,7 +110,7 @@ export const checkScriptBudget = ({ scripts = [], budgetBytes }) => {
  *   limitBytes: 500_000,
  * }); // [{ path: 'chess.png', bytes: 928_988 }]
  */
-export const findLargeImages = ({ files = [], limitBytes }) => {
+export const findLargeImages = ({ files, limitBytes }) => {
   const isValidLimit = isPositiveNumber(limitBytes);
   if (!isValidLimit) throw new RangeError(`Invalid image size limit: ${limitBytes}`);
 
@@ -116,13 +119,16 @@ export const findLargeImages = ({ files = [], limitBytes }) => {
     IMAGE_FILE_PATTERN.test(file.path) &&
     toNonNegativeNumber(file.bytes) > limitBytes;
 
-  return files.filter(isLargeImage).sort((a, b) => b.bytes - a.bytes);
+  return toList(files)
+    .filter(isLargeImage)
+    .sort((a, b) => b.bytes - a.bytes);
 };
 
 /**
  * Parameters of {@link renderScriptsTable}.
  * @typedef {object} RenderScriptsTableParams
- * @property {BuildFile[]} [scripts] - Scripts and style sheets of the build. Defaults to none.
+ * @property {BuildFile[]} [scripts] - Scripts and style sheets of the build. Defaults to none,
+ * `null` included.
  * @property {number} [totalGzipBytes] - Total gzip size shown on the last row, from
  * {@link checkScriptBudget}. Defaults to 0, and an invalid size is shown as 0.
  */
@@ -143,8 +149,8 @@ export const findLargeImages = ({ files = [], limitBytes }) => {
  * // | `assets/index.js` | 788.3 kB | 224.9 kB |
  * // | **Total** | | **224.9 kB** |
  */
-export const renderScriptsTable = ({ scripts = [], totalGzipBytes = 0 }) => {
-  const rows = scripts
+export const renderScriptsTable = ({ scripts, totalGzipBytes = 0 }) => {
+  const rows = toList(scripts)
     .filter(isBuildFile)
     .map(
       ({ path, bytes, gzipBytes }) =>
@@ -163,7 +169,7 @@ export const renderScriptsTable = ({ scripts = [], totalGzipBytes = 0 }) => {
  * Parameters of {@link renderLargeImagesSection}.
  * @typedef {object} RenderLargeImagesSectionParams
  * @property {BuildFile[]} [largeImages] - Images over the limit, from {@link findLargeImages}.
- * Defaults to none.
+ * Defaults to none, `null` included.
  * @property {number} largeImageBytes - Size limit used to find them, shown in the heading.
  */
 
@@ -187,11 +193,11 @@ export const renderScriptsTable = ({ scripts = [], totalGzipBytes = 0 }) => {
  * // | --- | ---: |
  * // | `chess.png` | 929.0 kB |
  */
-export const renderLargeImagesSection = ({ largeImages = [], largeImageBytes }) => {
+export const renderLargeImagesSection = ({ largeImages, largeImageBytes }) => {
   const isValidLimit = isPositiveNumber(largeImageBytes);
   if (!isValidLimit) throw new RangeError(`Invalid image size limit: ${largeImageBytes}`);
 
-  const listedImages = largeImages.filter(isBuildFile);
+  const listedImages = toList(largeImages).filter(isBuildFile);
   const hasLargeImages = listedImages.length > 0;
   if (!hasLargeImages) return '';
 
@@ -207,10 +213,11 @@ export const renderLargeImagesSection = ({ largeImages = [], largeImageBytes }) 
 /**
  * Parameters of {@link renderBundleReport}.
  * @typedef {object} RenderBundleReportParams
- * @property {BuildFile[]} [scripts] - Scripts and style sheets of the build. Defaults to none.
+ * @property {BuildFile[]} [scripts] - Scripts and style sheets of the build. Defaults to none,
+ * `null` included.
  * @property {number} budgetBytes - Maximum total gzip size of the scripts.
  * @property {BuildFile[]} [largeImages] - Images over the limit, from {@link findLargeImages}.
- * Defaults to none.
+ * Defaults to none, `null` included.
  * @property {number} largeImageBytes - Size limit used to find the large images.
  */
 
@@ -233,14 +240,9 @@ export const renderLargeImagesSection = ({ largeImages = [], largeImageBytes }) 
  * // A table with the row '| `assets/index.js` | 788.3 kB | 224.9 kB |' and the total, then
  * // '✅ Within budget: 224.9 kB gzip for a budget of 250.0 kB.', then the images over 500.0 kB
  */
-export const renderBundleReport = ({
-  scripts = [],
-  budgetBytes,
-  largeImages = [],
-  largeImageBytes,
-}) => {
+export const renderBundleReport = ({ scripts, budgetBytes, largeImages, largeImageBytes }) => {
   const imagesSection = renderLargeImagesSection({ largeImages, largeImageBytes });
-  const listedScripts = scripts.filter(isBuildFile);
+  const listedScripts = toList(scripts).filter(isBuildFile);
   const { totalGzipBytes, isOverBudget } = checkScriptBudget({
     scripts: listedScripts,
     budgetBytes,

@@ -49,7 +49,7 @@ describe('getPageChecks', () => {
     expect(getPageChecks(['assets', 'chess.png', 'robots.txt', 'index.html.map'])).toEqual([]);
   });
 
-  it.each([undefined, []])('gives no check for %s', fileNames => {
+  it.each([undefined, null, [], 'index.html', {}])('gives no check for %o', fileNames => {
     expect(getPageChecks(fileNames)).toEqual([]);
   });
 
@@ -174,7 +174,7 @@ describe('renderSmokeTestReport', () => {
     );
   });
 
-  it.each([undefined, []])('reports a failure when the pages are %s', pagesToCheck => {
+  it.each([undefined, null, [], {}])('reports a failure when the pages are %o', pagesToCheck => {
     expect(renderSmokeTestReport({ siteUrl, pages: pagesToCheck })).toBe(
       '## Smoke test\n\n❌ https://issoufi.fr: no page of the build was checked.\n',
     );
@@ -195,6 +195,12 @@ describe('renderSmokeTestReport', () => {
       ],
     });
     expect(report).toBe('## Smoke test\n\n✅ https://issoufi.fr serves `/` (200) as built.\n');
+  });
+
+  it.each([undefined, null, {}])('reports a success when the problems are %o', problems => {
+    expect(renderSmokeTestReport({ siteUrl, pages: [pages[0]], problems })).toBe(
+      '## Smoke test\n\n✅ https://issoufi.fr serves `/` (200) as built.\n',
+    );
   });
 
   it('leaves out the problems that are not text', () => {
