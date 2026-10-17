@@ -90,9 +90,12 @@ describe('checkScriptBudget', () => {
     expect(checkScriptBudget({ scripts, budgetBytes: 200 }).totalGzipBytes).toBe(30);
   });
 
-  it.each([0, -1, NaN, undefined, '200'])('throws for the invalid budget %s', budgetBytes => {
-    expect(() => checkScriptBudget({ scripts: [], budgetBytes })).toThrow(RangeError);
-  });
+  it.each([0, -1, NaN, Infinity, undefined, null, '200'])(
+    'throws for the invalid budget %s',
+    budgetBytes => {
+      expect(() => checkScriptBudget({ scripts: [], budgetBytes })).toThrow(RangeError);
+    },
+  );
 });
 
 describe('findLargeImages', () => {
@@ -224,7 +227,7 @@ describe('renderLargeImagesSection', () => {
     expect(section.endsWith('| --- | ---: |\n| `chess.png` | 929.0 kB |')).toBe(true);
   });
 
-  it.each([0, -1, NaN, undefined, '500000'])(
+  it.each([0, -1, NaN, Infinity, undefined, null, '500000'])(
     'throws for the invalid limit %s, even without images',
     largeImageBytes => {
       expect(() => renderLargeImagesSection({ largeImageBytes })).toThrow(RangeError);
@@ -307,13 +310,16 @@ describe('renderBundleReport', () => {
     expect(report).not.toContain('undefined');
   });
 
-  it.each([0, -1, NaN, undefined])('throws for the invalid budget %s', budgetBytes => {
-    expect(() => renderBundleReport({ scripts, budgetBytes, largeImageBytes: 500_000 })).toThrow(
-      RangeError,
-    );
-  });
+  it.each([0, -1, NaN, Infinity, undefined, null, '250000'])(
+    'throws for the invalid budget %s',
+    budgetBytes => {
+      expect(() => renderBundleReport({ scripts, budgetBytes, largeImageBytes: 500_000 })).toThrow(
+        RangeError,
+      );
+    },
+  );
 
-  it.each([0, -1, NaN, undefined, '500000'])(
+  it.each([0, -1, NaN, Infinity, undefined, null, '500000'])(
     'throws for the invalid image size limit %s',
     largeImageBytes => {
       expect(() => renderBundleReport({ scripts, budgetBytes: 250_000, largeImageBytes })).toThrow(
@@ -322,24 +328,27 @@ describe('renderBundleReport', () => {
     },
   );
 
-  it.each([undefined, null])('reports a total of 0 and no image for the lists %s', list => {
-    const report = renderBundleReport({
-      scripts: list,
-      budgetBytes: 250_000,
-      largeImages: list,
-      largeImageBytes: 500_000,
-    });
-    expect(report).toBe(
-      [
-        '## Bundle size',
-        '',
-        '| File | Size | Gzip |',
-        '| --- | ---: | ---: |',
-        '| **Total** | | **0.0 kB** |',
-        '',
-        '✅ Within budget: 0.0 kB gzip for a budget of 250.0 kB.',
-        '',
-      ].join('\n'),
-    );
-  });
+  it.each([undefined, null, {}, 'assets/index.js'])(
+    'reports a total of 0 and no image for the lists %o',
+    list => {
+      const report = renderBundleReport({
+        scripts: list,
+        budgetBytes: 250_000,
+        largeImages: list,
+        largeImageBytes: 500_000,
+      });
+      expect(report).toBe(
+        [
+          '## Bundle size',
+          '',
+          '| File | Size | Gzip |',
+          '| --- | ---: | ---: |',
+          '| **Total** | | **0.0 kB** |',
+          '',
+          '✅ Within budget: 0.0 kB gzip for a budget of 250.0 kB.',
+          '',
+        ].join('\n'),
+      );
+    },
+  );
 });
