@@ -2,8 +2,7 @@ import { readdirSync, readFileSync, statSync } from 'node:fs';
 import { join } from 'node:path';
 
 import { render } from '@testing-library/react';
-import { th, ThemeProvider } from '@xstyled/styled-components';
-import styled from 'styled-components';
+import styled, { th, ThemeProvider } from '@xstyled/styled-components';
 
 import { theme } from './theme';
 
@@ -26,12 +25,14 @@ const NAMESPACE_BY_HELPER = {
   timingFunction: 'timingFunctions',
 };
 
-const listStyleFiles = directory =>
+const listFiles = (directory, pattern) =>
   readdirSync(directory).flatMap(entry => {
     const path = join(directory, entry);
-    if (statSync(path).isDirectory()) return listStyleFiles(path);
-    return /\.styled\.ts$|GlobalStyle\.ts$/.test(entry) ? [path] : [];
+    if (statSync(path).isDirectory()) return listFiles(path, pattern);
+    return pattern.test(entry) ? [path] : [];
   });
+
+const listStyleFiles = directory => listFiles(directory, /\.styled\.ts$|GlobalStyle\.ts$/);
 
 /** Every `th.helper(key)` and `th('path')` call found in the style files, with its location. */
 const tokenUsages = listStyleFiles('src').flatMap(file =>
@@ -66,6 +67,17 @@ describe('theme', () => {
       ({ helper }) => helper && !(helper in NAMESPACE_BY_HELPER),
     );
     expect(unknownHelpers.map(({ call }) => call)).toEqual([]);
+  });
+
+  it('imports styled-components only through @xstyled/styled-components', () => {
+    const sourceFiles = listFiles('src', /\.(ts|tsx|js|jsx)$/).filter(
+      // Type-only augmentation of the styled-components module is allowed
+      file => !file.endsWith('styled.d.ts'),
+    );
+    // Built from parts so that this test file does not match its own pattern
+    const directImport = new RegExp("from '" + 'styled-components' + "'");
+    const directImports = sourceFiles.filter(file => directImport.test(readFileSync(file, 'utf8')));
+    expect(directImports).toEqual([]);
   });
 
   it('has no empty token', () => {

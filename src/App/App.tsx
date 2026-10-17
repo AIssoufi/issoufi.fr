@@ -1,5 +1,5 @@
 import { Route, BrowserRouter as Router, Routes } from 'react-router-dom';
-import { ThemeProvider } from 'styled-components';
+import { ThemeProvider } from '@xstyled/styled-components';
 
 import { Experiences, Home, NotFound, Projects } from '../pages';
 import { GlobalStyle, theme } from '../theme';

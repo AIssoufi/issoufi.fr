@@ -1,7 +1,5 @@
 import { Link } from 'react-router-dom';
-import styled from 'styled-components';
-
-import { th } from '@xstyled/styled-components';
+import styled, { th } from '@xstyled/styled-components';
 
 export const Container = styled.section`
   display: flex;

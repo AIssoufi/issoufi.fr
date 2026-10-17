@@ -1,6 +1,4 @@
-import { createGlobalStyle } from 'styled-components';
-
-import { th } from '@xstyled/styled-components';
+import { createGlobalStyle, th } from '@xstyled/styled-components';
 
 /** Base styles of the document (body, links, buttons, lists, icons), built from the tokens. */
 export const GlobalStyle = createGlobalStyle`

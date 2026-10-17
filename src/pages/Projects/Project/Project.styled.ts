@@ -1,6 +1,4 @@
-import styled, { css, keyframes } from 'styled-components';
-
-import { th } from '@xstyled/styled-components';
+import styled, { css, keyframes, th } from '@xstyled/styled-components';
 
 const heartPop = keyframes`
   0%   { transform: scale(1); }
