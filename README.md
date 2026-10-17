@@ -20,7 +20,7 @@
 ### Prerequisites
 
 - [Node.js](https://nodejs.org/) 24 (see `.nvmrc`)
-- [pnpm](https://pnpm.io/)
+- [pnpm](https://pnpm.io/) 10.34.7, pinned by the `packageManager` field of `package.json`. Any recent pnpm switches to this version automatically inside the project.
 
 ### Installation
 
@@ -52,9 +52,19 @@ pnpm test:watch    # Watch mode
 
 Tests are `*.spec.jsx` / `*.spec.ts` files next to the code they test. Every component has one.
 
+### Checks
+
+```bash
+pnpm typecheck      # Type-check without building
+pnpm format:check   # Check that every file follows the Prettier style
+pnpm format         # Format every file with Prettier
+```
+
+Staged files are formatted automatically on commit, so `pnpm format` is only needed for files changed outside git.
+
 ## 🌐 Deployment
 
-The site is deployed on [Cloudflare Pages](https://pages.cloudflare.com/) at [issoufi.fr](https://issoufi.fr/). Every push to `main` deploys to production. Other branches get a preview deployment.
+The site is deployed on [Cloudflare Pages](https://pages.cloudflare.com/) at [issoufi.fr](https://issoufi.fr/). Every push to `main` deploys to production. Other branches get a preview deployment, and `develop` is always available at [develop.issoufi-fr.pages.dev](https://develop.issoufi-fr.pages.dev/).
 
 | Setting                | Value                                                          |
 | ---------------------- | -------------------------------------------------------------- |
@@ -70,7 +80,8 @@ The site is deployed on [Cloudflare Pages](https://pages.cloudflare.com/) at [is
 - **One HTML file per page**: at build time, a Vite plugin (`vite.config.ts`) fills the `%PAGE_*%` placeholders of `index.html` and emits `projects.html` and `experiences.html` from the same template. Each page gets its own title, description and canonical URL, taken from the `meta` translations of `src/i18n/fr.ts`, so link previews and search engines get them without running JavaScript. Cloudflare Pages serves these files at `/projects` and `/experiences`. A new route needs an entry in `PAGES` (`src/utils/pages.ts`).
 - **Not found pages**: the plugin also emits `404.html`, with the "page not found" title and a `noindex` tag. Cloudflare Pages serves it with a real `404` status for any path that matches no file. The URL is kept, with no redirect, and the app shows its NotFound page. Because `404.html` exists, Cloudflare's single-page-app fallback is off, which is why every route needs its own HTML file.
 - **Years of experience**: the number in the generated HTML files is computed at build time from `CAREER_START_DATE` (`src/utils/career.ts`), so it only changes with a new build. The app itself computes it at runtime.
-- **Continuous integration**: the GitHub Actions workflow `.github/workflows/ci.yml` type-checks, tests and builds every push to `main` and every pull request. It does not deploy: Cloudflare Pages does.
+- **Continuous integration**: the GitHub Actions workflow `.github/workflows/ci.yml` checks the formatting, type-checks, tests and builds every push to `main` and `develop` and every pull request. On pull requests, it also checks the commit messages with commitlint (except Dependabot's) and runs GitHub's dependency review, which fails when a change brings in a dependency with a known vulnerability. Each job installs pnpm, Node.js and the dependencies with the composite action `.github/actions/setup`, which reads the versions from `package.json` and `.nvmrc` and caches the pnpm store. It does not deploy: Cloudflare Pages does.
+- **Dependency updates**: Dependabot (`.github/dependabot.yml`) opens weekly pull requests against `develop`: one for all minor and patch npm updates, one per major version, and one for the GitHub Actions. A release is only proposed once it is 7 days old. Security updates still target the default branch.
 - **Former address**: `https://aissoufi.github.io` is served by the [AIssoufi/AIssoufi.github.io](https://github.com/AIssoufi/AIssoufi.github.io) repository, which redirects every path to the same path on `https://issoufi.fr`.
 
 ## 📁 Project Structure
@@ -98,6 +109,7 @@ src/
 
 ## 📝 Conventions
 
+- **Branches**: `main` is production and `develop` the integration branch. Each ticket gets its own branch from `develop` (`feat/…`, `fix/…`, `ci/…`), merged back into `develop` by a pull request once the CI passes. A release is a pull request from `develop` to `main`.
 - **Commits**: [Conventional Commits](https://www.conventionalcommits.org/) enforced via commitlint
 - **Formatting**: Prettier (via lint-staged + husky)
 - **Language**: code, comments and docs are in English. Only user-facing texts are translated.

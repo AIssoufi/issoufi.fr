@@ -8,8 +8,11 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 pnpm dev          # Start dev server on http://localhost:3000
 pnpm build        # Type-check + production build (tsc && vite build)
 pnpm preview      # Preview production build
+pnpm typecheck    # Type-check only (tsc --noEmit)
 pnpm test         # Run tests once
 pnpm test:watch   # Run tests in watch mode
+pnpm format:check # Check Prettier formatting, as the CI does
+pnpm format       # Format every file with Prettier
 ```
 
 There is no lint command — formatting is handled automatically by Prettier via lint-staged on commit.
@@ -47,5 +50,6 @@ Sub-components get the same structure in their own folder inside their parent's 
 
 ## Conventions
 
+- **Branches**: `main` is production, `develop` the integration branch. Start every ticket branch from an up-to-date `develop` and open its pull request against `develop`. Only release pull requests from `develop` target `main`.
 - **Commits**: Conventional Commits enforced via commitlint + husky (`feat:`, `fix:`, `refactor:`, etc.)
 - **Formatting**: Prettier runs automatically on staged files via lint-staged — no manual formatting needed
