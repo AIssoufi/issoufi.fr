@@ -50,5 +50,6 @@ Sub-components get the same structure in their own folder inside their parent's 
 
 ## Conventions
 
+- **Branches**: `main` is production, `develop` the integration branch. Start every ticket branch from an up-to-date `develop` and open its pull request against `develop`. Only release pull requests from `develop` target `main`.
 - **Commits**: Conventional Commits enforced via commitlint + husky (`feat:`, `fix:`, `refactor:`, etc.)
 - **Formatting**: Prettier runs automatically on staged files via lint-staged — no manual formatting needed
