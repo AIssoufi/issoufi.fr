@@ -10,7 +10,7 @@
 | **Build**           | Vite 6                          |
 | **Language**        | TypeScript 5                    |
 | **Styling**         | styled-components 6 + xstyled 4 |
-| **Routing**         | React Router 7                  |
+| **Routing**         | React Router 8                  |
 | **i18n**            | i18next (French and English)    |
 | **Tests**           | Vitest 3 + Testing Library      |
 | **Package Manager** | pnpm                            |
