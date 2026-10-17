@@ -1,8 +1,26 @@
-import { readFileSync } from 'node:fs';
+import { readFileSync, statSync } from 'node:fs';
 
-import { PAGES, getPage, renderNotFoundHtml, renderPageHtml } from './pages';
+import { PAGES, SITE_URL, getPage, renderNotFoundHtml, renderPageHtml } from './pages';
 
 const [home, projects, experiences] = PAGES;
+
+/** Byte offsets of the width and height in a PNG file, inside its IHDR chunk. */
+const PNG_WIDTH_OFFSET = 16;
+const PNG_HEIGHT_OFFSET = 20;
+/** Largest link preview image WhatsApp reliably shows. */
+const OG_IMAGE_MAX_BYTES = 300_000;
+
+/** Parameters of {@link getMetaContent}. */
+interface GetMetaContentParams {
+  /** HTML document to search. */
+  html: string;
+  /** Open Graph property of the tag, e.g. `og:image`. */
+  property: string;
+}
+
+/** Reads the `content` of the `<meta property="…">` tag of an HTML document. */
+const getMetaContent = ({ html, property }: GetMetaContentParams) =>
+  html.match(new RegExp(`property="${property}"\\s+content="([^"]*)"`))?.[1];
 
 describe('getPage', () => {
   it('finds the page matching the path', () => {
@@ -53,6 +71,36 @@ describe('renderPageHtml', () => {
     PAGES.forEach(page =>
       expect(renderPageHtml({ template: html, page, years: 8 })).not.toMatch(/%PAGE_\w+%/),
     );
+  });
+});
+
+describe('Open Graph image of index.html', () => {
+  const html = readFileSync('index.html', 'utf-8');
+  const imageUrl = getMetaContent({ html, property: 'og:image' }) ?? '';
+  const imageFile = `public${imageUrl.replace(SITE_URL, '')}`;
+
+  it('points to a file of public/ served by the site', () => {
+    expect(imageUrl.startsWith(`${SITE_URL}/`)).toBe(true);
+    expect(statSync(imageFile).isFile()).toBe(true);
+  });
+
+  it('has the declared width and height', () => {
+    const png = readFileSync(imageFile);
+
+    expect(png.readUInt32BE(PNG_WIDTH_OFFSET)).toBe(
+      Number(getMetaContent({ html, property: 'og:image:width' })),
+    );
+    expect(png.readUInt32BE(PNG_HEIGHT_OFFSET)).toBe(
+      Number(getMetaContent({ html, property: 'og:image:height' })),
+    );
+  });
+
+  it('is light enough for every link preview', () => {
+    expect(statSync(imageFile).size).toBeLessThan(OG_IMAGE_MAX_BYTES);
+  });
+
+  it('describes the image for screen readers', () => {
+    expect(getMetaContent({ html, property: 'og:image:alt' })).toMatch(/ADAM Issoufi/);
   });
 });
 
