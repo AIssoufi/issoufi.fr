@@ -4,8 +4,10 @@ import { Btn, Indicator, Wrapper } from './LangToggle.styled';
 const LANGS = ['fr', 'en'] as const;
 
 /**
- * Floating FR/EN switch that changes the i18next language, with an indicator sliding under the
- * active language. The choice is not persisted: each visit starts in French.
+ * FR/EN switch that changes the i18next language, with an indicator sliding under the active
+ * language. Below the `tablet` breakpoint it sits horizontally in its parent's flow, the header
+ * row, so it never covers the page; from `tablet` up it floats vertically on the right edge of
+ * the screen. The choice is not persisted: each visit starts in French.
  */
 const LangToggle = () => {
   const { i18n } = useTranslation();

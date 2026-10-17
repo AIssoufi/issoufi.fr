@@ -1,13 +1,11 @@
 import styled, { th } from '@xstyled/styled-components';
 
+import { BUTTON_HEIGHT_PX, BUTTON_WIDTH_PX } from './constants';
+
 export const Wrapper = styled.div`
-  position: fixed;
-  right: 20px;
-  top: 50%;
-  transform: translateY(-50%);
-  z-index: ${th.zIndex('overlay')};
+  position: relative;
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   padding: ${th.space(4)};
   gap: ${th.space(4)};
   border-radius: ${th.radius(30)};
@@ -17,27 +15,42 @@ export const Wrapper = styled.div`
   -webkit-backdrop-filter: ${th('blurs.14')};
   box-shadow: ${th.shadow('card')};
   transition:
-    box-shadow 0.3s ease,
-    border-color 0.3s ease;
+    box-shadow ${th.duration(300)} ${th.timingFunction('standard')},
+    border-color ${th.duration(300)} ${th.timingFunction('standard')};
 
   &:hover {
     border-color: ${th.color('accent-a40')};
     box-shadow: ${th.shadow('accentHalo')};
   }
+
+  @media (min-width: ${th('screens.tablet')}) {
+    position: fixed;
+    right: ${th.space(20)};
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: ${th.zIndex('overlay')};
+    flex-direction: column;
+  }
 `;
 
 export const Indicator = styled.div<{ $index: number }>`
   position: absolute;
-  left: 4px;
-  right: 4px;
-  height: 32px;
+  top: ${th.space(4)};
+  left: ${th.space(4)};
+  box-sizing: border-box;
+  width: ${BUTTON_WIDTH_PX}px;
+  height: ${BUTTON_HEIGHT_PX}px;
   border-radius: ${th.radius(24)};
   background: ${th.color('accent-a35')};
   border: ${th.borderWidth('thin')} solid ${th.color('accent-a55')};
   box-shadow: ${th.shadow('accentGlowFaint')};
-  transform: translateY(${({ $index }) => $index * 36}px);
+  transform: translateX(calc(${({ $index }) => $index} * (100% + ${th.space(4)})));
   transition: transform ${th.duration(350)} ${th.timingFunction('spring')};
   pointer-events: none;
+
+  @media (min-width: ${th('screens.tablet')}) {
+    transform: translateY(calc(${({ $index }) => $index} * (100% + ${th.space(4)})));
+  }
 `;
 
 export const Btn = styled.button<{ $active: boolean }>`
@@ -46,8 +59,8 @@ export const Btn = styled.button<{ $active: boolean }>`
   background: none;
   border: none;
   cursor: pointer;
-  width: 36px;
-  height: 32px;
+  width: ${BUTTON_WIDTH_PX}px;
+  height: ${BUTTON_HEIGHT_PX}px;
   border-radius: ${th.radius(24)};
   font-size: ${th.fontSize(11)};
   font-weight: ${th.fontWeight('bold')};

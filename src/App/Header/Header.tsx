@@ -6,7 +6,7 @@ import BurgerMenu from './BurgerMenu';
 import LangToggle from './LangToggle';
 import NavMenu from './NavMenu';
 
-import { Container, Logo, Menu } from './Header.styled';
+import { Actions, Container, Logo, Menu } from './Header.styled';
 
 /**
  * Site header: the "AI" logo linking home, the language toggle, the navigation and, on mobile,
@@ -28,19 +28,21 @@ const Header = ({ testId }: HeaderProps) => {
       <Logo>
         <Link to="/">AI</Link>
       </Logo>
-      <LangToggle />
-      <Menu $isSticky={mobileMenuIsOpen}>
-        <NavMenu
-          items={items}
-          mobileMenuIsOpen={mobileMenuIsOpen}
-          onClick={() => setMobileMenuIsOpen(false)}
-        />
-        <BurgerMenu
-          isOpen={mobileMenuIsOpen}
-          onOpen={() => setMobileMenuIsOpen(true)}
-          onClose={() => setMobileMenuIsOpen(false)}
-        />
-      </Menu>
+      <Actions>
+        <LangToggle />
+        <Menu $isSticky={mobileMenuIsOpen}>
+          <NavMenu
+            items={items}
+            mobileMenuIsOpen={mobileMenuIsOpen}
+            onClick={() => setMobileMenuIsOpen(false)}
+          />
+          <BurgerMenu
+            isOpen={mobileMenuIsOpen}
+            onOpen={() => setMobileMenuIsOpen(true)}
+            onClose={() => setMobileMenuIsOpen(false)}
+          />
+        </Menu>
+      </Actions>
     </Container>
   );
 };
