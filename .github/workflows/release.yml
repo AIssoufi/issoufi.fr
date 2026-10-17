@@ -7,7 +7,6 @@ on:
 permissions:
   contents: write
   pull-requests: write
-  actions: write
 
 concurrency:
   group: release
@@ -20,16 +19,8 @@ jobs:
     steps:
       # Keeps a release pull request open against develop with the next version and its
       # CHANGELOG.md entry. Merging it tags the version and publishes a GitHub release.
-      - id: release
-        uses: googleapis/release-please-action@v5
+      - uses: googleapis/release-please-action@v5
         with:
           target-branch: develop
           config-file: release-please-config.json
           manifest-file: .release-please-manifest.json
-      # Pull requests updated with the GITHUB_TOKEN start no workflow, so the CI is dispatched on
-      # the release branch to give the release pull request its checks
-      - if: steps.release.outputs.pr
-        run: gh workflow run ci.yml --ref "$BRANCH" --repo "$GITHUB_REPOSITORY"
-        env:
-          GH_TOKEN: ${{ github.token }}
-          BRANCH: ${{ fromJSON(steps.release.outputs.pr).headBranchName }}

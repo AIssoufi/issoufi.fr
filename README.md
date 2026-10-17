@@ -107,7 +107,7 @@ The site is hosted on [Cloudflare Pages](https://pages.cloudflare.com/), in the 
 
 [`CHANGELOG.md`](CHANGELOG.md) is written by [release-please](https://github.com/googleapis/release-please) from the Conventional Commits, never by hand:
 
-1. Each push to `develop` updates a release pull request against `develop` (_chore: release x.y.z_), with the next version in `package.json` and the new `CHANGELOG.md` entry. The workflow `.github/workflows/release.yml` dispatches the CI on it, since a pull request updated by GitHub Actions starts no workflow on its own.
+1. Each push to `develop` updates a release pull request against `develop` (_chore: release x.y.z_), with the next version in `package.json` and the new `CHANGELOG.md` entry. The workflow `.github/workflows/release.yml` maintains it. GitHub Actions opens it, so GitHub may hold its CI like a first-time contributor's: click _Approve workflows to run_ on the pull request, since its checks are required to merge it.
 2. Merging it tags the version (`vX.Y.Z`) and publishes a GitHub release.
 3. A pull request from `develop` to `main` then puts the release in production.
 
