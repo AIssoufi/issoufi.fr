@@ -65,7 +65,7 @@ pnpm format:check   # Check that every file follows the Prettier style
 pnpm format         # Format every file with Prettier
 ```
 
-Staged files are formatted automatically on commit, so `pnpm format` is only needed for files changed outside git.
+On commit, a husky hook runs ESLint (with `--fix`) and then Prettier on the staged files, and stops the commit on a lint error. `pnpm format` is only needed for files changed outside git.
 
 ## 🌐 Deployment
 
