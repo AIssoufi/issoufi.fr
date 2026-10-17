@@ -1,7 +1,7 @@
 import { useTranslation } from 'react-i18next';
-import { Btn, Indicator, Wrapper } from './LangToggle.styled';
 
-const LANGS = ['fr', 'en'] as const;
+import { LANGS } from './constants';
+import { Btn, Indicator, Wrapper } from './LangToggle.styled';
 
 /**
  * FR/EN switch that changes the i18next language, with an indicator sliding under the active
@@ -12,10 +12,11 @@ const LANGS = ['fr', 'en'] as const;
 const LangToggle = () => {
   const { i18n } = useTranslation();
   const activeIndex = LANGS.indexOf(i18n.language as (typeof LANGS)[number]);
+  const isSupportedLanguage = activeIndex >= 0;
 
   return (
     <Wrapper>
-      <Indicator $index={activeIndex < 0 ? 0 : activeIndex} />
+      <Indicator $index={isSupportedLanguage ? activeIndex : 0} />
       {LANGS.map(lang => (
         <Btn
           key={lang}
