@@ -35,7 +35,7 @@ export const RoleItem = styled.li`
     content: '';
     position: absolute;
     left: -28px; /* 22px padding + 6px (half of 12px dot) */
-    top: 14px;
+    top: ${th.space(14)};
     width: 8px;
     height: 8px;
     border-radius: ${th.radius('circle')};

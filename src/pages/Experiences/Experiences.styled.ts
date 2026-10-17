@@ -34,9 +34,9 @@ export const Timeline = styled.div`
   &::before {
     content: '';
     position: absolute;
-    left: 5px;
-    top: 14px;
-    bottom: 14px;
+    left: ${th.space(5)};
+    top: ${th.space(14)};
+    bottom: ${th.space(14)};
     width: 2px;
     background: linear-gradient(
       to bottom,

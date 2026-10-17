@@ -22,7 +22,7 @@ export const companyBlock = css`
   &::before {
     ${timelineDot}
     left: -1px; /* centered on the line at left: 5px (5 - 6 = -1) */
-    top: 18px;
+    top: ${th.space(18)};
   }
 
   @media (min-width: ${th('screens.tablet')}) {
