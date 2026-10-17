@@ -74,8 +74,10 @@ const Project = ({ title, projects = [] }: ProjectProps) => {
   );
   const [animating, setAnimating] = useState<Set<number>>(new Set());
 
-  const handleLike = (id: number, e: React.MouseEvent) => {
-    e.stopPropagation();
+  const handleLike = ({ id, event }: { id: number; event: React.MouseEvent }) => {
+    // The card can be a link: liking must neither open it nor trigger the card's handlers
+    event.preventDefault();
+    event.stopPropagation();
     setLikes(prev => ({
       ...prev,
       [id]: {
@@ -166,7 +168,7 @@ const Project = ({ title, projects = [] }: ProjectProps) => {
                 <LikeButton
                   $liked={likes[id]?.liked ?? false}
                   $animating={animating.has(id)}
-                  onClick={e => handleLike(id, e)}
+                  onClick={event => handleLike({ id, event })}
                 >
                   <LikeIcon />
                   <LikeCount
