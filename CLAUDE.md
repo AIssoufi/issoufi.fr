@@ -7,6 +7,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ```bash
 pnpm dev          # Start dev server on http://localhost:3000
 pnpm build        # Type-check + production build (tsc && vite build)
+pnpm size         # After a build: fails over the gzip budget of scripts/ci/constants.mjs
 pnpm preview      # Preview production build
 pnpm typecheck    # Type-check only (tsc --noEmit)
 pnpm test         # Run tests once
