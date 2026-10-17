@@ -1,5 +1,5 @@
 import { Route, BrowserRouter as Router, Routes } from 'react-router-dom';
-import { Experiences, Home, Projects, Skills } from '../pages';
+import { Experiences, Home, Projects } from '../pages';
 import Header from './Header';
 import LangToggle from './LangToggle/LangToggle';
 
@@ -19,10 +19,6 @@ function App() {
           <Route
             path="/experiences"
             element={<Experiences />}
-          />
-          <Route
-            path="/skills"
-            element={<Skills />}
           />
           <Route
             path="/"

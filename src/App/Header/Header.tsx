@@ -15,7 +15,6 @@ const Header = ({ testId }: HeaderProps) => {
     { name: t('nav.home'), url: '/', end: true },
     { name: t('nav.projects'), url: '/projects' },
     { name: t('nav.experience'), url: '/experiences' },
-    { name: t('nav.skills'), url: '/skills' },
   ];
 
   return (

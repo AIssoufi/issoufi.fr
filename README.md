@@ -59,7 +59,6 @@ src/
 │   ├── Home/             # Landing page
 │   ├── Projects/         # Personal & freelance projects
 │   ├── Experiences/      # Work experience
-│   ├── Skills/           # Technical skills
 │   └── NotFound/         # 404 page
 └── index.tsx             # Entry point
 ```
