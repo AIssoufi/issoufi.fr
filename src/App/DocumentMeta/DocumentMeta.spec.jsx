@@ -1,5 +1,5 @@
 import { act, render } from '@testing-library/react';
-import { MemoryRouter } from 'react-router-dom';
+import { MemoryRouter } from 'react-router';
 
 import i18n from '../../i18n';
 import DocumentMeta from './DocumentMeta';

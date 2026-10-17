@@ -1,4 +1,4 @@
-import { Route, BrowserRouter as Router, Routes } from 'react-router-dom';
+import { Route, BrowserRouter as Router, Routes } from 'react-router';
 import { ThemeProvider } from '@xstyled/styled-components';
 
 import { Experiences, Home, NotFound, Projects } from '../pages';
