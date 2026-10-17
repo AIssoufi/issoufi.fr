@@ -15,8 +15,9 @@ describe('getPage', () => {
     expect(getPage('/projects/')).toBe(projects);
   });
 
-  it('falls back to the home page for unknown paths', () => {
-    expect(getPage('/skills')).toBe(home);
+  it('returns undefined for unknown paths', () => {
+    expect(getPage('/skills')).toBeUndefined();
+    expect(getPage('/projects/inconnu')).toBeUndefined();
   });
 });
 

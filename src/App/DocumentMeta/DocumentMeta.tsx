@@ -10,14 +10,15 @@ import { getPage } from '../../utils/pages';
  * route and language. Renders nothing; must be placed inside the router.
  *
  * @remarks
- * Unknown routes get the home page metadata. The years of experience are computed at runtime,
+ * Unknown routes get the "page not found" title and description, matching the NotFound page
+ * shown by the catch-all route. The years of experience are computed at runtime,
  * so they stay current between builds. The Open Graph and Twitter tags are left untouched:
  * link preview crawlers only read the static HTML generated at build time.
  */
 const DocumentMeta = () => {
   const { pathname } = useLocation();
   const { t, i18n } = useTranslation();
-  const { meta } = getPage(pathname);
+  const meta = getPage(pathname)?.meta ?? 'notFound';
 
   useEffect(() => {
     document.documentElement.lang = i18n.language;

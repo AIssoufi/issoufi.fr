@@ -7,11 +7,17 @@ describe('App', () => {
     window.history.pushState({}, '', '/');
   });
 
-  it('renders the not found page for unknown routes', () => {
-    window.history.pushState({}, '', '/page-inconnue');
-    render(<App />);
-    expect(screen.getByText('404')).toBeInTheDocument();
-  });
+  it.each(['/page-inconnue', '/skills', '/projects/inconnu', '/experiences/inconnu/2'])(
+    'shows the not found page at %s without redirecting',
+    path => {
+      window.history.pushState({}, '', path);
+      render(<App />);
+
+      expect(screen.getByText('404')).toBeInTheDocument();
+      expect(screen.getByText(`La page ${path} n'existe pas.`)).toBeInTheDocument();
+      expect(window.location.pathname).toBe(path);
+    },
+  );
 
   it('does not render the not found page for known routes', () => {
     window.history.pushState({}, '', '/experiences');

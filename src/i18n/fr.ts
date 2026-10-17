@@ -15,6 +15,21 @@ export const fr = {
       description:
         "Parcours professionnel d'ADAM Issoufi, développeur full-stack JavaScript : Sewan, Wibilong, Supralog et Beepeers.",
     },
+    notFound: {
+      title: 'Page introuvable - ADAM Issoufi',
+      description: "Cette page n'existe pas.",
+    },
+  },
+  errors: {
+    backHome: "Retour à l'accueil",
+    notFound: {
+      title: 'Page introuvable',
+      message: "La page {{path}} n'existe pas.",
+    },
+    forbidden: {
+      title: 'Accès refusé',
+      message: "Vous n'avez pas l'autorisation d'accéder à cette page.",
+    },
   },
   nav: {
     home: 'Accueil',

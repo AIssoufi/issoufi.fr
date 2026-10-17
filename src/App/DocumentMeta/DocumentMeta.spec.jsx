@@ -45,10 +45,11 @@ describe('DocumentMeta', () => {
     );
   });
 
-  it('falls back to the home page metadata for unknown pages', () => {
+  it('sets the not found metadata for unknown pages', () => {
     renderAt('/skills');
 
-    expect(document.title).toBe('ADAM Issoufi - Développeur full-stack JavaScript');
+    expect(document.title).toBe('Page introuvable - ADAM Issoufi');
+    expect(description()).toBe("Cette page n'existe pas.");
   });
 
   it('follows the language', async () => {
