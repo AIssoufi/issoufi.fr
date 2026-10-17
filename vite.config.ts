@@ -79,7 +79,7 @@ export default defineConfig(({ mode }) => {
       setupFiles: ['./src/setupTests.ts'],
       coverage: {
         provider: 'v8',
-        include: ['src/**/*.{ts,tsx}'],
+        include: ['src/**/*.{ts,tsx}', 'vite/**/*.ts'],
         // The entry point only mounts the app, which App.spec.jsx renders
         exclude: ['**/*.spec.*', '**/index.ts', '**/*.d.ts', 'src/setupTests.ts', 'src/index.tsx'],
         reporter: ['text', 'html', 'json-summary'],
