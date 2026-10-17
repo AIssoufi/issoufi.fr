@@ -1,6 +1,8 @@
+import { useTranslation } from 'react-i18next';
+
 import Project from '../Project';
 import Technologies from '../Technologies';
-import { computeDuration } from '../duration';
+import { computeDuration, formatDuration } from '../utils/duration';
 
 import {
   Article,
@@ -27,7 +29,7 @@ interface ExperienceProps {
   city?: string;
   /**
    * Start of the job as a month and a year, e.g. "sept. 2019" or "Sept. 2019".
-   * The duration is shown only when both dates are valid.
+   * The duration is shown, in the active language, only when both dates are valid.
    */
   startDate?: string;
   /** End of the job in the same format as `startDate`, or "Aujourd'hui" / "Present". */
@@ -61,8 +63,9 @@ const Experience = ({
   endDate,
   children,
 }: ExperienceProps) => {
+  const { t } = useTranslation();
   const details = [entityName, contractType, city].filter(Boolean).join(' · ');
-  const duration = computeDuration({ startDate, endDate });
+  const duration = formatDuration({ duration: computeDuration({ startDate, endDate }), t });
 
   return (
     <Article>

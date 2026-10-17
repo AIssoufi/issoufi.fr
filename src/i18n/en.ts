@@ -55,6 +55,13 @@ export const en = {
   exp: {
     pageTitle: 'Experience',
     today: 'Present',
+    duration: {
+      years_one: '{{count}} year',
+      years_other: '{{count}} years',
+      months_one: '{{count}} month',
+      months_other: '{{count}} months',
+      lessThanAMonth: '< 1 month',
+    },
     periods: {
       sewanStart: 'June 2021',
       sewanEnd: 'pres.',
