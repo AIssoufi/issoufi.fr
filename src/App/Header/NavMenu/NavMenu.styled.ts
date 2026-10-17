@@ -11,14 +11,7 @@ const fadeSlideIn = keyframes`
   }
 `;
 
-/**
- * Navigation container: hidden on mobile until opened as a blurred full-screen overlay,
- * always shown as a horizontal bar from `50em`.
- */
-export const Nav = styled.nav<{
-  /** Whether the mobile overlay is open. No effect from `50em`, where the bar is always shown. */
-  $mobileMenuIsOpen: boolean;
-}>`
+export const Nav = styled.nav<{ $mobileMenuIsOpen: boolean }>`
   display: none;
 
   ${props =>
@@ -48,7 +41,6 @@ export const Nav = styled.nav<{
   }
 `;
 
-/** List of the menu links: stacked in the mobile overlay, in a row on desktop. */
 export const NavList = styled.ul`
   display: flex;
   flex-direction: column;
@@ -62,10 +54,6 @@ export const NavList = styled.ul`
   }
 `;
 
-/**
- * One menu entry. Slides in with the mobile overlay; on desktop it grows on hover and
- * underlines the link that has the `active` class.
- */
 export const NavItem = styled.li`
   padding: 16px 48px;
   font-size: 28px;
@@ -133,10 +121,6 @@ export const NavItem = styled.li`
   }
 `;
 
-/**
- * Pill-shaped link used as the call-to-action button of the menu (CV download), with an
- * `.icon` and a `.text` child.
- */
 export const CtaButton = styled.a`
   border-radius: 60px;
   width: max-content;
