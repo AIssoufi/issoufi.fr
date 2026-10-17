@@ -5,15 +5,13 @@ import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
 import { join } from 'node:path';
 import { gzipSync } from 'node:zlib';
 
+import { DIST_DIR, LARGE_IMAGE_BYTES, PUBLIC_DIR, SCRIPT_BUDGET_GZIP_BYTES } from './constants.mjs';
 import {
-  ASSETS_SUBDIR,
-  DIST_DIR,
-  LARGE_IMAGE_BYTES,
-  PUBLIC_DIR,
-  SCRIPT_BUDGET_GZIP_BYTES,
-  SCRIPT_FILE_PATTERN,
-} from './constants.mjs';
-import { checkScriptBudget, findLargeImages, renderBundleReport } from './utils/bundle.mjs';
+  checkScriptBudget,
+  findLargeImages,
+  isBudgetedScript,
+  renderBundleReport,
+} from './utils/bundle.mjs';
 import { appendJobSummary } from './utils/job-summary.mjs';
 import { formatKilobytes } from './utils/numbers.mjs';
 
@@ -29,7 +27,7 @@ const files = readdirSync(DIST_DIR, { recursive: true })
   .map(({ path, stats }) => ({ path, bytes: stats.size }));
 
 const scripts = files
-  .filter(({ path }) => path.startsWith(`${ASSETS_SUBDIR}/`) && SCRIPT_FILE_PATTERN.test(path))
+  .filter(({ path }) => isBudgetedScript(path))
   .map(file => ({ ...file, gzipBytes: gzipSync(readFileSync(join(DIST_DIR, file.path))).length }));
 const largeImages = findLargeImages({ files, limitBytes: LARGE_IMAGE_BYTES });
 

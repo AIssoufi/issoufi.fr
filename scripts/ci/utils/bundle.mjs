@@ -1,5 +1,5 @@
 // @ts-check
-import { IMAGE_FILE_PATTERN } from '../constants.mjs';
+import { ASSETS_SUBDIR, IMAGE_FILE_PATTERN, SCRIPT_FILE_PATTERN } from '../constants.mjs';
 import { formatKilobytes, toNonNegativeNumber } from './numbers.mjs';
 
 /**
@@ -9,6 +9,22 @@ import { formatKilobytes, toNonNegativeNumber } from './numbers.mjs';
  * @property {number} bytes - Size on disk.
  * @property {number} [gzipBytes] - Size once compressed with gzip, for scripts and style sheets.
  */
+
+/**
+ * Tells whether a file of the build counts in the script budget: a script or a style sheet of
+ * the assets folder, where Vite writes the bundles. Source maps and other files do not count.
+ * @param {unknown} path - Path relative to the build folder, e.g. `assets/index-B7cJ.js`.
+ * @returns {boolean} Whether the file counts, false for a path that is not a string.
+ * @example
+ * isBudgetedScript('assets/index-B7cJ.css'); // true
+ * isBudgetedScript('assets/index-B7cJ.js.map'); // false
+ */
+export const isBudgetedScript = path => {
+  if (typeof path !== 'string') return false;
+
+  const isInAssets = path.startsWith(`${ASSETS_SUBDIR}/`);
+  return isInAssets && SCRIPT_FILE_PATTERN.test(path);
+};
 
 /**
  * Parameters of {@link checkScriptBudget}.

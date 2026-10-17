@@ -1,4 +1,35 @@
-import { checkScriptBudget, findLargeImages, renderBundleReport } from './bundle.mjs';
+import {
+  checkScriptBudget,
+  findLargeImages,
+  isBudgetedScript,
+  renderBundleReport,
+} from './bundle.mjs';
+
+describe('isBudgetedScript', () => {
+  it.each(['assets/x.js', 'assets/x.css', 'assets/nested/x.js'])('counts %s', path => {
+    expect(isBudgetedScript(path)).toBe(true);
+  });
+
+  it.each([
+    'x.js',
+    'x.css',
+    'assets/x.js.map',
+    'assets/x.png',
+    'assets/x.json',
+    'assets/',
+    'myassets/x.js',
+    'public/assets/x.js',
+  ])('leaves out %s', path => {
+    expect(isBudgetedScript(path)).toBe(false);
+  });
+
+  it.each([undefined, null, '', 42, {}, ['assets/x.js']])(
+    'leaves out the invalid path %s',
+    path => {
+      expect(isBudgetedScript(path)).toBe(false);
+    },
+  );
+});
 
 describe('checkScriptBudget', () => {
   it('adds up the gzip sizes', () => {
