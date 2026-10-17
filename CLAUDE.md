@@ -11,6 +11,7 @@ pnpm preview      # Preview production build
 pnpm typecheck    # Type-check only (tsc --noEmit)
 pnpm test         # Run tests once
 pnpm test:watch   # Run tests in watch mode
+pnpm test:coverage # Run tests with coverage; fails below COVERAGE_THRESHOLDS (vite.config.ts)
 pnpm format:check # Check Prettier formatting, as the CI does
 pnpm format       # Format every file with Prettier
 ```

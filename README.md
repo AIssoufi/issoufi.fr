@@ -46,11 +46,12 @@ pnpm preview   # Serve the production build locally
 ### Tests
 
 ```bash
-pnpm test          # Single run
-pnpm test:watch    # Watch mode
+pnpm test            # Single run
+pnpm test:watch      # Watch mode
+pnpm test:coverage   # Single run with coverage, HTML report in coverage/index.html
 ```
 
-Tests are `*.spec.jsx` / `*.spec.ts` files next to the code they test. Every component has one.
+Tests are `*.spec.jsx` / `*.spec.ts` files next to the code they test. Every component has one. `pnpm test:coverage` fails when the coverage of `src/` drops below the thresholds of `vite.config.ts` (`COVERAGE_THRESHOLDS`).
 
 ### Checks
 
@@ -80,7 +81,7 @@ The site is deployed on [Cloudflare Pages](https://pages.cloudflare.com/) at [is
 - **One HTML file per page**: at build time, a Vite plugin (`vite.config.ts`) fills the `%PAGE_*%` placeholders of `index.html` and emits `projects.html` and `experiences.html` from the same template. Each page gets its own title, description and canonical URL, taken from the `meta` translations of `src/i18n/fr.ts`, so link previews and search engines get them without running JavaScript. Cloudflare Pages serves these files at `/projects` and `/experiences`. A new route needs an entry in `PAGES` (`src/utils/pages.ts`).
 - **Not found pages**: the plugin also emits `404.html`, with the "page not found" title and a `noindex` tag. Cloudflare Pages serves it with a real `404` status for any path that matches no file. The URL is kept, with no redirect, and the app shows its NotFound page. Because `404.html` exists, Cloudflare's single-page-app fallback is off, which is why every route needs its own HTML file.
 - **Years of experience**: the number in the generated HTML files is computed at build time from `CAREER_START_DATE` (`src/utils/career.ts`), so it only changes with a new build. The app itself computes it at runtime.
-- **Continuous integration**: the GitHub Actions workflow `.github/workflows/ci.yml` checks the formatting, type-checks, tests and builds every push to `main` and `develop` and every pull request. On pull requests, it also checks the commit messages with commitlint (except Dependabot's) and runs GitHub's dependency review, which fails when a change brings in a dependency with a known vulnerability. Each job installs pnpm, Node.js and the dependencies with the composite action `.github/actions/setup`, which reads the versions from `package.json` and `.nvmrc` and caches the pnpm store. It does not deploy: Cloudflare Pages does.
+- **Continuous integration**: the GitHub Actions workflow `.github/workflows/ci.yml` checks the formatting, type-checks, tests and builds every push to `main` and `develop` and every pull request. The test job measures the coverage, adds its total to the job summary and keeps the HTML report as the `coverage` artifact for 14 days. The scripts behind these summaries live in `scripts/ci/`. On pull requests, it also checks the commit messages with commitlint (except Dependabot's) and runs GitHub's dependency review, which fails when a change brings in a dependency with a known vulnerability. Each job installs pnpm, Node.js and the dependencies with the composite action `.github/actions/setup`, which reads the versions from `package.json` and `.nvmrc` and caches the pnpm store. It does not deploy: Cloudflare Pages does.
 - **Dependency updates**: Dependabot (`.github/dependabot.yml`) opens weekly pull requests against `develop`: one for all minor and patch npm updates, one per major version, and one for the GitHub Actions. A release is only proposed once it is 7 days old. Security updates still target the default branch.
 - **Former address**: `https://aissoufi.github.io` is served by the [AIssoufi/AIssoufi.github.io](https://github.com/AIssoufi/AIssoufi.github.io) repository, which redirects every path to the same path on `https://issoufi.fr`.
 
