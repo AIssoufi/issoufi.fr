@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 
 import { ParticleField } from './ParticleField';
 import { SplitWords } from './SplitWords';
+import { BACKGROUND_IMAGE_URL } from './constants';
 import { useCursorFollower } from './hooks/useCursorFollower';
 import { useMagneticHover } from './hooks/useMagneticHover';
 import { useParallax } from './hooks/useParallax';
@@ -18,8 +19,6 @@ import {
   Subtitle,
   Title,
 } from './Home.styled';
-
-const BACKGROUND_IMAGE_URL = '/home.jpeg';
 
 /**
  * Home page: the animated job title and subtitle, with links to the projects and experiences
