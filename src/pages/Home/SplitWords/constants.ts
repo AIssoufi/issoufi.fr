@@ -40,5 +40,9 @@ export const MIN_VISIBLE_GLOW_PX = 0.5;
 
 /** Length of the shimmer animation cycle, in seconds; words start at staggered points of it. */
 export const SHIMMER_CYCLE_S = 5;
-/** Non-breaking space between words, so the title never wraps inside a word group. */
+/**
+ * Space that ends every word but the last, inside the word's `inline-block` box. It is
+ * non-breaking because a normal space at the end of an `inline-block` is dropped, which would glue
+ * the words together. It does not stop the title from wrapping between words.
+ */
 export const NON_BREAKING_SPACE = ' ';

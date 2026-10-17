@@ -10,11 +10,11 @@ pnpm build        # Type-check + production build (tsc && vite build)
 pnpm size         # After a build: fails over the gzip budget of scripts/ci/constants.mjs
 pnpm smoke-test <url> # After a build: checks that a deployed site serves the pages of dist/
 pnpm preview      # Preview production build on port 4173, or on PORT
-pnpm typecheck    # Type-check only (tsc --noEmit)
+pnpm typecheck    # Type-check only: src/, vite/ and vite.config.ts, then scripts/ (scripts/tsconfig.json)
 pnpm lint         # ESLint (eslint.config.js)
 pnpm test         # Run tests once
 pnpm test:watch   # Run tests in watch mode
-pnpm test:coverage # Run tests with coverage; fails below COVERAGE_THRESHOLDS (vite.config.ts)
+pnpm test:coverage # Run tests with coverage; fails below COVERAGE_THRESHOLDS_PERCENT (vite.config.ts)
 pnpm format:check # Check Prettier formatting, as the CI does
 pnpm format       # Format every file with Prettier
 ```
@@ -50,13 +50,13 @@ Sub-components get the same structure in their own folder inside their parent's 
 - SVGs are imported as React components via `vite-plugin-svgr`
 - Lottie animations use JSON files co-located with the component
 
-**Tests**: Vitest + Testing Library. Test files are `*.spec.jsx`, co-located with their component. Setup file at `src/setupTests.ts` extends Vitest with `@testing-library/jest-dom`. Components that need routing must be wrapped with `<BrowserRouter>` in tests.
+**Tests**: Vitest + Testing Library. Test files are co-located with the code they test: `*.spec.jsx` for components, `*.spec.ts` for helpers and hooks, `*.spec.js` for the CI helpers of `scripts/ci/utils/`. Setup file at `src/setupTests.ts` extends Vitest with `@testing-library/jest-dom`. Components that need routing must be wrapped with `<BrowserRouter>` in tests.
 
-**CI and deployment**: `.github/workflows/ci.yml` checks formatting, lint, types, tests with coverage thresholds and the bundle size, builds, then deploys the `dist` artifact to Cloudflare Pages (project `issoufi-fr`) with Wrangler and smoke-tests it: `main` goes to production at issoufi.fr, any other branch to a preview. Cloudflare's own automatic builds are paused. The helpers of the CI scripts are in `scripts/ci/utils.mjs`, with tests.
+**CI and deployment**: `.github/workflows/ci.yml` checks formatting, lint, types (`src/` and `scripts/`), tests with coverage thresholds and the bundle size, builds, then deploys the `dist` artifact to Cloudflare Pages (project `issoufi-fr`) with Wrangler and smoke-tests it: `main` goes to production at issoufi.fr, any other branch to a preview. On pull requests, it also checks the commit messages with commitlint (except Dependabot's) and runs GitHub's dependency review. Cloudflare's own automatic builds are paused. `.github/workflows/rebuild.yml` reruns the CI on `main` on the first day of every month, so the years of experience written in the HTML files stay right, and `release.yml` maintains the release-please pull request. The helpers of the CI scripts are in `scripts/ci/utils/`, one file per topic (`bundle.mjs`, `coverage.mjs`, `pages.mjs`, `job-summary.mjs`, `lists.mjs`, `numbers.mjs`), each with its tests.
 
 ## Conventions
 
-- **Branches**: `main` is production, `develop` the integration and default branch. A ruleset refuses direct pushes to both: every change goes through a pull request with passing checks. Work on each ticket in its own Worktrunk worktree, on a branch named after the ticket reference (`ISF-35`, from the `ISF-` autolink to the issues), started from an up-to-date `develop`: `wt switch --create ISF-35 --base develop`. Open its pull request against `develop` with `Closes #35`. Only release pull requests from `develop` target `main`.
+- **Branches**: `main` is production, `develop` the integration and default branch. A ruleset refuses direct pushes to both: every change goes through a pull request with passing checks. Work on each ticket in its own Worktrunk worktree, on a branch named after the ticket reference (`ISF-35`, from the `ISF-` autolink to the issues). Start it with the `ticket-worktree` skill (`ticket.mjs start ISF-35`), which fetches `develop` and branches from `origin/develop`, rather than with a bare `wt switch --create`. Open its pull request against `develop` with `Closes #35`. Only release pull requests from `develop` target `main`.
 - **Ports**: when a worktree is created, `.config/wt.toml` writes `PORT=<port>` to its `.env.local`, a port derived from the branch (10000–19999). `vite.config.ts` reads it with `getServerPorts` (`vite/utils.ts`) for both `pnpm dev` and `pnpm preview`, so read a worktree's port in its `.env.local` rather than assuming 3000. Without `PORT`, as in the main checkout, they use 3000 and 4173. A taken port stops the server with an error (`strictPort`) instead of moving it to another port, and `BROWSER=none` stops Vite from opening the browser.
 - **Commits**: Conventional Commits enforced via commitlint + husky (`feat:`, `fix:`, `refactor:`, etc.). They set the next version and `CHANGELOG.md`, which release-please writes: never edit the changelog by hand, and use `feat`/`fix` only for changes a visitor of the site would notice, since those appear in it.
 - **Formatting and linting**: on commit, lint-staged runs `eslint --fix` then Prettier on staged files, one after the other (`--concurrent false`, as both write the same files). A lint error stops the commit.
