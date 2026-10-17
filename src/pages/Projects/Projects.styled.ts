@@ -1,8 +1,6 @@
-import styled from 'styled-components';
+import styled, { th } from '@xstyled/styled-components';
 
 import { Page } from '../../App/App.styled';
-
-import { th } from '@xstyled/styled-components';
 
 export const ProjectsPage = styled(Page)`
   padding-left: 0;

@@ -1,6 +1,4 @@
-import styled, { css } from 'styled-components';
-
-import { th } from '@xstyled/styled-components';
+import styled, { css, th } from '@xstyled/styled-components';
 
 export const Container = styled.header`
   display: flex;

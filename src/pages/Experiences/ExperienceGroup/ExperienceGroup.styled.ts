@@ -1,6 +1,4 @@
-import styled from 'styled-components';
-
-import { th } from '@xstyled/styled-components';
+import styled, { th } from '@xstyled/styled-components';
 
 /* ── Group wrapper — participates directly in Timeline ─────── */
 

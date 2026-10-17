@@ -1,6 +1,4 @@
-import styled from 'styled-components';
-
-import { th } from '@xstyled/styled-components';
+import styled, { th } from '@xstyled/styled-components';
 
 export const Container = styled.div`
   margin-top: ${th.space(10)};
