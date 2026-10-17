@@ -5,14 +5,13 @@ import { Experiences, Home, NotFound, Projects } from '../pages';
 import { GlobalStyle, theme } from '../theme';
 import DocumentMeta from './DocumentMeta';
 import Header from './Header';
-import LangToggle from './LangToggle/LangToggle';
 
 import { WebApp } from './App.styled';
 
 /**
  * Root of the application: the design-token theme and global styles, the router, the header,
- * the language toggle, the document metadata and the routes. Unknown paths render
- * {@link NotFound} at the requested URL, without redirecting.
+ * the document metadata and the routes. Unknown paths render {@link NotFound} at the requested
+ * URL, without redirecting.
  */
 function App() {
   return (
@@ -22,7 +21,6 @@ function App() {
         <DocumentMeta />
         <WebApp data-testid="app">
           <Header />
-          <LangToggle />
           <Routes>
             <Route
               path="/projects"
