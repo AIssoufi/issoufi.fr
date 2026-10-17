@@ -10,11 +10,12 @@ export const ASSETS_SUBDIR = 'assets';
 export const PUBLIC_DIR = 'public';
 
 /**
- * Maximum gzip size, in bytes, of all the scripts and style sheets of the build together.
- * The single bundle weighed 225 kB in October 2026. Lower the budget once it is split per route
- * (issue #27).
+ * Maximum gzip size, in bytes, of all the scripts and style sheets of the build together, every
+ * chunk included. In October 2026, once split per route (issue #27), they weighed 188.8 kB, of
+ * which 131.2 kB in the main chunk, down from a single bundle of 225.3 kB. The margin leaves room
+ * for React 19.3, which adds about 9.3 kB.
  */
-export const SCRIPT_BUDGET_GZIP_BYTES = 250_000;
+export const SCRIPT_BUDGET_GZIP_BYTES = 210_000;
 
 /** Size, in bytes, above which an image of the build is reported as worth compressing. */
 export const LARGE_IMAGE_BYTES = 500_000;
