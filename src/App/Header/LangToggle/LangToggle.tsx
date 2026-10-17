@@ -1,6 +1,8 @@
 import { useTranslation } from 'react-i18next';
 
-import { LANGS, LANGUAGE_NAMES } from './constants';
+import { LANGUAGES } from '../../../i18n/constants';
+import type { Language } from '../../../i18n/types';
+import { LANGUAGE_NAMES } from './constants';
 import { Btn, Indicator, Wrapper } from './LangToggle.styled';
 
 /**
@@ -15,7 +17,7 @@ import { Btn, Indicator, Wrapper } from './LangToggle.styled';
  */
 const LangToggle = () => {
   const { i18n, t } = useTranslation();
-  const activeIndex = LANGS.indexOf(i18n.language as (typeof LANGS)[number]);
+  const activeIndex = LANGUAGES.indexOf(i18n.language as Language);
   const isSupportedLanguage = activeIndex >= 0;
 
   return (
@@ -24,7 +26,7 @@ const LangToggle = () => {
       aria-label={t('langToggle.label')}
     >
       <Indicator $index={isSupportedLanguage ? activeIndex : 0} />
-      {LANGS.map(lang => {
+      {LANGUAGES.map(lang => {
         const isActive = i18n.language === lang;
 
         return (
