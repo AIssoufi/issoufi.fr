@@ -37,6 +37,9 @@ export const en = {
     projects: 'Projects',
     experience: 'Experience',
   },
+  langToggle: {
+    label: 'Language',
+  },
   home: {
     title1: 'Full-stack JavaScript Developer',
     title2Pre: 'passionate about ',
