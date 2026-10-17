@@ -27,7 +27,11 @@ describe('Header', () => {
     expect(screen.getByText('Accueil')).toBeInTheDocument();
     expect(screen.getByText('Projets')).toBeInTheDocument();
     expect(screen.getByText('Expériences')).toBeInTheDocument();
-    expect(screen.getByText('Compétences')).toBeInTheDocument();
+  });
+
+  it('does not render a skills nav item', () => {
+    renderHeader();
+    expect(screen.queryByText('Compétences')).not.toBeInTheDocument();
   });
 
   it('renders the CV button', () => {
@@ -40,7 +44,6 @@ describe('Header', () => {
     expect(screen.getByText('Accueil').closest('a')).toHaveAttribute('href', '/');
     expect(screen.getByText('Projets').closest('a')).toHaveAttribute('href', '/projects');
     expect(screen.getByText('Expériences').closest('a')).toHaveAttribute('href', '/experiences');
-    expect(screen.getByText('Compétences').closest('a')).toHaveAttribute('href', '/skills');
   });
 
   it('renders CV link pointing to the PDF', () => {

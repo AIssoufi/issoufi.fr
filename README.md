@@ -17,7 +17,7 @@
 
 ### Prerequisites
 
-- [Node.js](https://nodejs.org/) (LTS recommended)
+- [Node.js](https://nodejs.org/) 24 (see `.nvmrc`)
 - [pnpm](https://pnpm.io/)
 
 ### Installation
@@ -48,6 +48,25 @@ pnpm test          # Single run
 pnpm test:watch    # Watch mode
 ```
 
+## 🌐 Deployment
+
+The site is deployed on [Cloudflare Pages](https://pages.cloudflare.com/) at [issoufi.fr](https://issoufi.fr/).
+
+| Setting                | Value                                                          |
+| ---------------------- | -------------------------------------------------------------- |
+| Production branch      | `main`                                                         |
+| Framework preset       | None                                                           |
+| Root directory         | `/` (default)                                                  |
+| Build command          | `pnpm build`                                                   |
+| Build output directory | `dist`                                                         |
+| Node.js version        | `24`, read from `.nvmrc`                                       |
+| Package manager        | pnpm, detected from `pnpm-lock.yaml`                           |
+| Environment variables  | `PNPM_VERSION=10.34.7` (same major version as the CI, pnpm 10) |
+
+- **One HTML file per page**: at build time, a Vite plugin (`vite.config.ts`) fills the `%PAGE_*%` placeholders of `index.html` and emits `projects.html` and `experiences.html` from the same template. Each page gets its own title, description and canonical URL, taken from the `meta` translations of `src/i18n/fr.ts`, so link previews and search engines get them without running JavaScript. Cloudflare Pages serves these files at `/projects` and `/experiences`. A new route needs an entry in `PAGES` (`src/utils/pages.ts`).
+- **Single-page application**: `dist` must not contain a top-level `404.html`. Without it, Cloudflare Pages serves `index.html` for any path that matches no file.
+- **Years of experience**: the number in the generated HTML files is computed at build time from `CAREER_START_DATE` (`src/utils/career.ts`), so it only changes with a new build. The app itself computes it at runtime.
+
 ## 📁 Project Structure
 
 ```
@@ -59,7 +78,6 @@ src/
 │   ├── Home/             # Landing page
 │   ├── Projects/         # Personal & freelance projects
 │   ├── Experiences/      # Work experience
-│   ├── Skills/           # Technical skills
 │   └── NotFound/         # 404 page
 └── index.tsx             # Entry point
 ```

@@ -1,9 +1,25 @@
 export const fr = {
+  meta: {
+    home: {
+      title: 'ADAM Issoufi - Développeur full-stack JavaScript',
+      description:
+        "Développeur full-stack JavaScript avec {{years}} ans d'expérience, spécialisé React.",
+    },
+    projects: {
+      title: 'Projets - ADAM Issoufi',
+      description:
+        "Projets personnels et freelance d'ADAM Issoufi, développeur full-stack JavaScript.",
+    },
+    experiences: {
+      title: 'Expériences - ADAM Issoufi',
+      description:
+        "Parcours professionnel d'ADAM Issoufi, développeur full-stack JavaScript : Sewan, Wibilong, Supralog et Beepeers.",
+    },
+  },
   nav: {
     home: 'Accueil',
     projects: 'Projets',
     experience: 'Expériences',
-    skills: 'Compétences',
   },
   home: {
     title1: 'Développeur full-stack JavaScript',
@@ -125,28 +141,5 @@ export const fr = {
         'Développement React avec intégration billetterie (Fasticket) et paiement CB (WeezeEvent)',
       proj1B3: 'Maintenance des sites existants en AngularJS',
     },
-  },
-  skills: {
-    webTitle: 'Compétences web',
-    othersTitle: 'Autres compétences',
-    frontend: 'Front-end',
-    frontendDuration: '7 ans et 9 mois',
-    backend: 'Back-end',
-    backendDuration: '4 ans et 3 mois',
-    projectManagement: 'Méthode de gestion de projet',
-    projectManagementDuration: '4 ans et 7 mois',
-    uiDesign: 'UI Design',
-    uxDesign: 'UX Design',
-    oop: 'Programmation orienté objet',
-    uml: 'UML',
-    designPatterns: 'Design patterns',
-    experienceSuffix: "d'expériences professionnelles",
-    noExperience: "Pas d'expériences professionnelles",
-    proProjects_one: '{{count}} projet professionnel',
-    proProjects_other: '{{count}} projets professionnels',
-    noProProjects: 'Pas de projet professionnel',
-    personalProjects_one: '{{count}} projet personnel',
-    personalProjects_other: '{{count}} projets personnels',
-    noPersonalProjects: 'Pas de projet personnel',
   },
 } as const;

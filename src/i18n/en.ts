@@ -1,9 +1,25 @@
 export const en = {
+  meta: {
+    home: {
+      title: 'ADAM Issoufi - Full-stack JavaScript Developer',
+      description:
+        'Full-stack JavaScript developer with {{years}} years of experience, specializing in React.',
+    },
+    projects: {
+      title: 'Projects - ADAM Issoufi',
+      description:
+        'Personal and freelance projects by ADAM Issoufi, full-stack JavaScript developer.',
+    },
+    experiences: {
+      title: 'Experience - ADAM Issoufi',
+      description:
+        'Professional background of ADAM Issoufi, full-stack JavaScript developer: Sewan, Wibilong, Supralog and Beepeers.',
+    },
+  },
   nav: {
     home: 'Home',
     projects: 'Projects',
     experience: 'Experience',
-    skills: 'Skills',
   },
   home: {
     title1: 'Full-stack JavaScript Developer',
@@ -125,28 +141,5 @@ export const en = {
         'React development with ticketing integration (Fasticket) and card payment (WeezeEvent)',
       proj1B3: 'Maintenance of existing AngularJS websites',
     },
-  },
-  skills: {
-    webTitle: 'Web skills',
-    othersTitle: 'Other skills',
-    frontend: 'Front-end',
-    frontendDuration: '7 years and 9 months',
-    backend: 'Back-end',
-    backendDuration: '4 years and 3 months',
-    projectManagement: 'Project management',
-    projectManagementDuration: '4 years and 7 months',
-    uiDesign: 'UI Design',
-    uxDesign: 'UX Design',
-    oop: 'Object-Oriented Programming',
-    uml: 'UML',
-    designPatterns: 'Design patterns',
-    experienceSuffix: 'of professional experience',
-    noExperience: 'No professional experience',
-    proProjects_one: '{{count}} professional project',
-    proProjects_other: '{{count}} professional projects',
-    noProProjects: 'No professional project',
-    personalProjects_one: '{{count}} personal project',
-    personalProjects_other: '{{count}} personal projects',
-    noPersonalProjects: 'No personal project',
   },
 } as const;
