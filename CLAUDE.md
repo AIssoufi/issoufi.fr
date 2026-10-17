@@ -8,6 +8,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 pnpm dev          # Start dev server on http://localhost:3000
 pnpm build        # Type-check + production build (tsc && vite build)
 pnpm size         # After a build: fails over the gzip budget of scripts/ci/constants.mjs
+pnpm smoke-test <url> # After a build: checks that a deployed site serves the pages of dist/
 pnpm preview      # Preview production build
 pnpm typecheck    # Type-check only (tsc --noEmit)
 pnpm lint         # ESLint (eslint.config.js)

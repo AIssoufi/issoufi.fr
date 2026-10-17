@@ -42,9 +42,12 @@ The app will be available at [http://localhost:3000](http://localhost:3000).
 pnpm build     # Type-check, then build to dist/
 pnpm size      # Check the size of dist/ (run it after pnpm build)
 pnpm preview   # Serve the production build locally
+pnpm smoke-test https://issoufi.fr   # Check that a deployed site serves the pages of dist/
 ```
 
 `pnpm size` fails when the scripts and style sheets of the build exceed 250 kB gzip, and warns about images over 500 kB. Both limits are in `scripts/ci/constants.mjs`.
+
+`pnpm smoke-test <site URL>` requests every page of `dist/` on the site, plus an unknown path, and fails unless each answers with the expected status (200, or 404 for the unknown path) and the title and canonical URL of the build. It retries for about 20 seconds while a new deployment spreads.
 
 ### Tests
 
