@@ -39,4 +39,16 @@ describe('Home', () => {
       '/experiences',
     );
   });
+
+  it('fits the buttons to narrow screens instead of widening the page', () => {
+    // jsdom applies no media query, so these are the mobile styles
+    renderHome();
+
+    screen.getAllByRole('link').forEach(link => {
+      const style = getComputedStyle(link);
+      expect(style.width).not.toBe('max-content');
+      expect(style.minWidth).not.toBe('240px');
+      expect(style.textAlign).toBe('center');
+    });
+  });
 });
