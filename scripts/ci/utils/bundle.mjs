@@ -11,6 +11,25 @@ import { formatKilobytes, toNonNegativeNumber } from './numbers.mjs';
  */
 
 /**
+ * Tells whether an entry of a list of build files can be reported: an object with a path.
+ * Only the path is checked: the sizes may still be invalid, so read them with
+ * {@link toNonNegativeNumber} or {@link formatKilobytes}, which turn a bad size into 0.
+ * @param {unknown} value - Entry to check.
+ * @returns {value is BuildFile} False for `null`, a value that is not an object, and an object
+ * without a path or with an empty one.
+ * @example
+ * isBuildFile({ path: 'chess.png', bytes: 928_988 }); // true
+ * isBuildFile({ bytes: 928_988 }); // false
+ */
+export const isBuildFile = value => {
+  const isObject = typeof value === 'object' && value !== null;
+  if (!isObject) return false;
+
+  const hasPath = 'path' in value && typeof value.path === 'string' && value.path !== '';
+  return hasPath;
+};
+
+/**
  * Tells whether a file of the build counts in the script budget: a script or a style sheet of
  * the assets folder, where Vite writes the bundles. Source maps and other files do not count.
  * @param {unknown} path - Path relative to the build folder, e.g. `assets/index-B7cJ.js`.
@@ -86,8 +105,10 @@ export const checkScriptBudget = ({ scripts = [], budgetBytes }) => {
  * }); // [{ path: 'chess.png', bytes: 928_988 }]
  */
 export const findLargeImages = ({ files = [], limitBytes }) => {
-  const isLargeImage = (/** @type {BuildFile} */ file) =>
-    IMAGE_FILE_PATTERN.test(file?.path ?? '') && toNonNegativeNumber(file.bytes) > limitBytes;
+  const isLargeImage = (/** @type {unknown} */ file) =>
+    isBuildFile(file) &&
+    IMAGE_FILE_PATTERN.test(file.path) &&
+    toNonNegativeNumber(file.bytes) > limitBytes;
 
   return files.filter(isLargeImage).sort((a, b) => b.bytes - a.bytes);
 };
@@ -105,6 +126,7 @@ export const findLargeImages = ({ files = [], limitBytes }) => {
 /**
  * Writes the size report of the build as Markdown, for the job summary: the gzip size of each
  * script and style sheet, the total against the budget, and the images over the size limit.
+ * Entries that are not build files (see {@link isBuildFile}) are left out, of the total too.
  * @param {RenderBundleReportParams} params
  * @returns {string} The Markdown report.
  * @throws {RangeError} When the budget is not a positive number, like {@link checkScriptBudget}.
@@ -124,16 +146,21 @@ export const renderBundleReport = ({
   largeImages = [],
   largeImageBytes,
 }) => {
-  const { totalGzipBytes, isOverBudget } = checkScriptBudget({ scripts, budgetBytes });
+  const listedScripts = scripts.filter(isBuildFile);
+  const listedImages = largeImages.filter(isBuildFile);
+  const { totalGzipBytes, isOverBudget } = checkScriptBudget({
+    scripts: listedScripts,
+    budgetBytes,
+  });
   const verdict = isOverBudget ? '❌ Over budget' : '✅ Within budget';
-  const hasLargeImages = largeImages.length > 0;
+  const hasLargeImages = listedImages.length > 0;
 
   const lines = [
     '## Bundle size',
     '',
     '| File | Size | Gzip |',
     '| --- | ---: | ---: |',
-    ...scripts.map(
+    ...listedScripts.map(
       ({ path, bytes, gzipBytes }) =>
         `| \`${path}\` | ${formatKilobytes(bytes)} | ${formatKilobytes(gzipBytes)} |`,
     ),
@@ -149,7 +176,7 @@ export const renderBundleReport = ({
       '',
       '| Image | Size |',
       '| --- | ---: |',
-      ...largeImages.map(({ path, bytes }) => `| \`${path}\` | ${formatKilobytes(bytes)} |`),
+      ...listedImages.map(({ path, bytes }) => `| \`${path}\` | ${formatKilobytes(bytes)} |`),
     );
   }
 

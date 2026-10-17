@@ -2,8 +2,34 @@ import {
   checkScriptBudget,
   findLargeImages,
   isBudgetedScript,
+  isBuildFile,
   renderBundleReport,
 } from './bundle.mjs';
+
+describe('isBuildFile', () => {
+  it.each([
+    { path: 'chess.png', bytes: 928_988 },
+    { path: 'assets/index.js', bytes: 788_320, gzipBytes: 224_940 },
+    { path: 'a.png' },
+  ])('accepts %o', value => {
+    expect(isBuildFile(value)).toBe(true);
+  });
+
+  it.each([
+    undefined,
+    null,
+    'chess.png',
+    42,
+    [],
+    {},
+    { bytes: 900 },
+    { path: '' },
+    { path: 42 },
+    { path: null },
+  ])('rejects %o', value => {
+    expect(isBuildFile(value)).toBe(false);
+  });
+});
 
 describe('isBudgetedScript', () => {
   it.each(['assets/x.js', 'assets/x.css', 'assets/nested/x.js'])('counts %s', path => {
@@ -144,6 +170,47 @@ describe('renderBundleReport', () => {
   it('leaves out the image section when no image is too large', () => {
     const report = renderBundleReport({ scripts, budgetBytes: 250_000, largeImageBytes: 500_000 });
     expect(report).not.toContain('Images over');
+  });
+
+  it('leaves out the entries that are not build files, from the total too', () => {
+    const report = renderBundleReport({
+      scripts: [null, 'assets/x.js', { bytes: 9_000, gzipBytes: 5_000 }, ...scripts],
+      budgetBytes: 250_000,
+      largeImages: [null, { bytes: 900_000 }, { path: '', bytes: 900_000 }],
+      largeImageBytes: 500_000,
+    });
+    expect(report).toBe(
+      [
+        '## Bundle size',
+        '',
+        '| File | Size | Gzip |',
+        '| --- | ---: | ---: |',
+        '| `assets/index-abc.js` | 788.3 kB | 224.9 kB |',
+        '| **Total** | | **224.9 kB** |',
+        '',
+        '✅ Within budget: 224.9 kB gzip for a budget of 250.0 kB.',
+        '',
+      ].join('\n'),
+    );
+  });
+
+  it('lists the valid large images next to malformed ones', () => {
+    const report = renderBundleReport({
+      scripts,
+      budgetBytes: 250_000,
+      largeImages: [null, { path: 'chess.png', bytes: 928_988 }, { bytes: 900_000 }],
+      largeImageBytes: 500_000,
+    });
+    expect(report).toContain(
+      ['| Image | Size |', '| --- | ---: |', '| `chess.png` | 929.0 kB |', ''].join('\n'),
+    );
+    expect(report).not.toContain('undefined');
+  });
+
+  it.each([0, -1, NaN, undefined])('throws for the invalid budget %s', budgetBytes => {
+    expect(() => renderBundleReport({ scripts, budgetBytes, largeImageBytes: 500_000 })).toThrow(
+      RangeError,
+    );
   });
 
   it('reports a total of 0 without scripts', () => {
