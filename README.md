@@ -103,6 +103,16 @@ The site is hosted on [Cloudflare Pages](https://pages.cloudflare.com/), in the 
 - **Dependency updates**: Dependabot (`.github/dependabot.yml`) opens weekly pull requests against `develop`: one for all minor and patch npm updates, one per major version, and one for the GitHub Actions. A release is only proposed once it is 7 days old. Security updates still target the default branch.
 - **Former address**: `https://aissoufi.github.io` is served by the [AIssoufi/AIssoufi.github.io](https://github.com/AIssoufi/AIssoufi.github.io) repository, which redirects every path to the same path on `https://issoufi.fr`.
 
+## 🏷 Releases
+
+[`CHANGELOG.md`](CHANGELOG.md) is written by [release-please](https://github.com/googleapis/release-please) from the Conventional Commits, never by hand:
+
+1. Each push to `develop` updates a release pull request against `develop` (_chore: release x.y.z_), with the next version in `package.json` and the new `CHANGELOG.md` entry. The workflow `.github/workflows/release.yml` dispatches the CI on it, since a pull request updated by GitHub Actions starts no workflow on its own.
+2. Merging it tags the version (`vX.Y.Z`) and publishes a GitHub release.
+3. A pull request from `develop` to `main` then puts the release in production.
+
+The version follows the commits: `fix` bumps the patch version, `feat` the minor version, and a breaking change (`feat!:` or a `BREAKING CHANGE:` footer) the major version. The changelog lists features, fixes, performance improvements, reverts, refactors and documentation; `build`, `ci`, `test`, `style` and `chore` commits stay out of it (`release-please-config.json`). It starts with the React 19 and Vite rewrite of March 2026.
+
 ## 📁 Project Structure
 
 ```
@@ -129,7 +139,7 @@ src/
 ## 📝 Conventions
 
 - **Branches**: `main` is production and `develop` the integration branch. Each ticket gets its own branch from `develop` (`feat/…`, `fix/…`, `ci/…`), merged back into `develop` by a pull request once the CI passes. A release is a pull request from `develop` to `main`.
-- **Commits**: [Conventional Commits](https://www.conventionalcommits.org/) enforced via commitlint
+- **Commits**: [Conventional Commits](https://www.conventionalcommits.org/) enforced via commitlint. They also set the next version and the changelog (see Releases).
 - **Linting**: ESLint (`eslint.config.js`) with the recommended rules of ESLint and typescript-eslint, React Hooks (including the React Compiler rules) and React Refresh. It also forbids importing `styled-components` directly.
 - **Formatting**: Prettier (via lint-staged + husky)
 - **Language**: code, comments and docs are in English. Only user-facing texts are translated.
