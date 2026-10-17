@@ -45,7 +45,7 @@ const pageMeta = (): Plugin => {
  * under the coverage of October 2026 (98% of lines, 97.3% of branches, 91.5% of functions), so a
  * change that drops tests fails the CI. Raise them when the coverage goes up.
  */
-const COVERAGE_THRESHOLDS = { lines: 95, statements: 95, branches: 95, functions: 85 };
+const COVERAGE_THRESHOLDS_PERCENT = { lines: 95, statements: 95, branches: 95, functions: 85 };
 
 /**
  * Vite and Vitest configuration: React with SVG components, the page metadata plugin, the dev
@@ -69,7 +69,7 @@ export default defineConfig({
       // The entry point only mounts the app, which App.spec.jsx renders
       exclude: ['**/*.spec.*', '**/index.ts', '**/*.d.ts', 'src/setupTests.ts', 'src/index.tsx'],
       reporter: ['text', 'html', 'json-summary'],
-      thresholds: COVERAGE_THRESHOLDS,
+      thresholds: COVERAGE_THRESHOLDS_PERCENT,
     },
   },
 });

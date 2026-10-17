@@ -14,7 +14,7 @@ pnpm typecheck    # Type-check only: src/ and vite.config.ts, then scripts/ (scr
 pnpm lint         # ESLint (eslint.config.js)
 pnpm test         # Run tests once
 pnpm test:watch   # Run tests in watch mode
-pnpm test:coverage # Run tests with coverage; fails below COVERAGE_THRESHOLDS (vite.config.ts)
+pnpm test:coverage # Run tests with coverage; fails below COVERAGE_THRESHOLDS_PERCENT (vite.config.ts)
 pnpm format:check # Check Prettier formatting, as the CI does
 pnpm format       # Format every file with Prettier
 ```
