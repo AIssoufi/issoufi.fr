@@ -1,5 +1,5 @@
 import { existsSync, statSync } from 'node:fs';
-import { join } from 'node:path';
+import { join, sep } from 'node:path';
 
 import { render, screen } from '@testing-library/react';
 
@@ -19,7 +19,7 @@ const isPublicFile = url => {
 
   const path = join(PUBLIC_DIR, url);
   // join() resolves `..`, which could leave public/
-  const isInsidePublicDir = path.startsWith(`${PUBLIC_DIR}/`);
+  const isInsidePublicDir = path.startsWith(`${PUBLIC_DIR}${sep}`);
   return isInsidePublicDir && existsSync(path) && statSync(path).isFile();
 };
 
@@ -49,5 +49,6 @@ describe('Projects', () => {
     expect(isPublicFile('/../package.json')).toBe(false);
     expect(isPublicFile(undefined)).toBe(false);
     expect(isPublicFile(null)).toBe(false);
+    expect(isPublicFile(42)).toBe(false);
   });
 });
