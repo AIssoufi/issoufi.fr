@@ -15,3 +15,15 @@ export const PORT_PATTERN = /^\d+$/;
  * `.env` files, not only the `VITE_` ones exposed to the app.
  */
 export const ALL_ENV_VARIABLES_PREFIX = '';
+
+/** Folder of the hashed scripts in the build: Vite's default `build.assetsDir`. */
+export const ASSETS_DIR = 'assets';
+
+/** Name that Rollup gives to the chunk of an `index` module, after its file name. */
+export const INDEX_CHUNK_NAME = 'index';
+
+/** Name of a chunk when Rollup gives it none. */
+export const FALLBACK_CHUNK_NAME = 'chunk';
+
+/** Separators of the folders in a module path, on every system. */
+export const PATH_SEPARATOR_PATTERN = /[\\/]/;
