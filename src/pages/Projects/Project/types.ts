@@ -6,7 +6,7 @@ export interface ProjectItemData {
   name: string;
   /** Kind of project, e.g. "Application web" or "Site vitrine". */
   type: string;
-  /** Absolute URL of the screenshot in `public/`, e.g. `/chess.png`. */
+  /** Absolute URL of the screenshot in `public/`, e.g. `/chess.webp`. */
   imageUrl: string;
   /** Page opened in a new tab when the card is clicked. The card is not a link when missing. */
   url?: string;
