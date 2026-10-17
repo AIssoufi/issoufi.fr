@@ -9,7 +9,7 @@ import { setTimeout as sleep } from 'node:timers/promises';
 
 import { DIST_DIR, SMOKE_TEST_ATTEMPTS, SMOKE_TEST_RETRY_DELAY_MS } from './constants.mjs';
 import { appendJobSummary } from './utils/job-summary.mjs';
-import { comparePage, getPageChecks } from './utils/pages.mjs';
+import { comparePage, getPageChecks, renderSmokeTestReport } from './utils/pages.mjs';
 
 const siteUrl = process.argv[2];
 
@@ -54,15 +54,11 @@ for (let attempt = 1; attempt <= SMOKE_TEST_ATTEMPTS; attempt += 1) {
   if (attempt < SMOKE_TEST_ATTEMPTS) await sleep(SMOKE_TEST_RETRY_DELAY_MS);
 }
 
-const routes = pages.map(({ route, status }) => `\`${route}\` (${status})`).join(', ');
-
 if (problems.length === 0) {
   console.log(`${siteUrl} serves the ${pages.length} pages of the build.`);
-  appendJobSummary({ markdown: `## Smoke test\n\n✅ ${siteUrl} serves ${routes} as built.\n` });
 } else {
   problems.forEach(problem => console.log(`::error::${problem}`));
-  appendJobSummary({
-    markdown: `## Smoke test\n\n❌ ${siteUrl}:\n\n${problems.map(problem => `- ${problem}`).join('\n')}\n`,
-  });
   process.exitCode = 1;
 }
+
+appendJobSummary({ markdown: renderSmokeTestReport({ siteUrl, pages, problems }) });

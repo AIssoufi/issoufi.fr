@@ -113,3 +113,52 @@ export const comparePage = ({ page, status, servedHtml, builtHtml }) => {
 
   return problems;
 };
+
+/**
+ * Whether a page check can be listed in the smoke test report: it has a route and a numeric
+ * status.
+ * @param {PageCheck | null | undefined} page - Page check to list.
+ * @returns {boolean} False for a missing page, or one without a route or a numeric status.
+ */
+const isListablePage = page => typeof page?.route === 'string' && typeof page.status === 'number';
+
+/**
+ * Parameters of {@link renderSmokeTestReport}.
+ * @typedef {object} RenderSmokeTestReportParams
+ * @property {string} [siteUrl] - Site that was checked, e.g. `https://issoufi.fr`. Defaults to an
+ * empty string.
+ * @property {PageCheck[]} [pages] - Pages requested on the site, from {@link getPageChecks}.
+ * Defaults to none.
+ * @property {string[]} [problems] - Problems found on those pages, from {@link comparePage}.
+ * Defaults to none.
+ */
+
+/**
+ * Writes the result of the smoke test as Markdown, for the job summary: the routes the site
+ * serves as built, or the problems found. Checking no page at all is reported as a failure, not
+ * as a success. Pages without a route or a numeric status, and problems that are not text, are
+ * left out.
+ * @param {RenderSmokeTestReportParams} params
+ * @returns {string} The Markdown report.
+ * @example
+ * renderSmokeTestReport({
+ *   siteUrl: 'https://issoufi.fr',
+ *   pages: [{ file: 'index.html', route: '/', status: 200 }],
+ * }); // '## Smoke test\n\n✅ https://issoufi.fr serves `/` (200) as built.\n'
+ */
+export const renderSmokeTestReport = ({ siteUrl = '', pages = [], problems = [] }) => {
+  const listedProblems = problems.filter(problem => typeof problem === 'string');
+  const listedPages = pages.filter(isListablePage);
+
+  const hasProblems = listedProblems.length > 0;
+  if (hasProblems) {
+    const list = listedProblems.map(problem => `- ${problem}`).join('\n');
+    return `## Smoke test\n\n❌ ${siteUrl}:\n\n${list}\n`;
+  }
+
+  const hasPages = listedPages.length > 0;
+  if (!hasPages) return `## Smoke test\n\n❌ ${siteUrl}: no page of the build was checked.\n`;
+
+  const routes = listedPages.map(({ route, status }) => `\`${route}\` (${status})`).join(', ');
+  return `## Smoke test\n\n✅ ${siteUrl} serves ${routes} as built.\n`;
+};
