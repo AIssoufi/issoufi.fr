@@ -120,6 +120,91 @@ export const findLargeImages = ({ files = [], limitBytes }) => {
 };
 
 /**
+ * Parameters of {@link renderScriptsTable}.
+ * @typedef {object} RenderScriptsTableParams
+ * @property {BuildFile[]} [scripts] - Scripts and style sheets of the build. Defaults to none.
+ * @property {number} [totalGzipBytes] - Total gzip size shown on the last row, from
+ * {@link checkScriptBudget}. Defaults to 0, and an invalid size is shown as 0.
+ */
+
+/**
+ * Writes the Markdown table of the scripts and style sheets of the build: the size and the gzip
+ * size of each one, then the total. Entries that are not build files (see {@link isBuildFile})
+ * are left out.
+ * @param {RenderScriptsTableParams} params
+ * @returns {string} The table, without a final line break.
+ * @example
+ * renderScriptsTable({
+ *   scripts: [{ path: 'assets/index.js', bytes: 788_320, gzipBytes: 224_940 }],
+ *   totalGzipBytes: 224_940,
+ * });
+ * // | File | Size | Gzip |
+ * // | --- | ---: | ---: |
+ * // | `assets/index.js` | 788.3 kB | 224.9 kB |
+ * // | **Total** | | **224.9 kB** |
+ */
+export const renderScriptsTable = ({ scripts = [], totalGzipBytes = 0 }) => {
+  const rows = scripts
+    .filter(isBuildFile)
+    .map(
+      ({ path, bytes, gzipBytes }) =>
+        `| \`${path}\` | ${formatKilobytes(bytes)} | ${formatKilobytes(gzipBytes)} |`,
+    );
+
+  return [
+    '| File | Size | Gzip |',
+    '| --- | ---: | ---: |',
+    ...rows,
+    `| **Total** | | **${formatKilobytes(totalGzipBytes)}** |`,
+  ].join('\n');
+};
+
+/**
+ * Parameters of {@link renderLargeImagesSection}.
+ * @typedef {object} RenderLargeImagesSectionParams
+ * @property {BuildFile[]} [largeImages] - Images over the limit, from {@link findLargeImages}.
+ * Defaults to none.
+ * @property {number} largeImageBytes - Size limit used to find them, shown in the heading.
+ */
+
+/**
+ * Writes the Markdown section of the images over the size limit: a heading with the limit, then
+ * the size of each image. Entries that are not build files (see {@link isBuildFile}) are left
+ * out.
+ * @param {RenderLargeImagesSectionParams} params
+ * @returns {string} The section, without a final line break, or an empty string when no image is
+ * listed.
+ * @throws {RangeError} When the limit is not a positive number, even without images, like
+ * {@link findLargeImages}.
+ * @example
+ * renderLargeImagesSection({
+ *   largeImages: [{ path: 'chess.png', bytes: 928_988 }],
+ *   largeImageBytes: 500_000,
+ * });
+ * // ### Images over 500.0 kB
+ * //
+ * // | Image | Size |
+ * // | --- | ---: |
+ * // | `chess.png` | 929.0 kB |
+ */
+export const renderLargeImagesSection = ({ largeImages = [], largeImageBytes }) => {
+  const isValidLimit = isPositiveNumber(largeImageBytes);
+  if (!isValidLimit) throw new RangeError(`Invalid image size limit: ${largeImageBytes}`);
+
+  const listedImages = largeImages.filter(isBuildFile);
+  const hasLargeImages = listedImages.length > 0;
+  if (!hasLargeImages) return '';
+
+  return [
+    `### Images over ${formatKilobytes(largeImageBytes)}`,
+    '',
+    '| Image | Size |',
+    '| --- | ---: |',
+    ...listedImages.map(({ path, bytes }) => `| \`${path}\` | ${formatKilobytes(bytes)} |`),
+  ].join('\n');
+};
+
+/**
  * Parameters of {@link renderBundleReport}.
  * @typedef {object} RenderBundleReportParams
  * @property {BuildFile[]} [scripts] - Scripts and style sheets of the build. Defaults to none.
@@ -130,9 +215,10 @@ export const findLargeImages = ({ files = [], limitBytes }) => {
  */
 
 /**
- * Writes the size report of the build as Markdown, for the job summary: the gzip size of each
- * script and style sheet, the total against the budget, and the images over the size limit.
- * Entries that are not build files (see {@link isBuildFile}) are left out, of the total too.
+ * Writes the size report of the build as Markdown, for the job summary: the table of the scripts
+ * and style sheets ({@link renderScriptsTable}), the total against the budget, and the images
+ * over the size limit ({@link renderLargeImagesSection}). Entries that are not build files (see
+ * {@link isBuildFile}) are left out, of the total too.
  * @param {RenderBundleReportParams} params
  * @returns {string} The Markdown report.
  * @throws {RangeError} When the budget or the image size limit is not a positive number, like
@@ -153,42 +239,24 @@ export const renderBundleReport = ({
   largeImages = [],
   largeImageBytes,
 }) => {
-  const isValidImageLimit = isPositiveNumber(largeImageBytes);
-  if (!isValidImageLimit) throw new RangeError(`Invalid image size limit: ${largeImageBytes}`);
-
+  const imagesSection = renderLargeImagesSection({ largeImages, largeImageBytes });
   const listedScripts = scripts.filter(isBuildFile);
-  const listedImages = largeImages.filter(isBuildFile);
   const { totalGzipBytes, isOverBudget } = checkScriptBudget({
     scripts: listedScripts,
     budgetBytes,
   });
   const verdict = isOverBudget ? '❌ Over budget' : '✅ Within budget';
-  const hasLargeImages = listedImages.length > 0;
 
   const lines = [
     '## Bundle size',
     '',
-    '| File | Size | Gzip |',
-    '| --- | ---: | ---: |',
-    ...listedScripts.map(
-      ({ path, bytes, gzipBytes }) =>
-        `| \`${path}\` | ${formatKilobytes(bytes)} | ${formatKilobytes(gzipBytes)} |`,
-    ),
-    `| **Total** | | **${formatKilobytes(totalGzipBytes)}** |`,
+    renderScriptsTable({ scripts: listedScripts, totalGzipBytes }),
     '',
     `${verdict}: ${formatKilobytes(totalGzipBytes)} gzip for a budget of ${formatKilobytes(budgetBytes)}.`,
   ];
 
-  if (hasLargeImages) {
-    lines.push(
-      '',
-      `### Images over ${formatKilobytes(largeImageBytes)}`,
-      '',
-      '| Image | Size |',
-      '| --- | ---: |',
-      ...listedImages.map(({ path, bytes }) => `| \`${path}\` | ${formatKilobytes(bytes)} |`),
-    );
-  }
+  const hasImagesSection = imagesSection !== '';
+  if (hasImagesSection) lines.push('', imagesSection);
 
   return `${lines.join('\n')}\n`;
 };

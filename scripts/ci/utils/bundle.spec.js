@@ -4,6 +4,8 @@ import {
   isBudgetedScript,
   isBuildFile,
   renderBundleReport,
+  renderLargeImagesSection,
+  renderScriptsTable,
 } from './bundle.mjs';
 
 describe('isBuildFile', () => {
@@ -136,6 +138,93 @@ describe('findLargeImages', () => {
     limitBytes => {
       const files = [{ path: 'chess.png', bytes: 900 }];
       expect(() => findLargeImages({ files, limitBytes })).toThrow(RangeError);
+    },
+  );
+});
+
+describe('renderScriptsTable', () => {
+  const scripts = [
+    { path: 'assets/index-abc.js', bytes: 788_320, gzipBytes: 224_940 },
+    { path: 'assets/index-abc.css', bytes: 2_100, gzipBytes: 900 },
+  ];
+
+  it('lists each script with its sizes, then the total', () => {
+    expect(renderScriptsTable({ scripts, totalGzipBytes: 225_840 })).toBe(
+      [
+        '| File | Size | Gzip |',
+        '| --- | ---: | ---: |',
+        '| `assets/index-abc.js` | 788.3 kB | 224.9 kB |',
+        '| `assets/index-abc.css` | 2.1 kB | 0.9 kB |',
+        '| **Total** | | **225.8 kB** |',
+      ].join('\n'),
+    );
+  });
+
+  it.each([undefined, []])('shows only the header and a total of 0 for the scripts %s', list => {
+    expect(renderScriptsTable({ scripts: list })).toBe(
+      ['| File | Size | Gzip |', '| --- | ---: | ---: |', '| **Total** | | **0.0 kB** |'].join(
+        '\n',
+      ),
+    );
+  });
+
+  it('leaves out the entries that are not build files', () => {
+    const table = renderScriptsTable({
+      scripts: [null, 'assets/x.js', { bytes: 9_000 }, { path: '' }, scripts[0]],
+      totalGzipBytes: 224_940,
+    });
+    expect(table.split('\n')).toHaveLength(4);
+    expect(table).toContain('| `assets/index-abc.js` | 788.3 kB | 224.9 kB |');
+  });
+
+  it('shows invalid sizes and totals as 0', () => {
+    const table = renderScriptsTable({
+      scripts: [{ path: 'assets/x.js', bytes: NaN, gzipBytes: -1 }],
+      totalGzipBytes: Infinity,
+    });
+    expect(table).toContain('| `assets/x.js` | 0.0 kB | 0.0 kB |');
+    expect(table).toContain('| **Total** | | **0.0 kB** |');
+    expect(table).not.toMatch(/NaN|undefined|Infinity/);
+  });
+});
+
+describe('renderLargeImagesSection', () => {
+  it('lists the images under a heading with the limit', () => {
+    const largeImages = [
+      { path: 'chess.png', bytes: 928_988 },
+      { path: 'study-sarl.png', bytes: 840_000 },
+    ];
+    expect(renderLargeImagesSection({ largeImages, largeImageBytes: 500_000 })).toBe(
+      [
+        '### Images over 500.0 kB',
+        '',
+        '| Image | Size |',
+        '| --- | ---: |',
+        '| `chess.png` | 929.0 kB |',
+        '| `study-sarl.png` | 840.0 kB |',
+      ].join('\n'),
+    );
+  });
+
+  it.each([undefined, [], [null, { bytes: 900_000 }, { path: '' }]])(
+    'gives an empty string for the images %o',
+    largeImages => {
+      expect(renderLargeImagesSection({ largeImages, largeImageBytes: 500_000 })).toBe('');
+    },
+  );
+
+  it('leaves out the entries that are not build files', () => {
+    const section = renderLargeImagesSection({
+      largeImages: [null, { path: 'chess.png', bytes: 928_988 }, { bytes: 900_000 }],
+      largeImageBytes: 500_000,
+    });
+    expect(section.endsWith('| --- | ---: |\n| `chess.png` | 929.0 kB |')).toBe(true);
+  });
+
+  it.each([0, -1, NaN, undefined, '500000'])(
+    'throws for the invalid limit %s, even without images',
+    largeImageBytes => {
+      expect(() => renderLargeImagesSection({ largeImageBytes })).toThrow(RangeError);
     },
   );
 });
