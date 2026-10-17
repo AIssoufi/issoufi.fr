@@ -24,4 +24,11 @@ describe('App', () => {
     render(<App />);
     expect(screen.queryByText('404')).not.toBeInTheDocument();
   });
+
+  it('lets the page column shrink to the screen width', () => {
+    // A plain 1fr column grows to its widest content and makes narrow screens scroll sideways
+    render(<App />);
+
+    expect(getComputedStyle(screen.getByTestId('app')).gridTemplateColumns).toBe('minmax(0, 1fr)');
+  });
 });
