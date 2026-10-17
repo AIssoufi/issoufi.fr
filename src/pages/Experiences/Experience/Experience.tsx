@@ -75,7 +75,9 @@ const Experience = ({
         <JobSummary>
           {jobName && <JobName>{jobName}</JobName>}
           {details && <JobDetails>{details}</JobDetails>}
-          {startDate && endDate && <JobDuration>{computeDuration(startDate, endDate)}</JobDuration>}
+          {startDate && endDate && (
+            <JobDuration>{computeDuration({ startDate, endDate })}</JobDuration>
+          )}
         </JobSummary>
       </Summary>
       <Details>{children}</Details>

@@ -84,7 +84,7 @@ const Role = ({ jobName, startDate, endDate, children }: RoleProps) => {
               {jobName && <RoleName>{jobName}</RoleName>}
               {details && <JobDetails>{details}</JobDetails>}
               {startDate && endDate && (
-                <JobDuration>{computeDuration(startDate, endDate)}</JobDuration>
+                <JobDuration>{computeDuration({ startDate, endDate })}</JobDuration>
               )}
             </JobSummary>
           </Summary>

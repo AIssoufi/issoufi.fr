@@ -26,7 +26,7 @@ describe('renderPageHtml', () => {
     '<title>%PAGE_TITLE%</title><meta content="%PAGE_DESCRIPTION%"><link href="%PAGE_URL%">';
 
   it('fills the home page metadata with the years of experience', () => {
-    expect(renderPageHtml(template, home, 8)).toBe(
+    expect(renderPageHtml({ template, page: home, years: 8 })).toBe(
       '<title>ADAM Issoufi - Développeur full-stack JavaScript</title>' +
         '<meta content="Développeur full-stack JavaScript avec 8 ans d\'expérience, spécialisé React.">' +
         '<link href="https://issoufi.fr/">',
@@ -34,12 +34,12 @@ describe('renderPageHtml', () => {
   });
 
   it('fills the metadata and URL of the other pages', () => {
-    expect(renderPageHtml(template, projects, 8)).toBe(
+    expect(renderPageHtml({ template, page: projects, years: 8 })).toBe(
       '<title>Projets - ADAM Issoufi</title>' +
         '<meta content="Projets personnels et freelance d\'ADAM Issoufi, développeur full-stack JavaScript.">' +
         '<link href="https://issoufi.fr/projects">',
     );
-    expect(renderPageHtml(template, experiences, 8)).toContain(
+    expect(renderPageHtml({ template, page: experiences, years: 8 })).toContain(
       '<link href="https://issoufi.fr/experiences">',
     );
   });
@@ -50,6 +50,8 @@ describe('renderPageHtml', () => {
     expect(html.match(/%PAGE_TITLE%/g)).toHaveLength(3);
     expect(html.match(/%PAGE_DESCRIPTION%/g)).toHaveLength(3);
     expect(html.match(/%PAGE_URL%/g)).toHaveLength(2);
-    PAGES.forEach(page => expect(renderPageHtml(html, page, 8)).not.toMatch(/%PAGE_\w+%/));
+    PAGES.forEach(page =>
+      expect(renderPageHtml({ template: html, page, years: 8 })).not.toMatch(/%PAGE_\w+%/),
+    );
   });
 });

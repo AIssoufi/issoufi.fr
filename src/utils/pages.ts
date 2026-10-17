@@ -39,16 +39,23 @@ export function getPage(pathname: string): Page | undefined {
 const escapeHtml = (value: string) =>
   value.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 
+/** Parameters of {@link renderPageHtml}. */
+interface RenderPageHtmlParams {
+  /** Content of `index.html`, with its placeholders. */
+  template: string;
+  /** Page whose metadata to inject. */
+  page: Page;
+  /** Years of experience, replacing `{{years}}` in the description. */
+  years: number;
+}
+
 /**
  * Fills the `%PAGE_TITLE%`, `%PAGE_DESCRIPTION%` and `%PAGE_URL%` placeholders of `index.html`
  * with the French metadata of a page. Used by the Vite plugin at build time.
  *
- * @param template - Content of `index.html`, with its placeholders.
- * @param page - Page whose metadata to inject.
- * @param years - Years of experience, replacing `{{years}}` in the description.
  * @returns The HTML with every placeholder replaced and HTML-escaped.
  */
-export function renderPageHtml(template: string, page: Page, years: number): string {
+export function renderPageHtml({ template, page, years }: RenderPageHtmlParams): string {
   const { title, description } = fr.meta[page.meta];
   const values: Record<string, string> = {
     PAGE_TITLE: title,

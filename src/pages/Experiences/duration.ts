@@ -60,7 +60,22 @@ function parseDate(str: string): Date {
   return new Date(parseInt(rawYear, 10), month, 1);
 }
 
-export function computeDuration(startDate: string, endDate: string): string {
+/** Parameters of {@link computeDuration}. */
+interface ComputeDurationParams {
+  /** Start as a French or English month and a year, e.g. "juin 2021" or "June 2021". */
+  startDate: string;
+  /** End in the same format, or a "today" keyword such as "Aujourd'hui" or "Present". */
+  endDate: string;
+}
+
+/**
+ * Formats the time between two month-year dates in French, e.g. "1 an 9 mois".
+ * Days are ignored; a period shorter than a month gives "< 1 mois".
+ *
+ * @example
+ * computeDuration({ startDate: 'juin 2021', endDate: 'mars 2023' }); // '1 an 9 mois'
+ */
+export function computeDuration({ startDate, endDate }: ComputeDurationParams): string {
   const start = parseDate(startDate);
   const end = parseDate(endDate);
 

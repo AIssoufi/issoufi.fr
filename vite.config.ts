@@ -15,7 +15,7 @@ const pageMeta = (): Plugin => {
     enforce: 'post',
     transformIndexHtml: html => {
       template = html;
-      return renderPageHtml(html, PAGES[0], getYearsOfExperience());
+      return renderPageHtml({ template: html, page: PAGES[0], years: getYearsOfExperience() });
     },
     generateBundle() {
       if (!template) this.error('index.html was not transformed before generateBundle');
@@ -24,7 +24,7 @@ const pageMeta = (): Plugin => {
         this.emitFile({
           type: 'asset',
           fileName: page.fileName,
-          source: renderPageHtml(template, page, getYearsOfExperience()),
+          source: renderPageHtml({ template, page, years: getYearsOfExperience() }),
         });
       });
     },
