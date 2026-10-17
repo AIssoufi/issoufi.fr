@@ -49,7 +49,7 @@ pnpm smoke-test https://issoufi.fr   # Check that a deployed site serves the pag
 
 `pnpm size` fails when the scripts and style sheets of the build exceed 250 kB gzip, and warns about images over 500 kB. Both limits are in `scripts/ci/constants.mjs`.
 
-`pnpm smoke-test <site URL>` requests every page of `dist/` on the site, plus an unknown path, and fails unless each answers with the expected status (200, or 404 for the unknown path) and the title and canonical URL of the build. It retries for about 20 seconds while a new deployment spreads.
+`pnpm smoke-test <site URL>` requests every page of `dist/` on the site, plus an unknown path, and fails unless each answers with the expected status (200, or 404 for the unknown path) and the title and canonical URL of the build. It retries for about 20 seconds while a new deployment spreads, and fails at once when `dist/` is missing or holds no HTML page.
 
 ### Tests
 
@@ -59,12 +59,12 @@ pnpm test:watch      # Watch mode
 pnpm test:coverage   # Single run with coverage, HTML report in coverage/index.html
 ```
 
-Tests are `*.spec.jsx` / `*.spec.ts` files next to the code they test. Every component has one. `pnpm test:coverage` fails when the coverage of `src/` drops below the thresholds of `vite.config.ts` (`COVERAGE_THRESHOLDS`).
+Tests are `*.spec.jsx` (components), `*.spec.ts` (helpers and hooks) and `*.spec.js` (CI helpers) files next to the code they test. Every component has one. `pnpm test:coverage` fails when the coverage of `src/`, of the Vite config helpers (`vite/`) and of the CI helpers (`scripts/ci/utils/`) drops below the thresholds of `vite.config.ts` (`COVERAGE_THRESHOLDS_PERCENT`).
 
 ### Checks
 
 ```bash
-pnpm typecheck      # Type-check without building
+pnpm typecheck      # Type-check src/ and vite/, then the CI scripts of scripts/, without building
 pnpm lint           # Lint with ESLint
 pnpm format:check   # Check that every file follows the Prettier style
 pnpm format         # Format every file with Prettier
@@ -83,7 +83,7 @@ The site is hosted on [Cloudflare Pages](https://pages.cloudflare.com/), in the 
 | Pull request      | Preview, at `<branch>.issoufi-fr.pages.dev`                                       | `preview`          |
 
 - **Deploy job**: uploads the `dist` artifact of the build job with `cloudflare/wrangler-action`. It needs the `CLOUDFLARE_API_TOKEN` (permission _Account → Cloudflare Pages → Edit_) and `CLOUDFLARE_ACCOUNT_ID` repository secrets, and is skipped with a notice without them. Pull requests from forks and from Dependabot get no secrets, so no preview.
-- **Smoke test job**: runs `pnpm smoke-test` on the new deployment. For production, it also checks [issoufi.fr](https://issoufi.fr/) itself, and that `http://issoufi.fr` and `https://www.issoufi.fr` redirect to `https://issoufi.fr/`.
+- **Smoke test job**: runs `node scripts/ci/smoke-test.mjs` (the script behind `pnpm smoke-test`) on the new deployment. The script needs no dependency, so the job only sets up Node.js and downloads the `dist` artifact. For production, it also checks [issoufi.fr](https://issoufi.fr/) itself, and that `http://issoufi.fr` and `https://www.issoufi.fr` redirect to `https://issoufi.fr/`.
 - **Manual deployment**: _Actions → CI → Run workflow_ rebuilds and redeploys a branch.
 - **Cloudflare builds**: the project stays connected to the repository, but its automatic builds are paused (_Settings → Build → Branch control_), so Cloudflare does not build the site a second time. The settings below only apply to a build started from the Cloudflare dashboard.
 
@@ -101,7 +101,7 @@ The site is hosted on [Cloudflare Pages](https://pages.cloudflare.com/), in the 
 - **One HTML file per page**: at build time, a Vite plugin (`vite.config.ts`) fills the `%PAGE_*%` placeholders of `index.html` and emits `projects.html` and `experiences.html` from the same template. Each page gets its own title, description and canonical URL, taken from the `meta` translations of `src/i18n/fr.ts`, so link previews and search engines get them without running JavaScript. Cloudflare Pages serves these files at `/projects` and `/experiences`. A new route needs an entry in `PAGES` (`src/utils/pages.ts`).
 - **Not found pages**: the plugin also emits `404.html`, with the "page not found" title and a `noindex` tag. Cloudflare Pages serves it with a real `404` status for any path that matches no file. The URL is kept, with no redirect, and the app shows its NotFound page. Because `404.html` exists, Cloudflare's single-page-app fallback is off, which is why every route needs its own HTML file.
 - **Years of experience**: the number in the generated HTML files is computed at build time from `CAREER_START_DATE` (`src/utils/career.ts`), so it only changes with a new build. The workflow `.github/workflows/rebuild.yml` runs the CI on `main` on the first day of every month, which rebuilds and redeploys production, so the number is right from June 1st, the career anniversary. GitHub disables scheduled workflows after 60 days without activity on the repository: if that happens, re-enable it from the Actions tab. The app itself computes the number at runtime.
-- **Continuous integration**: the GitHub Actions workflow `.github/workflows/ci.yml` checks the formatting, lints, type-checks, tests and builds every push to `main` and `develop` and every pull request. The test job measures the coverage, adds its total to the job summary and keeps the HTML report as the `coverage` artifact for 14 days. The build job runs `pnpm size`, which adds the size of each script to the job summary and annotates the images to compress. The scripts behind these summaries live in `scripts/ci/`. On pull requests, it also checks the commit messages with commitlint (except Dependabot's) and runs GitHub's dependency review, which fails when a change brings in a dependency with a known vulnerability. Each job installs pnpm, Node.js and the dependencies with the composite action `.github/actions/setup`, which reads the versions from `package.json` and `.nvmrc` and caches the pnpm store. When everything passes, it deploys the build (see above).
+- **Continuous integration**: the GitHub Actions workflow `.github/workflows/ci.yml` checks the formatting, lints, type-checks, tests and builds every push to `main` and `develop` and every pull request. The test job measures the coverage, adds its total to the job summary and keeps the HTML report as the `coverage` artifact for 14 days. The build job runs `pnpm size`, which adds the size of each script to the job summary and annotates the images to compress. The scripts behind these summaries live in `scripts/ci/`. On pull requests, it also checks the commit messages with commitlint (except Dependabot's) and runs GitHub's dependency review, which fails when a change brings in a dependency with a known vulnerability. The jobs that need the dependencies (format, lint, type-check, test, commit messages and build) install pnpm, Node.js and the dependencies with the composite action `.github/actions/setup`, which reads the versions from `package.json` and `.nvmrc` and caches the pnpm store. The other jobs (dependency review, credentials check, deployment and smoke test) do without. When everything passes, it deploys the build (see above).
 - **Dependency updates**: Dependabot (`.github/dependabot.yml`) opens weekly pull requests against `develop`: one for all minor and patch npm updates, one per major version, and one for the GitHub Actions. A release is only proposed once it is 7 days old, and pnpm applies the same rule to every install (`minimumReleaseAge` in `pnpm-workspace.yaml`), so a version published days ago never reaches the lockfile. Security updates target the default branch, `develop`, too.
 - **Former address**: `https://aissoufi.github.io` is served by the [AIssoufi/AIssoufi.github.io](https://github.com/AIssoufi/AIssoufi.github.io) repository, which redirects every path to the same path on `https://issoufi.fr`.
 
@@ -118,25 +118,41 @@ The version follows the commits: `fix` bumps the patch version, `feat` the minor
 ## 📁 Project Structure
 
 ```
-src/
-├── App/                  # Root component, router and layout
-│   ├── DocumentMeta/     # <html lang>, title and description per route and language
-│   ├── Header/           # Logo, navigation and burger menu
-│   ├── LangToggle/       # FR / EN switch
-│   └── Modal/            # Informational modal (unused)
-├── components/           # Components shared across pages
-│   └── StatusMessage/    # Code, title, message and home link of error pages
-├── i18n/                 # French and English translations
-├── pages/
-│   ├── Home/             # Landing page: animated title, particle background, hooks/ for effects
-│   ├── Projects/         # Personal and freelance projects, data in .data/*.json
-│   ├── Experiences/      # Work experience timeline
-│   ├── NotFound/         # 404 page, shown at the requested URL
-│   └── Forbidden/        # 403 page, not routed yet
-├── theme/                # Design tokens (tokens.ts, theme.ts) and global styles
-├── utils/                # Career dates and page metadata helpers
-└── index.tsx             # Entry point
-vite/                     # Helpers of vite.config.ts: dev and preview ports
+.
+├── .config/
+│   └── wt.toml           # Worktrunk: installs the dependencies and writes the port of each worktree
+├── .github/
+│   ├── actions/setup/    # Composite action: pnpm, Node.js and the dependencies, with a cache
+│   ├── workflows/        # ci.yml (checks, build, deployment, smoke test), release.yml, rebuild.yml
+│   └── dependabot.yml    # Weekly dependency updates against develop
+├── .husky/               # Git hooks: lint-staged before a commit, commitlint on its message
+├── public/               # Images, CV, favicon, manifest and robots.txt, copied as is to dist/
+├── scripts/
+│   ├── ci/               # CI scripts: bundle size, coverage summary, smoke test
+│   │   ├── utils/        # Their helpers, one file per topic, each with its spec
+│   │   └── constants.mjs # Budgets, file patterns and smoke test settings
+│   └── tsconfig.json     # Type-checks the scripts, run by pnpm typecheck
+├── src/
+│   ├── App/              # Root component, router and layout
+│   │   ├── DocumentMeta/ # <html lang>, title and description per route and language
+│   │   ├── Header/       # Logo, navigation and burger menu
+│   │   ├── LangToggle/   # FR / EN switch
+│   │   └── Modal/        # Informational modal (unused)
+│   ├── components/       # Components shared across pages
+│   │   └── StatusMessage/ # Code, title, message and home link of error pages
+│   ├── i18n/             # French and English translations
+│   ├── pages/
+│   │   ├── Home/         # Landing page: animated title, particle background, hooks/ for effects
+│   │   ├── Projects/     # Personal and freelance projects, data in .data/*.json
+│   │   ├── Experiences/  # Work experience timeline
+│   │   ├── NotFound/     # 404 page, shown at the requested URL
+│   │   └── Forbidden/    # 403 page, not routed yet
+│   ├── theme/            # Design tokens (tokens.ts, theme.ts) and global styles
+│   ├── utils/            # Career dates and page metadata helpers
+│   └── index.tsx         # Entry point
+├── vite/                 # Helpers of vite.config.ts: dev and preview ports
+├── index.html            # HTML template of every page, filled at build time by vite.config.ts
+└── vite.config.ts        # Vite, the plugin that writes one HTML file per page, Vitest and coverage
 ```
 
 ## 📝 Conventions

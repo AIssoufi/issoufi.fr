@@ -4,7 +4,8 @@
 import { existsSync, readFileSync } from 'node:fs';
 
 import { COVERAGE_SUMMARY_FILE } from './constants.mjs';
-import { appendJobSummary, renderCoverageSummary } from './utils.mjs';
+import { renderCoverageSummary } from './utils/coverage.mjs';
+import { appendJobSummary } from './utils/job-summary.mjs';
 
 /** @returns {unknown} The parsed coverage report, or `undefined` when it is missing or invalid. */
 const readCoverageSummary = () => {
