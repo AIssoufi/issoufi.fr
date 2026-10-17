@@ -3,6 +3,7 @@ import { useEffect, useRef } from 'react';
 
 import burgerMenuData from './burger-menu.json';
 import { Container } from './BurgerMenu.styled';
+import { CLOSE_ANIMATION, OPEN_ANIMATION } from './constants';
 
 /** Props of {@link BurgerMenu}. */
 interface BurgerMenuProps {
@@ -38,7 +39,7 @@ const BurgerMenu = ({ isOpen = false, onOpen, onClose }: BurgerMenuProps) => {
     lottieRef.current = lottieInstance;
 
     return () => {
-      lottieInstance?.destroy?.();
+      lottieInstance.destroy();
     };
   }, []);
 
@@ -46,8 +47,8 @@ const BurgerMenu = ({ isOpen = false, onOpen, onClose }: BurgerMenuProps) => {
     const lottieInstance = lottieRef.current;
     if (!lottieInstance) return;
     if (!isOpen) {
-      lottieInstance.setSpeed(4);
-      lottieInstance.setDirection(-1);
+      lottieInstance.setSpeed(CLOSE_ANIMATION.speedMultiplier);
+      lottieInstance.setDirection(CLOSE_ANIMATION.direction);
       lottieInstance.play();
     }
   }, [isOpen]);
@@ -56,12 +57,12 @@ const BurgerMenu = ({ isOpen = false, onOpen, onClose }: BurgerMenuProps) => {
     const lottieInstance = lottieRef.current;
     if (isOpen) {
       onClose?.();
-      lottieInstance?.setSpeed(4);
-      lottieInstance?.setDirection(-1);
+      lottieInstance?.setSpeed(CLOSE_ANIMATION.speedMultiplier);
+      lottieInstance?.setDirection(CLOSE_ANIMATION.direction);
     } else {
       onOpen?.();
-      lottieInstance?.setSpeed(1.5);
-      lottieInstance?.setDirection(1);
+      lottieInstance?.setSpeed(OPEN_ANIMATION.speedMultiplier);
+      lottieInstance?.setDirection(OPEN_ANIMATION.direction);
     }
     lottieInstance?.play();
   };

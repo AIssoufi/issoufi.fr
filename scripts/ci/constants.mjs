@@ -37,11 +37,26 @@ export const COVERAGE_METRICS = ['lines', 'statements', 'branches', 'functions']
 /** HTML pages at the root of the build, one per route. */
 export const HTML_FILE_PATTERN = /\.html$/;
 
-/** Page of the build served at `/`. */
+/** Route of the home page. */
+export const HOME_PAGE_ROUTE = '/';
+
+/** Page of the build served at {@link HOME_PAGE_ROUTE}. */
 export const HOME_PAGE_FILE = 'index.html';
 
 /** Page of the build that Cloudflare Pages serves, with a 404, for any unknown path. */
 export const NOT_FOUND_PAGE_FILE = '404.html';
+
+/** Title tag of an HTML page. Its first group captures the title. */
+export const TITLE_TAG_PATTERN = /<title>([^<]*)<\/title>/i;
+
+/**
+ * Canonical link tag of an HTML page, with its attributes in any order and on any number of
+ * lines.
+ */
+export const CANONICAL_LINK_TAG_PATTERN = /<link\s[^>]*rel="canonical"[^>]*>/i;
+
+/** `href` attribute of a tag. Its first group captures the URL, without the quotes. */
+export const HREF_ATTRIBUTE_PATTERN = /href="([^"]*)"/i;
 
 /** Path that no page uses, requested to check the not found page. */
 export const MISSING_PAGE_ROUTE = '/smoke-test-page-that-does-not-exist';
