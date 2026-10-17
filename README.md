@@ -144,7 +144,8 @@ The version follows the commits: `fix` bumps the patch version, `feat` the minor
 │   │   ├── Projects/     # Personal and freelance projects, data in .data/*.json
 │   │   ├── Experiences/  # Work experience timeline
 │   │   ├── NotFound/     # 404 page, shown at the requested URL
-│   │   └── Forbidden/    # 403 page, not routed yet
+│   │   ├── Forbidden/    # 403 page, not routed yet
+│   │   └── testUtils.js  # Helpers shared by the page tests, e.g. isPublicFile
 │   ├── theme/            # Design tokens (tokens.ts, theme.ts) and global styles
 │   ├── utils/            # Career dates and page metadata helpers
 │   └── index.tsx         # Entry point
