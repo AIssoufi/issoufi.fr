@@ -131,7 +131,7 @@ const Project = ({ title, projects = [] }: ProjectProps) => {
       </SectionHeader>
       <ProjectGrid $displayAll={displayAllPages}>
         {(displayAllPages ? projects : projects.slice(currentPage, currentPage + step)).map(
-          ({ id, name, type, imageUrl, url, tools, likeCount, isLikedByOwnUser }) => (
+          ({ id, name, type, imageUrl, url, tools }) => (
             <ProjectItem
               key={id}
               $displayAll={displayAllPages}
