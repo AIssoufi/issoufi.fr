@@ -138,7 +138,7 @@ src/
 
 ## 📝 Conventions
 
-- **Branches**: `main` is production and `develop`, the default branch, the integration branch. A ruleset protects both: changes go through a pull request whose CI checks pass, and force pushes and deletions are refused. The `production` environment only accepts deployments from `main`. Each ticket gets its own branch from `develop` (`feat/…`, `fix/…`, `ci/…`), merged back into `develop` by a pull request once the CI passes. A release is a pull request from `develop` to `main`.
+- **Branches**: `main` is production and `develop`, the default branch, the integration branch. A ruleset protects both: changes go through a pull request whose CI checks pass, and force pushes and deletions are refused. The `production` environment only accepts deployments from `main`. Each ticket is worked on in its own [Worktrunk](https://worktrunk.dev) worktree next to the repository (`AIssoufi.github.io.ISF-35`), on a branch named after its reference: the `ISF-` autolink turns `ISF-35` into a link to issue #35. The branch starts from `develop` (`wt switch --create ISF-35 --base develop`) and goes back into it through a pull request that says `Closes #35`, once the CI passes. `.config/wt.toml` installs the dependencies of each new worktree. A release is a pull request from `develop` to `main`.
 - **Commits**: [Conventional Commits](https://www.conventionalcommits.org/) enforced via commitlint. They also set the next version and the changelog (see Releases).
 - **Linting**: ESLint (`eslint.config.js`) with the recommended rules of ESLint and typescript-eslint, React Hooks (including the React Compiler rules) and React Refresh. It also forbids importing `styled-components` directly.
 - **Formatting**: Prettier (via lint-staged + husky)
