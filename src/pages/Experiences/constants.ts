@@ -1,3 +1,6 @@
+/** Absolute URL of the experiences page's background photo, served from `public/`. */
+export const BACKGROUND_IMAGE_URL = '/experiences.jpeg';
+
 /** Zero-based month index of each French and English month name or abbreviation, lowercase. */
 export const MONTH_NAMES: Record<string, number> = {
   // French

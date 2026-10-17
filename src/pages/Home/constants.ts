@@ -1,6 +1,9 @@
 import { theme } from '../../theme';
 import type { Point } from './types';
 
+/** Absolute URL of the home page's background photo, served from `public/`. */
+export const BACKGROUND_IMAGE_URL = '/home.jpeg';
+
 /** Pointer position used while the mouse is outside the window, far from every element. */
 export const OFFSCREEN_POINTER: Point = { x: -9999, y: -9999 };
 

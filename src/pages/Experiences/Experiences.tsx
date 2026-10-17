@@ -2,6 +2,7 @@ import { useTranslation } from 'react-i18next';
 
 import Experience from './Experience';
 import ExperienceGroup from './ExperienceGroup';
+import { BACKGROUND_IMAGE_URL } from './constants';
 import { BulletItem, BulletList } from './Experiences.styled';
 
 import {
@@ -17,8 +18,6 @@ import {
   TimelinePeriod,
 } from './Experiences.styled';
 
-const BG_IMAGE = '/experiences.jpeg';
-
 /**
  * Experiences page: a timeline of the professional experiences, most recent first, with their
  * roles, projects and technologies. Texts come from the `exp` translations.
@@ -27,7 +26,7 @@ export const Experiences = () => {
   const { t } = useTranslation();
 
   return (
-    <ExperiencesPage $backgroundImage={BG_IMAGE}>
+    <ExperiencesPage $backgroundImage={BACKGROUND_IMAGE_URL}>
       <PageHeader>
         <PageTitle>{t('exp.pageTitle')}</PageTitle>
       </PageHeader>
