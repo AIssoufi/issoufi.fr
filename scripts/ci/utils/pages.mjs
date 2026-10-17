@@ -48,6 +48,13 @@ export const isPageCheck = value => {
 };
 
 /**
+ * Tells whether an entry at the root of the build is the file name of an HTML page.
+ * @param {unknown} fileName - Entry of the build folder.
+ * @returns {boolean} False for another file and for a value that is not a string.
+ */
+const isHtmlFileName = fileName => typeof fileName === 'string' && HTML_FILE_PATTERN.test(fileName);
+
+/**
  * Lists the routes to check from the HTML files at the root of the build. Each page is served at
  * its name without the extension, `index.html` at `/`, and an unknown path must get
  * `404.html` with a 404 status.
@@ -64,7 +71,7 @@ export const isPageCheck = value => {
  */
 export const getPageChecks = fileNames =>
   toList(fileNames)
-    .filter(file => typeof file === 'string' && HTML_FILE_PATTERN.test(file))
+    .filter(isHtmlFileName)
     .map(file => {
       const isNotFoundPage = file === NOT_FOUND_PAGE_FILE;
       if (isNotFoundPage) {
