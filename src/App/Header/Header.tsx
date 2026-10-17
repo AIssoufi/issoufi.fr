@@ -3,14 +3,15 @@ import { Link } from 'react-router';
 import { useTranslation } from 'react-i18next';
 
 import BurgerMenu from './BurgerMenu';
+import LangToggle from './LangToggle';
 import NavMenu from './NavMenu';
 
 import { Container, Logo, Menu } from './Header.styled';
 
 /**
- * Site header: the "AI" logo linking home, the navigation and, on mobile, the burger icon that
- * opens it. Owns the open state of the mobile menu and closes it after each navigation.
- * Must be rendered inside a router.
+ * Site header: the "AI" logo linking home, the language toggle, the navigation and, on mobile,
+ * the burger icon that opens it. Owns the open state of the mobile menu and closes it after
+ * each navigation. Must be rendered inside a router.
  */
 const Header = ({ testId }: HeaderProps) => {
   const [mobileMenuIsOpen, setMobileMenuIsOpen] = useState(false);
@@ -27,6 +28,7 @@ const Header = ({ testId }: HeaderProps) => {
       <Logo>
         <Link to="/">AI</Link>
       </Logo>
+      <LangToggle />
       <Menu $isSticky={mobileMenuIsOpen}>
         <NavMenu
           items={items}
