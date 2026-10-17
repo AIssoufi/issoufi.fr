@@ -124,7 +124,6 @@ export const ProjectGrid = styled.main<{ $displayAll: boolean }>`
   justify-content: space-between;
   align-items: flex-start;
   max-width: 100vw;
-  white-space: nowrap;
   overflow-x: auto;
 
   ${props =>

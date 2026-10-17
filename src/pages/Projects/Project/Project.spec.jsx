@@ -55,6 +55,22 @@ const declaredStyle = ({ element, property, media = '' }) => {
   return values.findLast(Boolean) ?? '';
 };
 
+/**
+ * `white-space` that the element inherits from the closest element declaring one, since jsdom
+ * does not compute inherited values; `normal` when none declares it.
+ */
+const inheritedWhiteSpace = element => {
+  for (let node = element; node; node = node.parentElement) {
+    const whiteSpace = declaredStyle({ element: node, property: 'white-space' });
+    if (whiteSpace) return whiteSpace;
+  }
+  return 'normal';
+};
+
+const LONG_TECH_LINE_PROJECT = project(5, 'Chess engine', {
+  tools: ['HTML 5', 'CSS 3', 'JavaScript', 'Gulp', 'Mocha', 'Babel', 'Webpack', 'TypeScript'],
+});
+
 describe('Project', () => {
   it('renders without any props', () => {
     expect(() => render(<Project />)).not.toThrow();
@@ -148,6 +164,22 @@ describe('Project', () => {
       const css = [...document.querySelectorAll('style')].map(style => style.textContent).join('');
       expect(css).toContain(TWO_COLUMNS);
       expect(css).not.toContain('=>');
+    });
+
+    it.each([
+      ['the row of a page', false],
+      ['the "Show all" grid', true],
+    ])('lets a long tech line wrap inside its card in %s', async (_layout, isShowingAll) => {
+      renderWithTheme(<Project projects={[LONG_TECH_LINE_PROJECT, ...projects]} />);
+
+      if (isShowingAll) await userEvent.click(screen.getByText('Tout afficher (5)'));
+
+      // jsdom drops a stylesheet it cannot parse, which would leave no white-space to find
+      const grid = gridOf(LONG_TECH_LINE_PROJECT.name);
+      expect(declaredStyle({ element: grid, property: 'display' })).not.toBe('');
+
+      const techLine = screen.getByText(LONG_TECH_LINE_PROJECT.tools.join(' · '));
+      expect(inheritedWhiteSpace(techLine)).toBe('normal');
     });
   });
 });
