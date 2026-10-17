@@ -1,11 +1,13 @@
 import styled from 'styled-components';
 
+import { th } from '@xstyled/styled-components';
+
 /* ── Group wrapper — participates directly in Timeline ─────── */
 
 export const GroupArticle = styled.section`
   position: relative;
-  padding-left: 22px; /* mobile: indent past the dot */
-  margin-bottom: 20px;
+  padding-left: ${th.space(22)}; /* mobile: indent past the dot */
+  margin-bottom: ${th.space(20)};
 
   /* mobile dot (one dot per company group) */
   &::before {
@@ -15,14 +17,14 @@ export const GroupArticle = styled.section`
     top: 18px;
     width: 12px;
     height: 12px;
-    border-radius: 50%;
-    background: rgba(139, 49, 104, 0.85);
-    border: 2px solid rgba(255, 255, 255, 0.8);
-    box-shadow: 0 0 10px rgba(139, 49, 104, 0.55);
-    z-index: 1;
+    border-radius: ${th.radius('circle')};
+    background: ${th.color('accent-a85')};
+    border: ${th.borderWidth('thick')} solid ${th.color('foreground-a80')};
+    box-shadow: ${th.shadow('accentGlow')};
+    z-index: ${th.zIndex('raised')};
   }
 
-  @media (min-width: 50em) {
+  @media (min-width: ${th('screens.tablet')}) {
     padding-left: 0;
 
     &::before {
@@ -39,7 +41,7 @@ export const RolesList = styled.ul`
   padding: 0;
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: ${th.space(10)};
 `;
 
 /* ── Role item — each role is its own timeline row ─────────── */
@@ -55,13 +57,13 @@ export const RoleItem = styled.li`
     top: 14px;
     width: 8px;
     height: 8px;
-    border-radius: 50%;
-    background: rgba(139, 49, 104, 0.65);
-    border: 2px solid rgba(255, 255, 255, 0.5);
-    z-index: 1;
+    border-radius: ${th.radius('circle')};
+    background: ${th.color('accent-a65')};
+    border: ${th.borderWidth('thick')} solid ${th.color('foreground-a50')};
+    z-index: ${th.zIndex('raised')};
   }
 
-  @media (min-width: 50em) {
+  @media (min-width: ${th('screens.tablet')}) {
     display: grid;
     grid-template-columns: 90px 1fr;
 
@@ -76,15 +78,15 @@ export const RoleItem = styled.li`
 export const RolePeriodCol = styled.div`
   display: none;
 
-  @media (min-width: 50em) {
+  @media (min-width: ${th('screens.tablet')}) {
     display: flex;
     flex-direction: column;
     align-items: flex-end;
-    padding-right: 18px;
-    padding-top: 5px;
+    padding-right: ${th.space(18)};
+    padding-top: ${th.space(5)};
     position: relative;
-    font-size: 10px;
-    letter-spacing: 0.02em;
+    font-size: ${th.fontSize(10)};
+    letter-spacing: ${th.letterSpacing(2)};
     white-space: nowrap;
 
     /* dot on main timeline line */
@@ -95,75 +97,75 @@ export const RolePeriodCol = styled.div`
       top: 5px;
       width: 12px;
       height: 12px;
-      border-radius: 50%;
-      background: rgba(139, 49, 104, 0.85);
-      border: 2px solid rgba(255, 255, 255, 0.8);
-      box-shadow: 0 0 10px rgba(139, 49, 104, 0.55);
-      z-index: 1;
+      border-radius: ${th.radius('circle')};
+      background: ${th.color('accent-a85')};
+      border: ${th.borderWidth('thick')} solid ${th.color('foreground-a80')};
+      box-shadow: ${th.shadow('accentGlow')};
+      z-index: ${th.zIndex('raised')};
     }
   }
 `;
 
 export const RolePeriodStart = styled.span`
-  font-weight: 700;
-  color: rgba(212, 160, 192, 0.85);
-  line-height: 1.5;
+  font-weight: ${th.fontWeight('bold')};
+  color: ${th.color('accent-soft-a85')};
+  line-height: ${th.lineHeight(150)};
 `;
 
 export const RolePeriodSep = styled.span`
-  color: rgba(255, 255, 255, 0.2);
-  line-height: 1.2;
+  color: ${th.color('foreground-a20')};
+  line-height: ${th.lineHeight(120)};
 `;
 
 export const RolePeriodEnd = styled.span`
-  font-weight: 500;
-  color: rgba(255, 255, 255, 0.4);
-  line-height: 1.5;
+  font-weight: ${th.fontWeight('medium')};
+  color: ${th.color('foreground-a40')};
+  line-height: ${th.lineHeight(150)};
 `;
 
 /* ── Role content — the card ────────────────────────────────── */
 
 export const RoleContent = styled.div`
   min-width: 0;
-  border: var(--card-border);
-  border-radius: var(--border-radius);
-  background-color: var(--transparent-bg-color);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  box-shadow: var(--card-shadow);
-  padding: 14px 16px;
+  border: ${th.border('card')};
+  border-radius: ${th.radius('md')};
+  background-color: ${th.color('surface')};
+  backdrop-filter: ${th('blurs.8')};
+  -webkit-backdrop-filter: ${th('blurs.8')};
+  box-shadow: ${th.shadow('card')};
+  padding: ${th.space(14)} ${th.space(16)};
   transition-property: transform, box-shadow;
-  transition-duration: var(--transition-duration);
+  transition-duration: ${th.duration('base')};
 
   &:hover {
     transform: translateY(-2px);
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+    box-shadow: ${th.shadow('cardHover')};
   }
 
-  @media (min-width: 50em) {
-    margin-left: 20px;
+  @media (min-width: ${th('screens.tablet')}) {
+    margin-left: ${th.space(20)};
   }
 `;
 
 export const RoleHeader = styled.div`
-  margin-bottom: 10px;
+  margin-bottom: ${th.space(10)};
 `;
 
 export const RoleName = styled.h3`
   margin: 0;
-  font-size: 14px;
-  font-weight: 600;
-  letter-spacing: 0.01em;
-  line-height: 1.4;
+  font-size: ${th.fontSize(14)};
+  font-weight: ${th.fontWeight('semibold')};
+  letter-spacing: ${th.letterSpacing(1)};
+  line-height: ${th.lineHeight(140)};
 
-  @media (min-width: 50em) {
-    font-size: 15px;
+  @media (min-width: ${th('screens.tablet')}) {
+    font-size: ${th.fontSize(15)};
   }
 `;
 
 export const RoleDetails = styled.div`
-  font-size: 14px;
-  font-weight: 400;
-  line-height: 1.6;
-  margin-top: 10px;
+  font-size: ${th.fontSize(14)};
+  font-weight: ${th.fontWeight('regular')};
+  line-height: ${th.lineHeight(160)};
+  margin-top: ${th.space(10)};
 `;

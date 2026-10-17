@@ -2,6 +2,8 @@ import styled, { keyframes } from 'styled-components';
 
 import { Page } from '../../App/App.styled';
 
+import { th } from '@xstyled/styled-components';
+
 const float = keyframes`
   0%, 100% { transform: translateY(0px); }
   50%       { transform: translateY(-10px); }
@@ -30,17 +32,17 @@ export const CursorGlow = styled.div`
   left: 0;
   width: 40px;
   height: 40px;
-  border-radius: 50%;
-  border: 1px solid rgba(139, 49, 104, 0.65);
-  background: radial-gradient(circle, rgba(139, 49, 104, 0.1) 0%, transparent 70%);
+  border-radius: ${th.radius('circle')};
+  border: ${th.borderWidth('thin')} solid ${th.color('accent-a65')};
+  background: radial-gradient(circle, ${th.color('accent-a10')} 0%, transparent 70%);
   pointer-events: none;
-  z-index: 9999;
+  z-index: ${th.zIndex('cursor')};
   will-change: transform;
 `;
 
 export const Content = styled.div`
   position: relative;
-  z-index: 1;
+  z-index: ${th.zIndex('raised')};
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -50,60 +52,60 @@ export const Content = styled.div`
 export const Main = styled.main`
   text-align: center;
   max-width: 640px;
-  animation: ${float} 7s ease-in-out infinite;
-  animation-delay: 0.5s;
+  animation: ${float} ${th.duration(7000)} ${th.timingFunction('inOut')} infinite;
+  animation-delay: ${th.duration(500)};
 `;
 
 export const Title = styled.h1`
-  font-size: 18px;
-  font-weight: 400;
-  line-height: 1.7;
-  letter-spacing: 0.01em;
-  margin: 0 0 12px;
-  animation: ${fadeUp} 0.9s ease both;
+  font-size: ${th.fontSize(18)};
+  font-weight: ${th.fontWeight('regular')};
+  line-height: ${th.lineHeight(170)};
+  letter-spacing: ${th.letterSpacing(1)};
+  margin: 0 0 ${th.space(12)};
+  animation: ${fadeUp} ${th.duration(900)} ${th.timingFunction('standard')} both;
 
-  @media (min-width: 50em) {
-    font-size: 22px;
+  @media (min-width: ${th('screens.tablet')}) {
+    font-size: ${th.fontSize(22)};
   }
 `;
 
 export const StrongWord = styled.span<{ $delay: string; $reverse: boolean }>`
   display: inline-block;
   will-change: transform;
-  font-size: 28px;
-  font-weight: 700;
-  letter-spacing: -0.01em;
+  font-size: ${th.fontSize(28)};
+  font-weight: ${th.fontWeight('bold')};
+  letter-spacing: ${th.letterSpacing('tight')};
   background: linear-gradient(
     90deg,
-    #ffffff 0%,
-    #ffffff 30%,
-    #d4a0c0 50%,
-    #ffffff 70%,
-    #ffffff 100%
+    ${th.color('foreground')} 0%,
+    ${th.color('foreground')} 30%,
+    ${th.color('accent-soft')} 50%,
+    ${th.color('foreground')} 70%,
+    ${th.color('foreground')} 100%
   );
   background-size: 300% auto;
   background-clip: text;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
-  animation: ${textFlow} 5s linear infinite;
+  animation: ${textFlow} ${th.duration(5000)} ${th.timingFunction('linear')} infinite;
   animation-delay: ${({ $delay }) => $delay};
   animation-direction: ${({ $reverse }) => ($reverse ? 'reverse' : 'normal')};
 
-  @media (min-width: 50em) {
-    font-size: 42px;
+  @media (min-width: ${th('screens.tablet')}) {
+    font-size: ${th.fontSize(42)};
   }
 `;
 
 export const Subtitle = styled.p`
-  font-size: 16px;
-  font-weight: 400;
-  color: var(--secondary-color);
-  line-height: 1.6;
-  margin: 0 0 4px;
-  animation: ${fadeUp} 0.9s ease 0.2s both;
+  font-size: ${th.fontSize(16)};
+  font-weight: ${th.fontWeight('regular')};
+  color: ${th.color('foreground-secondary')};
+  line-height: ${th.lineHeight(160)};
+  margin: 0 0 ${th.space(4)};
+  animation: ${fadeUp} ${th.duration(900)} ${th.timingFunction('standard')} ${th.duration(200)} both;
 
-  @media (min-width: 50em) {
-    font-size: 18px;
+  @media (min-width: ${th('screens.tablet')}) {
+    font-size: ${th.fontSize(18)};
   }
 `;
 
@@ -111,9 +113,9 @@ export const ButtonContainer = styled.div`
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding-top: 3.5rem;
-  gap: 14px;
-  animation: ${fadeUp} 0.9s ease 0.4s both;
+  padding-top: ${th.space(56)};
+  gap: ${th.space(14)};
+  animation: ${fadeUp} ${th.duration(900)} ${th.timingFunction('standard')} ${th.duration(400)} both;
 `;
 
 export const MagneticWrapper = styled.div`
@@ -125,36 +127,34 @@ export const Btn = styled.a<{ $callToAction?: boolean }>`
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 14px;
-  font-weight: 500;
-  letter-spacing: 0.05em;
+  font-size: ${th.fontSize(14)};
+  font-weight: ${th.fontWeight('medium')};
+  letter-spacing: ${th.letterSpacing(5)};
   text-transform: uppercase;
-  border-radius: 60px;
-  border: 1px solid
-    ${props => (props.$callToAction ? 'var(--tertiary-color)' : 'rgba(255, 255, 255, 0.4)')};
+  border-radius: ${th.radius('pill')};
+  border: ${th.borderWidth('thin')} solid
+    ${props => (props.$callToAction ? th.color('accent') : th.color('foreground-a40'))};
   width: max-content;
   min-width: 240px;
-  padding: 13px 32px;
-  background-color: ${props => (props.$callToAction ? 'var(--tertiary-color)' : 'transparent')};
-  color: var(--primary-color);
+  padding: ${th.space(13)} ${th.space(32)};
+  background-color: ${props => (props.$callToAction ? th.color('accent') : 'transparent')};
+  color: ${th.color('foreground')};
   transition-property: background-color, color, border-color, box-shadow;
-  transition-duration: var(--transition-duration);
+  transition-duration: ${th.duration('base')};
 
   &:hover {
-    color: var(--primary-color);
+    color: ${th.color('foreground')};
     box-shadow: ${props =>
-      props.$callToAction
-        ? '0 0 28px rgba(139, 49, 104, 0.65)'
-        : '0 0 16px rgba(255, 255, 255, 0.15)'};
+      props.$callToAction ? th.shadow('accentGlowStrong') : th.shadow('lightGlow')};
   }
 
   ${props =>
     !props.$callToAction &&
     `
     &:hover {
-      background-color: var(--primary-color);
-      color: #000;
-      border-color: var(--primary-color);
+      background-color: ${th.color('foreground')};
+      color: ${th.color('background')};
+      border-color: ${th.color('foreground')};
     }
   `}
 `;

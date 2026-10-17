@@ -1,3 +1,4 @@
+import { theme } from '../../theme';
 import type { Point } from './types';
 
 /** Pointer position used while the mouse is outside the window, far from every element. */
@@ -18,9 +19,9 @@ export const PARALLAX_RESET_DURATION_MS = 900;
 /** Fraction of the distance between the pointer and a button's center that the button follows. */
 export const MAGNET_STRENGTH = 0.4;
 /** Transition while a magnetic button follows the pointer. */
-export const MAGNET_FOLLOW_TRANSITION = 'transform 0.1s ease';
+export const MAGNET_FOLLOW_TRANSITION = `transform ${theme.durations[100]} ${theme.timingFunctions.standard}`;
 
 /** Easing of the slow returns to rest (parallax and magnetic buttons). */
-export const RELEASE_EASING = 'cubic-bezier(0.23, 1, 0.32, 1)';
+export const RELEASE_EASING = theme.timingFunctions.out;
 /** Transition of a magnetic button returning to its place. */
-export const MAGNET_RELEASE_TRANSITION = `transform 0.7s ${RELEASE_EASING}`;
+export const MAGNET_RELEASE_TRANSITION = `transform ${theme.durations[700]} ${RELEASE_EASING}`;

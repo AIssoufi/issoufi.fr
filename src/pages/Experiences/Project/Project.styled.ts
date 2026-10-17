@@ -1,51 +1,53 @@
 import styled from 'styled-components';
 
+import { th } from '@xstyled/styled-components';
+
 export const Container = styled.div`
-  margin-top: 10px;
+  margin-top: ${th.space(10)};
 `;
 
 export const Header = styled.header`
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 7px 0;
+  gap: ${th.space(8)};
+  padding: ${th.space(7)} 0;
 `;
 
 export const Toggle = styled.span`
   flex-shrink: 0;
-  font-size: 10px;
-  color: rgba(255, 255, 255, 0.35);
-  line-height: 1;
+  font-size: ${th.fontSize(10)};
+  color: ${th.color('foreground-a35')};
+  line-height: ${th.lineHeight(100)};
 `;
 
 export const Title = styled.h3`
-  font-size: 13px;
-  font-weight: 600;
+  font-size: ${th.fontSize(13)};
+  font-weight: ${th.fontWeight('semibold')};
   margin: 0;
   flex: 1;
-  line-height: 1.4;
-  transition: color 0.15s;
+  line-height: ${th.lineHeight(140)};
+  transition: color ${th.duration(150)};
 `;
 
 export const State = styled.span`
   flex-shrink: 0;
-  font-size: 10px;
-  font-weight: 600;
-  color: rgba(130, 210, 150, 0.85);
-  background: rgba(50, 180, 100, 0.1);
-  border: 1px solid rgba(50, 180, 100, 0.2);
-  border-radius: 20px;
-  padding: 1px 7px;
+  font-size: ${th.fontSize(10)};
+  font-weight: ${th.fontWeight('semibold')};
+  color: ${th.color('success')};
+  background: ${th.color('success-a10')};
+  border: ${th.borderWidth('thin')} solid ${th.color('success-a20')};
+  border-radius: ${th.radius(20)};
+  padding: ${th.space(1)} ${th.space(7)};
   white-space: nowrap;
 `;
 
 export const Body = styled.div`
-  padding-bottom: 4px;
+  padding-bottom: ${th.space(4)};
 `;
 
 export const Description = styled.main`
-  font-size: 13px;
-  font-weight: 400;
-  line-height: 1.55;
-  color: rgba(255, 255, 255, 0.72);
+  font-size: ${th.fontSize(13)};
+  font-weight: ${th.fontWeight('regular')};
+  line-height: ${th.lineHeight(155)};
+  color: ${th.color('foreground-a72')};
 `;

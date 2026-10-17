@@ -1,3 +1,4 @@
+import { theme } from '../../../theme';
 import type { Point } from '../types';
 import {
   GLOW_PER_DISPLACEMENT_PX,
@@ -88,5 +89,7 @@ export function getTextShadow(glowRadius: number): string {
   const isGlowVisible = glowRadius > MIN_VISIBLE_GLOW_PX;
   if (!isGlowVisible) return '';
 
-  return `0 0 ${glowRadius}px rgba(212, 160, 192, 0.85), 0 0 ${glowRadius * 2}px rgba(139, 49, 104, 0.4)`;
+  const innerColor = theme.colors['accent-soft-a85'];
+  const outerColor = theme.colors['accent-a40'];
+  return `0 0 ${glowRadius}px ${innerColor}, 0 0 ${glowRadius * 2}px ${outerColor}`;
 }

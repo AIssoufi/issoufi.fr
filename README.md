@@ -4,16 +4,16 @@
 
 ## 🛠 Tech Stack
 
-| Category            | Technologies                 |
-| ------------------- | ---------------------------- |
-| **Framework**       | React 19                     |
-| **Build**           | Vite 6                       |
-| **Language**        | TypeScript 5                 |
-| **Styling**         | styled-components 6          |
-| **Routing**         | React Router 7               |
-| **i18n**            | i18next (French and English) |
-| **Tests**           | Vitest 3 + Testing Library   |
-| **Package Manager** | pnpm                         |
+| Category            | Technologies                    |
+| ------------------- | ------------------------------- |
+| **Framework**       | React 19                        |
+| **Build**           | Vite 6                          |
+| **Language**        | TypeScript 5                    |
+| **Styling**         | styled-components 6 + xstyled 4 |
+| **Routing**         | React Router 7                  |
+| **i18n**            | i18next (French and English)    |
+| **Tests**           | Vitest 3 + Testing Library      |
+| **Package Manager** | pnpm                            |
 
 ## 🚀 Getting Started
 
@@ -84,11 +84,12 @@ src/
 │   └── StatusMessage/    # Code, title, message and home link of error pages
 ├── i18n/                 # French and English translations
 ├── pages/
-│   ├── Home/             # Landing page, with its animated title and particle background
+│   ├── Home/             # Landing page: animated title, particle background, hooks/ for effects
 │   ├── Projects/         # Personal and freelance projects, data in .data/*.json
 │   ├── Experiences/      # Work experience timeline
 │   ├── NotFound/         # 404 page, shown at the requested URL
 │   └── Forbidden/        # 403 page, not routed yet
+├── theme/                # Design tokens (tokens.ts, theme.ts) and global styles
 ├── utils/                # Career dates and page metadata helpers
 └── index.tsx             # Entry point
 ```
@@ -98,4 +99,5 @@ src/
 - **Commits**: [Conventional Commits](https://www.conventionalcommits.org/) enforced via commitlint
 - **Formatting**: Prettier (via lint-staged + husky)
 - **Language**: code, comments and docs are in English. Only user-facing texts are translated.
+- **Styles**: styled-components read every color, spacing, font, radius, shadow, duration and breakpoint from the design tokens of `src/theme` with the [xstyled](https://xstyled.dev/) `th` helpers (`th.color('accent')`, `th.space(16)`, `th.radius('md')`…). No hard-coded values.
 - **Components**: one folder per component (`Name.tsx`, `Name.spec.jsx`, `Name.styled.ts`, `index.ts`), optional props that tolerate missing values, and JSDoc on every component and prop. See [`CLAUDE.md`](CLAUDE.md) for the details.

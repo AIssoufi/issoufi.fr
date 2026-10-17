@@ -1,5 +1,7 @@
 import styled from 'styled-components';
 
+import { th } from '@xstyled/styled-components';
+
 export const WebApp = styled.div`
   display: grid;
   grid-template-areas:
@@ -12,14 +14,14 @@ export const WebApp = styled.div`
   margin: 0 auto;
 
   > header {
-    padding-left: var(--page-padding);
-    padding-right: var(--page-padding);
+    padding-left: ${th.space('page')};
+    padding-right: ${th.space('page')};
     grid-area: header;
   }
 `;
 
 export const Page = styled.section<{ $backgroundImage?: string }>`
-  padding: 16px var(--page-padding) 0;
+  padding: ${th.space(16)} ${th.space('page')} 0;
   position: relative;
   grid-area: main;
 
@@ -27,7 +29,7 @@ export const Page = styled.section<{ $backgroundImage?: string }>`
     content: '';
     display: block;
     position: fixed;
-    z-index: -2;
+    z-index: ${th.zIndex('pageBackground')};
     top: 0;
     bottom: 0;
     left: 0;
@@ -43,11 +45,11 @@ export const Page = styled.section<{ $backgroundImage?: string }>`
     content: '';
     display: block;
     position: fixed;
-    z-index: -1;
+    z-index: ${th.zIndex('behind')};
     top: 0;
     bottom: 0;
     left: 0;
     right: 0;
-    background-color: rgb(0 0 0 / 80%);
+    background-color: ${th.color('shade-a80')};
   }
 `;

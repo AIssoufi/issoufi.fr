@@ -1,5 +1,7 @@
 import styled, { css, keyframes } from 'styled-components';
 
+import { th } from '@xstyled/styled-components';
+
 const heartPop = keyframes`
   0%   { transform: scale(1); }
   25%  { transform: scale(1.7); }
@@ -21,7 +23,7 @@ export const Section = styled.section`
   margin: 0 auto;
   display: flex;
   flex-direction: column;
-  margin-bottom: 30px;
+  margin-bottom: ${th.space(30)};
 `;
 
 export const SectionHeader = styled.header`
@@ -29,11 +31,11 @@ export const SectionHeader = styled.header`
   flex-direction: column;
   justify-content: center;
   align-items: flex-start;
-  margin-bottom: 10px;
-  padding-left: var(--page-padding);
-  padding-right: var(--page-padding);
+  margin-bottom: ${th.space(10)};
+  padding-left: ${th.space('page')};
+  padding-right: ${th.space('page')};
 
-  @media (min-width: 50em) {
+  @media (min-width: ${th('screens.tablet')}) {
     flex-direction: row;
     justify-content: space-between;
     align-items: center;
@@ -43,14 +45,14 @@ export const SectionHeader = styled.header`
 `;
 
 export const SectionTitle = styled.h1`
-  font-size: 26px;
-  font-weight: 700;
+  font-size: ${th.fontSize(26)};
+  font-weight: ${th.fontWeight('bold')};
   margin: 0;
-  margin-bottom: 10px;
-  letter-spacing: -0.01em;
+  margin-bottom: ${th.space(10)};
+  letter-spacing: ${th.letterSpacing('tight')};
 
-  @media (min-width: 50em) {
-    font-size: 40px;
+  @media (min-width: ${th('screens.tablet')}) {
+    font-size: ${th.fontSize(40)};
   }
 `;
 
@@ -58,30 +60,30 @@ export const NavCtrl = styled.nav`
   display: flex;
   flex-direction: row;
   align-items: center;
-  gap: 8px;
+  gap: ${th.space(8)};
 `;
 
 export const CtrlItem = styled.button`
   order: 3;
   height: 32px;
-  border-radius: 60px;
-  padding: 0 14px;
-  font-size: 13px;
-  font-weight: 500;
-  letter-spacing: 0.03em;
+  border-radius: ${th.radius('pill')};
+  padding: 0 ${th.space(14)};
+  font-size: ${th.fontSize(13)};
+  font-weight: ${th.fontWeight('medium')};
+  letter-spacing: ${th.letterSpacing(3)};
   white-space: nowrap;
-  color: var(--primary-color);
-  background-color: var(--transparent-bg-color);
-  border: var(--card-border);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
+  color: ${th.color('foreground')};
+  background-color: ${th.color('surface')};
+  border: ${th.border('card')};
+  backdrop-filter: ${th('blurs.8')};
+  -webkit-backdrop-filter: ${th('blurs.8')};
   transition-property: background-color, border-color, color;
-  transition-duration: var(--transition-duration);
+  transition-duration: ${th.duration('base')};
 
   &:hover {
-    background-color: var(--tertiary-color);
-    border-color: var(--tertiary-color);
-    color: var(--primary-color);
+    background-color: ${th.color('accent')};
+    border-color: ${th.color('accent')};
+    color: ${th.color('foreground')};
     cursor: pointer;
     transform: none;
   }
@@ -94,14 +96,14 @@ export const IconBtn = styled.button`
   width: 36px;
   height: 36px;
   padding: 0;
-  border: var(--card-border);
-  border-radius: 50%;
-  color: var(--primary-color);
-  background-color: var(--transparent-bg-color);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
+  border: ${th.border('card')};
+  border-radius: ${th.radius('circle')};
+  color: ${th.color('foreground')};
+  background-color: ${th.color('surface')};
+  backdrop-filter: ${th('blurs.8')};
+  -webkit-backdrop-filter: ${th('blurs.8')};
   transition-property: background-color, border-color;
-  transition-duration: var(--transition-duration);
+  transition-duration: ${th.duration('base')};
   flex-shrink: 0;
   cursor: pointer;
 
@@ -112,8 +114,8 @@ export const IconBtn = styled.button`
   }
 
   &:hover {
-    background-color: var(--tertiary-color);
-    border-color: var(--tertiary-color);
+    background-color: ${th.color('accent')};
+    border-color: ${th.color('accent')};
     transform: none;
   }
 `;
@@ -133,13 +135,13 @@ export const ProjectGrid = styled.main<{ $displayAll: boolean }>`
     display: grid;
     grid-template-columns: repeat(1, minmax(min-content, 1fr));
     grid-auto-flow: row;
-    row-gap: 5px;
+    row-gap: ${th.space(5)};
 
-    @media (min-width: 50em) {
+    @media (min-width: ${th('screens.tablet')}) {
       grid-template-columns: repeat(2, minmax(min-content, 1fr));
     }
 
-    @media (min-width: 100em) {
+    @media (min-width: ${th('screens.wide')}) {
       grid-template-columns: repeat(3, minmax(min-content, 1fr));
     }
   `}
@@ -148,7 +150,7 @@ export const ProjectGrid = styled.main<{ $displayAll: boolean }>`
 export const ProjectItem = styled.div<{ $displayAll?: boolean }>`
   display: flex;
   flex-direction: column;
-  margin: 5px;
+  margin: ${th.space(5)};
   flex: 0 0 calc(33.333% - 10px);
   min-width: 260px;
   transition:
@@ -159,18 +161,18 @@ export const ProjectItem = styled.div<{ $displayAll?: boolean }>`
 
   &:not(:hover) {
     transform: perspective(800px) rotateX(0deg) rotateY(0deg) translateY(0px);
-    transition: transform 0.4s ease;
+    transition: transform ${th.duration(400)} ${th.timingFunction('standard')};
   }
 
   &:first-child {
-    padding-left: ${props => (props.$displayAll ? '0' : 'var(--page-padding)')};
+    padding-left: ${props => (props.$displayAll ? '0' : th.space('page'))};
   }
 
   &:last-child {
-    padding-right: ${props => (props.$displayAll ? '0' : 'var(--page-padding)')};
+    padding-right: ${props => (props.$displayAll ? '0' : th.space('page'))};
   }
 
-  @media (min-width: 50em) {
+  @media (min-width: ${th('screens.tablet')}) {
     flex: ${props => (props.$displayAll ? '1 1 auto' : '0 0 calc(33.333% - 10px)')};
     min-width: ${props => (props.$displayAll ? 'unset' : '260px')};
 
@@ -186,25 +188,25 @@ export const ProjectItem = styled.div<{ $displayAll?: boolean }>`
 
 export const ImageContainer = styled.header`
   height: 220px;
-  border-radius: var(--border-radius);
+  border-radius: ${th.radius('md')};
   overflow: hidden;
   position: relative;
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border: ${th.borderWidth('thin')} solid ${th.color('foreground-a8')};
 
   &::before {
     content: '';
     position: absolute;
     background: linear-gradient(
       180deg,
-      rgba(0, 0, 0, 0.35) 0%,
-      rgba(0, 0, 0, 0) 50%,
-      rgba(0, 0, 0, 0.5) 100%
+      ${th.color('shade-a35')} 0%,
+      ${th.color('shade-a0')} 50%,
+      ${th.color('shade-a50')} 100%
     );
     top: 0;
     bottom: 0;
     left: 0;
     right: 0;
-    z-index: 1;
+    z-index: ${th.zIndex('raised')};
   }
 
   &::after {
@@ -213,13 +215,13 @@ export const ImageContainer = styled.header`
     inset: 0;
     background: radial-gradient(
       circle at var(--mouse-x, 50%) var(--mouse-y, 50%),
-      rgba(255, 255, 255, 0.18) 0%,
-      rgba(255, 255, 255, 0.06) 30%,
+      ${th.color('foreground-a18')} 0%,
+      ${th.color('foreground-a6')} 30%,
       transparent 65%
     );
     opacity: 0;
-    transition: opacity 0.2s ease;
-    z-index: 2;
+    transition: opacity ${th.duration(200)} ${th.timingFunction('standard')};
+    z-index: ${th.zIndex('raisedMore')};
     pointer-events: none;
   }
 
@@ -234,7 +236,7 @@ export const Thumbnail = styled.img`
   object-fit: cover;
   object-position: top;
   transition-property: object-position;
-  transition-duration: var(--transition-duration);
+  transition-duration: ${th.duration('base')};
 
   ${ProjectItem}:hover & {
     object-position: center;
@@ -245,16 +247,17 @@ export const LikeButton = styled.button<{ $liked: boolean; $animating: boolean }
   position: absolute;
   top: 10px;
   right: 10px;
-  z-index: 3;
+  z-index: ${th.zIndex('raisedMost')};
   display: flex;
   align-items: center;
-  gap: 6px;
-  padding: 5px 11px 5px 8px;
-  border-radius: 60px;
-  border: 1px solid ${props => (props.$liked ? 'rgba(139,49,104,0.6)' : 'rgba(255,255,255,0.2)')};
-  background: ${props => (props.$liked ? 'rgba(139,49,104,0.25)' : 'rgba(0,0,0,0.45)')};
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
+  gap: ${th.space(6)};
+  padding: ${th.space(5)} ${th.space(11)} ${th.space(5)} ${th.space(8)};
+  border-radius: ${th.radius('pill')};
+  border: ${th.borderWidth('thin')} solid
+    ${props => (props.$liked ? th.color('accent-a60') : th.color('foreground-a20'))};
+  background: ${props => (props.$liked ? th.color('accent-a25') : th.color('shade-a45'))};
+  backdrop-filter: ${th('blurs.10')};
+  -webkit-backdrop-filter: ${th('blurs.10')};
   cursor: pointer;
   transition:
     border-color 0.2s,
@@ -265,25 +268,25 @@ export const LikeButton = styled.button<{ $liked: boolean; $animating: boolean }
     width: 15px;
     height: 15px;
     flex-shrink: 0;
-    stroke: ${props => (props.$liked ? 'var(--tertiary-color)' : 'rgba(255,255,255,0.85)')};
-    fill: ${props => (props.$liked ? 'var(--tertiary-color)' : 'transparent')};
+    stroke: ${props => (props.$liked ? th.color('accent') : th.color('foreground-a85'))};
+    fill: ${props => (props.$liked ? th.color('accent') : 'transparent')};
     transition:
       stroke 0.2s,
       fill 0.2s;
     ${props =>
       props.$animating &&
       css`
-        animation: ${heartPop} 0.45s ease forwards;
+        animation: ${heartPop} ${th.duration(450)} ${th.timingFunction('standard')} forwards;
       `}
   }
 
   &:hover {
-    border-color: rgba(139, 49, 104, 0.7);
-    background: rgba(139, 49, 104, 0.2);
+    border-color: ${th.color('accent-a70')};
+    background: ${th.color('accent-a20')};
     transform: scale(1.06);
 
     > svg {
-      stroke: var(--tertiary-color);
+      stroke: ${th.color('accent')};
     }
   }
 
@@ -297,37 +300,37 @@ export const LikeButton = styled.button<{ $liked: boolean; $animating: boolean }
 `;
 
 export const LikeCount = styled.span<{ $liked: boolean; $animating: boolean }>`
-  font-size: 13px;
-  font-weight: 600;
-  color: ${props => (props.$liked ? 'var(--tertiary-color)' : 'rgba(255,255,255,0.85)')};
-  transition: color 0.2s;
+  font-size: ${th.fontSize(13)};
+  font-weight: ${th.fontWeight('semibold')};
+  color: ${props => (props.$liked ? th.color('accent') : th.color('foreground-a85'))};
+  transition: color ${th.duration(200)};
   min-width: 12px;
   text-align: center;
   ${props =>
     props.$animating &&
     css`
-      animation: ${countBump} 0.35s ease forwards;
+      animation: ${countBump} ${th.duration(350)} ${th.timingFunction('standard')} forwards;
     `}
 `;
 
 export const ProjectInfo = styled.main`
-  margin-top: 10px;
-  padding-left: 4px;
+  margin-top: ${th.space(10)};
+  padding-left: ${th.space(4)};
 `;
 
 export const ProjectName = styled.div`
-  font-size: 16px;
-  font-weight: 700;
-  letter-spacing: 0.01em;
-  margin-bottom: 3px;
+  font-size: ${th.fontSize(16)};
+  font-weight: ${th.fontWeight('bold')};
+  letter-spacing: ${th.letterSpacing(1)};
+  margin-bottom: ${th.space(3)};
 `;
 
 export const ProjectType = styled.div`
-  font-size: 13px;
-  color: var(--secondary-dark-color);
+  font-size: ${th.fontSize(13)};
+  color: ${th.color('foreground-muted')};
 `;
 
 export const ProjectTools = styled.div`
-  font-size: 13px;
-  color: var(--secondary-dark-color);
+  font-size: ${th.fontSize(13)};
+  color: ${th.color('foreground-muted')};
 `;

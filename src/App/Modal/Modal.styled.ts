@@ -1,5 +1,7 @@
 import styled from 'styled-components';
 
+import { th } from '@xstyled/styled-components';
+
 export const Overlay = styled.div`
   position: fixed;
   top: 0;
@@ -9,16 +11,16 @@ export const Overlay = styled.div`
   display: flex;
   justify-content: center;
   align-items: center;
-  background-color: rgb(0 0 0 / 85%);
+  background-color: ${th.color('shade-a85')};
 `;
 
 export const Container = styled.div`
   display: grid;
   grid-template-rows: min-content 1fr;
-  background-color: var(--transparent-bg-color);
-  border-radius: var(--border-radius);
-  padding: 10px;
-  margin: 7px;
+  background-color: ${th.color('surface')};
+  border-radius: ${th.radius('md')};
+  padding: ${th.space(10)};
+  margin: ${th.space(7)};
 `;
 
 export const ModalHeader = styled.header`
@@ -30,7 +32,7 @@ export const ModalHeader = styled.header`
 export const CloseButton = styled.button`
   color: white;
   background-color: transparent;
-  border-radius: 60px;
+  border-radius: ${th.radius('pill')};
   border-width: 1px;
   border-style: solid;
   width: max-content;
@@ -41,26 +43,26 @@ export const ModalBody = styled.main`
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 1.5rem;
+  padding: ${th.space(24)};
 
   p {
-    margin: 0 0 20px 0;
+    margin: 0 0 ${th.space(20)} 0;
     text-align: center;
   }
 `;
 
 export const ConfirmButton = styled.button`
-  color: var(--primary-color);
-  background-color: var(--tertiary-color);
-  border-color: var(--tertiary-color);
-  padding: 10px 20px;
-  border-radius: 60px;
+  color: ${th.color('foreground')};
+  background-color: ${th.color('accent')};
+  border-color: ${th.color('accent')};
+  padding: ${th.space(10)} ${th.space(20)};
+  border-radius: ${th.radius('pill')};
   border-width: 1px;
   border-style: solid;
   width: max-content;
   transform: scale(1);
   transition-property: color, border-color, transform, background-color;
-  transition-duration: var(--transition-duration);
+  transition-duration: ${th.duration('base')};
 
   &:hover {
     cursor: pointer;
