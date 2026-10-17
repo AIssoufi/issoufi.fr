@@ -3,7 +3,7 @@
 // route with a 200, and the not found page with a 404, each with the title and canonical URL of
 // the build. Retries for a while, since a new deployment can take a moment to spread.
 // Usage: node scripts/ci/smoke-test.mjs <site URL>
-import { readdirSync, readFileSync } from 'node:fs';
+import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { setTimeout as sleep } from 'node:timers/promises';
 
@@ -13,12 +13,25 @@ import { comparePage, getPageChecks, renderSmokeTestReport } from './utils/pages
 
 const siteUrl = process.argv[2];
 
-if (!URL.canParse(siteUrl ?? '')) {
+const isValidSiteUrl = URL.canParse(siteUrl ?? '');
+if (!isValidSiteUrl) {
   console.log(`::error::Invalid site URL "${siteUrl ?? ''}". Usage: smoke-test.mjs <site URL>`);
   process.exit(1);
 }
 
+if (!existsSync(DIST_DIR)) {
+  console.log(`::error::${DIST_DIR}/ not found: run pnpm build first`);
+  process.exit(1);
+}
+
 const pages = getPageChecks(readdirSync(DIST_DIR));
+
+// Without pages, the smoke test would pass after checking nothing
+const hasPages = pages.length > 0;
+if (!hasPages) {
+  console.log(`::error::${DIST_DIR}/ has no HTML page to check: run pnpm build first`);
+  process.exit(1);
+}
 
 /** @returns {Promise<string[]>} The problems found on every page, empty when all pass. */
 const checkSite = async () => {
