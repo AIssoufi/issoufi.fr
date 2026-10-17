@@ -24,8 +24,20 @@ const projects = [
   project(4, 'Connect Four'),
 ];
 
+/** Project that is not in the list of the first render. */
+const ADDED_PROJECT = project(6, 'Weather app', { likeCount: 5, isLikedByOwnUser: true });
+const TOOLLESS_PROJECT = project(7, 'Landing page', { tools: undefined });
+
 const likeButtonOf = name =>
   within(screen.getByRole('img', { name }).parentElement).getByRole('button');
+
+/** Previous and next page buttons, which have no accessible name to find them by. */
+const pageButtons = () => {
+  const [, previousButton, nextButton] = within(screen.getByRole('navigation')).getAllByRole(
+    'button',
+  );
+  return { previousButton, nextButton };
+};
 
 /** Renders with the theme, so that the styles hold the token values instead of their names. */
 const renderWithTheme = ui => render(<ThemeProvider theme={theme}>{ui}</ThemeProvider>);
@@ -127,6 +139,61 @@ describe('Project', () => {
 
     await userEvent.click(likeButtonOf('Chess'));
     expect(likeButtonOf('Chess')).toHaveTextContent('1');
+  });
+
+  it('starts a card missing from the likes of the first render at no like', async () => {
+    const { rerender } = render(<Project projects={projects} />);
+    rerender(<Project projects={[ADDED_PROJECT, ...projects]} />);
+
+    expect(likeButtonOf(ADDED_PROJECT.name)).toHaveTextContent('0');
+
+    await userEvent.click(likeButtonOf(ADDED_PROJECT.name));
+    expect(likeButtonOf(ADDED_PROJECT.name)).toHaveTextContent('1');
+  });
+
+  it('pages through the projects, without going past the first or the last page', async () => {
+    render(<Project projects={projects} />);
+    const { previousButton, nextButton } = pageButtons();
+
+    await userEvent.click(previousButton);
+    expect(screen.getByText('Chess')).toBeInTheDocument();
+
+    await userEvent.click(nextButton);
+    expect(screen.getByText('Connect Four')).toBeInTheDocument();
+    expect(screen.queryByText('Chess')).not.toBeInTheDocument();
+
+    await userEvent.click(nextButton);
+    expect(screen.getByText('Connect Four')).toBeInTheDocument();
+
+    await userEvent.click(previousButton);
+    expect(screen.getByText('Chess')).toBeInTheDocument();
+    expect(screen.queryByText('Connect Four')).not.toBeInTheDocument();
+  });
+
+  it('hides the page buttons while every project is shown', async () => {
+    render(<Project projects={projects} />);
+
+    await userEvent.click(screen.getByText('Tout afficher (4)'));
+
+    expect(within(screen.getByRole('navigation')).getAllByRole('button')).toHaveLength(1);
+  });
+
+  it('tilts a card toward the pointer, then flattens it when the pointer leaves', () => {
+    render(<Project projects={projects} />);
+    const card = screen.getByText('Chess').closest('a');
+
+    fireEvent.mouseMove(card, { clientX: 10, clientY: 10 });
+    expect(card.style.transform).toMatch(/^perspective\(.+\) rotateX\(.+\) rotateY\(.+\)/);
+
+    fireEvent.mouseLeave(card);
+    expect(card.style.transform).toBe('');
+  });
+
+  it('leaves the tech line of a project without tools empty', () => {
+    render(<Project projects={[TOOLLESS_PROJECT]} />);
+
+    const [, , techLine] = screen.getByText(TOOLLESS_PROJECT.name).parentElement.children;
+    expect(techLine).toBeEmptyDOMElement();
   });
 
   describe('layout', () => {
