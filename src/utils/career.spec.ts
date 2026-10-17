@@ -42,6 +42,24 @@ describe('getFullYearsSince', () => {
     expect(getFullYearsSince({ start: leapStart, now: new Date(2021, 2, 1) })).toBe(1);
     expect(getFullYearsSince({ start: leapStart, now: new Date(2024, 1, 29) })).toBe(4);
   });
+
+  describe('edge cases', () => {
+    const invalid = new Date('not a date');
+
+    it.each([
+      ['an invalid start', { start: invalid, now: new Date(2026, 0, 1) }],
+      ['an invalid now', { start, now: invalid }],
+      ['both invalid', { start: invalid, now: invalid }],
+    ])('returns 0 for %s instead of NaN', (_, params) => {
+      expect(getFullYearsSince(params)).toBe(0);
+    });
+
+    it('counts across centuries', () => {
+      expect(
+        getFullYearsSince({ start: new Date(1999, 11, 31), now: new Date(2100, 11, 31) }),
+      ).toBe(101);
+    });
+  });
 });
 
 describe('getYearsOfExperience', () => {

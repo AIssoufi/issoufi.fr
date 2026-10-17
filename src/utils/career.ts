@@ -19,13 +19,16 @@ interface GetFullYearsSinceParams {
  * The current year only counts once the anniversary day is reached, and a 29 February start
  * is reached on 1 March in non-leap years.
  *
- * @returns Number of full years, never negative.
+ * @returns Number of full years, never negative. `0` when either date is invalid, so a bad
+ * date never shows up as `NaN`.
  *
  * @example
  * getFullYearsSince({ start: new Date(2018, 5, 1), now: new Date(2026, 4, 31) }); // 7
  * getFullYearsSince({ start: new Date(2018, 5, 1), now: new Date(2026, 5, 1) }); // 8
  */
 export function getFullYearsSince({ start, now = new Date() }: GetFullYearsSinceParams): number {
+  if (Number.isNaN(start.getTime()) || Number.isNaN(now.getTime())) return 0;
+
   const years = now.getFullYear() - start.getFullYear();
   const anniversaryReached =
     now.getMonth() > start.getMonth() ||
