@@ -13,13 +13,9 @@ import {
   SCRIPT_BUDGET_GZIP_BYTES,
   SCRIPT_FILE_PATTERN,
 } from './constants.mjs';
-import {
-  appendJobSummary,
-  checkScriptBudget,
-  findLargeImages,
-  formatKilobytes,
-  renderBundleReport,
-} from './utils.mjs';
+import { checkScriptBudget, findLargeImages, renderBundleReport } from './utils/bundle.mjs';
+import { appendJobSummary } from './utils/job-summary.mjs';
+import { formatKilobytes } from './utils/numbers.mjs';
 
 if (!existsSync(DIST_DIR)) {
   console.log(`::error::${DIST_DIR}/ not found: run pnpm build first`);

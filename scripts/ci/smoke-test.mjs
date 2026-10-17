@@ -8,7 +8,8 @@ import { join } from 'node:path';
 import { setTimeout as sleep } from 'node:timers/promises';
 
 import { DIST_DIR, SMOKE_TEST_ATTEMPTS, SMOKE_TEST_RETRY_DELAY_MS } from './constants.mjs';
-import { appendJobSummary, comparePage, getPageChecks } from './utils.mjs';
+import { appendJobSummary } from './utils/job-summary.mjs';
+import { comparePage, getPageChecks } from './utils/pages.mjs';
 
 const siteUrl = process.argv[2];
 

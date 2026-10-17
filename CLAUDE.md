@@ -52,7 +52,7 @@ Sub-components get the same structure in their own folder inside their parent's 
 
 **Tests**: Vitest + Testing Library. Test files are `*.spec.jsx`, co-located with their component. Setup file at `src/setupTests.ts` extends Vitest with `@testing-library/jest-dom`. Components that need routing must be wrapped with `<BrowserRouter>` in tests.
 
-**CI and deployment**: `.github/workflows/ci.yml` checks formatting, lint, types, tests with coverage thresholds and the bundle size, builds, then deploys the `dist` artifact to Cloudflare Pages (project `issoufi-fr`) with Wrangler and smoke-tests it: `main` goes to production at issoufi.fr, any other branch to a preview. Cloudflare's own automatic builds are paused. The helpers of the CI scripts are in `scripts/ci/utils.mjs`, with tests.
+**CI and deployment**: `.github/workflows/ci.yml` checks formatting, lint, types, tests with coverage thresholds and the bundle size, builds, then deploys the `dist` artifact to Cloudflare Pages (project `issoufi-fr`) with Wrangler and smoke-tests it: `main` goes to production at issoufi.fr, any other branch to a preview. Cloudflare's own automatic builds are paused. The helpers of the CI scripts are in `scripts/ci/utils/`, one file per topic (`bundle.mjs`, `coverage.mjs`, `pages.mjs`, `job-summary.mjs`, `numbers.mjs`), each with its tests.
 
 ## Conventions
 
