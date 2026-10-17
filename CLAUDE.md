@@ -5,12 +5,12 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## Commands
 
 ```bash
-pnpm dev          # Start dev server on http://localhost:3000
+pnpm dev          # Start dev server on port 3000, or on PORT (.env.local in a worktree)
 pnpm build        # Type-check + production build (tsc && vite build)
 pnpm size         # After a build: fails over the gzip budget of scripts/ci/constants.mjs
 pnpm smoke-test <url> # After a build: checks that a deployed site serves the pages of dist/
-pnpm preview      # Preview production build
-pnpm typecheck    # Type-check only: src/ and vite.config.ts, then scripts/ (scripts/tsconfig.json)
+pnpm preview      # Preview production build on port 4173, or on PORT
+pnpm typecheck    # Type-check only: src/, vite/ and vite.config.ts, then scripts/ (scripts/tsconfig.json)
 pnpm lint         # ESLint (eslint.config.js)
 pnpm test         # Run tests once
 pnpm test:watch   # Run tests in watch mode
@@ -57,5 +57,6 @@ Sub-components get the same structure in their own folder inside their parent's 
 ## Conventions
 
 - **Branches**: `main` is production, `develop` the integration and default branch. A ruleset refuses direct pushes to both: every change goes through a pull request with passing checks. Work on each ticket in its own Worktrunk worktree, on a branch named after the ticket reference (`ISF-35`, from the `ISF-` autolink to the issues). Start it with the `ticket-worktree` skill (`ticket.mjs start ISF-35`), which fetches `develop` and branches from `origin/develop`, rather than with a bare `wt switch --create`. Open its pull request against `develop` with `Closes #35`. Only release pull requests from `develop` target `main`.
+- **Ports**: when a worktree is created, `.config/wt.toml` writes `PORT=<port>` to its `.env.local`, a port derived from the branch (10000–19999). `vite.config.ts` reads it with `getServerPorts` (`vite/utils.ts`) for both `pnpm dev` and `pnpm preview`, so read a worktree's port in its `.env.local` rather than assuming 3000. Without `PORT`, as in the main checkout, they use 3000 and 4173. A taken port stops the server with an error (`strictPort`) instead of moving it to another port, and `BROWSER=none` stops Vite from opening the browser.
 - **Commits**: Conventional Commits enforced via commitlint + husky (`feat:`, `fix:`, `refactor:`, etc.). They set the next version and `CHANGELOG.md`, which release-please writes: never edit the changelog by hand, and use `feat`/`fix` only for changes a visitor of the site would notice, since those appear in it.
 - **Formatting and linting**: on commit, lint-staged runs `eslint --fix` then Prettier on staged files, one after the other (`--concurrent false`, as both write the same files). A lint error stops the commit.
