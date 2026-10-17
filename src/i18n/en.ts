@@ -1,4 +1,9 @@
 export const en = {
+  meta: {
+    title: 'ADAM Issoufi - Full-stack JavaScript Developer',
+    description:
+      'Full-stack JavaScript developer with {{years}} years of experience, specializing in React.',
+  },
   nav: {
     home: 'Home',
     projects: 'Projects',

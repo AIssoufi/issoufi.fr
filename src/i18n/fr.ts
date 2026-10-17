@@ -1,4 +1,9 @@
 export const fr = {
+  meta: {
+    title: 'ADAM Issoufi - Développeur full-stack JavaScript',
+    description:
+      "Développeur full-stack JavaScript avec {{years}} ans d'expérience, spécialisé React.",
+  },
   nav: {
     home: 'Accueil',
     projects: 'Projets',
