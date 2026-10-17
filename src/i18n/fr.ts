@@ -1,3 +1,7 @@
+/**
+ * French translations: the default and fallback language. Also the source of the static page
+ * metadata generated at build time.
+ */
 export const fr = {
   meta: {
     home: {
@@ -14,6 +18,21 @@ export const fr = {
       title: 'Expériences - ADAM Issoufi',
       description:
         "Parcours professionnel d'ADAM Issoufi, développeur full-stack JavaScript : Sewan, Wibilong, Supralog et Beepeers.",
+    },
+    notFound: {
+      title: 'Page introuvable - ADAM Issoufi',
+      description: "Cette page n'existe pas.",
+    },
+  },
+  errors: {
+    backHome: "Retour à l'accueil",
+    notFound: {
+      title: 'Page introuvable',
+      message: "La page {{path}} n'existe pas.",
+    },
+    forbidden: {
+      title: 'Accès refusé',
+      message: "Vous n'avez pas l'autorisation d'accéder à cette page.",
     },
   },
   nav: {

@@ -1,17 +1,19 @@
 # issoufi-v3
 
-> Personal portfolio of **ADAM Issoufi** — Full-stack JavaScript developer with a passion for UX and UI Design.
+> Personal portfolio of **ADAM Issoufi** — Full-stack JavaScript developer with a passion for UX and UI Design. Live at [issoufi.fr](https://issoufi.fr/).
 
 ## 🛠 Tech Stack
 
-| Category            | Technologies        |
-| ------------------- | ------------------- |
-| **Framework**       | React 19            |
-| **Build**           | Vite 6              |
-| **Language**        | TypeScript 5        |
-| **Styling**         | styled-components 6 |
-| **Routing**         | React Router 7      |
-| **Package Manager** | pnpm                |
+| Category            | Technologies                 |
+| ------------------- | ---------------------------- |
+| **Framework**       | React 19                     |
+| **Build**           | Vite 6                       |
+| **Language**        | TypeScript 5                 |
+| **Styling**         | styled-components 6          |
+| **Routing**         | React Router 7               |
+| **i18n**            | i18next (French and English) |
+| **Tests**           | Vitest 3 + Testing Library   |
+| **Package Manager** | pnpm                         |
 
 ## 🚀 Getting Started
 
@@ -37,8 +39,8 @@ The app will be available at [http://localhost:3000](http://localhost:3000).
 ### Production
 
 ```bash
-pnpm build
-pnpm preview
+pnpm build     # Type-check, then build to dist/
+pnpm preview   # Serve the production build locally
 ```
 
 ### Tests
@@ -48,9 +50,11 @@ pnpm test          # Single run
 pnpm test:watch    # Watch mode
 ```
 
+Tests are `*.spec.jsx` / `*.spec.ts` files next to the code they test. Every component has one.
+
 ## 🌐 Deployment
 
-The site is deployed on [Cloudflare Pages](https://pages.cloudflare.com/) at [issoufi.fr](https://issoufi.fr/).
+The site is deployed on [Cloudflare Pages](https://pages.cloudflare.com/) at [issoufi.fr](https://issoufi.fr/). Every push to `main` deploys to production. Other branches get a preview deployment.
 
 | Setting                | Value                                                          |
 | ---------------------- | -------------------------------------------------------------- |
@@ -64,21 +68,28 @@ The site is deployed on [Cloudflare Pages](https://pages.cloudflare.com/) at [is
 | Environment variables  | `PNPM_VERSION=10.34.7` (same major version as the CI, pnpm 10) |
 
 - **One HTML file per page**: at build time, a Vite plugin (`vite.config.ts`) fills the `%PAGE_*%` placeholders of `index.html` and emits `projects.html` and `experiences.html` from the same template. Each page gets its own title, description and canonical URL, taken from the `meta` translations of `src/i18n/fr.ts`, so link previews and search engines get them without running JavaScript. Cloudflare Pages serves these files at `/projects` and `/experiences`. A new route needs an entry in `PAGES` (`src/utils/pages.ts`).
-- **Single-page application**: `dist` must not contain a top-level `404.html`. Without it, Cloudflare Pages serves `index.html` for any path that matches no file.
+- **Not found pages**: the plugin also emits `404.html`, with the "page not found" title and a `noindex` tag. Cloudflare Pages serves it with a real `404` status for any path that matches no file. The URL is kept, with no redirect, and the app shows its NotFound page. Because `404.html` exists, Cloudflare's single-page-app fallback is off, which is why every route needs its own HTML file.
 - **Years of experience**: the number in the generated HTML files is computed at build time from `CAREER_START_DATE` (`src/utils/career.ts`), so it only changes with a new build. The app itself computes it at runtime.
 
 ## 📁 Project Structure
 
 ```
 src/
-├── App/                  # Root component & layout
-│   ├── Header/           # Navigation, burger menu, links
-│   └── Modal/            # Informational modal
+├── App/                  # Root component, router and layout
+│   ├── DocumentMeta/     # <html lang>, title and description per route and language
+│   ├── Header/           # Logo, navigation and burger menu
+│   ├── LangToggle/       # FR / EN switch
+│   └── Modal/            # Informational modal (unused)
+├── components/           # Components shared across pages
+│   └── StatusMessage/    # Code, title, message and home link of error pages
+├── i18n/                 # French and English translations
 ├── pages/
-│   ├── Home/             # Landing page
-│   ├── Projects/         # Personal & freelance projects
-│   ├── Experiences/      # Work experience
-│   └── NotFound/         # 404 page
+│   ├── Home/             # Landing page, with its animated title and particle background
+│   ├── Projects/         # Personal and freelance projects, data in .data/*.json
+│   ├── Experiences/      # Work experience timeline
+│   ├── NotFound/         # 404 page, shown at the requested URL
+│   └── Forbidden/        # 403 page, not routed yet
+├── utils/                # Career dates and page metadata helpers
 └── index.tsx             # Entry point
 ```
 
@@ -86,3 +97,5 @@ src/
 
 - **Commits**: [Conventional Commits](https://www.conventionalcommits.org/) enforced via commitlint
 - **Formatting**: Prettier (via lint-staged + husky)
+- **Language**: code, comments and docs are in English. Only user-facing texts are translated.
+- **Components**: one folder per component (`Name.tsx`, `Name.spec.jsx`, `Name.styled.ts`, `index.ts`), optional props that tolerate missing values, and JSDoc on every component and prop. See [`CLAUDE.md`](CLAUDE.md) for the details.

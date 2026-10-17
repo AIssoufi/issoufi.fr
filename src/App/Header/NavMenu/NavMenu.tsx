@@ -3,19 +3,45 @@ import { NavLink } from 'react-router-dom';
 import DownloadIcon from './icons/download.svg?react';
 import { CtaButton, Nav, NavItem, NavList } from './NavMenu.styled';
 
+/** A single link of the navigation menu. */
 interface Item {
+  /** Label shown in the menu, already translated. */
   name: string;
+  /**
+   * Route path the link points to, e.g. `/projects`.
+   * Also used as the React key, so it must be unique.
+   */
   url: string;
+  /**
+   * Marks the link active only on an exact path match.
+   * Needed for `/`, which would otherwise be active on every route.
+   * @default false
+   */
   end?: boolean;
 }
 
+/** Props of {@link NavMenu}. */
 interface NavMenuProps {
-  items: Item[];
-  mobileMenuIsOpen: boolean;
-  onClick: () => void;
+  /** Links to render, in display order. @default [] */
+  items?: Item[];
+  /**
+   * Whether the full-screen mobile menu is open. Below `50em` the menu is hidden while false;
+   * on wider screens it is always shown as a horizontal bar.
+   * @default false
+   */
+  mobileMenuIsOpen?: boolean;
+  /** Called when a link or the CV button is clicked, so the parent can close the mobile menu. */
+  onClick?: () => void;
 }
 
-const NavMenu = ({ items = [], onClick, mobileMenuIsOpen = false }: NavMenuProps) => {
+const NO_ITEMS: Item[] = [];
+
+/**
+ * Main navigation: the route links, with the active one highlighted, and the CV download button.
+ * Displayed as a horizontal bar on desktop and as a full-screen overlay on mobile.
+ * Must be rendered inside a router, because the links are `NavLink`s.
+ */
+const NavMenu = ({ items = NO_ITEMS, onClick, mobileMenuIsOpen = false }: NavMenuProps) => {
   return (
     <Nav $mobileMenuIsOpen={mobileMenuIsOpen}>
       <NavList>

@@ -3,10 +3,13 @@ import { defineConfig, type Plugin } from 'vite';
 import svgr from 'vite-plugin-svgr';
 
 import { getYearsOfExperience } from './src/utils/career';
-import { PAGES, renderPageHtml } from './src/utils/pages';
+import { NOT_FOUND_FILE_NAME, PAGES, renderNotFoundHtml, renderPageHtml } from './src/utils/pages';
 
-// Fills the metadata of index.html for the home page, then emits one HTML file per other page
-// from the same template. Runs after Vite's own HTML plugin so the template has the asset tags.
+/**
+ * Vite plugin that fills the metadata of `index.html` for the home page, then emits one HTML
+ * file per other page and a `404.html` from the same template. It runs after Vite's own HTML
+ * plugin (`enforce: 'post'`), so the template already contains the hashed asset tags.
+ */
 const pageMeta = (): Plugin => {
   let template = '';
 
@@ -15,7 +18,7 @@ const pageMeta = (): Plugin => {
     enforce: 'post',
     transformIndexHtml: html => {
       template = html;
-      return renderPageHtml(html, PAGES[0], getYearsOfExperience());
+      return renderPageHtml({ template: html, page: PAGES[0], years: getYearsOfExperience() });
     },
     generateBundle() {
       if (!template) this.error('index.html was not transformed before generateBundle');
@@ -24,8 +27,14 @@ const pageMeta = (): Plugin => {
         this.emitFile({
           type: 'asset',
           fileName: page.fileName,
-          source: renderPageHtml(template, page, getYearsOfExperience()),
+          source: renderPageHtml({ template, page, years: getYearsOfExperience() }),
         });
+      });
+
+      this.emitFile({
+        type: 'asset',
+        fileName: NOT_FOUND_FILE_NAME,
+        source: renderNotFoundHtml({ template, years: getYearsOfExperience() }),
       });
     },
   };

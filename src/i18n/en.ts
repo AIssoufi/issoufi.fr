@@ -1,3 +1,4 @@
+/** English translations. Must keep exactly the same keys as the French ones in `fr.ts`. */
 export const en = {
   meta: {
     home: {
@@ -14,6 +15,21 @@ export const en = {
       title: 'Experience - ADAM Issoufi',
       description:
         'Professional background of ADAM Issoufi, full-stack JavaScript developer: Sewan, Wibilong, Supralog and Beepeers.',
+    },
+    notFound: {
+      title: 'Page not found - ADAM Issoufi',
+      description: 'This page does not exist.',
+    },
+  },
+  errors: {
+    backHome: 'Back to home',
+    notFound: {
+      title: 'Page not found',
+      message: 'The page {{path}} does not exist.',
+    },
+    forbidden: {
+      title: 'Access denied',
+      message: 'You do not have permission to access this page.',
     },
   },
   nav: {

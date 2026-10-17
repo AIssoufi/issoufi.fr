@@ -1,18 +1,18 @@
 import { useEffect, useRef } from 'react';
-import styled from 'styled-components';
 
-const Canvas = styled.canvas`
-  position: fixed;
-  inset: 0;
-  z-index: 0;
-  pointer-events: none;
-`;
+import { Canvas } from './ParticleField.styled';
 
+/** State of one dot of {@link ParticleField}. */
 interface Particle {
+  /** Horizontal position, in canvas pixels. */
   x: number;
+  /** Vertical position, in canvas pixels. */
   y: number;
+  /** Horizontal velocity, in pixels per frame. */
   vx: number;
+  /** Vertical velocity, in pixels per frame. */
   vy: number;
+  /** Radius of the dot, in pixels. */
   size: number;
 }
 
@@ -22,6 +22,12 @@ const REPEL_DIST = 160;
 const REPEL_STRENGTH = 0.32;
 const FRICTION = 0.96;
 
+/**
+ * Full-screen background canvas of drifting dots, linked by lines when they are close to each
+ * other or to the cursor, and pushed away by the mouse. The number of dots follows the window
+ * area. Runs an animation-frame loop and mouse and resize listeners while mounted, and removes
+ * them on unmount. Stays empty without 2D canvas support.
+ */
 export const ParticleField = () => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const mouse = useRef({ x: -9999, y: -9999 });
@@ -29,8 +35,10 @@ export const ParticleField = () => {
   const particles = useRef<Particle[]>([]);
 
   useEffect(() => {
-    const canvas = canvasRef.current!;
-    const ctx = canvas.getContext('2d')!;
+    const canvas = canvasRef.current;
+    const ctx = canvas?.getContext('2d');
+    // No 2D canvas support (old browsers, test environments): keep the static background
+    if (!canvas || !ctx) return;
 
     const init = () => {
       canvas.width = window.innerWidth;

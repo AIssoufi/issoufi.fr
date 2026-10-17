@@ -43,7 +43,7 @@ export const Body = styled.div`
   padding-bottom: 4px;
 `;
 
-export const Descriptiopn = styled.main`
+export const Description = styled.main`
   font-size: 13px;
   font-weight: 400;
   line-height: 1.55;

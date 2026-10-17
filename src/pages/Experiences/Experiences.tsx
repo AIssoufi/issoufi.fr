@@ -2,7 +2,7 @@ import { useTranslation } from 'react-i18next';
 
 import Experience from './Experience';
 import ExperienceGroup from './ExperienceGroup';
-import { BulletItem, BulletList } from './Experience/Experience.styled';
+import { BulletItem, BulletList } from './Experiences.styled';
 
 import {
   ExperiencesPage,
@@ -19,6 +19,10 @@ import {
 
 const BG_IMAGE = '/experiences.jpeg';
 
+/**
+ * Experiences page: a timeline of the professional experiences, most recent first, with their
+ * roles, projects and technologies. Texts come from the `exp` translations.
+ */
 export const Experiences = () => {
   const { t } = useTranslation();
 
@@ -33,7 +37,7 @@ export const Experiences = () => {
           <ExperienceGroup
             entityName={t('exp.sewan.name')}
             entityLogoUrl="/sewan.png"
-            contratType={t('exp.sewan.contract')}
+            contractType={t('exp.sewan.contract')}
             city={t('exp.sewan.city')}
           >
             <ExperienceGroup.Role
@@ -118,7 +122,7 @@ export const Experiences = () => {
                 jobName={t('exp.wibilong.title')}
                 entityName={t('exp.wibilong.name')}
                 entityLogoUrl="/wibilong.png"
-                contratType={t('exp.wibilong.contract')}
+                contractType={t('exp.wibilong.contract')}
                 city={t('exp.wibilong.city')}
                 startDate={t('exp.wibilong.start')}
                 endDate={t('exp.wibilong.end')}
@@ -158,7 +162,7 @@ export const Experiences = () => {
                 jobName={t('exp.supralog.title')}
                 entityName={t('exp.supralog.name')}
                 entityLogoUrl="/supralog.png"
-                contratType={t('exp.supralog.contract')}
+                contractType={t('exp.supralog.contract')}
                 city={t('exp.supralog.city')}
                 startDate={t('exp.supralog.start')}
                 endDate={t('exp.supralog.end')}
@@ -205,7 +209,7 @@ export const Experiences = () => {
                 jobName={t('exp.beepeers.title')}
                 entityName={t('exp.beepeers.name')}
                 entityLogoUrl="/beepeers.jpg"
-                contratType={t('exp.beepeers.contract')}
+                contractType={t('exp.beepeers.contract')}
                 city={t('exp.beepeers.city')}
                 startDate={t('exp.beepeers.start')}
                 endDate={t('exp.beepeers.end')}
