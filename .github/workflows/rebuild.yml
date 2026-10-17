@@ -1,0 +1,21 @@
+name: Monthly rebuild
+
+on:
+  schedule:
+    # The years of experience written in the HTML files at build time change every June 1st, the
+    # anniversary of CAREER_START_DATE (src/utils/career.ts)
+    - cron: '0 5 1 * *'
+
+permissions:
+  actions: write
+
+jobs:
+  rebuild:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      # Runs the CI on main, which builds, deploys and checks production. The GITHUB_TOKEN can
+      # trigger another workflow only through a workflow_dispatch event.
+      - run: gh workflow run ci.yml --ref main --repo "$GITHUB_REPOSITORY"
+        env:
+          GH_TOKEN: ${{ github.token }}

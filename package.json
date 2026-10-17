@@ -46,6 +46,7 @@
     "dev": "vite",
     "build": "tsc && vite build",
     "size": "node scripts/ci/check-bundle-size.mjs",
+    "smoke-test": "node scripts/ci/smoke-test.mjs",
     "preview": "vite preview",
     "typecheck": "tsc --noEmit",
     "lint": "eslint .",

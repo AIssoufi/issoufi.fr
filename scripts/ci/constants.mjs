@@ -33,3 +33,27 @@ export const COVERAGE_SUMMARY_FILE = 'coverage/coverage-summary.json';
 
 /** Coverage metrics shown in the job summary, in display order. */
 export const COVERAGE_METRICS = ['lines', 'statements', 'branches', 'functions'];
+
+/** HTML pages at the root of the build, one per route. */
+export const HTML_FILE_PATTERN = /\.html$/;
+
+/** Page of the build served at `/`. */
+export const HOME_PAGE_FILE = 'index.html';
+
+/** Page of the build that Cloudflare Pages serves, with a 404, for any unknown path. */
+export const NOT_FOUND_PAGE_FILE = '404.html';
+
+/** Path that no page uses, requested to check the not found page. */
+export const MISSING_PAGE_ROUTE = '/smoke-test-page-that-does-not-exist';
+
+/** HTTP status of a page served normally. */
+export const HTTP_OK = 200;
+
+/** HTTP status of the not found page. */
+export const HTTP_NOT_FOUND = 404;
+
+/** Number of times the smoke test checks the site before failing, while a deployment spreads. */
+export const SMOKE_TEST_ATTEMPTS = 5;
+
+/** Pause between two attempts of the smoke test, in milliseconds. */
+export const SMOKE_TEST_RETRY_DELAY_MS = 5000;
