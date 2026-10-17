@@ -60,6 +60,7 @@ Tests are `*.spec.jsx` / `*.spec.ts` files next to the code they test. Every com
 
 ```bash
 pnpm typecheck      # Type-check without building
+pnpm lint           # Lint with ESLint
 pnpm format:check   # Check that every file follows the Prettier style
 pnpm format         # Format every file with Prettier
 ```
@@ -115,6 +116,7 @@ src/
 
 - **Branches**: `main` is production and `develop` the integration branch. Each ticket gets its own branch from `develop` (`feat/…`, `fix/…`, `ci/…`), merged back into `develop` by a pull request once the CI passes. A release is a pull request from `develop` to `main`.
 - **Commits**: [Conventional Commits](https://www.conventionalcommits.org/) enforced via commitlint
+- **Linting**: ESLint (`eslint.config.js`) with the recommended rules of ESLint and typescript-eslint, React Hooks (including the React Compiler rules) and React Refresh. It also forbids importing `styled-components` directly.
 - **Formatting**: Prettier (via lint-staged + husky)
 - **Language**: code, comments and docs are in English. Only user-facing texts are translated.
 - **Styles**: styled-components read every color, spacing, font, radius, shadow, duration and breakpoint from the design tokens of `src/theme` with the [xstyled](https://xstyled.dev/) `th` helpers (`th.color('accent')`, `th.space(16)`, `th.radius('md')`…). No hard-coded values, and every styled-components API is imported from `@xstyled/styled-components`.

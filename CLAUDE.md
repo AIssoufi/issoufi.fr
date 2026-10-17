@@ -10,6 +10,7 @@ pnpm build        # Type-check + production build (tsc && vite build)
 pnpm size         # After a build: fails over the gzip budget of scripts/ci/constants.mjs
 pnpm preview      # Preview production build
 pnpm typecheck    # Type-check only (tsc --noEmit)
+pnpm lint         # ESLint (eslint.config.js)
 pnpm test         # Run tests once
 pnpm test:watch   # Run tests in watch mode
 pnpm test:coverage # Run tests with coverage; fails below COVERAGE_THRESHOLDS (vite.config.ts)
@@ -17,7 +18,7 @@ pnpm format:check # Check Prettier formatting, as the CI does
 pnpm format       # Format every file with Prettier
 ```
 
-There is no lint command — formatting is handled automatically by Prettier via lint-staged on commit.
+ESLint uses the recommended rules of ESLint, typescript-eslint, React Hooks (with the React Compiler rules) and React Refresh. Formatting is handled automatically by Prettier via lint-staged on commit.
 
 ## Architecture
 
@@ -36,7 +37,7 @@ Personal portfolio SPA built with React 19 + TypeScript + Vite.
 
 Sub-components get the same structure in their own folder inside their parent's folder. A component shared by several sub-components of a parent sits at the root of that parent's folder. Components shared across pages live in `src/components/` (e.g. `StatusMessage`). Props are optional by default, and components must render without crashing when a prop is missing.
 
-**Styling and design tokens**: `src/theme/tokens.ts` holds the primitive scales (palette, spacing, font sizes…) and `src/theme/theme.ts` the semantic tokens, following the xstyled theme conventions (`colors` with `-aNN` alpha variants, `space`, `fontSizes`, `radii`, `shadows`, `zIndices`, `durations`, `timingFunctions`, `screens`…). Import `styled`, `css`, `keyframes`, `createGlobalStyle`, `ThemeProvider` and `th` from `@xstyled/styled-components` only, never from `styled-components` directly (a test enforces it). Styled-components read the tokens with the `th` helpers (`th.color('accent-a55')`, `th.space(16)`, `th.radius('md')`, `th('screens.tablet')`); color names are type-checked, and `src/theme/theme.spec.jsx` checks that every token used in a style file exists. JavaScript code (canvas, inline styles) imports `theme` directly. `App` provides the `ThemeProvider` and `GlobalStyle` (which replaced `index.css`). Never write a raw color, spacing, font size, radius, shadow, duration, z-index or breakpoint in a style file: look for an existing token first, then add one to the right scale.
+**Styling and design tokens**: `src/theme/tokens.ts` holds the primitive scales (palette, spacing, font sizes…) and `src/theme/theme.ts` the semantic tokens, following the xstyled theme conventions (`colors` with `-aNN` alpha variants, `space`, `fontSizes`, `radii`, `shadows`, `zIndices`, `durations`, `timingFunctions`, `screens`…). Import `styled`, `css`, `keyframes`, `createGlobalStyle`, `ThemeProvider` and `th` from `@xstyled/styled-components` only, never from `styled-components` directly (ESLint and a test enforce it). Styled-components read the tokens with the `th` helpers (`th.color('accent-a55')`, `th.space(16)`, `th.radius('md')`, `th('screens.tablet')`); color names are type-checked, and `src/theme/theme.spec.jsx` checks that every token used in a style file exists. JavaScript code (canvas, inline styles) imports `theme` directly. `App` provides the `ThemeProvider` and `GlobalStyle` (which replaced `index.css`). Never write a raw color, spacing, font size, radius, shadow, duration, z-index or breakpoint in a style file: look for an existing token first, then add one to the right scale.
 
 **Logic, constants and hooks**: magic numbers are named constants with their unit (`constants.ts` next to their users), computations are pure helpers in `utils.ts` with tests, and stateful effects are hooks in `hooks/useThing/` with tests (see `src/pages/Home/hooks`).
 

@@ -6,11 +6,11 @@ import type { theme } from './theme';
 type AppTheme = typeof theme;
 
 declare module '@xstyled/system' {
-  // eslint-disable-next-line @typescript-eslint/no-empty-interface
+  // eslint-disable-next-line @typescript-eslint/no-empty-object-type -- module augmentation needs an interface
   export interface Theme extends AppTheme {}
 }
 
 declare module 'styled-components' {
-  // eslint-disable-next-line @typescript-eslint/no-empty-interface
+  // eslint-disable-next-line @typescript-eslint/no-empty-object-type -- module augmentation needs an interface
   export interface DefaultTheme extends AppTheme {}
 }
