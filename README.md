@@ -17,7 +17,7 @@
 
 ### Prerequisites
 
-- [Node.js](https://nodejs.org/) (LTS recommended)
+- [Node.js](https://nodejs.org/) 24 (see `.nvmrc`)
 - [pnpm](https://pnpm.io/)
 
 ### Installation
@@ -47,6 +47,24 @@ pnpm preview
 pnpm test          # Single run
 pnpm test:watch    # Watch mode
 ```
+
+## 🌐 Deployment
+
+The site is deployed on [Cloudflare Pages](https://pages.cloudflare.com/) at [issoufi.fr](https://issoufi.fr/).
+
+| Setting                | Value                                                          |
+| ---------------------- | -------------------------------------------------------------- |
+| Production branch      | `main`                                                         |
+| Framework preset       | None                                                           |
+| Root directory         | `/` (default)                                                  |
+| Build command          | `pnpm build`                                                   |
+| Build output directory | `dist`                                                         |
+| Node.js version        | `24`, read from `.nvmrc`                                       |
+| Package manager        | pnpm, detected from `pnpm-lock.yaml`                           |
+| Environment variables  | `PNPM_VERSION=10.34.7` (same major version as the CI, pnpm 10) |
+
+- **Single-page application**: `dist` must not contain a top-level `404.html`. Without it, Cloudflare Pages serves `index.html` for every path that is not a static asset, so routes such as `/projects` work on reload.
+- **Years of experience**: the number in the meta tags of `index.html` is computed at build time from `CAREER_START_DATE` (`src/utils/career.ts`). A new build is needed for it to change; the app itself computes it at runtime.
 
 ## 📁 Project Structure
 
