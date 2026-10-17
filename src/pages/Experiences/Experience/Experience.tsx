@@ -1,19 +1,8 @@
-import { useTranslation } from 'react-i18next';
-
+import JobSummary from '../JobSummary';
 import Project from '../Project';
 import Technologies from '../Technologies';
-import { computeDuration, formatDuration } from '../utils/duration';
 
-import {
-  Article,
-  Details,
-  EntityLogo,
-  JobDetails,
-  JobDuration,
-  JobName,
-  JobSummary,
-  Summary,
-} from './Experience.styled';
+import { Article, Details } from './Experience.styled';
 
 /** Props of {@link Experience}. Every part is optional and is not rendered when missing. */
 interface ExperienceProps {
@@ -39,9 +28,9 @@ interface ExperienceProps {
 }
 
 /**
- * Card for one job at one company: logo, job title, company details, computed duration and a
- * free-form description. For several successive roles at the same company, use
- * `ExperienceGroup` instead.
+ * Card for one job at one company: its {@link JobSummary} (logo, job title, company details,
+ * computed duration) and a free-form description. For several successive roles at the same
+ * company, use `ExperienceGroup` instead.
  *
  * @example
  * <Experience
@@ -55,37 +44,27 @@ interface ExperienceProps {
  */
 const Experience = ({
   jobName,
-  entityName = '',
+  entityName,
   entityLogoUrl,
   contractType,
   city,
   startDate,
   endDate,
   children,
-}: ExperienceProps) => {
-  const { t } = useTranslation();
-  const details = [entityName, contractType, city].filter(Boolean).join(' · ');
-  const duration = formatDuration({ duration: computeDuration({ startDate, endDate }), t });
-
-  return (
-    <Article>
-      <Summary>
-        {entityLogoUrl && (
-          <EntityLogo
-            src={entityLogoUrl}
-            alt={entityName}
-          />
-        )}
-        <JobSummary>
-          {jobName && <JobName>{jobName}</JobName>}
-          {details && <JobDetails>{details}</JobDetails>}
-          {duration && <JobDuration>{duration}</JobDuration>}
-        </JobSummary>
-      </Summary>
-      <Details>{children}</Details>
-    </Article>
-  );
-};
+}: ExperienceProps) => (
+  <Article>
+    <JobSummary
+      jobName={jobName}
+      entityName={entityName}
+      entityLogoUrl={entityLogoUrl}
+      contractType={contractType}
+      city={city}
+      startDate={startDate}
+      endDate={endDate}
+    />
+    <Details>{children}</Details>
+  </Article>
+);
 
 Experience.Technologies = Technologies;
 Experience.Project = Project;
