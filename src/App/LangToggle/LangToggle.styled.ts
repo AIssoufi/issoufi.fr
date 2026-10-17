@@ -1,28 +1,30 @@
 import styled from 'styled-components';
 
+import { th } from '@xstyled/styled-components';
+
 export const Wrapper = styled.div`
   position: fixed;
   right: 20px;
   top: 50%;
   transform: translateY(-50%);
-  z-index: 9;
+  z-index: ${th.zIndex('overlay')};
   display: flex;
   flex-direction: column;
-  padding: 4px;
-  gap: 4px;
-  border-radius: 30px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  background: rgba(0, 0, 0, 0.35);
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
-  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.3);
+  padding: ${th.space(4)};
+  gap: ${th.space(4)};
+  border-radius: ${th.radius(30)};
+  border: ${th.borderWidth('thin')} solid ${th.color('foreground-a10')};
+  background: ${th.color('shade-a35')};
+  backdrop-filter: ${th('blurs.14')};
+  -webkit-backdrop-filter: ${th('blurs.14')};
+  box-shadow: ${th.shadow('card')};
   transition:
     box-shadow 0.3s ease,
     border-color 0.3s ease;
 
   &:hover {
-    border-color: rgba(139, 49, 104, 0.4);
-    box-shadow: 0 4px 28px rgba(139, 49, 104, 0.2);
+    border-color: ${th.color('accent-a40')};
+    box-shadow: ${th.shadow('accentHalo')};
   }
 `;
 
@@ -31,31 +33,31 @@ export const Indicator = styled.div<{ $index: number }>`
   left: 4px;
   right: 4px;
   height: 32px;
-  border-radius: 24px;
-  background: rgba(139, 49, 104, 0.35);
-  border: 1px solid rgba(139, 49, 104, 0.55);
-  box-shadow: 0 0 10px rgba(139, 49, 104, 0.25);
+  border-radius: ${th.radius(24)};
+  background: ${th.color('accent-a35')};
+  border: ${th.borderWidth('thin')} solid ${th.color('accent-a55')};
+  box-shadow: ${th.shadow('accentGlowFaint')};
   transform: translateY(${({ $index }) => $index * 36}px);
-  transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+  transition: transform ${th.duration(350)} ${th.timingFunction('spring')};
   pointer-events: none;
 `;
 
 export const Btn = styled.button<{ $active: boolean }>`
   position: relative;
-  z-index: 1;
+  z-index: ${th.zIndex('raised')};
   background: none;
   border: none;
   cursor: pointer;
   width: 36px;
   height: 32px;
-  border-radius: 24px;
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  color: ${({ $active }) => ($active ? 'rgba(212, 160, 192, 1)' : 'rgba(255, 255, 255, 0.35)')};
-  transition: color 0.25s ease;
+  border-radius: ${th.radius(24)};
+  font-size: ${th.fontSize(11)};
+  font-weight: ${th.fontWeight('bold')};
+  letter-spacing: ${th.letterSpacing(8)};
+  color: ${({ $active }) => ($active ? th.color('accent-soft') : th.color('foreground-a35'))};
+  transition: color ${th.duration(250)} ${th.timingFunction('standard')};
 
   &:hover {
-    color: ${({ $active }) => ($active ? 'rgba(212, 160, 192, 1)' : 'rgba(255, 255, 255, 0.7)')};
+    color: ${({ $active }) => ($active ? th.color('accent-soft') : th.color('foreground-a70'))};
   }
 `;

@@ -1,5 +1,7 @@
 import styled, { css, keyframes } from 'styled-components';
 
+import { th } from '@xstyled/styled-components';
+
 const fadeSlideIn = keyframes`
   from {
     opacity: 0;
@@ -23,13 +25,13 @@ export const Nav = styled.nav<{ $mobileMenuIsOpen: boolean }>`
       justify-content: center;
       position: fixed;
       inset: 0;
-      z-index: 9;
-      background: rgba(10, 6, 18, 0.92);
-      backdrop-filter: blur(20px);
-      -webkit-backdrop-filter: blur(20px);
+      z-index: ${th.zIndex('overlay')};
+      background: ${th.color('overlay-mobile-menu')};
+      backdrop-filter: ${th('blurs.20')};
+      -webkit-backdrop-filter: ${th('blurs.20')};
     `}
 
-  @media (min-width: 50em) {
+  @media (min-width: ${th('screens.tablet')}) {
     display: flex;
     flex-direction: row;
     align-items: center;
@@ -45,9 +47,9 @@ export const NavList = styled.ul`
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 8px;
+  gap: ${th.space(8)};
 
-  @media (min-width: 50em) {
+  @media (min-width: ${th('screens.tablet')}) {
     flex-direction: row;
     align-items: center;
     gap: 0;
@@ -55,35 +57,35 @@ export const NavList = styled.ul`
 `;
 
 export const NavItem = styled.li`
-  padding: 16px 48px;
-  font-size: 28px;
-  font-weight: 300;
-  letter-spacing: 0.06em;
-  animation: ${fadeSlideIn} 0.3s ease both;
-  border-radius: 12px;
+  padding: ${th.space(16)} ${th.space(48)};
+  font-size: ${th.fontSize(28)};
+  font-weight: ${th.fontWeight('light')};
+  letter-spacing: ${th.letterSpacing(6)};
+  animation: ${fadeSlideIn} ${th.duration(300)} ${th.timingFunction('standard')} both;
+  border-radius: ${th.radius('md')};
   transition:
     background 0.2s ease,
     color 0.2s ease;
 
   &:active a {
-    color: var(--tertiary-color);
+    color: ${th.color('accent')};
   }
 
   &:active {
-    background: rgba(139, 49, 104, 0.15);
+    background: ${th.color('accent-a15')};
   }
 
-  @media (min-width: 50em) {
-    padding: 10px 16px;
-    font-size: 15px;
-    font-weight: 400;
-    letter-spacing: 0.03em;
+  @media (min-width: ${th('screens.tablet')}) {
+    padding: ${th.space(10)} ${th.space(16)};
+    font-size: ${th.fontSize(15)};
+    font-weight: ${th.fontWeight('regular')};
+    letter-spacing: ${th.letterSpacing(3)};
     animation: none;
     border-radius: 0;
     position: relative;
     transform: scale(1);
     transition-property: transform, color;
-    transition-duration: var(--transition-duration);
+    transition-duration: ${th.duration('base')};
 
     &:hover {
       transform: scale(1.06);
@@ -91,7 +93,7 @@ export const NavItem = styled.li`
     }
 
     &:hover a {
-      color: var(--tertiary-color);
+      color: ${th.color('accent')};
     }
 
     &:active {
@@ -102,12 +104,12 @@ export const NavItem = styled.li`
       content: '';
       position: absolute;
       height: 2px;
-      background-color: var(--tertiary-color);
+      background-color: ${th.color('accent')};
       bottom: 4px;
       left: 16px;
       right: 16px;
       display: none;
-      border-radius: 2px;
+      border-radius: ${th.radius(2)};
     }
 
     > a.active::before {
@@ -115,68 +117,69 @@ export const NavItem = styled.li`
     }
 
     > a.active {
-      color: var(--tertiary-color);
-      font-weight: 600;
+      color: ${th.color('accent')};
+      font-weight: ${th.fontWeight('semibold')};
     }
   }
 `;
 
 export const CtaButton = styled.a`
-  border-radius: 60px;
+  border-radius: ${th.radius('pill')};
   width: max-content;
   transform: scale(1);
   transition-property: color, border-color, transform, background-color, box-shadow;
-  transition-duration: var(--transition-duration);
-  margin-top: 28px;
-  padding: 14px 36px;
-  color: var(--primary-color);
+  transition-duration: ${th.duration('base')};
+  margin-top: ${th.space(28)};
+  padding: ${th.space(14)} ${th.space(36)};
+  color: ${th.color('foreground')};
   background-color: transparent;
   display: flex;
   flex-direction: row;
   align-items: center;
   justify-content: center;
-  border: 1px solid rgba(255, 255, 255, 0.5);
+  border: ${th.borderWidth('thin')} solid ${th.color('foreground-a50')};
   height: max-content;
-  font-size: 18px;
-  letter-spacing: 0.06em;
-  animation: ${fadeSlideIn} 0.3s ease 0.2s both;
+  font-size: ${th.fontSize(18)};
+  letter-spacing: ${th.letterSpacing(6)};
+  animation: ${fadeSlideIn} ${th.duration(300)} ${th.timingFunction('standard')} ${th.duration(200)}
+    both;
 
   &:active {
-    background-color: rgba(139, 49, 104, 0.2);
-    border-color: rgba(139, 49, 104, 0.6);
+    background-color: ${th.color('accent-a20')};
+    border-color: ${th.color('accent-a60')};
   }
 
   .icon {
-    margin-right: 0.7em;
+    margin-right: ${th.space('icon-gap')};
   }
 
   .text {
     text-transform: uppercase;
   }
 
-  @media (min-width: 50em) {
+  @media (min-width: ${th('screens.tablet')}) {
     margin-top: 0;
-    margin-left: 8px;
-    padding: 8px 22px;
-    font-size: 14px;
-    letter-spacing: 0.04em;
+    margin-left: ${th.space(8)};
+    padding: ${th.space(8)} ${th.space(22)};
+    font-size: ${th.fontSize(14)};
+    letter-spacing: ${th.letterSpacing(4)};
     animation: none;
 
     &:hover {
       transform: scale(1.06);
-      color: var(--tertiary-color);
-      background-color: var(--primary-color);
-      border-color: var(--primary-color);
-      box-shadow: 0 0 16px rgba(139, 49, 104, 0.3);
+      color: ${th.color('accent')};
+      background-color: ${th.color('foreground')};
+      border-color: ${th.color('foreground')};
+      box-shadow: ${th.shadow('accentGlowWide')};
     }
 
     &:hover .icon {
-      stroke: var(--tertiary-color);
+      stroke: ${th.color('accent')};
     }
 
     &:active {
-      background-color: var(--primary-color);
-      border-color: var(--primary-color);
+      background-color: ${th.color('foreground')};
+      border-color: ${th.color('foreground')};
     }
   }
 `;

@@ -1,19 +1,21 @@
 import styled from 'styled-components';
 
+import { th } from '@xstyled/styled-components';
+
 export const Article = styled.article`
-  border: var(--card-border);
-  border-radius: var(--border-radius);
-  background-color: var(--transparent-bg-color);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  padding: 16px;
-  box-shadow: var(--card-shadow);
+  border: ${th.border('card')};
+  border-radius: ${th.radius('md')};
+  background-color: ${th.color('surface')};
+  backdrop-filter: ${th('blurs.8')};
+  -webkit-backdrop-filter: ${th('blurs.8')};
+  padding: ${th.space(16)};
+  box-shadow: ${th.shadow('card')};
   transition-property: transform, box-shadow;
-  transition-duration: var(--transition-duration);
+  transition-duration: ${th.duration('base')};
 
   &:hover {
     transform: translateY(-2px);
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+    box-shadow: ${th.shadow('cardHover')};
   }
 `;
 
@@ -21,8 +23,8 @@ export const EntityLogo = styled.img`
   height: 52px;
   width: 52px;
   object-fit: cover;
-  border-radius: var(--border-radius-sm);
-  border: var(--card-border);
+  border-radius: ${th.radius('sm')};
+  border: ${th.border('card')};
 `;
 
 export const Summary = styled.header`
@@ -34,44 +36,44 @@ export const Summary = styled.header`
 export const JobSummary = styled.div`
   display: flex;
   flex-direction: column;
-  padding-left: 12px;
+  padding-left: ${th.space(12)};
 `;
 
 export const JobName = styled.h2`
   margin: 0;
-  font-size: 15px;
-  font-weight: 700;
-  letter-spacing: 0.01em;
+  font-size: ${th.fontSize(15)};
+  font-weight: ${th.fontWeight('bold')};
+  letter-spacing: ${th.letterSpacing(1)};
 
-  @media (min-width: 50em) {
-    font-size: 17px;
+  @media (min-width: ${th('screens.tablet')}) {
+    font-size: ${th.fontSize(17)};
   }
 `;
 
 export const JobDetails = styled.div`
-  font-size: 13px;
-  font-weight: 500;
-  color: var(--secondary-color);
-  margin-top: 2px;
+  font-size: ${th.fontSize(13)};
+  font-weight: ${th.fontWeight('medium')};
+  color: ${th.color('foreground-secondary')};
+  margin-top: ${th.space(2)};
 `;
 
 export const JobDuration = styled.div`
   display: inline-flex;
-  font-size: 11px;
-  font-weight: 500;
-  color: var(--secondary-color);
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 20px;
-  padding: 2px 9px;
-  margin-top: 4px;
+  font-size: ${th.fontSize(11)};
+  font-weight: ${th.fontWeight('medium')};
+  color: ${th.color('foreground-secondary')};
+  background: ${th.color('foreground-a5')};
+  border: ${th.borderWidth('thin')} solid ${th.color('foreground-a10')};
+  border-radius: ${th.radius(20)};
+  padding: ${th.space(2)} ${th.space(9)};
+  margin-top: ${th.space(4)};
   width: fit-content;
 `;
 
 export const Details = styled.main`
-  font-size: 14px;
-  font-weight: 400;
-  margin-top: 12px;
+  font-size: ${th.fontSize(14)};
+  font-weight: ${th.fontWeight('regular')};
+  margin-top: ${th.space(12)};
   position: relative;
-  line-height: 1.6;
+  line-height: ${th.lineHeight(160)};
 `;

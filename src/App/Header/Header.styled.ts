@@ -1,15 +1,17 @@
 import styled, { css } from 'styled-components';
 
+import { th } from '@xstyled/styled-components';
+
 export const Container = styled.header`
   display: flex;
   flex-direction: row;
   justify-content: space-between;
   align-items: center;
-  font-size: 18px;
-  padding: 20px 0;
+  font-size: ${th.fontSize(18)};
+  padding: ${th.space(20)} 0;
   position: sticky;
   top: 0;
-  z-index: 11;
+  z-index: ${th.zIndex('header')};
 
   &::after {
     content: '';
@@ -18,25 +20,25 @@ export const Container = styled.header`
     left: 0;
     right: 0;
     height: 72px;
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    background: linear-gradient(180deg, rgba(0, 0, 0, 0.55) 0%, rgba(0, 0, 0, 0) 100%);
-    z-index: -1;
+    backdrop-filter: ${th('blurs.12')};
+    -webkit-backdrop-filter: ${th('blurs.12')};
+    background: linear-gradient(180deg, ${th.color('shade-a55')} 0%, ${th.color('shade-a0')} 100%);
+    z-index: ${th.zIndex('behind')};
     pointer-events: none;
   }
 `;
 
 export const Logo = styled.div`
-  font-family: 'Saira Stencil One', cursive;
-  font-size: 34px;
+  font-family: ${th.font('display')};
+  font-size: ${th.fontSize(34)};
   transform: scale(1);
   transition-property: transform, color;
-  transition-duration: var(--transition-duration);
-  letter-spacing: 0.02em;
+  transition-duration: ${th.duration('base')};
+  letter-spacing: ${th.letterSpacing(2)};
 
   :hover {
     transform: scale(1.08);
-    color: var(--tertiary-color);
+    color: ${th.color('accent')};
   }
 `;
 
@@ -49,7 +51,7 @@ export const Menu = styled.div<MenuProps>`
     css`
       position: fixed;
       top: 20px;
-      z-index: 1;
+      z-index: ${th.zIndex('raised')};
       right: 20px;
     `}
 `;

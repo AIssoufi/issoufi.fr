@@ -1,26 +1,37 @@
 import { useEffect, useRef } from 'react';
 
+import type { Point } from '../types';
+import { usePointerRef } from '../hooks/usePointerRef';
+import { isPointerOnScreen } from '../utils';
+import {
+  CURSOR_LINK_DISTANCE_PX,
+  CURSOR_LINK_MAX_OPACITY,
+  CURSOR_LINK_MAX_WIDTH_PX,
+  LINK_DISTANCE_PX,
+  LINK_MAX_OPACITY,
+  LINK_MAX_WIDTH_PX,
+  LINK_RGB,
+  PARTICLE_COLOR,
+} from './constants';
 import { Canvas } from './ParticleField.styled';
+import type { Particle } from './types';
+import { createParticles, getLinkStrength, stepParticle } from './utils';
 
-/** State of one dot of {@link ParticleField}. */
-interface Particle {
-  /** Horizontal position, in canvas pixels. */
-  x: number;
-  /** Vertical position, in canvas pixels. */
-  y: number;
-  /** Horizontal velocity, in pixels per frame. */
-  vx: number;
-  /** Vertical velocity, in pixels per frame. */
-  vy: number;
-  /** Radius of the dot, in pixels. */
-  size: number;
+const FULL_CIRCLE_RAD = Math.PI * 2;
+
+/** Parameters of the `drawLink` helper used on each frame. */
+interface DrawLinkParams {
+  /** Start of the line. */
+  from: Point;
+  /** End of the line. */
+  to: Point;
+  /** Strength between 0 and 1, from {@link getLinkStrength}. */
+  strength: number;
+  /** Opacity of a full-strength link. */
+  maxOpacity: number;
+  /** Width of a full-strength link, in pixels. */
+  maxWidth: number;
 }
-
-const AREA = 11000;
-const LINK_DIST = 130;
-const REPEL_DIST = 160;
-const REPEL_STRENGTH = 0.32;
-const FRICTION = 0.96;
 
 /**
  * Full-screen background canvas of drifting dots, linked by lines when they are close to each
@@ -30,122 +41,95 @@ const FRICTION = 0.96;
  */
 export const ParticleField = () => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const mouse = useRef({ x: -9999, y: -9999 });
-  const raf = useRef<number>(0);
-  const particles = useRef<Particle[]>([]);
+  const pointerRef = usePointerRef();
 
   useEffect(() => {
     const canvas = canvasRef.current;
-    const ctx = canvas?.getContext('2d');
+    const context = canvas?.getContext('2d');
     // No 2D canvas support (old browsers, test environments): keep the static background
-    if (!canvas || !ctx) return;
+    if (!canvas || !context) return;
 
-    const init = () => {
+    let particles: Particle[] = [];
+    let frame = 0;
+
+    const resize = () => {
       canvas.width = window.innerWidth;
       canvas.height = window.innerHeight;
-      const n = Math.round((canvas.width * canvas.height) / AREA);
-      particles.current = Array.from({ length: n }, () => ({
-        x: Math.random() * canvas.width,
-        y: Math.random() * canvas.height,
-        vx: (Math.random() - 0.5) * 0.55,
-        vy: (Math.random() - 0.5) * 0.55,
-        size: Math.random() * 1.4 + 0.4,
-      }));
+      particles = createParticles({ width: canvas.width, height: canvas.height });
+    };
+
+    const drawLink = ({ from, to, strength, maxOpacity, maxWidth }: DrawLinkParams) => {
+      context.beginPath();
+      context.moveTo(from.x, from.y);
+      context.lineTo(to.x, to.y);
+      context.strokeStyle = `rgba(${LINK_RGB},${strength * maxOpacity})`;
+      context.lineWidth = strength * maxWidth;
+      context.stroke();
     };
 
     const tick = () => {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      const { x: mx, y: my } = mouse.current;
-      const pts = particles.current;
-      const W = canvas.width;
-      const H = canvas.height;
+      const { width, height } = canvas;
+      const pointer = pointerRef.current;
+      context.clearRect(0, 0, width, height);
 
-      // Update physics
-      for (const p of pts) {
-        const dx = p.x - mx;
-        const dy = p.y - my;
-        const d2 = dx * dx + dy * dy;
-        if (d2 < REPEL_DIST * REPEL_DIST && d2 > 0) {
-          const d = Math.sqrt(d2);
-          const f = ((REPEL_DIST - d) / REPEL_DIST) * REPEL_STRENGTH;
-          p.vx += (dx / d) * f;
-          p.vy += (dy / d) * f;
-        }
-        p.vx *= FRICTION;
-        p.vy *= FRICTION;
-        p.x = (((p.x + p.vx) % W) + W) % W;
-        p.y = (((p.y + p.vy) % H) + H) % H;
-      }
+      particles = particles.map(particle => stepParticle({ particle, pointer, width, height }));
 
-      // Particle–particle links
-      for (let i = 0; i < pts.length; i++) {
-        for (let j = i + 1; j < pts.length; j++) {
-          const dx = pts[i].x - pts[j].x;
-          const dy = pts[i].y - pts[j].y;
-          const d2 = dx * dx + dy * dy;
-          if (d2 < LINK_DIST * LINK_DIST) {
-            const t = 1 - Math.sqrt(d2) / LINK_DIST;
-            ctx.beginPath();
-            ctx.moveTo(pts[i].x, pts[i].y);
-            ctx.lineTo(pts[j].x, pts[j].y);
-            ctx.strokeStyle = `rgba(139,49,104,${t * 0.4})`;
-            ctx.lineWidth = t * 0.8;
-            ctx.stroke();
+      // Index loops on purpose: this O(n²) pass runs on every frame and must not allocate
+      for (let i = 0; i < particles.length; i++) {
+        for (let j = i + 1; j < particles.length; j++) {
+          const from = particles[i];
+          const to = particles[j];
+          const strength = getLinkStrength({ from, to, maxDistance: LINK_DISTANCE_PX });
+          if (strength > 0) {
+            drawLink({
+              from,
+              to,
+              strength,
+              maxOpacity: LINK_MAX_OPACITY,
+              maxWidth: LINK_MAX_WIDTH_PX,
+            });
           }
         }
       }
 
-      // Cursor–particle links
-      if (mx > -999) {
-        const CUR = REPEL_DIST * 1.4;
-        for (const p of pts) {
-          const dx = p.x - mx;
-          const dy = p.y - my;
-          const d2 = dx * dx + dy * dy;
-          if (d2 < CUR * CUR) {
-            const t = 1 - Math.sqrt(d2) / CUR;
-            ctx.beginPath();
-            ctx.moveTo(mx, my);
-            ctx.lineTo(p.x, p.y);
-            ctx.strokeStyle = `rgba(139,49,104,${t * 0.85})`;
-            ctx.lineWidth = t * 1.5;
-            ctx.stroke();
+      if (isPointerOnScreen(pointer)) {
+        particles.forEach(to => {
+          const strength = getLinkStrength({
+            from: pointer,
+            to,
+            maxDistance: CURSOR_LINK_DISTANCE_PX,
+          });
+          if (strength > 0) {
+            drawLink({
+              from: pointer,
+              to,
+              strength,
+              maxOpacity: CURSOR_LINK_MAX_OPACITY,
+              maxWidth: CURSOR_LINK_MAX_WIDTH_PX,
+            });
           }
-        }
+        });
       }
 
-      // Particles
-      for (const p of pts) {
-        ctx.beginPath();
-        ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
-        ctx.fillStyle = `rgba(255,255,255,0.65)`;
-        ctx.fill();
-      }
+      particles.forEach(({ x, y, size }) => {
+        context.beginPath();
+        context.arc(x, y, size, 0, FULL_CIRCLE_RAD);
+        context.fillStyle = PARTICLE_COLOR;
+        context.fill();
+      });
 
-      raf.current = requestAnimationFrame(tick);
+      frame = requestAnimationFrame(tick);
     };
 
-    const onMove = (e: MouseEvent) => {
-      mouse.current = { x: e.clientX, y: e.clientY };
-    };
-    const onLeave = () => {
-      mouse.current = { x: -9999, y: -9999 };
-    };
-
-    window.addEventListener('mousemove', onMove);
-    document.addEventListener('mouseleave', onLeave);
-    window.addEventListener('resize', init);
-
-    init();
+    window.addEventListener('resize', resize);
+    resize();
     tick();
 
     return () => {
-      cancelAnimationFrame(raf.current);
-      window.removeEventListener('mousemove', onMove);
-      document.removeEventListener('mouseleave', onLeave);
-      window.removeEventListener('resize', init);
+      cancelAnimationFrame(frame);
+      window.removeEventListener('resize', resize);
     };
-  }, []);
+  }, [pointerRef]);
 
   return <Canvas ref={canvasRef} />;
 };

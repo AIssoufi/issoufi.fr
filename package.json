@@ -4,6 +4,7 @@
   "private": true,
   "type": "module",
   "dependencies": {
+    "@xstyled/styled-components": "4.1.1",
     "i18next": "^25.10.9",
     "lottie-web": "^5.12.2",
     "react": "^19.0.0",

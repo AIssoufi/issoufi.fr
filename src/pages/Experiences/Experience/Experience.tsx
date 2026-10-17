@@ -27,7 +27,7 @@ interface ExperienceProps {
   city?: string;
   /**
    * Start of the job as a month and a year, e.g. "sept. 2019" or "Sept. 2019".
-   * The duration is shown only when both dates are provided.
+   * The duration is shown only when both dates are valid.
    */
   startDate?: string;
   /** End of the job in the same format as `startDate`, or "Aujourd'hui" / "Present". */
@@ -62,6 +62,7 @@ const Experience = ({
   children,
 }: ExperienceProps) => {
   const details = [entityName, contractType, city].filter(Boolean).join(' · ');
+  const duration = computeDuration({ startDate, endDate });
 
   return (
     <Article>
@@ -75,9 +76,7 @@ const Experience = ({
         <JobSummary>
           {jobName && <JobName>{jobName}</JobName>}
           {details && <JobDetails>{details}</JobDetails>}
-          {startDate && endDate && (
-            <JobDuration>{computeDuration({ startDate, endDate })}</JobDuration>
-          )}
+          {duration && <JobDuration>{duration}</JobDuration>}
         </JobSummary>
       </Summary>
       <Details>{children}</Details>

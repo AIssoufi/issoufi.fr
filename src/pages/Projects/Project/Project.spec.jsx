@@ -1,4 +1,4 @@
-import { render, screen, within } from '@testing-library/react';
+import { fireEvent, render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
 import Project from './Project';
@@ -56,6 +56,15 @@ describe('Project', () => {
       'https://example.com/chess',
     );
     expect(screen.getByText('Calculator').closest('a')).toBeNull();
+  });
+
+  it('does not follow the card link when the like button is clicked', () => {
+    render(<Project projects={projects} />);
+
+    const isDefaultAllowed = fireEvent.click(likeButtonOf('Chess'));
+
+    expect(isDefaultAllowed).toBe(false);
+    expect(likeButtonOf('Chess')).toHaveTextContent('1');
   });
 
   it('toggles the like count', async () => {

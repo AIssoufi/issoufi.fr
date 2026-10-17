@@ -1,18 +1,20 @@
 import styled from 'styled-components';
 
+import { th } from '@xstyled/styled-components';
+
 export const TechList = styled.footer`
   display: flex;
   flex-wrap: wrap;
-  gap: 6px;
-  margin-top: 10px;
+  gap: ${th.space(6)};
+  margin-top: ${th.space(10)};
 `;
 
 export const TechChip = styled.span`
-  font-size: 11px;
-  font-weight: 500;
-  border-radius: 20px;
-  padding: 3px 9px;
-  color: rgba(210, 208, 220, 0.6);
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(255, 255, 255, 0.09);
+  font-size: ${th.fontSize(11)};
+  font-weight: ${th.fontWeight('medium')};
+  border-radius: ${th.radius(20)};
+  padding: ${th.space(3)} ${th.space(9)};
+  color: ${th.color('foreground-subtle')};
+  background: ${th.color('foreground-a4')};
+  border: ${th.borderWidth('thin')} solid ${th.color('foreground-a9')};
 `;

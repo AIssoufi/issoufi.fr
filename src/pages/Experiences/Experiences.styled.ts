@@ -2,24 +2,26 @@ import styled from 'styled-components';
 
 import { Page } from '../../App/App.styled';
 
+import { th } from '@xstyled/styled-components';
+
 export const ExperiencesPage = styled(Page)``;
 
 export const PageHeader = styled.header`
   position: relative;
-  z-index: 2;
+  z-index: ${th.zIndex('raisedMore')};
 `;
 
 export const PageTitle = styled.h1`
-  font-size: 26px;
-  font-weight: 700;
+  font-size: ${th.fontSize(26)};
+  font-weight: ${th.fontWeight('bold')};
   margin: 0;
-  margin-bottom: 20px;
-  letter-spacing: -0.01em;
+  margin-bottom: ${th.space(20)};
+  letter-spacing: ${th.letterSpacing('tight')};
   position: relative;
-  z-index: 2;
+  z-index: ${th.zIndex('raisedMore')};
 
-  @media (min-width: 50em) {
-    font-size: 40px;
+  @media (min-width: ${th('screens.tablet')}) {
+    font-size: ${th.fontSize(40)};
   }
 `;
 
@@ -38,15 +40,15 @@ export const Timeline = styled.div`
     width: 2px;
     background: linear-gradient(
       to bottom,
-      rgba(139, 49, 104, 0.9) 0%,
-      rgba(139, 49, 104, 0.35) 75%,
+      ${th.color('accent-a90')} 0%,
+      ${th.color('accent-a35')} 75%,
       transparent 100%
     );
-    border-radius: 1px;
+    border-radius: ${th.radius(1)};
   }
 
   /* vertical line — desktop (centered on the 90 px period column) */
-  @media (min-width: 50em) {
+  @media (min-width: ${th('screens.tablet')}) {
     &::before {
       left: 89px; /* 90px col − 1px to center the 2px line */
     }
@@ -55,7 +57,7 @@ export const Timeline = styled.div`
 
 export const TimelineEntry = styled.div`
   position: relative;
-  margin-bottom: 20px;
+  margin-bottom: ${th.space(20)};
 
   /* dot — mobile */
   &::before {
@@ -65,15 +67,15 @@ export const TimelineEntry = styled.div`
     top: 18px;
     width: 12px;
     height: 12px;
-    border-radius: 50%;
-    background: rgba(139, 49, 104, 0.85);
-    border: 2px solid rgba(255, 255, 255, 0.8);
-    box-shadow: 0 0 10px rgba(139, 49, 104, 0.55);
-    z-index: 1;
+    border-radius: ${th.radius('circle')};
+    background: ${th.color('accent-a85')};
+    border: ${th.borderWidth('thick')} solid ${th.color('foreground-a80')};
+    box-shadow: ${th.shadow('accentGlow')};
+    z-index: ${th.zIndex('raised')};
   }
 
   /* desktop: two-column grid */
-  @media (min-width: 50em) {
+  @media (min-width: ${th('screens.tablet')}) {
     display: grid;
     grid-template-columns: 90px 1fr;
 
@@ -90,12 +92,12 @@ export const TimelinePeriod = styled.div`
   /* hidden on mobile — card takes full width */
   display: none;
 
-  @media (min-width: 50em) {
+  @media (min-width: ${th('screens.tablet')}) {
     display: flex;
     flex-direction: column;
     align-items: flex-end;
-    padding-right: 18px;
-    padding-top: 5px;
+    padding-right: ${th.space(18)};
+    padding-top: ${th.space(5)};
     position: relative;
 
     /* dot */
@@ -106,37 +108,37 @@ export const TimelinePeriod = styled.div`
       top: 5px;
       width: 12px;
       height: 12px;
-      border-radius: 50%;
-      background: rgba(139, 49, 104, 0.85);
-      border: 2px solid rgba(255, 255, 255, 0.8);
-      box-shadow: 0 0 10px rgba(139, 49, 104, 0.55);
-      z-index: 1;
+      border-radius: ${th.radius('circle')};
+      background: ${th.color('accent-a85')};
+      border: ${th.borderWidth('thick')} solid ${th.color('foreground-a80')};
+      box-shadow: ${th.shadow('accentGlow')};
+      z-index: ${th.zIndex('raised')};
     }
   }
 `;
 
 export const PeriodStart = styled.span`
-  font-size: 12px;
-  font-weight: 700;
-  color: rgba(212, 160, 192, 0.95);
-  letter-spacing: 0.02em;
-  line-height: 1.5;
+  font-size: ${th.fontSize(12)};
+  font-weight: ${th.fontWeight('bold')};
+  color: ${th.color('accent-soft-a95')};
+  letter-spacing: ${th.letterSpacing(2)};
+  line-height: ${th.lineHeight(150)};
   white-space: nowrap;
   text-align: right;
 `;
 
 export const PeriodSep = styled.span`
-  font-size: 11px;
-  color: rgba(255, 255, 255, 0.25);
-  line-height: 1.2;
+  font-size: ${th.fontSize(11)};
+  color: ${th.color('foreground-a25')};
+  line-height: ${th.lineHeight(120)};
 `;
 
 export const PeriodEnd = styled.span`
-  font-size: 12px;
-  font-weight: 500;
-  color: rgba(255, 255, 255, 0.55);
-  letter-spacing: 0.02em;
-  line-height: 1.5;
+  font-size: ${th.fontSize(12)};
+  font-weight: ${th.fontWeight('medium')};
+  color: ${th.color('foreground-a55')};
+  letter-spacing: ${th.letterSpacing(2)};
+  line-height: ${th.lineHeight(150)};
   white-space: nowrap;
   text-align: right;
 `;
@@ -145,35 +147,35 @@ export const PeriodEnd = styled.span`
 
 export const TimelineContent = styled.div`
   min-width: 0;
-  padding-left: 22px; /* mobile: indent past the dot */
+  padding-left: ${th.space(22)}; /* mobile: indent past the dot */
 
-  @media (min-width: 50em) {
-    padding-left: 20px;
+  @media (min-width: ${th('screens.tablet')}) {
+    padding-left: ${th.space(20)};
   }
 `;
 
 export const BulletList = styled.ul`
   list-style: none;
-  margin: 8px 0 0;
+  margin: ${th.space(8)} 0 0;
   padding: 0;
   display: flex;
   flex-direction: column;
-  gap: 5px;
+  gap: ${th.space(5)};
 `;
 
 export const BulletItem = styled.li`
   position: relative;
-  padding-left: 16px;
-  font-size: 14px;
-  line-height: 1.55;
+  padding-left: ${th.space(16)};
+  font-size: ${th.fontSize(14)};
+  line-height: ${th.lineHeight(155)};
 
   &::before {
     content: '›';
     position: absolute;
     left: 0;
-    color: rgba(212, 160, 192, 0.65);
-    font-weight: 700;
-    font-size: 15px;
-    line-height: 1.45;
+    color: ${th.color('accent-soft-a65')};
+    font-weight: ${th.fontWeight('bold')};
+    font-size: ${th.fontSize(15)};
+    line-height: ${th.lineHeight(145)};
   }
 `;

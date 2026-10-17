@@ -1,9 +1,11 @@
 import styled from 'styled-components';
 
+import { th } from '@xstyled/styled-components';
+
 export const Container = styled.div<{ $isOpen: boolean }>`
   cursor: pointer;
   position: relative;
-  z-index: 11;
+  z-index: ${th.zIndex('header')};
 
   > svg {
     height: 50px !important;
@@ -11,7 +13,7 @@ export const Container = styled.div<{ $isOpen: boolean }>`
     display: block;
   }
 
-  @media (min-width: 50em) {
+  @media (min-width: ${th('screens.tablet')}) {
     display: none;
   }
 `;

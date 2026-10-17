@@ -1,27 +1,10 @@
 import { useEffect, useRef } from 'react';
 
 import { StrongWord } from '../Home.styled';
-
-/** Physics state of one word of {@link SplitWords}, relative to its resting place. */
-interface WordState {
-  /** Horizontal offset, in pixels. */
-  x: number;
-  /** Vertical offset, in pixels. */
-  y: number;
-  /** Horizontal velocity, in pixels per frame. */
-  vx: number;
-  /** Vertical velocity, in pixels per frame. */
-  vy: number;
-  /** Rotation, in degrees. */
-  rot: number;
-  /** Rotation speed, in degrees per frame. */
-  vrot: number;
-  /** `performance.now()` time of the last mouse push; the spring waits `RETURN_DELAY` after it. */
-  lastRepulsedAt: number;
-}
-
-const RETURN_DELAY = 900; // ms before the spring pulls a pushed word back
-const CYCLE = 5; // length of the shimmer animation cycle, in seconds
+import { usePointerRef } from '../hooks/usePointerRef';
+import { NON_BREAKING_SPACE, RESTING_WORD, SHIMMER_CYCLE_S } from './constants';
+import type { WordState } from './types';
+import { getGlowRadius, getTextShadow, stepWord } from './utils';
 
 /** Props of {@link SplitWords}. */
 interface SplitWordsProps {
@@ -37,109 +20,66 @@ interface SplitWordsProps {
 
 /**
  * Renders a text as separate words that the mouse pushes away and that spring back into place,
- * with a shimmering gradient. Runs a `requestAnimationFrame` loop and `mousemove` /
- * `mouseleave` listeners while mounted, and removes them on unmount.
+ * with a shimmering gradient. Runs a `requestAnimationFrame` loop and mouse listeners while
+ * mounted, and removes them on unmount.
  *
  * @example
  * <SplitWords startIndex={0}>Full-stack JavaScript Developer</SplitWords>
  */
 export const SplitWords = ({ children, startIndex = 0 }: SplitWordsProps) => {
   const words = children ? children.split(' ') : [];
-  const refs = useRef<(HTMLSpanElement | null)[]>([]);
-  const states = useRef<WordState[]>(
-    words.map(() => ({ x: 0, y: 0, vx: 0, vy: 0, rot: 0, vrot: 0, lastRepulsedAt: 0 })),
-  );
-  const mouse = useRef({ x: -9999, y: -9999 });
+  const wordElements = useRef<(HTMLSpanElement | null)[]>([]);
+  const wordStates = useRef<WordState[]>(words.map(() => RESTING_WORD));
+  const pointerRef = usePointerRef();
 
   useEffect(() => {
-    const onMove = (e: MouseEvent) => {
-      mouse.current = { x: e.clientX, y: e.clientY };
-    };
-    const onLeave = () => {
-      mouse.current = { x: -9999, y: -9999 };
-    };
-    window.addEventListener('mousemove', onMove);
-    document.addEventListener('mouseleave', onLeave);
-
-    let raf: number;
-    const RADIUS = 200;
-    const SPRING = 0.055;
-    const DAMP = 0.75;
-    const RDAMP = 0.7;
-    const FORCE = 28;
+    let frame = 0;
 
     const tick = () => {
       const now = performance.now();
 
-      refs.current.forEach((el, i) => {
-        if (!el) return;
-        const s = states.current[i];
-        const rect = el.getBoundingClientRect();
-        const cx = rect.left + rect.width / 2;
-        const cy = rect.top + rect.height / 2;
+      wordElements.current.forEach((element, index) => {
+        if (!element) return;
 
-        // Mouse repulsion
-        const dx = cx - mouse.current.x;
-        const dy = cy - mouse.current.y;
-        const dist = Math.hypot(dx, dy);
-        if (dist < RADIUS && dist > 1) {
-          const strength = Math.pow(1 - dist / RADIUS, 1.8) * FORCE;
-          s.vx += (dx / dist) * strength;
-          s.vy += (dy / dist) * strength;
-          s.vrot += (Math.random() - 0.5) * strength * 0.25;
-          s.lastRepulsedAt = now;
-        }
+        const rect = element.getBoundingClientRect();
+        const center = { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 };
+        const state = stepWord({
+          state: wordStates.current[index] ?? RESTING_WORD,
+          center,
+          pointer: pointerRef.current,
+          now,
+        });
+        wordStates.current[index] = state;
 
-        // Spring back to the origin and flatten the rotation, only once the delay has passed
-        if (now - s.lastRepulsedAt > RETURN_DELAY) {
-          s.vx += -s.x * SPRING;
-          s.vy += -s.y * SPRING;
-          s.vrot += -s.rot * SPRING;
-        }
-
-        s.vx *= DAMP;
-        s.vy *= DAMP;
-        s.vrot *= RDAMP;
-        s.x += s.vx;
-        s.y += s.vy;
-        s.rot += s.vrot;
-
-        const disp = Math.hypot(s.x, s.y);
-        const glow = Math.min(disp * 0.5, 20);
-
-        el.style.transform = `translate(${s.x}px, ${s.y}px) rotate(${s.rot}deg)`;
-        el.style.textShadow =
-          glow > 0.5
-            ? `0 0 ${glow}px rgba(212, 160, 192, 0.85), 0 0 ${glow * 2}px rgba(139, 49, 104, 0.4)`
-            : '';
+        element.style.transform = `translate(${state.x}px, ${state.y}px) rotate(${state.rot}deg)`;
+        element.style.textShadow = getTextShadow(getGlowRadius(state));
       });
-      raf = requestAnimationFrame(tick);
+
+      frame = requestAnimationFrame(tick);
     };
 
-    raf = requestAnimationFrame(tick);
-
-    return () => {
-      cancelAnimationFrame(raf);
-      window.removeEventListener('mousemove', onMove);
-      document.removeEventListener('mouseleave', onLeave);
-    };
-  }, []);
+    frame = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(frame);
+  }, [pointerRef]);
 
   return (
     <>
-      {words.map((word, i) => {
-        const globalIndex = startIndex + i;
+      {words.map((word, index) => {
+        const titleIndex = startIndex + index;
+        const isLastWord = index === words.length - 1;
+        const isReversed = titleIndex % 2 === 1;
+
         return (
           <StrongWord
-            key={i}
-            ref={el => {
-              refs.current[i] = el;
+            key={index}
+            ref={element => {
+              wordElements.current[index] = element;
             }}
-            $delay={`-${globalIndex % CYCLE}s`}
-            $reverse={globalIndex % 2 === 1}
+            $delay={`-${titleIndex % SHIMMER_CYCLE_S}s`}
+            $reverse={isReversed}
           >
             {word}
-            {i < words.length - 1 ? '\u00A0' : ''}
+            {isLastWord ? '' : NON_BREAKING_SPACE}
           </StrongWord>
         );
       })}

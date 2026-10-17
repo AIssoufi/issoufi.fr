@@ -44,7 +44,7 @@ interface RoleProps {
   jobName?: string;
   /**
    * Start of the role as a month and a year, e.g. "juin 2021".
-   * The duration is shown only when both dates are provided.
+   * The duration is shown only when both dates are valid.
    */
   startDate?: string;
   /** End of the role in the same format, or "Aujourd'hui" / "Present". */
@@ -63,6 +63,7 @@ const Role = ({ jobName, startDate, endDate, children }: RoleProps) => {
   const details = [company?.entityName, company?.contractType, company?.city]
     .filter(Boolean)
     .join(' · ');
+  const duration = computeDuration({ startDate, endDate });
 
   return (
     <RoleItem>
@@ -83,9 +84,7 @@ const Role = ({ jobName, startDate, endDate, children }: RoleProps) => {
             <JobSummary>
               {jobName && <RoleName>{jobName}</RoleName>}
               {details && <JobDetails>{details}</JobDetails>}
-              {startDate && endDate && (
-                <JobDuration>{computeDuration({ startDate, endDate })}</JobDuration>
-              )}
+              {duration && <JobDuration>{duration}</JobDuration>}
             </JobSummary>
           </Summary>
         )}
