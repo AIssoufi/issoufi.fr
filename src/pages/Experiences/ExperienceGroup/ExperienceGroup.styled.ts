@@ -149,18 +149,6 @@ export const RoleHeader = styled.div`
   margin-bottom: ${th.space(10)};
 `;
 
-export const RoleName = styled.h3`
-  margin: 0;
-  font-size: ${th.fontSize(14)};
-  font-weight: ${th.fontWeight('semibold')};
-  letter-spacing: ${th.letterSpacing(1)};
-  line-height: ${th.lineHeight(140)};
-
-  @media (min-width: ${th('screens.tablet')}) {
-    font-size: ${th.fontSize(15)};
-  }
-`;
-
 export const RoleDetails = styled.div`
   font-size: ${th.fontSize(14)};
   font-weight: ${th.fontWeight('regular')};

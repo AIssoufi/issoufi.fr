@@ -1,23 +1,14 @@
 import React from 'react';
-import { useTranslation } from 'react-i18next';
 
+import JobSummary from '../JobSummary';
 import Project from '../Project';
 import Technologies from '../Technologies';
-import {
-  EntityLogo,
-  JobDetails,
-  JobDuration,
-  JobSummary,
-  Summary,
-} from '../Experience/Experience.styled';
-import { computeDuration, formatDuration } from '../utils/duration';
 
 import {
   GroupArticle,
   RoleContent,
   RoleDetails,
   RoleItem,
-  RoleName,
   RolePeriodCol,
   RolePeriodEnd,
   RolePeriodSep,
@@ -56,17 +47,12 @@ interface RoleProps {
 }
 
 /**
- * One role inside an {@link ExperienceGroup}: its period on the left, then the company summary
- * (from the group), the job title, the computed duration and the description.
- * Outside a group, the company summary is omitted.
+ * One role inside an {@link ExperienceGroup}: its period on the left, then its
+ * {@link JobSummary} (company details from the group, job title and computed duration) and the
+ * description. Outside a group, the summary is omitted.
  */
 const Role = ({ jobName, startDate, endDate, children }: RoleProps) => {
-  const { t } = useTranslation();
   const company = React.useContext(CompanyCtx);
-  const details = [company?.entityName, company?.contractType, company?.city]
-    .filter(Boolean)
-    .join(' · ');
-  const duration = formatDuration({ duration: computeDuration({ startDate, endDate }), t });
 
   return (
     <RoleItem>
@@ -77,19 +63,16 @@ const Role = ({ jobName, startDate, endDate, children }: RoleProps) => {
       </RolePeriodCol>
       <RoleContent>
         {company && (
-          <Summary>
-            {company.entityLogoUrl && (
-              <EntityLogo
-                src={company.entityLogoUrl}
-                alt={company.entityName ?? ''}
-              />
-            )}
-            <JobSummary>
-              {jobName && <RoleName>{jobName}</RoleName>}
-              {details && <JobDetails>{details}</JobDetails>}
-              {duration && <JobDuration>{duration}</JobDuration>}
-            </JobSummary>
-          </Summary>
+          <JobSummary
+            variant="role"
+            jobName={jobName}
+            entityName={company.entityName}
+            entityLogoUrl={company.entityLogoUrl}
+            contractType={company.contractType}
+            city={company.city}
+            startDate={startDate}
+            endDate={endDate}
+          />
         )}
         <RoleDetails>{children}</RoleDetails>
       </RoleContent>
