@@ -52,6 +52,16 @@ pnpm test:watch    # Watch mode
 
 Tests are `*.spec.jsx` / `*.spec.ts` files next to the code they test. Every component has one.
 
+### Checks
+
+```bash
+pnpm typecheck      # Type-check without building
+pnpm format:check   # Check that every file follows the Prettier style
+pnpm format         # Format every file with Prettier
+```
+
+Staged files are formatted automatically on commit, so `pnpm format` is only needed for files changed outside git.
+
 ## 🌐 Deployment
 
 The site is deployed on [Cloudflare Pages](https://pages.cloudflare.com/) at [issoufi.fr](https://issoufi.fr/). Every push to `main` deploys to production. Other branches get a preview deployment.

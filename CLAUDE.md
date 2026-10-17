@@ -8,8 +8,11 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 pnpm dev          # Start dev server on http://localhost:3000
 pnpm build        # Type-check + production build (tsc && vite build)
 pnpm preview      # Preview production build
+pnpm typecheck    # Type-check only (tsc --noEmit)
 pnpm test         # Run tests once
 pnpm test:watch   # Run tests in watch mode
+pnpm format:check # Check Prettier formatting, as the CI does
+pnpm format       # Format every file with Prettier
 ```
 
 There is no lint command — formatting is handled automatically by Prettier via lint-staged on commit.
