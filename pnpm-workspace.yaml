@@ -1,3 +1,7 @@
+# Only installs versions published at least 7 days ago (in minutes), the same delay as the
+# Dependabot cooldown, which applies this setting when it updates the lockfile
+minimumReleaseAge: 10080
+
 allowBuilds:
   esbuild: false
 
