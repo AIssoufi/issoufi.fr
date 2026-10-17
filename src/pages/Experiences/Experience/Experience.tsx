@@ -22,7 +22,7 @@ interface ExperienceProps {
   /** Absolute URL of the company logo, e.g. `/wibilong.png`. No logo when missing. */
   entityLogoUrl?: string;
   /** Contract type, e.g. "CDI" or "Alternance". */
-  contratType?: string;
+  contractType?: string;
   /** City and department, e.g. "Paris (75)". */
   city?: string;
   /**
@@ -55,13 +55,13 @@ const Experience = ({
   jobName,
   entityName = '',
   entityLogoUrl,
-  contratType,
+  contractType,
   city,
   startDate,
   endDate,
   children,
 }: ExperienceProps) => {
-  const details = [entityName, contratType, city].filter(Boolean).join(' · ');
+  const details = [entityName, contractType, city].filter(Boolean).join(' · ');
 
   return (
     <Article>

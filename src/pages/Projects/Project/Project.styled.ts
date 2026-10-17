@@ -324,10 +324,10 @@ export const ProjectName = styled.div`
 
 export const ProjectType = styled.div`
   font-size: 13px;
-  color: var(--secpndary-dark-color);
+  color: var(--secondary-dark-color);
 `;
 
 export const ProjectTools = styled.div`
   font-size: 13px;
-  color: var(--secpndary-dark-color);
+  color: var(--secondary-dark-color);
 `;

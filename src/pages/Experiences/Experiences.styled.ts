@@ -61,7 +61,7 @@ export const TimelineEntry = styled.div`
   &::before {
     content: '';
     position: absolute;
-    left: -1px; /* centre sur la ligne à left:5px : 5 − 6 = −1 */
+    left: -1px; /* centered on the line at left: 5px (5 - 6 = -1) */
     top: 18px;
     width: 12px;
     height: 12px;
@@ -102,7 +102,7 @@ export const TimelinePeriod = styled.div`
     &::after {
       content: '';
       position: absolute;
-      right: -6px; /* right edge at 90px + 6px → centre à 90px ✓ */
+      right: -6px; /* right edge at 90px + 6px, so centered at 90px */
       top: 5px;
       width: 12px;
       height: 12px;

@@ -1,6 +1,6 @@
 import Technologies from '../Technologies';
 
-import { Body, Container, Descriptiopn, Header, State, Title, Toggle } from './Project.styled';
+import { Body, Container, Description, Header, State, Title, Toggle } from './Project.styled';
 
 /** Props of {@link Project}. Every part is optional and is not rendered when missing. */
 interface ProjectProps {
@@ -34,7 +34,7 @@ const Project = ({ title, state, technologies = NO_TECHNOLOGIES, children }: Pro
       {state && <State>{state}</State>}
     </Header>
     <Body>
-      <Descriptiopn>{children}</Descriptiopn>
+      <Description>{children}</Description>
       {technologies.length > 0 && <Technologies technologies={technologies} />}
     </Body>
   </Container>

@@ -30,7 +30,7 @@ interface CompanyCtxValue {
   /** Absolute URL of the company logo. No logo when missing. */
   entityLogoUrl?: string;
   /** Contract type, e.g. "CDI". */
-  contratType?: string;
+  contractType?: string;
   /** City and department, e.g. "Paris (75)". */
   city?: string;
 }
@@ -60,7 +60,7 @@ interface RoleProps {
  */
 const Role = ({ jobName, startDate, endDate, children }: RoleProps) => {
   const company = React.useContext(CompanyCtx);
-  const details = [company?.entityName, company?.contratType, company?.city]
+  const details = [company?.entityName, company?.contractType, company?.city]
     .filter(Boolean)
     .join(' · ');
 
@@ -109,7 +109,7 @@ interface ExperienceGroupProps extends CompanyCtxValue {
  * details with its `ExperienceGroup.Role` children through a context, so they are written once.
  *
  * @example
- * <ExperienceGroup entityName="Sewan Groupe" entityLogoUrl="/sewan.png" contratType="CDI">
+ * <ExperienceGroup entityName="Sewan Groupe" entityLogoUrl="/sewan.png" contractType="CDI">
  *   <ExperienceGroup.Role
  *     jobName="Lead Frontend Engineer"
  *     startDate="août 2021"
@@ -122,11 +122,11 @@ interface ExperienceGroupProps extends CompanyCtxValue {
 const ExperienceGroup = ({
   entityName,
   entityLogoUrl,
-  contratType,
+  contractType,
   city,
   children,
 }: ExperienceGroupProps) => (
-  <CompanyCtx.Provider value={{ entityName, entityLogoUrl, contratType, city }}>
+  <CompanyCtx.Provider value={{ entityName, entityLogoUrl, contractType, city }}>
     <GroupArticle>
       <RolesList>{children}</RolesList>
     </GroupArticle>
