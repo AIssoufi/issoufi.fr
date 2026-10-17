@@ -92,11 +92,19 @@ describe('JobSummary', () => {
   });
 
   describe('logo', () => {
-    it('gives the logo an empty alt text when the company name is missing', () => {
-      const { container } = render(<JobSummary entityLogoUrl="/sewan.png" />);
+    it.each([undefined, null])(
+      'gives the logo an empty alt text when the company name is %s',
+      entityName => {
+        const { container } = render(
+          <JobSummary
+            entityName={entityName}
+            entityLogoUrl="/sewan.png"
+          />,
+        );
 
-      expect(container.querySelector('img')).toHaveAttribute('alt', '');
-    });
+        expect(container.querySelector('img')).toHaveAttribute('alt', '');
+      },
+    );
 
     it('omits the logo when its URL is empty', () => {
       const { container } = render(

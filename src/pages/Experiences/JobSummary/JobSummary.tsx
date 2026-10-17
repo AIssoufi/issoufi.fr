@@ -16,7 +16,7 @@ import {
 interface JobSummaryProps {
   /** Job title, already translated. */
   jobName?: string;
-  /** Company name, also used as the logo's alt text. @default '' */
+  /** Company name, also used as the logo's alt text, which stays empty when it is missing. */
   entityName?: string;
   /** Absolute URL of the company logo, e.g. `/wibilong.png`. No logo when missing. */
   entityLogoUrl?: string;
@@ -56,7 +56,7 @@ interface JobSummaryProps {
  */
 const JobSummary = ({
   jobName,
-  entityName = '',
+  entityName,
   entityLogoUrl,
   contractType,
   city,
@@ -74,7 +74,7 @@ const JobSummary = ({
       {entityLogoUrl && (
         <EntityLogo
           src={entityLogoUrl}
-          alt={entityName}
+          alt={entityName ?? ''}
         />
       )}
       <JobInfo>
