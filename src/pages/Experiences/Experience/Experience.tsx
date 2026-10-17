@@ -13,20 +13,47 @@ import {
   Summary,
 } from './Experience.styled';
 
+/** Props of {@link Experience}. Every part is optional and is not rendered when missing. */
 interface ExperienceProps {
-  jobName: string;
-  entityName: string;
-  entityLogoUrl: string;
-  contratType: string;
-  city: string;
-  startDate: string;
-  endDate: string;
-  children: React.ReactNode;
+  /** Job title, already translated. */
+  jobName?: string;
+  /** Company name, also used as the logo's alt text. */
+  entityName?: string;
+  /** Absolute URL of the company logo, e.g. `/wibilong.png`. No logo when missing. */
+  entityLogoUrl?: string;
+  /** Contract type, e.g. "CDI" or "Alternance". */
+  contratType?: string;
+  /** City and department, e.g. "Paris (75)". */
+  city?: string;
+  /**
+   * Start of the job as a month and a year, e.g. "sept. 2019" or "Sept. 2019".
+   * The duration is shown only when both dates are provided.
+   */
+  startDate?: string;
+  /** End of the job in the same format as `startDate`, or "Aujourd'hui" / "Present". */
+  endDate?: string;
+  /** Description of the job: text, bullet lists, {@link Project}s and {@link Technologies}. */
+  children?: React.ReactNode;
 }
 
+/**
+ * Card for one job at one company: logo, job title, company details, computed duration and a
+ * free-form description. For several successive roles at the same company, use
+ * `ExperienceGroup` instead.
+ *
+ * @example
+ * <Experience
+ *   jobName="Full-Stack Engineer"
+ *   entityName="Wibilong"
+ *   startDate="sept. 2019"
+ *   endDate="juin 2021"
+ * >
+ *   <Experience.Technologies technologies={['React.js', 'Node.js']} />
+ * </Experience>
+ */
 const Experience = ({
   jobName,
-  entityName,
+  entityName = '',
   entityLogoUrl,
   contratType,
   city,
@@ -34,17 +61,21 @@ const Experience = ({
   endDate,
   children,
 }: ExperienceProps) => {
+  const details = [entityName, contratType, city].filter(Boolean).join(' · ');
+
   return (
     <Article>
       <Summary>
-        <EntityLogo
-          src={entityLogoUrl}
-          alt={entityName}
-        />
+        {entityLogoUrl && (
+          <EntityLogo
+            src={entityLogoUrl}
+            alt={entityName}
+          />
+        )}
         <JobSummary>
-          <JobName>{jobName}</JobName>
-          <JobDetails>{`${entityName} · ${contratType} · ${city}`}</JobDetails>
-          <JobDuration>{computeDuration(startDate, endDate)}</JobDuration>
+          {jobName && <JobName>{jobName}</JobName>}
+          {details && <JobDetails>{details}</JobDetails>}
+          {startDate && endDate && <JobDuration>{computeDuration(startDate, endDate)}</JobDuration>}
         </JobSummary>
       </Summary>
       <Details>{children}</Details>

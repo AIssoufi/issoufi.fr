@@ -12,17 +12,31 @@ interface WordState {
   lastRepulsedAt: number;
 }
 
-const RETURN_DELAY = 900; // ms avant que le ressort se réactive
-const CYCLE = 5; // durée du cycle d'animation en secondes
+const RETURN_DELAY = 900; // ms before the spring pulls a pushed word back
+const CYCLE = 5; // length of the shimmer animation cycle, in seconds
 
-export const SplitWords = ({
-  children,
-  startIndex = 0,
-}: {
-  children: string;
+/** Props of {@link SplitWords}. */
+interface SplitWordsProps {
+  /** Text to split on spaces, one animated word per span. Renders nothing when missing. */
+  children?: string;
+  /**
+   * Position of the first word in the whole title, so the shimmer delay and direction keep
+   * alternating across several `SplitWords` of the same heading.
+   * @default 0
+   */
   startIndex?: number;
-}) => {
-  const words = children.split(' ');
+}
+
+/**
+ * Renders a text as separate words that the mouse pushes away and that spring back into place,
+ * with a shimmering gradient. Runs a `requestAnimationFrame` loop and `mousemove` /
+ * `mouseleave` listeners while mounted, and removes them on unmount.
+ *
+ * @example
+ * <SplitWords startIndex={0}>Full-stack JavaScript Developer</SplitWords>
+ */
+export const SplitWords = ({ children, startIndex = 0 }: SplitWordsProps) => {
+  const words = children ? children.split(' ') : [];
   const refs = useRef<(HTMLSpanElement | null)[]>([]);
   const states = useRef<WordState[]>(
     words.map(() => ({ x: 0, y: 0, vx: 0, vy: 0, rot: 0, vrot: 0, lastRepulsedAt: 0 })),
@@ -68,7 +82,7 @@ export const SplitWords = ({
           s.lastRepulsedAt = now;
         }
 
-        // Spring vers l'origine + remise à plat — activé seulement après le délai
+        // Spring back to the origin and flatten the rotation, only once the delay has passed
         if (now - s.lastRepulsedAt > RETURN_DELAY) {
           s.vx += -s.x * SPRING;
           s.vy += -s.y * SPRING;
