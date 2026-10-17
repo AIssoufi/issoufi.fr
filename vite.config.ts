@@ -44,8 +44,8 @@ const pageMeta = (): Plugin => {
 
 /**
  * Minimum test coverage, in percent, below which `pnpm test:coverage` fails. Set under the
- * coverage of October 2026, Vite and CI helpers included, as measured by Vitest 4 (97.3% of
- * lines, 96.9% of statements, 95.3% of branches, 93.8% of functions), so a change that drops
+ * coverage of October 2026, Vite and CI helpers included, as measured by Vitest 4 (97.2% of
+ * lines, 96.8% of statements, 95.2% of branches, 93.7% of functions), so a change that drops
  * tests fails the CI. Vitest 4 maps the V8 coverage onto the syntax tree and counts only the
  * executable code, so its figures differ from those of Vitest 3 for the same tests. Raise them
  * when the coverage goes up.
