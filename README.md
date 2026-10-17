@@ -57,7 +57,7 @@ pnpm test:watch      # Watch mode
 pnpm test:coverage   # Single run with coverage, HTML report in coverage/index.html
 ```
 
-Tests are `*.spec.jsx` / `*.spec.ts` files next to the code they test. Every component has one. `pnpm test:coverage` fails when the coverage of `src/` drops below the thresholds of `vite.config.ts` (`COVERAGE_THRESHOLDS_PERCENT`).
+Tests are `*.spec.jsx` / `*.spec.ts` files next to the code they test. Every component has one. `pnpm test:coverage` fails when the coverage of `src/` and of the CI helpers (`scripts/ci/utils/`) drops below the thresholds of `vite.config.ts` (`COVERAGE_THRESHOLDS_PERCENT`).
 
 ### Checks
 

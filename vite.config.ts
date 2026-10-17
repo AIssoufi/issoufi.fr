@@ -42,8 +42,9 @@ const pageMeta = (): Plugin => {
 
 /**
  * Minimum test coverage, in percent, below which `pnpm test:coverage` fails. Set a few points
- * under the coverage of October 2026 (98% of lines, 97.3% of branches, 91.5% of functions), so a
- * change that drops tests fails the CI. Raise them when the coverage goes up.
+ * under the coverage of October 2026, CI helpers included (98.4% of lines, 97.8% of branches,
+ * 93.3% of functions), so a change that drops tests fails the CI. Raise them when the coverage
+ * goes up.
  */
 const COVERAGE_THRESHOLDS_PERCENT = { lines: 95, statements: 95, branches: 95, functions: 85 };
 
@@ -65,7 +66,8 @@ export default defineConfig({
     setupFiles: ['./src/setupTests.ts'],
     coverage: {
       provider: 'v8',
-      include: ['src/**/*.{ts,tsx}'],
+      // The helpers of the CI scripts are measured, not the entry scripts that run them
+      include: ['src/**/*.{ts,tsx}', 'scripts/ci/utils/**/*.mjs'],
       // The entry point only mounts the app, which App.spec.jsx renders
       exclude: ['**/*.spec.*', '**/index.ts', '**/*.d.ts', 'src/setupTests.ts', 'src/index.tsx'],
       reporter: ['text', 'html', 'json-summary'],
