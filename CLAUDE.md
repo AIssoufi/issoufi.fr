@@ -46,7 +46,7 @@ Sub-components get the same structure in their own folder inside their parent's 
 
 **Assets**:
 
-- Background images are served from `public/` and referenced with absolute paths (e.g. `'/projects.jpeg'`)
+- Background images are served from `public/` and referenced with absolute paths (e.g. `'/projects.webp'`)
 - SVGs are imported as React components via `vite-plugin-svgr`
 - Lottie animations use JSON files co-located with the component
 
