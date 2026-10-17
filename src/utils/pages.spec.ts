@@ -4,9 +4,11 @@ import { PAGES, SITE_URL, getPage, renderNotFoundHtml, renderPageHtml } from './
 
 const [home, projects, experiences] = PAGES;
 
-/** Byte offsets of the width and height in a PNG file, inside its IHDR chunk. */
-const PNG_WIDTH_OFFSET = 16;
-const PNG_HEIGHT_OFFSET = 20;
+/** First bytes of every PNG file. */
+const PNG_SIGNATURE = Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]);
+/** Offsets of the width and height in a PNG file, inside its IHDR chunk. */
+const PNG_WIDTH_OFFSET_BYTES = 16;
+const PNG_HEIGHT_OFFSET_BYTES = 20;
 /** Largest link preview image WhatsApp reliably shows. */
 const OG_IMAGE_MAX_BYTES = 300_000;
 
@@ -84,13 +86,14 @@ describe('Open Graph image of index.html', () => {
     expect(statSync(imageFile).isFile()).toBe(true);
   });
 
-  it('has the declared width and height', () => {
+  it('is a PNG of the declared width and height', () => {
     const png = readFileSync(imageFile);
 
-    expect(png.readUInt32BE(PNG_WIDTH_OFFSET)).toBe(
+    expect(png.subarray(0, PNG_SIGNATURE.length)).toEqual(PNG_SIGNATURE);
+    expect(png.readUInt32BE(PNG_WIDTH_OFFSET_BYTES)).toBe(
       Number(getMetaContent({ html, property: 'og:image:width' })),
     );
-    expect(png.readUInt32BE(PNG_HEIGHT_OFFSET)).toBe(
+    expect(png.readUInt32BE(PNG_HEIGHT_OFFSET_BYTES)).toBe(
       Number(getMetaContent({ html, property: 'og:image:height' })),
     );
   });
@@ -101,6 +104,18 @@ describe('Open Graph image of index.html', () => {
 
   it('describes the image for screen readers', () => {
     expect(getMetaContent({ html, property: 'og:image:alt' })).toMatch(/ADAM Issoufi/);
+  });
+
+  it('is kept, with its description, in every generated page', () => {
+    const generatedPages = [
+      ...PAGES.map(page => renderPageHtml({ template: html, page, years: 8 })),
+      renderNotFoundHtml({ template: html, years: 8 }),
+    ];
+
+    generatedPages.forEach(page => {
+      expect(getMetaContent({ html: page, property: 'og:image' })).toBe(imageUrl);
+      expect(getMetaContent({ html: page, property: 'og:image:alt' })).toMatch(/ADAM Issoufi/);
+    });
   });
 });
 
