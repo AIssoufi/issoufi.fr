@@ -23,8 +23,10 @@ export const ParticleField = () => {
   const particles = useRef<Particle[]>([]);
 
   useEffect(() => {
-    const canvas = canvasRef.current!;
-    const ctx = canvas.getContext('2d')!;
+    const canvas = canvasRef.current;
+    const ctx = canvas?.getContext('2d');
+    // No 2D canvas support (old browsers, test environments): keep the static background
+    if (!canvas || !ctx) return;
 
     const init = () => {
       canvas.width = window.innerWidth;
