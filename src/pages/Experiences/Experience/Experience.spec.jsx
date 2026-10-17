@@ -40,4 +40,16 @@ describe('Experience', () => {
 
     expect(screen.queryByText(/\d+ (an|ans|mois)/)).not.toBeInTheDocument();
   });
+
+  it('omits the duration when a date is invalid', () => {
+    render(
+      <Experience
+        jobName="Développeur"
+        startDate="foo 2019"
+        endDate="juin 2021"
+      />,
+    );
+
+    expect(screen.queryByText(/\d+ (an|ans|mois)|< 1 mois/)).not.toBeInTheDocument();
+  });
 });

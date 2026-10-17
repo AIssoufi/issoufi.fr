@@ -1,4 +1,4 @@
-import { computeDuration } from './duration';
+import { computeDuration, parseMonthYear } from './duration';
 
 describe('computeDuration', () => {
   describe('French month names', () => {
@@ -67,4 +67,58 @@ describe('computeDuration', () => {
       expect(computeDuration({ startDate: 'juin 2020', endDate: 'juin 2022' })).toBe('2 ans');
     });
   });
+});
+
+describe('computeDuration edge cases', () => {
+  it.each([
+    ['a missing start', { endDate: 'juin 2022' }],
+    ['a missing end', { startDate: 'juin 2021' }],
+    ['no dates at all', {}],
+    ['an empty start', { startDate: '', endDate: 'juin 2022' }],
+    ['an unknown month', { startDate: 'foo 2021', endDate: 'juin 2022' }],
+    ['a missing year', { startDate: 'juin', endDate: 'juin 2022' }],
+    ['a two-digit year', { startDate: 'juin 21', endDate: 'juin 2022' }],
+    ['extra words', { startDate: 'début juin 2021', endDate: 'juin 2022' }],
+    ['an end before the start', { startDate: 'juin 2022', endDate: 'juin 2021' }],
+  ])('returns an empty string for %s', (_, params) => {
+    expect(computeDuration(params)).toBe('');
+  });
+
+  it('counts October and November in English', () => {
+    expect(computeDuration({ startDate: 'October 2020', endDate: 'November 2020' })).toBe('1 mois');
+  });
+
+  it('ignores case and extra spaces', () => {
+    expect(computeDuration({ startDate: '  JUIN   2021 ', endDate: 'Juin 2022' })).toBe('1 an');
+  });
+
+  it('spans several years and months across a year boundary', () => {
+    expect(computeDuration({ startDate: 'déc. 2019', endDate: 'janv. 2022' })).toBe('2 ans 1 mois');
+  });
+});
+
+describe('parseMonthYear', () => {
+  it('parses French and English months, with or without a dot', () => {
+    expect(parseMonthYear('sept. 2019')).toEqual(new Date(2019, 8, 1));
+    expect(parseMonthYear('Sept 2019')).toEqual(new Date(2019, 8, 1));
+    expect(parseMonthYear('août 2017')).toEqual(new Date(2017, 7, 1));
+    expect(parseMonthYear('December 2020')).toEqual(new Date(2020, 11, 1));
+  });
+
+  it('returns the current date for a today keyword', () => {
+    vi.useFakeTimers({ toFake: ['Date'] });
+    vi.setSystemTime(new Date(2026, 9, 17));
+
+    expect(parseMonthYear("Aujourd'hui")).toEqual(new Date(2026, 9, 17));
+    expect(parseMonthYear('Present')).toEqual(new Date(2026, 9, 17));
+
+    vi.useRealTimers();
+  });
+
+  it.each([undefined, '', '   ', 'foo 2021', 'juin', '2021', 'juin 2021 bis', 'juin 20x1'])(
+    'returns null for %j',
+    value => {
+      expect(parseMonthYear(value)).toBeNull();
+    },
+  );
 });
