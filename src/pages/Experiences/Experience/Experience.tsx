@@ -2,7 +2,7 @@ import { useTranslation } from 'react-i18next';
 
 import Project from '../Project';
 import Technologies from '../Technologies';
-import { computeDuration, formatDuration } from '../duration';
+import { computeDuration, formatDuration } from '../utils/duration';
 
 import {
   Article,

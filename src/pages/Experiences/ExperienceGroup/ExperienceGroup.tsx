@@ -10,7 +10,7 @@ import {
   JobSummary,
   Summary,
 } from '../Experience/Experience.styled';
-import { computeDuration, formatDuration } from '../duration';
+import { computeDuration, formatDuration } from '../utils/duration';
 
 import {
   GroupArticle,
