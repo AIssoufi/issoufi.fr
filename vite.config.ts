@@ -1,9 +1,11 @@
 import react from '@vitejs/plugin-react';
-import { defineConfig, type Plugin } from 'vite';
+import { defineConfig, loadEnv, type Plugin } from 'vite';
 import svgr from 'vite-plugin-svgr';
 
 import { getYearsOfExperience } from './src/utils/career';
 import { NOT_FOUND_FILE_NAME, PAGES, renderNotFoundHtml, renderPageHtml } from './src/utils/pages';
+import { ALL_ENV_VARIABLES_PREFIX } from './vite/constants';
+import { getServerPorts } from './vite/utils';
 
 /**
  * Vite plugin that fills the metadata of `index.html` for the home page, then emits one HTML
@@ -49,27 +51,40 @@ const COVERAGE_THRESHOLDS = { lines: 95, statements: 95, branches: 95, functions
 
 /**
  * Vite and Vitest configuration: React with SVG components, the page metadata plugin, the dev
- * server on port 3000, and the tests in jsdom with coverage.
+ * and preview servers on the port of the worktree (see {@link getServerPorts}), which fail when
+ * it is taken, and the tests in jsdom with coverage.
  * @see https://vitejs.dev/config/
  */
-export default defineConfig({
-  base: '/',
-  plugins: [react(), svgr(), pageMeta()],
-  server: {
-    port: 3000,
-    open: true,
-  },
-  test: {
-    globals: true,
-    environment: 'jsdom',
-    setupFiles: ['./src/setupTests.ts'],
-    coverage: {
-      provider: 'v8',
-      include: ['src/**/*.{ts,tsx}'],
-      // The entry point only mounts the app, which App.spec.jsx renders
-      exclude: ['**/*.spec.*', '**/index.ts', '**/*.d.ts', 'src/setupTests.ts', 'src/index.tsx'],
-      reporter: ['text', 'html', 'json-summary'],
-      thresholds: COVERAGE_THRESHOLDS,
+export default defineConfig(({ mode }) => {
+  const ports = getServerPorts(loadEnv(mode, process.cwd(), ALL_ENV_VARIABLES_PREFIX));
+
+  return {
+    base: '/',
+    plugins: [react(), svgr(), pageMeta()],
+    // A taken port stops the server instead of moving it to the next free port, so a test never
+    // reaches the server of another worktree by mistake
+    server: {
+      port: ports.dev,
+      strictPort: true,
+      // Vite does not open the browser when BROWSER=none, as for the ticket workers
+      open: true,
     },
-  },
+    preview: {
+      port: ports.preview,
+      strictPort: true,
+    },
+    test: {
+      globals: true,
+      environment: 'jsdom',
+      setupFiles: ['./src/setupTests.ts'],
+      coverage: {
+        provider: 'v8',
+        include: ['src/**/*.{ts,tsx}', 'vite/**/*.ts'],
+        // The entry point only mounts the app, which App.spec.jsx renders
+        exclude: ['**/*.spec.*', '**/index.ts', '**/*.d.ts', 'src/setupTests.ts', 'src/index.tsx'],
+        reporter: ['text', 'html', 'json-summary'],
+        thresholds: COVERAGE_THRESHOLDS,
+      },
+    },
+  };
 });
