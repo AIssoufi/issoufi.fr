@@ -1,5 +1,5 @@
 import { render, screen } from '@testing-library/react';
-import { MemoryRouter } from 'react-router-dom';
+import { MemoryRouter } from 'react-router';
 
 import { Home } from './Home';
 
@@ -38,5 +38,21 @@ describe('Home', () => {
       'href',
       '/experiences',
     );
+  });
+
+  it('fits the buttons to narrow screens instead of widening the page', () => {
+    // jsdom applies no media query, so these are the mobile styles
+    renderHome();
+    const links = screen.getAllByRole('link');
+
+    expect(links).toHaveLength(2);
+    links.forEach(link => {
+      const style = getComputedStyle(link);
+      expect(style.width).not.toBe('max-content');
+      expect(style.minWidth).not.toBe('240px');
+      expect(style.flexGrow).toBe('1');
+      expect(style.padding).toBe('13px 20px');
+      expect(style.textAlign).toBe('center');
+    });
   });
 });

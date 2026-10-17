@@ -110,10 +110,15 @@ export const Subtitle = styled.p`
 export const ButtonContainer = styled.div`
   display: flex;
   flex-direction: column;
-  align-items: center;
+  /* Mobile: both buttons take the width of the widest one */
+  align-items: stretch;
   padding-top: ${th.space(56)};
   gap: ${th.space(14)};
   animation: ${fadeUp} ${th.duration(900)} ${th.timingFunction('standard')} ${th.duration(400)} both;
+
+  @media (min-width: ${th('screens.tablet')}) {
+    align-items: center;
+  }
 `;
 
 export const MagneticWrapper = styled.div`
@@ -123,8 +128,11 @@ export const MagneticWrapper = styled.div`
 
 export const Btn = styled.a<{ $callToAction?: boolean }>`
   display: flex;
+  flex-grow: 1;
   align-items: center;
   justify-content: center;
+  /* Mobile: a label too long for the screen wraps, centered, instead of widening the page */
+  text-align: center;
   font-size: ${th.fontSize(14)};
   font-weight: ${th.fontWeight('medium')};
   letter-spacing: ${th.letterSpacing(5)};
@@ -132,13 +140,17 @@ export const Btn = styled.a<{ $callToAction?: boolean }>`
   border-radius: ${th.radius('pill')};
   border: ${th.borderWidth('thin')} solid
     ${props => (props.$callToAction ? th.color('accent') : th.color('foreground-a40'))};
-  width: max-content;
-  min-width: 240px;
-  padding: ${th.space(13)} ${th.space(32)};
+  padding: ${th.space(13)} ${th.space(20)};
   background-color: ${props => (props.$callToAction ? th.color('accent') : 'transparent')};
   color: ${th.color('foreground')};
   transition-property: background-color, color, border-color, box-shadow;
   transition-duration: ${th.duration('base')};
+
+  @media (min-width: ${th('screens.tablet')}) {
+    width: max-content;
+    min-width: 240px;
+    padding: ${th.space(13)} ${th.space(32)};
+  }
 
   &:hover {
     color: ${th.color('foreground')};
