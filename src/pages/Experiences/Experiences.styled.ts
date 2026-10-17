@@ -2,6 +2,8 @@ import styled, { th } from '@xstyled/styled-components';
 
 import { Page } from '../../App/App.styled';
 
+import { companyBlock, timelineRow } from './timeline.styled';
+
 export const ExperiencesPage = styled(Page)``;
 
 export const PageHeader = styled.header`
@@ -54,91 +56,8 @@ export const Timeline = styled.div`
 `;
 
 export const TimelineEntry = styled.div`
-  position: relative;
-  margin-bottom: ${th.space(20)};
-
-  /* dot — mobile */
-  &::before {
-    content: '';
-    position: absolute;
-    left: -1px; /* centered on the line at left: 5px (5 - 6 = -1) */
-    top: 18px;
-    width: 12px;
-    height: 12px;
-    border-radius: ${th.radius('circle')};
-    background: ${th.color('accent-a85')};
-    border: ${th.borderWidth('thick')} solid ${th.color('foreground-a80')};
-    box-shadow: ${th.shadow('accentGlow')};
-    z-index: ${th.zIndex('raised')};
-  }
-
-  /* desktop: two-column grid */
-  @media (min-width: ${th('screens.tablet')}) {
-    display: grid;
-    grid-template-columns: 90px 1fr;
-
-    /* hide mobile dot */
-    &::before {
-      display: none;
-    }
-  }
-`;
-
-/* ── Period column (desktop only) ─────────────────────────── */
-
-export const TimelinePeriod = styled.div`
-  /* hidden on mobile — card takes full width */
-  display: none;
-
-  @media (min-width: ${th('screens.tablet')}) {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-end;
-    padding-right: ${th.space(18)};
-    padding-top: ${th.space(5)};
-    position: relative;
-
-    /* dot */
-    &::after {
-      content: '';
-      position: absolute;
-      right: -6px; /* right edge at 90px + 6px, so centered at 90px */
-      top: 5px;
-      width: 12px;
-      height: 12px;
-      border-radius: ${th.radius('circle')};
-      background: ${th.color('accent-a85')};
-      border: ${th.borderWidth('thick')} solid ${th.color('foreground-a80')};
-      box-shadow: ${th.shadow('accentGlow')};
-      z-index: ${th.zIndex('raised')};
-    }
-  }
-`;
-
-export const PeriodStart = styled.span`
-  font-size: ${th.fontSize(12)};
-  font-weight: ${th.fontWeight('bold')};
-  color: ${th.color('accent-soft-a95')};
-  letter-spacing: ${th.letterSpacing(2)};
-  line-height: ${th.lineHeight(150)};
-  white-space: nowrap;
-  text-align: right;
-`;
-
-export const PeriodSep = styled.span`
-  font-size: ${th.fontSize(11)};
-  color: ${th.color('foreground-a25')};
-  line-height: ${th.lineHeight(120)};
-`;
-
-export const PeriodEnd = styled.span`
-  font-size: ${th.fontSize(12)};
-  font-weight: ${th.fontWeight('medium')};
-  color: ${th.color('foreground-a55')};
-  letter-spacing: ${th.letterSpacing(2)};
-  line-height: ${th.lineHeight(150)};
-  white-space: nowrap;
-  text-align: right;
+  ${companyBlock}
+  ${timelineRow}
 `;
 
 /* ── Content column ───────────────────────────────────────── */

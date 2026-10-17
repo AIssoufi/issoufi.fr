@@ -1,33 +1,15 @@
 import styled, { th } from '@xstyled/styled-components';
 
+import { card, companyBlock, timelineRow } from '../timeline.styled';
+
 /* ── Group wrapper — participates directly in Timeline ─────── */
 
 export const GroupArticle = styled.section`
-  position: relative;
+  ${companyBlock}
   padding-left: ${th.space(22)}; /* mobile: indent past the dot */
-  margin-bottom: ${th.space(20)};
-
-  /* mobile dot (one dot per company group) */
-  &::before {
-    content: '';
-    position: absolute;
-    left: -1px; /* centres 12px dot on the 2px line at left:5px */
-    top: 18px;
-    width: 12px;
-    height: 12px;
-    border-radius: ${th.radius('circle')};
-    background: ${th.color('accent-a85')};
-    border: ${th.borderWidth('thick')} solid ${th.color('foreground-a80')};
-    box-shadow: ${th.shadow('accentGlow')};
-    z-index: ${th.zIndex('raised')};
-  }
 
   @media (min-width: ${th('screens.tablet')}) {
     padding-left: 0;
-
-    &::before {
-      display: none;
-    }
   }
 `;
 
@@ -46,6 +28,7 @@ export const RolesList = styled.ul`
 
 export const RoleItem = styled.li`
   position: relative;
+  ${timelineRow}
 
   /* mobile dot per role */
   &::before {
@@ -62,83 +45,18 @@ export const RoleItem = styled.li`
   }
 
   @media (min-width: ${th('screens.tablet')}) {
-    display: grid;
-    grid-template-columns: 90px 1fr;
-
     &::before {
       display: none;
     }
   }
 `;
 
-/* ── Period column — aligns with main timeline ─────────────── */
-
-export const RolePeriodCol = styled.div`
-  display: none;
-
-  @media (min-width: ${th('screens.tablet')}) {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-end;
-    padding-right: ${th.space(18)};
-    padding-top: ${th.space(5)};
-    position: relative;
-    font-size: ${th.fontSize(10)};
-    letter-spacing: ${th.letterSpacing(2)};
-    white-space: nowrap;
-
-    /* dot on main timeline line */
-    &::after {
-      content: '';
-      position: absolute;
-      right: -6px; /* centres 12px dot on the line at 90px */
-      top: 5px;
-      width: 12px;
-      height: 12px;
-      border-radius: ${th.radius('circle')};
-      background: ${th.color('accent-a85')};
-      border: ${th.borderWidth('thick')} solid ${th.color('foreground-a80')};
-      box-shadow: ${th.shadow('accentGlow')};
-      z-index: ${th.zIndex('raised')};
-    }
-  }
-`;
-
-export const RolePeriodStart = styled.span`
-  font-weight: ${th.fontWeight('bold')};
-  color: ${th.color('accent-soft-a85')};
-  line-height: ${th.lineHeight(150)};
-`;
-
-export const RolePeriodSep = styled.span`
-  color: ${th.color('foreground-a20')};
-  line-height: ${th.lineHeight(120)};
-`;
-
-export const RolePeriodEnd = styled.span`
-  font-weight: ${th.fontWeight('medium')};
-  color: ${th.color('foreground-a40')};
-  line-height: ${th.lineHeight(150)};
-`;
-
 /* ── Role content — the card ────────────────────────────────── */
 
 export const RoleContent = styled.div`
   min-width: 0;
-  border: ${th.border('card')};
-  border-radius: ${th.radius('md')};
-  background-color: ${th.color('surface')};
-  backdrop-filter: ${th('blurs.8')};
-  -webkit-backdrop-filter: ${th('blurs.8')};
-  box-shadow: ${th.shadow('card')};
+  ${card}
   padding: ${th.space(14)} ${th.space(16)};
-  transition-property: transform, box-shadow;
-  transition-duration: ${th.duration('base')};
-
-  &:hover {
-    transform: translateY(-2px);
-    box-shadow: ${th.shadow('cardHover')};
-  }
 
   @media (min-width: ${th('screens.tablet')}) {
     margin-left: ${th.space(20)};
