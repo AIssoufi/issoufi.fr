@@ -1,5 +1,5 @@
 import { Route, BrowserRouter as Router, Routes } from 'react-router-dom';
-import { Experiences, Home, Projects } from '../pages';
+import { Experiences, Home, NotFound, Projects } from '../pages';
 import DocumentMeta from './DocumentMeta';
 import Header from './Header';
 import LangToggle from './LangToggle/LangToggle';
@@ -25,6 +25,10 @@ function App() {
           <Route
             path="/"
             element={<Home />}
+          />
+          <Route
+            path="*"
+            element={<NotFound />}
           />
         </Routes>
       </WebApp>

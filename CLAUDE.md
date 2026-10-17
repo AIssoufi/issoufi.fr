@@ -20,7 +20,7 @@ Personal portfolio SPA built with React 19 + TypeScript + Vite.
 
 **Entry point**: `src/index.tsx` mounts to the `#welcome` DOM element.
 
-**Routing** (`src/App/App.tsx`): flat BrowserRouter setup with three routes — `/` (Home), `/projects`, `/experiences`. No NotFound route is registered (404 page exists but is unused in routing).
+**Routing** (`src/App/App.tsx`): flat BrowserRouter setup with three routes — `/` (Home), `/projects`, `/experiences` — and a `*` catch-all rendering the NotFound page. Each route also needs an entry in `PAGES` (`src/utils/pages.ts`), which drives its metadata and the HTML file generated for it at build time.
 
 **Component conventions**: every component folder contains three files:
 
