@@ -1,8 +1,20 @@
 export const fr = {
   meta: {
-    title: 'ADAM Issoufi - Développeur full-stack JavaScript',
-    description:
-      "Développeur full-stack JavaScript avec {{years}} ans d'expérience, spécialisé React.",
+    home: {
+      title: 'ADAM Issoufi - Développeur full-stack JavaScript',
+      description:
+        "Développeur full-stack JavaScript avec {{years}} ans d'expérience, spécialisé React.",
+    },
+    projects: {
+      title: 'Projets - ADAM Issoufi',
+      description:
+        "Projets personnels et freelance d'ADAM Issoufi, développeur full-stack JavaScript.",
+    },
+    experiences: {
+      title: 'Expériences - ADAM Issoufi',
+      description:
+        "Parcours professionnel d'ADAM Issoufi, développeur full-stack JavaScript : Sewan, Wibilong, Supralog et Beepeers.",
+    },
   },
   nav: {
     home: 'Accueil',

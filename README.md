@@ -63,8 +63,9 @@ The site is deployed on [Cloudflare Pages](https://pages.cloudflare.com/) at [is
 | Package manager        | pnpm, detected from `pnpm-lock.yaml`                           |
 | Environment variables  | `PNPM_VERSION=10.34.7` (same major version as the CI, pnpm 10) |
 
-- **Single-page application**: `dist` must not contain a top-level `404.html`. Without it, Cloudflare Pages serves `index.html` for every path that is not a static asset, so routes such as `/projects` work on reload.
-- **Years of experience**: the number in the meta tags of `index.html` is computed at build time from `CAREER_START_DATE` (`src/utils/career.ts`). A new build is needed for it to change; the app itself computes it at runtime.
+- **One HTML file per page**: at build time, a Vite plugin (`vite.config.ts`) fills the `%PAGE_*%` placeholders of `index.html` and emits `projects.html` and `experiences.html` from the same template. Each page gets its own title, description and canonical URL, taken from the `meta` translations of `src/i18n/fr.ts`, so link previews and search engines get them without running JavaScript. Cloudflare Pages serves these files at `/projects` and `/experiences`. A new route needs an entry in `PAGES` (`src/utils/pages.ts`).
+- **Single-page application**: `dist` must not contain a top-level `404.html`. Without it, Cloudflare Pages serves `index.html` for any path that matches no file.
+- **Years of experience**: the number in the generated HTML files is computed at build time from `CAREER_START_DATE` (`src/utils/career.ts`), so it only changes with a new build. The app itself computes it at runtime.
 
 ## 📁 Project Structure
 

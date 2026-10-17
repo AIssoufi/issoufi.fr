@@ -1,5 +1,6 @@
 import { Route, BrowserRouter as Router, Routes } from 'react-router-dom';
 import { Experiences, Home, Projects } from '../pages';
+import DocumentMeta from './DocumentMeta';
 import Header from './Header';
 import LangToggle from './LangToggle/LangToggle';
 
@@ -8,6 +9,7 @@ import { WebApp } from './App.styled';
 function App() {
   return (
     <Router>
+      <DocumentMeta />
       <WebApp data-testid="app">
         <Header />
         <LangToggle />

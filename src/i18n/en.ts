@@ -1,8 +1,20 @@
 export const en = {
   meta: {
-    title: 'ADAM Issoufi - Full-stack JavaScript Developer',
-    description:
-      'Full-stack JavaScript developer with {{years}} years of experience, specializing in React.',
+    home: {
+      title: 'ADAM Issoufi - Full-stack JavaScript Developer',
+      description:
+        'Full-stack JavaScript developer with {{years}} years of experience, specializing in React.',
+    },
+    projects: {
+      title: 'Projects - ADAM Issoufi',
+      description:
+        'Personal and freelance projects by ADAM Issoufi, full-stack JavaScript developer.',
+    },
+    experiences: {
+      title: 'Experience - ADAM Issoufi',
+      description:
+        'Professional background of ADAM Issoufi, full-stack JavaScript developer: Sewan, Wibilong, Supralog and Beepeers.',
+    },
   },
   nav: {
     home: 'Home',
