@@ -1,4 +1,40 @@
-import { comparePage, getPageChecks, readPageHead, renderSmokeTestReport } from './pages.mjs';
+import {
+  comparePage,
+  getPageChecks,
+  isPageCheck,
+  readPageHead,
+  renderSmokeTestReport,
+} from './pages.mjs';
+
+describe('isPageCheck', () => {
+  it.each([
+    { file: 'index.html', route: '/', status: 200 },
+    { file: '404.html', route: '/smoke-test-page-that-does-not-exist', status: 404 },
+  ])('accepts %o', value => {
+    expect(isPageCheck(value)).toBe(true);
+  });
+
+  it.each([
+    undefined,
+    null,
+    'index.html',
+    42,
+    [],
+    {},
+    { route: '/', status: 200 },
+    { file: 'index.html', status: 200 },
+    { file: 'index.html', route: '/' },
+    { file: 'index.html', route: '/', status: '200' },
+    { file: 'index.html', route: '/', status: NaN },
+    { file: 'index.html', route: '/', status: Infinity },
+    { file: 'index.html', route: '/', status: 200.5 },
+    { file: 42, route: '/', status: 200 },
+    { file: '', route: '/', status: 200 },
+    { file: 'index.html', route: '', status: 200 },
+  ])('rejects %o', value => {
+    expect(isPageCheck(value)).toBe(false);
+  });
+});
 
 describe('getPageChecks', () => {
   it('maps each HTML file of the build to its route and status', () => {
@@ -84,6 +120,24 @@ describe('comparePage', () => {
     ]);
   });
 
+  it.each([undefined, null, {}, { route: '/projects', status: 200 }])(
+    'reports the missing or malformed page %o as a single problem',
+    malformedPage => {
+      expect(
+        comparePage({ page: malformedPage, status: 200, servedHtml: builtHtml, builtHtml }),
+      ).toEqual(['A page check without a file, a route or an integer status cannot be compared']);
+    },
+  );
+
+  it.each([undefined, null, NaN, Infinity, 200.5, '200'])(
+    'reports the served status %o as unknown',
+    status => {
+      expect(comparePage({ page, status, servedHtml: builtHtml, builtHtml })).toEqual([
+        '/projects: status unknown instead of 200',
+      ]);
+    },
+  );
+
   it('reports a missing served page as an empty one', () => {
     expect(comparePage({ page, status: 200, builtHtml })).toEqual([
       '/projects: title "" instead of "Projets - ADAM Issoufi"',
@@ -126,15 +180,17 @@ describe('renderSmokeTestReport', () => {
     );
   });
 
-  it('leaves out the pages without a route or a numeric status', () => {
+  it('leaves out the entries that are not page checks', () => {
     const report = renderSmokeTestReport({
       siteUrl,
       pages: [
         null,
         {},
-        { route: 42, status: 200 },
-        { route: '/projects' },
-        { route: '/projects', status: '200' },
+        { file: 'projects.html', route: 42, status: 200 },
+        { file: 'projects.html', route: '/projects' },
+        { file: 'projects.html', route: '/projects', status: '200' },
+        { file: 'projects.html', route: '/projects', status: NaN },
+        { route: '/projects', status: 200 },
         pages[0],
       ],
     });
@@ -154,7 +210,7 @@ describe('renderSmokeTestReport', () => {
     );
   });
 
-  it('reports a failure when no page has a route and a status', () => {
+  it('reports a failure when no entry is a page check', () => {
     expect(renderSmokeTestReport({ siteUrl, pages: [{ route: '/' }] })).toBe(
       '## Smoke test\n\n❌ https://issoufi.fr: no page of the build was checked.\n',
     );
