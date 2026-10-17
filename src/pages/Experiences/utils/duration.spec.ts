@@ -65,7 +65,7 @@ describe('computeDuration', () => {
       vi.useRealTimers();
     });
 
-    it.each(["Aujourd'hui", 'auj.', 'auj', 'Present', 'pres.', 'today'])(
+    it.each(["Aujourd'hui", 'auj.', 'auj', 'Present', 'pres.', 'today', '  Present '])(
       'counts up to now for %j',
       endDate => {
         expect(computeDuration({ startDate: 'juin 2025', endDate })).toEqual({
