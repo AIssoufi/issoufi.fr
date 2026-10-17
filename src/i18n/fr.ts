@@ -45,7 +45,7 @@ export const fr = {
   },
   home: {
     title1: 'Développeur full-stack JavaScript',
-    title2Pre: "passioné par l'",
+    title2Pre: "passionné par l'",
     title2Mid: " et l'",
     title2Post: ' Design',
     subtitle: 'Je vous aide à développer vos applications web',
@@ -92,7 +92,7 @@ export const fr = {
       introStrong: '~15 équipes produit',
       intro2:
         ' via un registre NPM privé. Interlocuteur unique entre les équipes design system, les développeurs consommateurs et la direction technique.',
-      b1: "Conception et évolution d'APIs de composants React + TypeScript robustes, documentées sous Storybook, suivant une approche TDD",
+      b1: "Conception et évolution d'API de composants React + TypeScript robustes, documentées sous Storybook, suivant une approche TDD",
       b2: 'Priorisation du backlog, recueil et arbitrage des besoins auprès de ~15 équipes',
       b3: 'Accompagnement transverse : onboarding, code review, debug et formation des équipes consommatrices',
       proj1Title: 'Modernisation complète de la stack technique',
@@ -131,7 +131,7 @@ export const fr = {
       intro:
         "Développement full-stack end-to-end des solutions SaaS Wibilong (WiService V3, WiManager, WiSell), au sein d'une équipe de deux développeurs.",
       b1: 'Développement de nouvelles fonctionnalités de bout en bout : de la maquette produit à la mise en production, côté front (React, Redux) et back (Node.js, serverless AWS)',
-      b2: "Conception et documentation d'APIs REST sous Swagger ; déploiement via AWS Lambda, API Gateway et CloudFormation",
+      b2: "Conception et documentation d'API REST sous Swagger ; déploiement via AWS Lambda, API Gateway et CloudFormation",
       b3: 'Maintien en condition opérationnelle (MCO) et résolution de bugs en production',
     },
     supralog: {
@@ -146,7 +146,7 @@ export const fr = {
       proj1Desc1: "En binôme, développement from scratch de l'espace licencié de la ",
       proj1Strong: 'Fédération Française de Badminton',
       proj1Desc2:
-        ' à partir des maquettes et du cahier des charges — puis conception, implémentation et déploiement de 3 micro-services sur GCP.',
+        ' à partir des maquettes et du cahier des charges — puis conception, implémentation et déploiement de 3 microservices sur GCP.',
       proj2Title: 'CLARIS — Refonte SI de certification',
       proj2State: '3 sprints livrés',
       proj2Desc1:
@@ -167,7 +167,7 @@ export const fr = {
         "Conception et réalisation complète d'un site événementiel avec système de réservation et paiement en ligne.",
       proj1B1: 'Architecture et maquettes des écrans',
       proj1B2:
-        'Développement React avec intégration billetterie (Fasticket) et paiement CB (WeezeEvent)',
+        'Développement React avec intégration billetterie (Fasticket) et paiement CB (Weezevent)',
       proj1B3: 'Maintenance des sites existants en AngularJS',
     },
   },
