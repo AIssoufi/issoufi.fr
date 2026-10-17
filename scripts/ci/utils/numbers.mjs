@@ -6,6 +6,9 @@ import { BYTES_PER_KILOBYTE } from '../constants.mjs';
  * compared.
  * @param {unknown} value - Size or count to read.
  * @returns {number} The value, or 0 when it is negative, not a number or not finite.
+ * @example
+ * toNonNegativeNumber(2473); // 2473
+ * toNonNegativeNumber('2473'); // 0
  */
 export const toNonNegativeNumber = value => {
   const isValidNumber = typeof value === 'number' && Number.isFinite(value) && value > 0;
@@ -26,6 +29,9 @@ export const formatKilobytes = bytes =>
  * Formats a coverage percentage with one decimal.
  * @param {unknown} percent - Percentage from the coverage report.
  * @returns {string} The percentage, e.g. `97.7%`, or `n/a` when the report gives no number.
+ * @example
+ * formatPercent(97.66); // '97.7%'
+ * formatPercent('Unknown'); // 'n/a'
  */
 export const formatPercent = percent => {
   const isPercent = typeof percent === 'number' && Number.isFinite(percent);

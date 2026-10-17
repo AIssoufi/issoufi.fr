@@ -26,6 +26,13 @@ import {
  * `404.html` with a 404 status.
  * @param {string[]} [fileNames] - File names at the root of the build. Defaults to none.
  * @returns {PageCheck[]} One check per HTML file, other files are ignored.
+ * @example
+ * getPageChecks(['index.html', 'projects.html', '404.html', 'robots.txt']);
+ * // [
+ * //   { file: 'index.html', route: '/', status: 200 },
+ * //   { file: 'projects.html', route: '/projects', status: 200 },
+ * //   { file: '404.html', route: '/smoke-test-page-that-does-not-exist', status: 404 },
+ * // ]
  */
 export const getPageChecks = (fileNames = []) =>
   fileNames
@@ -42,9 +49,19 @@ export const getPageChecks = (fileNames = []) =>
     });
 
 /**
+ * Title and canonical URL of an HTML page, read by {@link readPageHead}.
+ * @typedef {object} PageHead
+ * @property {string} title - Text of the title tag, trimmed. Empty when the page has none.
+ * @property {string} canonical - URL of the canonical link. Empty when the page has none.
+ */
+
+/**
  * Reads the title and the canonical URL of an HTML page, whatever the line breaks in its tags.
  * @param {unknown} html - Content of the page.
- * @returns {{ title: string, canonical: string }} Empty strings for what the page does not have.
+ * @returns {PageHead} Empty strings for what the page does not have.
+ * @example
+ * readPageHead('<title> Projets </title><link href="https://issoufi.fr/" rel="canonical">');
+ * // { title: 'Projets', canonical: 'https://issoufi.fr/' }
  */
 export const readPageHead = html => {
   const text = typeof html === 'string' ? html : '';
@@ -55,14 +72,26 @@ export const readPageHead = html => {
 };
 
 /**
+ * Parameters of {@link comparePage}.
+ * @typedef {object} ComparePageParams
+ * @property {PageCheck} page - Route to check and its expected status.
+ * @property {number} status - Status the site answered with.
+ * @property {string} [servedHtml] - Content the site answered with. Missing counts as empty.
+ * @property {string} [builtHtml] - Content of the file in the build. Missing counts as empty.
+ */
+
+/**
  * Compares the page the deployed site served for a route with the file of the build: same status
  * as expected, same title and same canonical URL.
- * @param {object} params
- * @param {PageCheck} params.page - Route to check and its expected status.
- * @param {number} params.status - Status the site answered with.
- * @param {string} [params.servedHtml] - Content the site answered with.
- * @param {string} [params.builtHtml] - Content of the file in the build.
+ * @param {ComparePageParams} params
  * @returns {string[]} The problems found, empty when the page is served as built.
+ * @example
+ * comparePage({
+ *   page: { file: 'projects.html', route: '/projects', status: 200 },
+ *   status: 404,
+ *   servedHtml: '<title>Projets</title>',
+ *   builtHtml: '<title>Projets</title>',
+ * }); // ['/projects: status 404 instead of 200']
  */
 export const comparePage = ({ page, status, servedHtml, builtHtml }) => {
   const served = readPageHead(servedHtml);

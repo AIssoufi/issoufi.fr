@@ -7,6 +7,10 @@ import { formatPercent, toNonNegativeNumber } from './numbers.mjs';
  * @param {unknown} summary - Content of the `coverage-summary.json` report of Vitest.
  * @returns {string} The Markdown table, or a note saying that there is no report when the
  * summary is missing or malformed.
+ * @example
+ * renderCoverageSummary({ total: { lines: { covered: 2473, total: 2532, pct: 97.66 } } });
+ * // The row '| lines | 2473 / 2532 | 97.7% |', then '| statements | 0 / 0 | n/a |' and the
+ * // other metrics the report lacks
  */
 export const renderCoverageSummary = summary => {
   const total = /** @type {Record<string, any> | undefined} */ (summary)?.total;

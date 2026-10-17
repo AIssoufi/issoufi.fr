@@ -11,15 +11,31 @@ import { formatKilobytes, toNonNegativeNumber } from './numbers.mjs';
  */
 
 /**
+ * Parameters of {@link checkScriptBudget}.
+ * @typedef {object} CheckScriptBudgetParams
+ * @property {BuildFile[]} [scripts] - Scripts and style sheets of the build. Defaults to none.
+ * @property {number} budgetBytes - Maximum total gzip size. The total may equal it.
+ */
+
+/**
+ * Result of {@link checkScriptBudget}.
+ * @typedef {object} ScriptBudgetCheck
+ * @property {number} totalGzipBytes - Total gzip size of the scripts and style sheets.
+ * @property {boolean} isOverBudget - Whether the total exceeds the budget.
+ */
+
+/**
  * Adds up the gzip sizes of the scripts and style sheets of the build and compares the total
  * with the budget. A file with an invalid size counts as 0.
- * @param {object} params
- * @param {BuildFile[]} [params.scripts] - Scripts and style sheets of the build. Defaults to none.
- * @param {number} params.budgetBytes - Maximum total gzip size. The total may equal it.
- * @returns {{ totalGzipBytes: number, isOverBudget: boolean }} The total and whether it exceeds
- * the budget.
+ * @param {CheckScriptBudgetParams} params
+ * @returns {ScriptBudgetCheck} The total and whether it exceeds the budget.
  * @throws {RangeError} When the budget is not a positive number, since every build would then
  * pass or fail whatever its size.
+ * @example
+ * checkScriptBudget({
+ *   scripts: [{ path: 'assets/index.js', bytes: 788_320, gzipBytes: 224_940 }],
+ *   budgetBytes: 250_000,
+ * }); // { totalGzipBytes: 224_940, isOverBudget: false }
  */
 export const checkScriptBudget = ({ scripts = [], budgetBytes }) => {
   const isValidBudget = toNonNegativeNumber(budgetBytes) > 0;
@@ -33,11 +49,25 @@ export const checkScriptBudget = ({ scripts = [], budgetBytes }) => {
 };
 
 /**
+ * Parameters of {@link findLargeImages}.
+ * @typedef {object} FindLargeImagesParams
+ * @property {BuildFile[]} [files] - Files of the build, of any type. Defaults to none.
+ * @property {number} limitBytes - Size above which an image is listed.
+ */
+
+/**
  * Lists the images of the build that are bigger than a size limit, the biggest first.
- * @param {object} params
- * @param {BuildFile[]} [params.files] - Files of the build, of any type. Defaults to none.
- * @param {number} params.limitBytes - Size above which an image is listed.
+ * @param {FindLargeImagesParams} params
  * @returns {BuildFile[]} The images over the limit.
+ * @example
+ * findLargeImages({
+ *   files: [
+ *     { path: 'assets/index.js', bytes: 788_320 },
+ *     { path: 'small.png', bytes: 100 },
+ *     { path: 'chess.png', bytes: 928_988 },
+ *   ],
+ *   limitBytes: 500_000,
+ * }); // [{ path: 'chess.png', bytes: 928_988 }]
  */
 export const findLargeImages = ({ files = [], limitBytes }) => {
   const isLargeImage = (/** @type {BuildFile} */ file) =>
@@ -47,15 +77,30 @@ export const findLargeImages = ({ files = [], limitBytes }) => {
 };
 
 /**
+ * Parameters of {@link renderBundleReport}.
+ * @typedef {object} RenderBundleReportParams
+ * @property {BuildFile[]} [scripts] - Scripts and style sheets of the build. Defaults to none.
+ * @property {number} budgetBytes - Maximum total gzip size of the scripts.
+ * @property {BuildFile[]} [largeImages] - Images over the limit, from {@link findLargeImages}.
+ * Defaults to none.
+ * @property {number} largeImageBytes - Size limit used to find the large images.
+ */
+
+/**
  * Writes the size report of the build as Markdown, for the job summary: the gzip size of each
  * script and style sheet, the total against the budget, and the images over the size limit.
- * @param {object} params
- * @param {BuildFile[]} [params.scripts] - Scripts and style sheets of the build. Defaults to none.
- * @param {number} params.budgetBytes - Maximum total gzip size of the scripts.
- * @param {BuildFile[]} [params.largeImages] - Images over the limit, from {@link findLargeImages}.
- * Defaults to none.
- * @param {number} params.largeImageBytes - Size limit used to find the large images.
+ * @param {RenderBundleReportParams} params
  * @returns {string} The Markdown report.
+ * @throws {RangeError} When the budget is not a positive number, like {@link checkScriptBudget}.
+ * @example
+ * renderBundleReport({
+ *   scripts: [{ path: 'assets/index.js', bytes: 788_320, gzipBytes: 224_940 }],
+ *   budgetBytes: 250_000,
+ *   largeImages: [{ path: 'chess.png', bytes: 928_988 }],
+ *   largeImageBytes: 500_000,
+ * });
+ * // A table with the row '| `assets/index.js` | 788.3 kB | 224.9 kB |' and the total, then
+ * // '✅ Within budget: 224.9 kB gzip for a budget of 250.0 kB.', then the images over 500.0 kB
  */
 export const renderBundleReport = ({
   scripts = [],
