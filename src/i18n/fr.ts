@@ -1,6 +1,10 @@
 /**
  * French translations: the default and fallback language. Also the source of the static page
  * metadata generated at build time.
+ *
+ * Following French typography, a colon comes after a no-break space (`\u00a0`), and a semicolon,
+ * question or exclamation mark after a narrow no-break space (`\u202f`), so that they never wrap
+ * alone onto the next line.
  */
 export const fr = {
   meta: {
@@ -17,7 +21,7 @@ export const fr = {
     experiences: {
       title: 'Expériences - ADAM Issoufi',
       description:
-        "Parcours professionnel d'ADAM Issoufi, développeur full-stack JavaScript : Sewan, Wibilong, Supralog et Beepeers.",
+        "Parcours professionnel d'ADAM Issoufi, développeur full-stack JavaScript\u00a0: Sewan, Wibilong, Supralog et Beepeers.",
     },
     notFound: {
       title: 'Page introuvable - ADAM Issoufi',
@@ -94,14 +98,14 @@ export const fr = {
         ' via un registre NPM privé. Interlocuteur unique entre les équipes design system, les développeurs consommateurs et la direction technique.',
       b1: "Conception et évolution d'API de composants React + TypeScript robustes, documentées sous Storybook, suivant une approche TDD",
       b2: 'Priorisation du backlog, recueil et arbitrage des besoins auprès de ~15 équipes',
-      b3: 'Accompagnement transverse : onboarding, code review, debug et formation des équipes consommatrices',
+      b3: 'Accompagnement transverse\u00a0: onboarding, code review, debug et formation des équipes consommatrices',
       proj1Title: 'Modernisation complète de la stack technique',
       proj1State: 'En production',
       proj1Intro:
-        "Refonte technique de bout en bout menée en solo pour moderniser l'outillage et améliorer significativement l'expérience développeur (DX) :",
+        "Refonte technique de bout en bout menée en solo pour moderniser l'outillage et améliorer significativement l'expérience développeur (DX)\u00a0:",
       proj1B1: 'Storybook v5.3 → v8.6 (migration CSF 2 → CSF 3), Node.js v16 → v22',
       proj1B2: 'Jest → Vitest, Webpack → tsup + Vite (builds sensiblement plus rapides)',
-      proj1B3: 'npm + Lerna v4 → pnpm + Lerna v8 ; passage à TypeScript strict',
+      proj1B3: 'npm + Lerna v4 → pnpm + Lerna v8\u202f; passage à TypeScript strict',
       proj1B4: 'Refonte intégrale du pipeline CI/CD GitLab',
     },
     sewanSenior: {
@@ -111,8 +115,8 @@ export const fr = {
       intro1: "Membre de l'équipe core (3 développeurs) en charge des fondations techniques de ",
       introStrong: 'Sophia Go',
       intro2: ', la plateforme métier centrale de Sewan.',
-      b1: "Conception de l'architecture front-end transverse : store global, logique métier commune, configuration partagée et librairies internes utilisées par toutes les équipes feature",
-      b2: 'Développement full-stack de modules critiques : React/TypeScript côté client, Node.js/GraphQL côté serveur',
+      b1: "Conception de l'architecture front-end transverse\u00a0: store global, logique métier commune, configuration partagée et librairies internes utilisées par toutes les équipes feature",
+      b2: 'Développement full-stack de modules critiques\u00a0: React/TypeScript côté client, Node.js/GraphQL côté serveur',
       b3: 'Pilotage des évolutions techniques majeures et accompagnement des équipes dans leur adoption',
       proj1Title: 'friday — BFF GraphQL',
       proj1Desc:
@@ -130,8 +134,8 @@ export const fr = {
       end: 'juin 2021',
       intro:
         "Développement full-stack end-to-end des solutions SaaS Wibilong (WiService V3, WiManager, WiSell), au sein d'une équipe de deux développeurs.",
-      b1: 'Développement de nouvelles fonctionnalités de bout en bout : de la maquette produit à la mise en production, côté front (React, Redux) et back (Node.js, serverless AWS)',
-      b2: "Conception et documentation d'API REST sous Swagger ; déploiement via AWS Lambda, API Gateway et CloudFormation",
+      b1: 'Développement de nouvelles fonctionnalités de bout en bout\u00a0: de la maquette produit à la mise en production, côté front (React, Redux) et back (Node.js, serverless AWS)',
+      b2: "Conception et documentation d'API REST sous Swagger\u202f; déploiement via AWS Lambda, API Gateway et CloudFormation",
       b3: 'Maintien en condition opérationnelle (MCO) et résolution de bugs en production',
     },
     supralog: {
