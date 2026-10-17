@@ -130,6 +130,14 @@ describe('findLargeImages', () => {
     const files = [null, { bytes: 900 }, { path: 'a.png', bytes: NaN }, { path: 'b.png' }];
     expect(findLargeImages({ files, limitBytes: 500 })).toEqual([]);
   });
+
+  it.each([0, -1, NaN, Infinity, undefined, null, '500'])(
+    'throws for the invalid limit %s',
+    limitBytes => {
+      const files = [{ path: 'chess.png', bytes: 900 }];
+      expect(() => findLargeImages({ files, limitBytes })).toThrow(RangeError);
+    },
+  );
 });
 
 describe('renderBundleReport', () => {
@@ -212,6 +220,15 @@ describe('renderBundleReport', () => {
       RangeError,
     );
   });
+
+  it.each([0, -1, NaN, undefined, '500000'])(
+    'throws for the invalid image size limit %s',
+    largeImageBytes => {
+      expect(() => renderBundleReport({ scripts, budgetBytes: 250_000, largeImageBytes })).toThrow(
+        RangeError,
+      );
+    },
+  );
 
   it('reports a total of 0 without scripts', () => {
     const report = renderBundleReport({ budgetBytes: 250_000, largeImageBytes: 500_000 });

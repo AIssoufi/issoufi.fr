@@ -87,13 +87,16 @@ export const checkScriptBudget = ({ scripts = [], budgetBytes }) => {
  * Parameters of {@link findLargeImages}.
  * @typedef {object} FindLargeImagesParams
  * @property {BuildFile[]} [files] - Files of the build, of any type. Defaults to none.
- * @property {number} limitBytes - Size above which an image is listed.
+ * @property {number} limitBytes - Size above which an image is listed. An image of exactly this
+ * size is not.
  */
 
 /**
  * Lists the images of the build that are bigger than a size limit, the biggest first.
  * @param {FindLargeImagesParams} params
  * @returns {BuildFile[]} The images over the limit.
+ * @throws {RangeError} When the limit is not a positive number, since no image would then be
+ * reported, or every one.
  * @example
  * findLargeImages({
  *   files: [
@@ -105,6 +108,9 @@ export const checkScriptBudget = ({ scripts = [], budgetBytes }) => {
  * }); // [{ path: 'chess.png', bytes: 928_988 }]
  */
 export const findLargeImages = ({ files = [], limitBytes }) => {
+  const isValidLimit = toNonNegativeNumber(limitBytes) > 0;
+  if (!isValidLimit) throw new RangeError(`Invalid image size limit: ${limitBytes}`);
+
   const isLargeImage = (/** @type {unknown} */ file) =>
     isBuildFile(file) &&
     IMAGE_FILE_PATTERN.test(file.path) &&
@@ -129,7 +135,8 @@ export const findLargeImages = ({ files = [], limitBytes }) => {
  * Entries that are not build files (see {@link isBuildFile}) are left out, of the total too.
  * @param {RenderBundleReportParams} params
  * @returns {string} The Markdown report.
- * @throws {RangeError} When the budget is not a positive number, like {@link checkScriptBudget}.
+ * @throws {RangeError} When the budget or the image size limit is not a positive number, like
+ * {@link checkScriptBudget} and {@link findLargeImages}.
  * @example
  * renderBundleReport({
  *   scripts: [{ path: 'assets/index.js', bytes: 788_320, gzipBytes: 224_940 }],
@@ -146,6 +153,9 @@ export const renderBundleReport = ({
   largeImages = [],
   largeImageBytes,
 }) => {
+  const isValidImageLimit = toNonNegativeNumber(largeImageBytes) > 0;
+  if (!isValidImageLimit) throw new RangeError(`Invalid image size limit: ${largeImageBytes}`);
+
   const listedScripts = scripts.filter(isBuildFile);
   const listedImages = largeImages.filter(isBuildFile);
   const { totalGzipBytes, isOverBudget } = checkScriptBudget({
