@@ -43,6 +43,7 @@ const checkSite = async () => {
   return results.flat();
 };
 
+/** @type {string[]} */
 let problems = [];
 
 for (let attempt = 1; attempt <= SMOKE_TEST_ATTEMPTS; attempt += 1) {

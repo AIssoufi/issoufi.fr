@@ -62,7 +62,7 @@ Tests are `*.spec.jsx` / `*.spec.ts` files next to the code they test. Every com
 ### Checks
 
 ```bash
-pnpm typecheck      # Type-check without building
+pnpm typecheck      # Type-check src/, then the CI scripts of scripts/, without building
 pnpm lint           # Lint with ESLint
 pnpm format:check   # Check that every file follows the Prettier style
 pnpm format         # Format every file with Prettier

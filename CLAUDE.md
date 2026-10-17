@@ -10,7 +10,7 @@ pnpm build        # Type-check + production build (tsc && vite build)
 pnpm size         # After a build: fails over the gzip budget of scripts/ci/constants.mjs
 pnpm smoke-test <url> # After a build: checks that a deployed site serves the pages of dist/
 pnpm preview      # Preview production build
-pnpm typecheck    # Type-check only (tsc --noEmit)
+pnpm typecheck    # Type-check only: src/ and vite.config.ts, then scripts/ (scripts/tsconfig.json)
 pnpm lint         # ESLint (eslint.config.js)
 pnpm test         # Run tests once
 pnpm test:watch   # Run tests in watch mode

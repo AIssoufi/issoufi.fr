@@ -48,7 +48,7 @@
     "size": "node scripts/ci/check-bundle-size.mjs",
     "smoke-test": "node scripts/ci/smoke-test.mjs",
     "preview": "vite preview",
-    "typecheck": "tsc --noEmit",
+    "typecheck": "tsc --noEmit && tsc --project scripts",
     "lint": "eslint .",
     "test": "vitest run",
     "test:watch": "vitest",

@@ -1,0 +1,19 @@
+{
+  // Type-checks the CI scripts: JavaScript run by Node.js, typed with JSDoc. The specs stay out,
+  // since they pass bad values on purpose.
+  "compilerOptions": {
+    "target": "ES2023",
+    "lib": ["ES2023"],
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "types": ["node"],
+    "allowJs": true,
+    "checkJs": true,
+    "noEmit": true,
+    "skipLibCheck": true,
+    "strict": true,
+    "noFallthroughCasesInSwitch": true,
+    "forceConsistentCasingInFileNames": true
+  },
+  "include": ["**/*.mjs"]
+}
