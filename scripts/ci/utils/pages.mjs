@@ -1,11 +1,15 @@
 // @ts-check
 import {
+  CANONICAL_LINK_TAG_PATTERN,
   HOME_PAGE_FILE,
+  HOME_PAGE_ROUTE,
+  HREF_ATTRIBUTE_PATTERN,
   HTML_FILE_PATTERN,
   HTTP_NOT_FOUND,
   HTTP_OK,
   MISSING_PAGE_ROUTE,
   NOT_FOUND_PAGE_FILE,
+  TITLE_TAG_PATTERN,
 } from '../constants.mjs';
 
 /**
@@ -32,7 +36,8 @@ export const getPageChecks = (fileNames = []) =>
         return { file, route: MISSING_PAGE_ROUTE, status: HTTP_NOT_FOUND };
       }
 
-      const route = file === HOME_PAGE_FILE ? '/' : `/${file.replace(HTML_FILE_PATTERN, '')}`;
+      const isHomePage = file === HOME_PAGE_FILE;
+      const route = isHomePage ? HOME_PAGE_ROUTE : `/${file.replace(HTML_FILE_PATTERN, '')}`;
       return { file, route, status: HTTP_OK };
     });
 
@@ -43,9 +48,9 @@ export const getPageChecks = (fileNames = []) =>
  */
 export const readPageHead = html => {
   const text = typeof html === 'string' ? html : '';
-  const title = text.match(/<title>([^<]*)<\/title>/i)?.[1]?.trim() ?? '';
-  const canonicalTag = text.match(/<link\s[^>]*rel="canonical"[^>]*>/i)?.[0] ?? '';
-  const canonical = canonicalTag.match(/href="([^"]*)"/i)?.[1] ?? '';
+  const title = text.match(TITLE_TAG_PATTERN)?.[1]?.trim() ?? '';
+  const canonicalTag = text.match(CANONICAL_LINK_TAG_PATTERN)?.[0] ?? '';
+  const canonical = canonicalTag.match(HREF_ATTRIBUTE_PATTERN)?.[1] ?? '';
   return { title, canonical };
 };
 
