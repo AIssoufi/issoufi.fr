@@ -21,6 +21,12 @@ describe('Header', () => {
     expect(screen.getByText('AI')).toBeInTheDocument();
   });
 
+  it('renders the language toggle', () => {
+    renderHeader();
+    expect(screen.getByText('FR')).toBeInTheDocument();
+    expect(screen.getByText('EN')).toBeInTheDocument();
+  });
+
   it('renders all nav items', () => {
     renderHeader();
     expect(screen.getByText('Accueil')).toBeInTheDocument();

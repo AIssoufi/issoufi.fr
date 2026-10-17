@@ -40,6 +40,13 @@ export const Logo = styled.div`
   }
 `;
 
+export const Actions = styled.div`
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: ${th.space(12)};
+`;
+
 export const Menu = styled.div<MenuProps>`
   display: flex;
   flex-direction: row;
