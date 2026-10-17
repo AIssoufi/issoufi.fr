@@ -14,6 +14,14 @@ concurrency:
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
+  format:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+      - uses: ./.github/actions/setup
+      - run: pnpm format:check
+
   typecheck:
     runs-on: ubuntu-latest
     timeout-minutes: 10
@@ -30,8 +38,31 @@ jobs:
       - uses: ./.github/actions/setup
       - run: pnpm test
 
+  commits:
+    # Dependabot writes conventional subjects, but its bodies hold release notes with long lines
+    if: github.event_name == 'pull_request' && github.event.pull_request.user.login != 'dependabot[bot]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+      - uses: ./.github/actions/setup
+      - run: pnpm exec commitlint --from "$BASE_SHA" --to "$HEAD_SHA" --verbose
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+
+  dependencies:
+    # Fails when a pull request adds or upgrades to a dependency with a known vulnerability
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/dependency-review-action@v5
+
   build:
-    needs: [typecheck, test]
+    needs: [format, typecheck, test]
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
