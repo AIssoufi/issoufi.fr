@@ -145,10 +145,6 @@ export const RoleContent = styled.div`
   }
 `;
 
-export const RoleHeader = styled.div`
-  margin-bottom: ${th.space(10)};
-`;
-
 export const RoleDetails = styled.div`
   font-size: ${th.fontSize(14)};
   font-weight: ${th.fontWeight('regular')};
