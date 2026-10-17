@@ -12,3 +12,6 @@ export const LANGUAGES = ['fr', 'en'] as const;
  * `fr` metadata of `src/utils/pages.ts`.
  */
 export const DEFAULT_LANGUAGE: Language = 'fr';
+
+/** `localStorage` key holding the language chosen with the toggle, restored on the next visit. */
+export const LANGUAGE_STORAGE_KEY = 'language';
