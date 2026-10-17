@@ -136,8 +136,7 @@ The version follows the commits: `fix` bumps the patch version, `feat` the minor
 │   ├── App/              # Root component, router and layout
 │   │   ├── DocumentMeta/ # <html lang>, title and description per route and language
 │   │   ├── Header/       # Logo, navigation and burger menu
-│   │   ├── LangToggle/   # FR / EN switch
-│   │   └── Modal/        # Informational modal (unused)
+│   │   └── LangToggle/   # FR / EN switch
 │   ├── components/       # Components shared across pages
 │   │   └── StatusMessage/ # Code, title, message and home link of error pages
 │   ├── i18n/             # French and English translations
