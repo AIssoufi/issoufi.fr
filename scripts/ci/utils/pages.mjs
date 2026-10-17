@@ -58,8 +58,8 @@ const isHtmlFileName = fileName => typeof fileName === 'string' && HTML_FILE_PAT
  * Lists the routes to check from the HTML files at the root of the build. Each page is served at
  * its name without the extension, `index.html` at `/`, and an unknown path must get
  * `404.html` with a 404 status.
- * @param {string[]} [fileNames] - File names at the root of the build. Defaults to none, `null`
- * included.
+ * @param {string[]} [fileNames] - File names at the root of the build. Any value that is not an
+ * array counts as none.
  * @returns {PageCheck[]} One check per HTML file, other files are ignored.
  * @example
  * getPageChecks(['index.html', 'projects.html', '404.html', 'robots.txt']);
@@ -163,9 +163,9 @@ export const comparePage = ({ page, status, servedHtml, builtHtml }) => {
  * @property {string} [siteUrl] - Site that was checked, e.g. `https://issoufi.fr`. Missing or not
  * a string, it is left empty.
  * @property {PageCheck[]} [pages] - Pages requested on the site, from {@link getPageChecks}.
- * Defaults to none, `null` included.
+ * Any value that is not an array counts as none.
  * @property {string[]} [problems] - Problems found on those pages, from {@link comparePage}.
- * Defaults to none, `null` included.
+ * Any value that is not an array counts as none.
  */
 
 /**

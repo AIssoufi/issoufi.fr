@@ -49,8 +49,8 @@ export const isBudgetedScript = path => {
 /**
  * Parameters of {@link checkScriptBudget}.
  * @typedef {object} CheckScriptBudgetParams
- * @property {BuildFile[]} [scripts] - Scripts and style sheets of the build. Defaults to none,
- * `null` included.
+ * @property {BuildFile[]} [scripts] - Scripts and style sheets of the build. Any value that is
+ * not an array counts as none.
  * @property {number} budgetBytes - Maximum total gzip size. The total may equal it.
  */
 
@@ -66,7 +66,7 @@ export const isBudgetedScript = path => {
  * with the budget. A file with an invalid size counts as 0.
  * @param {CheckScriptBudgetParams} params
  * @returns {ScriptBudgetCheck} The total and whether it exceeds the budget.
- * @throws {RangeError} When the budget is not a positive number, since every build would then
+ * @throws {RangeError} When the budget is not a finite number above 0, since every build would then
  * pass or fail whatever its size.
  * @example
  * checkScriptBudget({
@@ -88,8 +88,8 @@ export const checkScriptBudget = ({ scripts, budgetBytes }) => {
 /**
  * Parameters of {@link findLargeImages}.
  * @typedef {object} FindLargeImagesParams
- * @property {BuildFile[]} [files] - Files of the build, of any type. Defaults to none, `null`
- * included.
+ * @property {BuildFile[]} [files] - Files of the build, of any type. Any value that is not an array
+ * counts as none.
  * @property {number} limitBytes - Size above which an image is listed. An image of exactly this
  * size is not.
  */
@@ -98,7 +98,7 @@ export const checkScriptBudget = ({ scripts, budgetBytes }) => {
  * Lists the images of the build that are bigger than a size limit, the biggest first.
  * @param {FindLargeImagesParams} params
  * @returns {BuildFile[]} The images over the limit.
- * @throws {RangeError} When the limit is not a positive number, since no image would then be
+ * @throws {RangeError} When the limit is not a finite number above 0, since no image would then be
  * reported, or every one.
  * @example
  * findLargeImages({
@@ -127,8 +127,8 @@ export const findLargeImages = ({ files, limitBytes }) => {
 /**
  * Parameters of {@link renderScriptsTable}.
  * @typedef {object} RenderScriptsTableParams
- * @property {BuildFile[]} [scripts] - Scripts and style sheets of the build. Defaults to none,
- * `null` included.
+ * @property {BuildFile[]} [scripts] - Scripts and style sheets of the build. Any value that is
+ * not an array counts as none.
  * @property {number} [totalGzipBytes] - Total gzip size shown on the last row, from
  * {@link checkScriptBudget}. Defaults to 0, and an invalid size is shown as 0.
  */
@@ -169,7 +169,7 @@ export const renderScriptsTable = ({ scripts, totalGzipBytes = 0 }) => {
  * Parameters of {@link renderLargeImagesSection}.
  * @typedef {object} RenderLargeImagesSectionParams
  * @property {BuildFile[]} [largeImages] - Images over the limit, from {@link findLargeImages}.
- * Defaults to none, `null` included.
+ * Any value that is not an array counts as none.
  * @property {number} largeImageBytes - Size limit used to find them, shown in the heading.
  */
 
@@ -180,7 +180,7 @@ export const renderScriptsTable = ({ scripts, totalGzipBytes = 0 }) => {
  * @param {RenderLargeImagesSectionParams} params
  * @returns {string} The section, without a final line break, or an empty string when no image is
  * listed.
- * @throws {RangeError} When the limit is not a positive number, even without images, like
+ * @throws {RangeError} When the limit is not a finite number above 0, even without images, like
  * {@link findLargeImages}.
  * @example
  * renderLargeImagesSection({
@@ -213,11 +213,11 @@ export const renderLargeImagesSection = ({ largeImages, largeImageBytes }) => {
 /**
  * Parameters of {@link renderBundleReport}.
  * @typedef {object} RenderBundleReportParams
- * @property {BuildFile[]} [scripts] - Scripts and style sheets of the build. Defaults to none,
- * `null` included.
+ * @property {BuildFile[]} [scripts] - Scripts and style sheets of the build. Any value that is
+ * not an array counts as none.
  * @property {number} budgetBytes - Maximum total gzip size of the scripts.
  * @property {BuildFile[]} [largeImages] - Images over the limit, from {@link findLargeImages}.
- * Defaults to none, `null` included.
+ * Any value that is not an array counts as none.
  * @property {number} largeImageBytes - Size limit used to find the large images.
  */
 
@@ -228,7 +228,7 @@ export const renderLargeImagesSection = ({ largeImages, largeImageBytes }) => {
  * {@link isBuildFile}) are left out, of the total too.
  * @param {RenderBundleReportParams} params
  * @returns {string} The Markdown report.
- * @throws {RangeError} When the budget or the image size limit is not a positive number, like
+ * @throws {RangeError} When the budget or the image size limit is not a finite number above 0, like
  * {@link checkScriptBudget} and {@link findLargeImages}.
  * @example
  * renderBundleReport({
