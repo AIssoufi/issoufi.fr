@@ -1,12 +1,6 @@
 import { useEffect, useRef } from 'react';
-import styled from 'styled-components';
 
-const Canvas = styled.canvas`
-  position: fixed;
-  inset: 0;
-  z-index: 0;
-  pointer-events: none;
-`;
+import { Canvas } from './ParticleField.styled';
 
 interface Particle {
   x: number;

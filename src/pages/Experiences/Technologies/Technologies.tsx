@@ -1,4 +1,4 @@
-import { TechChip, TechList } from '../Experience.styled';
+import { TechChip, TechList } from './Technologies.styled';
 
 interface TechnologiesProps {
   technologies: string[];

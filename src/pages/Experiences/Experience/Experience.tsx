@@ -1,6 +1,6 @@
-import Project from './Project';
-import Technologies from './Technologies';
-import { computeDuration } from '../ExperienceGroup/duration';
+import Project from '../Project';
+import Technologies from '../Technologies';
+import { computeDuration } from '../duration';
 
 import {
   Article,

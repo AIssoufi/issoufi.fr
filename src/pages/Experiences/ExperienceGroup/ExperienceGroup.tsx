@@ -1,6 +1,6 @@
 import React from 'react';
-import Project from '../Experience/Project';
-import Technologies from '../Experience/Technologies';
+import Project from '../Project';
+import Technologies from '../Technologies';
 import {
   EntityLogo,
   JobDetails,
@@ -8,7 +8,7 @@ import {
   JobSummary,
   Summary,
 } from '../Experience/Experience.styled';
-import { computeDuration } from './duration';
+import { computeDuration } from '../duration';
 
 import {
   GroupArticle,

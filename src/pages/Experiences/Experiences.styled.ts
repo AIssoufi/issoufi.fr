@@ -151,3 +151,29 @@ export const TimelineContent = styled.div`
     padding-left: 20px;
   }
 `;
+
+export const BulletList = styled.ul`
+  list-style: none;
+  margin: 8px 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+`;
+
+export const BulletItem = styled.li`
+  position: relative;
+  padding-left: 16px;
+  font-size: 14px;
+  line-height: 1.55;
+
+  &::before {
+    content: '›';
+    position: absolute;
+    left: 0;
+    color: rgba(212, 160, 192, 0.65);
+    font-weight: 700;
+    font-size: 15px;
+    line-height: 1.45;
+  }
+`;

@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react';
 
-import { StrongWord } from './Home.styled';
+import { StrongWord } from '../Home.styled';
 
 interface WordState {
   x: number;

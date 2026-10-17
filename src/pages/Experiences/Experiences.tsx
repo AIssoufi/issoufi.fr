@@ -2,7 +2,7 @@ import { useTranslation } from 'react-i18next';
 
 import Experience from './Experience';
 import ExperienceGroup from './ExperienceGroup';
-import { BulletItem, BulletList } from './Experience/Experience.styled';
+import { BulletItem, BulletList } from './Experiences.styled';
 
 import {
   ExperiencesPage,
