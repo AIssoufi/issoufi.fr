@@ -1,6 +1,8 @@
 import { render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router';
 
+import { isPublicFile } from '../testUtils';
+import { BACKGROUND_IMAGE_URL } from './constants';
 import { Home } from './Home';
 
 const renderHome = () =>
@@ -54,5 +56,9 @@ describe('Home', () => {
       expect(style.padding).toBe('13px 20px');
       expect(style.textAlign).toBe('center');
     });
+  });
+
+  it('serves its background from public/', () => {
+    expect(isPublicFile(BACKGROUND_IMAGE_URL)).toBe(true);
   });
 });

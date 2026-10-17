@@ -1,6 +1,7 @@
 import { render, screen } from '@testing-library/react';
 
 import { isPublicFile } from '../testUtils';
+import { BACKGROUND_IMAGE_URL } from './constants';
 import freelanceProjectsData from './.data/freelance-projects.json';
 import personalProjectsData from './.data/personal-projects.json';
 import { Projects } from './Projects';
@@ -21,4 +22,8 @@ describe('Projects', () => {
       expect(isPublicFile(imageUrl)).toBe(true);
     },
   );
+
+  it('serves its background from public/', () => {
+    expect(isPublicFile(BACKGROUND_IMAGE_URL)).toBe(true);
+  });
 });
