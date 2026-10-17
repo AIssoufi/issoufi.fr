@@ -51,8 +51,8 @@ const COVERAGE_THRESHOLDS = { lines: 95, statements: 95, branches: 95, functions
 
 /**
  * Vite and Vitest configuration: React with SVG components, the page metadata plugin, the dev
- * and preview servers on the port of the worktree (see {@link getServerPorts}), and the tests in
- * jsdom with coverage.
+ * and preview servers on the port of the worktree (see {@link getServerPorts}), which fail when
+ * it is taken, and the tests in jsdom with coverage.
  * @see https://vitejs.dev/config/
  */
 export default defineConfig(({ mode }) => {
@@ -61,13 +61,17 @@ export default defineConfig(({ mode }) => {
   return {
     base: '/',
     plugins: [react(), svgr(), pageMeta()],
+    // A taken port stops the server instead of moving it to the next free port, so a test never
+    // reaches the server of another worktree by mistake
     server: {
       port: ports.dev,
+      strictPort: true,
       // Vite does not open the browser when BROWSER=none, as for the ticket workers
       open: true,
     },
     preview: {
       port: ports.preview,
+      strictPort: true,
     },
     test: {
       globals: true,

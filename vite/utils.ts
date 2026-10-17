@@ -38,7 +38,7 @@ export const parsePort = (value: unknown): number | undefined => {
  * Picks the ports of the dev and preview servers from the `PORT` variable, which the Worktrunk
  * hook of `.config/wt.toml` writes to the `.env.local` of each worktree. Without a valid `PORT`,
  * as in the main checkout, the dev server uses {@link DEFAULT_DEV_PORT} and the preview server
- * Vite's default port. Vite still moves to the next free port when the chosen one is taken.
+ * Vite's default port.
  *
  * @param env - Environment variables. Defaults to none.
  * @returns The port of each server.
