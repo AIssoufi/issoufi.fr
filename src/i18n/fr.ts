@@ -58,6 +58,13 @@ export const fr = {
   exp: {
     pageTitle: 'Expériences',
     today: "Aujourd'hui",
+    duration: {
+      years_one: '{{count}} an',
+      years_other: '{{count}} ans',
+      months_one: '{{count}} mois',
+      months_other: '{{count}} mois',
+      lessThanAMonth: '< 1 mois',
+    },
     periods: {
       sewanStart: 'juin 2021',
       sewanEnd: 'auj.',

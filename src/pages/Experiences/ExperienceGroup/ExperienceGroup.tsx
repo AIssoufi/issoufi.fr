@@ -1,4 +1,6 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
+
 import Project from '../Project';
 import Technologies from '../Technologies';
 import {
@@ -8,7 +10,7 @@ import {
   JobSummary,
   Summary,
 } from '../Experience/Experience.styled';
-import { computeDuration } from '../duration';
+import { computeDuration, formatDuration } from '../duration';
 
 import {
   GroupArticle,
@@ -44,7 +46,7 @@ interface RoleProps {
   jobName?: string;
   /**
    * Start of the role as a month and a year, e.g. "juin 2021".
-   * The duration is shown only when both dates are valid.
+   * The duration is shown, in the active language, only when both dates are valid.
    */
   startDate?: string;
   /** End of the role in the same format, or "Aujourd'hui" / "Present". */
@@ -59,11 +61,12 @@ interface RoleProps {
  * Outside a group, the company summary is omitted.
  */
 const Role = ({ jobName, startDate, endDate, children }: RoleProps) => {
+  const { t } = useTranslation();
   const company = React.useContext(CompanyCtx);
   const details = [company?.entityName, company?.contractType, company?.city]
     .filter(Boolean)
     .join(' · ');
-  const duration = computeDuration({ startDate, endDate });
+  const duration = formatDuration({ duration: computeDuration({ startDate, endDate }), t });
 
   return (
     <RoleItem>
