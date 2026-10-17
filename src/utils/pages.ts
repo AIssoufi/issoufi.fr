@@ -39,6 +39,35 @@ export function getPage(pathname: string): Page | undefined {
 const escapeHtml = (value: string) =>
   value.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 
+/** Key of a page's title and description in the `meta` translations. */
+type PageMetaKey = keyof typeof fr.meta;
+
+/** Parameters of {@link fillPlaceholders}. */
+interface FillPlaceholdersParams {
+  /** HTML containing the `%PAGE_*%` placeholders. */
+  template: string;
+  /** Translation key of the title and description to inject. */
+  meta: PageMetaKey;
+  /** Absolute URL injected as the canonical and `og:url`. */
+  url: string;
+  /** Years of experience, replacing `{{years}}` in the description. */
+  years: number;
+}
+
+/** Replaces every `%PAGE_*%` placeholder with the French metadata and the URL, HTML-escaped. */
+function fillPlaceholders({ template, meta, url, years }: FillPlaceholdersParams): string {
+  const { title, description } = fr.meta[meta];
+  const values: Record<string, string> = {
+    PAGE_TITLE: title,
+    PAGE_DESCRIPTION: description.replace(/{{years}}/g, String(years)),
+    PAGE_URL: url,
+  };
+
+  return template.replace(/%(PAGE_TITLE|PAGE_DESCRIPTION|PAGE_URL)%/g, (_, key: string) =>
+    escapeHtml(values[key]),
+  );
+}
+
 /** Parameters of {@link renderPageHtml}. */
 interface RenderPageHtmlParams {
   /** Content of `index.html`, with its placeholders. */
@@ -56,14 +85,39 @@ interface RenderPageHtmlParams {
  * @returns The HTML with every placeholder replaced and HTML-escaped.
  */
 export function renderPageHtml({ template, page, years }: RenderPageHtmlParams): string {
-  const { title, description } = fr.meta[page.meta];
-  const values: Record<string, string> = {
-    PAGE_TITLE: title,
-    PAGE_DESCRIPTION: description.replace(/{{years}}/g, String(years)),
-    PAGE_URL: page.path === '/' ? `${SITE_URL}/` : `${SITE_URL}${page.path}`,
-  };
+  const url = page.path === '/' ? `${SITE_URL}/` : `${SITE_URL}${page.path}`;
+  return fillPlaceholders({ template, meta: page.meta, url, years });
+}
 
-  return template.replace(/%(PAGE_TITLE|PAGE_DESCRIPTION|PAGE_URL)%/g, (_, key: string) =>
-    escapeHtml(values[key]),
-  );
+/**
+ * Name of the file that Cloudflare Pages and GitHub Pages serve, with a 404 status, for any path
+ * that matches no file. Its presence turns off the single-page-app fallback of Cloudflare Pages,
+ * which is fine because every route in {@link PAGES} has its own HTML file.
+ */
+export const NOT_FOUND_FILE_NAME = '404.html';
+
+const CANONICAL_TAG = /<link\s+rel="canonical"[^>]*>\s*/;
+const OG_URL_TAG = /<meta\s+property="og:url"[^>]*>\s*/;
+const NO_INDEX_TAG = '<meta name="robots" content="noindex" />';
+
+/** Parameters of {@link renderNotFoundHtml}. */
+interface RenderNotFoundHtmlParams {
+  /** Content of `index.html`, with its placeholders. */
+  template: string;
+  /** Years of experience, in case the not found description uses `{{years}}`. */
+  years: number;
+}
+
+/**
+ * Builds the `404.html` page from the `index.html` template: the "page not found" title and
+ * description, no canonical URL or `og:url` (the page has no address of its own), and a
+ * `noindex` robots tag. The app loads normally and shows its NotFound page at the requested URL.
+ *
+ * @returns The HTML of the not found page, with every placeholder replaced.
+ */
+export function renderNotFoundHtml({ template, years }: RenderNotFoundHtmlParams): string {
+  return fillPlaceholders({ template, meta: 'notFound', url: '', years })
+    .replace(CANONICAL_TAG, '')
+    .replace(OG_URL_TAG, '')
+    .replace('</head>', `  ${NO_INDEX_TAG}\n  </head>`);
 }
