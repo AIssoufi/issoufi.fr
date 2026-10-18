@@ -5,8 +5,11 @@ import { render } from '@testing-library/react';
 import styled, { th, ThemeProvider } from '@xstyled/styled-components';
 
 import { declaredStyle } from '../styleTestUtils';
-import { findRawValues } from './testUtils';
+import { findRawThemeValues, findRawValues } from './testUtils';
 import { theme } from './theme';
+
+/** Source of the semantic tokens, which may only read the primitives of tokens.ts. */
+const THEME_FILE = join('src', 'theme', 'theme.ts');
 
 /** Namespace of the theme read by each xstyled `th.*` helper. */
 const NAMESPACE_BY_HELPER = {
@@ -75,6 +78,13 @@ describe('theme', () => {
       findRawValues(readFileSync(file, 'utf8')).map(
         ({ line, kind, value }) => `${file}:${line}: ${kind} ${value}`,
       ),
+    );
+    expect(rawValues).toEqual([]);
+  });
+
+  it('points every semantic token of theme.ts to a primitive of tokens.ts', () => {
+    const rawValues = findRawThemeValues(readFileSync(THEME_FILE, 'utf8')).map(
+      ({ line, kind, value }) => `${THEME_FILE}:${line}: ${kind} ${value}`,
     );
     expect(rawValues).toEqual([]);
   });

@@ -187,8 +187,8 @@ The version follows the commits: `fix` bumps the patch version, `feat` the minor
 │   │   ├── NotFound/     # 404 page, shown at the requested URL
 │   │   ├── Forbidden/    # 403 page, not routed yet
 │   │   └── testUtils.js  # Helpers shared by the page tests, e.g. isPublicFile
-│   ├── theme/            # Design tokens (tokens.ts, theme.ts) and global styles
-│   │   └── testUtils.js  # findRawValues, which the theme spec runs on every style file
+│   ├── theme/            # Design tokens (primitives in tokens.ts, roles in theme.ts) and global styles
+│   │   └── testUtils.js  # Raw-value guards that the theme spec runs on the style files and theme.ts
 │   ├── utils/            # Career dates and page metadata helpers
 │   ├── cssRuleGuard.ts   # logDroppedCssRules: fails a test whose component inserts a CSS rule that browsers drop
 │   ├── index.tsx         # Entry point
@@ -210,6 +210,6 @@ The version follows the commits: `fix` bumps the patch version, `feat` the minor
 - **Linting**: ESLint (`eslint.config.js`) with the recommended rules of ESLint and typescript-eslint, React Hooks (including the React Compiler rules) and React Refresh. It also forbids importing `styled-components` directly, importing the style file of a component (`Name.styled`) from outside its folder, and rendering a `ul` other than through `List`.
 - **Formatting**: Prettier (via lint-staged + husky)
 - **Language**: code, comments and docs are in English. Only user-facing texts are translated.
-- **Styles**: styled-components read every color, spacing, size, font, radius, shadow, duration, easing and breakpoint from the design tokens of `src/theme` with the [xstyled](https://xstyled.dev/) `th` helpers (`th.color('accent')`, `th.space(16)`, `th.size(36)`, `th.radius('md')`…), and keyframes from the `theme` object. No hard-coded values: `src/theme/theme.spec.jsx` fails on a length in pixels, a duration, a color or an easing written by hand in a style file, and allows only zero, percentages, viewport units, angles and unitless numbers. Every styled-components API is imported from `@xstyled/styled-components`.
+- **Styles**: styled-components read every color, spacing, size, font, radius, shadow, duration, easing and breakpoint from the design tokens of `src/theme` with the [xstyled](https://xstyled.dev/) `th` helpers (`th.color('accent')`, `th.space(16)`, `th.size(36)`, `th.radius('md')`…), and keyframes from the `theme` object. No hard-coded values: `src/theme/theme.spec.jsx` fails on a length in pixels, a duration, a color or an easing written by hand in a style file, and allows only zero, percentages, viewport units, angles and unitless numbers. The semantic tokens of `theme.ts` only read the primitive scales of `tokens.ts`, or build alpha variants from them, and the same spec fails on a value written by hand there. Every styled-components API is imported from `@xstyled/styled-components`.
 - **Components**: one folder per component (`Name.tsx`, `Name.spec.jsx`, `Name.styled.ts`, `index.ts`), styles imported only by their own component, optional props that tolerate missing values, and JSDoc on every component and prop. See [`CLAUDE.md`](CLAUDE.md) for the details.
 - **Accessibility**: every page renders a single `<main>` landmark, its `Page` component, and a single `h1`, visually hidden when the design shows none; its sections use `h2` and below. The test of each page checks both. Every list is a `List` (`src/components/List`): the global style removes the bullets of lists, and Safari then stops exposing a `ul` as a list, which `role="list"` restores, so VoiceOver still announces it and counts its items.
