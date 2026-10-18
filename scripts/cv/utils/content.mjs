@@ -229,8 +229,9 @@ const buildProfiles = ({ contact, siteUrl, siteDomain, gitHubUrl }) =>
 
 /**
  * Gathers everything the CV of one language writes: the name and the job title of the home page,
- * the contact details and the links to the site and the profiles of its owner, the experiences of the Experiences page, the projects of the Projects page,
- * and the skills and the education of the data of the CV, which the site does not show.
+ * the contact details and the links to the site and the profiles of its owner, the experiences
+ * of the Experiences page, the projects of the Projects page, and the skills and the education
+ * of the data of the CV, which the site does not show.
  * @param {BuildCvContentParams} params
  * @returns {CvContent} The content, with empty texts where the data or a translation lacks one.
  * @example

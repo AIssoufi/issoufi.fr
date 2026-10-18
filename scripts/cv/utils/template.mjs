@@ -219,7 +219,7 @@ export const renderCvHtml = ({ content, styles, fontFaces }) => {
       <div class="columns">
         <section class="section">
           <h2 class="section-title">${escapeHtml(skills.title)}</h2>
-          <ul class="bullets">${skills.items.map(skill => `<li>${escapeHtml(skill)}</li>`).join('')}</ul>
+          ${renderBullets(skills.items)}
         </section>
         <section class="section">
           <h2 class="section-title">${escapeHtml(education.title)}</h2>

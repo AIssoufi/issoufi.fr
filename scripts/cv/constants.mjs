@@ -78,6 +78,9 @@ export const CV_FONT_FILES = {
 /** Media type of the font files of {@link CV_FONT_FILES}, in their data URLs. */
 export const FONT_MEDIA_TYPE = 'font/ttf';
 
+/** Format of the font files of {@link CV_FONT_FILES}, in the `src` of their `@font-face` rules. */
+export const FONT_FORMAT = 'truetype';
+
 /** Font of the theme that the CV uses, in each weight of {@link CV_FONT_FILES}. */
 export const FONTS_IN_USE = [{ font: 'body', weights: Object.keys(CV_FONT_FILES) }];
 
@@ -102,7 +105,10 @@ export const DETAILS_SEPARATOR = ' · ';
 /** Separator of the start and the end of a period, as on the Experiences page. */
 export const PERIOD_SEPARATOR = ' — ';
 
-/** Mark before each bullet point, as on the Experiences page. */
+/**
+ * Mark before each bullet point, as on the Experiences page (`BulletItem`, in
+ * `src/pages/Experiences/CompanyEntry/RoleDescription/BulletPoints/BulletPoints.styled.ts`).
+ */
 export const BULLET_MARK = '›';
 
 /** Prefix of the URL of an email address. */

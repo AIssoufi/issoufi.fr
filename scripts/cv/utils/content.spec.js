@@ -276,6 +276,25 @@ describe('buildCvContent', () => {
     },
   );
 
+  it.each([undefined, '', 'issoufi.fr', 'javascript:alert(1)'])(
+    'writes the domain of the site without a link when its URL is %j',
+    siteUrl => {
+      expect(buildCvContent({ ...PARAMS, siteUrl }).profiles[0]).toEqual({
+        text: 'issoufi.fr',
+        url: '',
+      });
+    },
+  );
+
+  it.each([undefined, null, 42, '', 'github.com/AIssoufi', 'javascript:alert(1)'])(
+    'leaves out the GitHub profile when its URL is %j',
+    gitHubUrl => {
+      const texts = buildCvContent({ ...PARAMS, gitHubUrl }).profiles.map(({ text }) => text);
+
+      expect(texts).toEqual(['issoufi.fr', 'linkedin.com/in/adam']);
+    },
+  );
+
   it('writes the email address without a link when it is not one', () => {
     const cvData = { ...CV_DATA, contact: { email: 'adam at example' } };
 
