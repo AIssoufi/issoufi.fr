@@ -178,8 +178,13 @@ describe('parseMonthYear', () => {
   });
 
   it('recognizes the end date of the current jobs in the French copy', () => {
-    expect(parseMonthYear(fr.exp.sewanLead.end)).not.toBeNull();
-    expect(parseMonthYear(fr.exp.sewanSenior.end)).not.toBeNull();
+    vi.useFakeTimers({ toFake: ['Date'] });
+    vi.setSystemTime(new Date(2026, 9, 17));
+
+    expect(parseMonthYear(fr.exp.sewanLead.end)).toEqual(new Date(2026, 9, 17));
+    expect(parseMonthYear(fr.exp.sewanSenior.end)).toEqual(new Date(2026, 9, 17));
+
+    vi.useRealTimers();
   });
 
   it.each([undefined, '', '   ', 'foo 2021', 'juin', '2021', 'juin 2021 bis', 'juin 20x1'])(

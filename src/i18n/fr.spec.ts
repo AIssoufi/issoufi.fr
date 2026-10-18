@@ -1,12 +1,12 @@
 import { fr } from './fr';
 
-/** A colon, semicolon, question or exclamation mark after a normal space, which can wrap alone. */
-const NORMAL_SPACE_BEFORE_PUNCTUATION = / [:;?!]/;
+/** A colon, semicolon, question or exclamation mark without a no-break space before it. */
+const PUNCTUATION_WITHOUT_NO_BREAK_SPACE = /(^|[^\u00a0\u202f])[:;?!]/;
 /** A colon after a narrow no-break space, instead of the full-width one French puts there. */
 const NARROW_SPACE_BEFORE_COLON = /\u202f:/;
 /** A semicolon, question or exclamation mark after a full-width no-break space, not a narrow one. */
 const FULL_SPACE_BEFORE_SHORT_PUNCTUATION = /\u00a0[;?!]/;
-/** A straight apostrophe, instead of the typographic one (\u2019). */
+/** A straight apostrophe, instead of the typographic one (’). */
 const STRAIGHT_APOSTROPHE = /'/;
 
 /** Parameters of {@link getEntries}. */
@@ -44,7 +44,7 @@ describe('fr', () => {
   });
 
   it('keeps colons, semicolons, question and exclamation marks on the line of their word', () => {
-    expect(getKeysMatching(NORMAL_SPACE_BEFORE_PUNCTUATION)).toEqual([]);
+    expect(getKeysMatching(PUNCTUATION_WITHOUT_NO_BREAK_SPACE)).toEqual([]);
   });
 
   it('puts a full no-break space before a colon', () => {
