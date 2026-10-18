@@ -83,12 +83,6 @@ export const theme = {
      * their message, so it sits in the middle of the page.
      */
     'page-top': spacing[16],
-    /**
-     * Right padding of every page from the tablet breakpoint, which leaves the language toggle
-     * floating on the right edge of the screen over no content: it stands 20 px from the edge and
-     * is 46 px wide, so 80 px leaves a gap of 14 px.
-     */
-    'floating-controls-room': spacing[80],
     /** Distance between the centers of two bars of the burger icon of the mobile menu. */
     'burger-bar-gap': spacing[9],
     /** Space around each project card, so two cards side by side stand twice as far apart. */
@@ -211,11 +205,11 @@ export const theme = {
     /** From this width, the desktop layout is used. */
     tablet: breakpoints[50],
     /**
-     * From this width, the project sections show three columns of cards instead of two: 914 px,
-     * where three cards with their margins fit between the left padding of the page and the room
-     * of the floating controls without getting narrower than 260 px.
+     * From this width, the project sections show three columns of cards instead of two: 858 px,
+     * where three cards with their margins fit between the page gutters without getting narrower
+     * than 260 px.
      */
-    'three-project-columns': breakpoints['57.125'],
+    'three-project-columns': breakpoints['53.625'],
     /** Wide screens. */
     wide: breakpoints[100],
   },

@@ -6,10 +6,10 @@ export const ProjectsPage = styled(Page)`
   padding-left: 0;
   padding-right: 0;
 
-  /* Room for the language toggle floating on the right edge, as Page leaves */
+  /* The gutters of Page */
   @media (min-width: ${th('screens.tablet')}) {
     padding-left: ${th.space('page')};
-    padding-right: ${th.space('floating-controls-room')};
+    padding-right: ${th.space('page')};
   }
 `;
 
