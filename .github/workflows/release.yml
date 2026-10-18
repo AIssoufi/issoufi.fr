@@ -3,6 +3,9 @@ name: Release
 on:
   push:
     branches: [develop]
+  # Started by the daily release of deploy-production.yml once it merged the release pull request:
+  # its merge, made with the GITHUB_TOKEN, starts no push run
+  workflow_dispatch:
 
 permissions:
   contents: write
