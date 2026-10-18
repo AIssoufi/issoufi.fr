@@ -156,7 +156,7 @@ The version follows the commits: `fix` bumps the patch version, `feat` the minor
 │   │   ├── RouteErrorBoundary/ # Error message with a reload button in place of a page that fails
 │   │   └── Header/       # Logo, navigation, burger menu and LangToggle/ (FR / EN switch)
 │   ├── components/       # Components shared across pages
-│   │   ├── Page/         # Layout section that every page extends with styled(Page)
+│   │   ├── Page/         # <main> landmark of every page, extended with styled(Page)
 │   │   └── StatusMessage/ # Code, title, message, action button and home link of error pages
 │   ├── i18n/             # French and English translations, and the storage of the chosen language
 │   ├── pages/

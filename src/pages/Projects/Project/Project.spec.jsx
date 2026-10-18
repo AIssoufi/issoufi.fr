@@ -56,11 +56,11 @@ const pageButtons = () => ({
 /** Renders with the theme, so that the styles hold the token values instead of their names. */
 const renderWithTheme = ui => render(<ThemeProvider theme={theme}>{ui}</ThemeProvider>);
 
-/** Element that lays out the cards: the closest `main` of a card's thumbnail. */
-const gridOf = name => screen.getByRole('img', { name }).closest('main');
+/** Element that lays out the cards: the list holding a card's thumbnail. */
+const gridOf = name => screen.getByRole('img', { name }).closest('ul');
 
-/** Card of a project: the child of the grid that holds its thumbnail. */
-const cardOf = name => screen.getByRole('img', { name }).closest('main > *');
+/** Card of a project: the item of the grid that holds its thumbnail. */
+const cardOf = name => screen.getByRole('img', { name }).closest('li');
 
 /** Link of a card title, found by the project name. */
 const linkOf = name => screen.getByRole('link', { name });
@@ -124,6 +124,19 @@ describe('Project', () => {
     expect(pageButtons().previousButton).toBeInTheDocument();
     expect(pageButtons().nextButton).toBeInTheDocument();
     expect(screen.getByRole('group')).toBeInTheDocument();
+    expect(screen.getByRole('list')).toBeEmptyDOMElement();
+  });
+
+  it('lists the cards, without a main landmark, which only the page renders', async () => {
+    render(<Project projects={projects} />);
+    const cards = () => within(screen.getByRole('list')).getAllByRole('listitem');
+
+    expect(cards()).toHaveLength(PAGE_SIZE);
+
+    await userEvent.click(screen.getByText('Tout afficher (4)'));
+
+    expect(cards()).toHaveLength(projects.length);
+    expect(screen.queryByRole('main')).not.toBeInTheDocument();
   });
 
   it('groups the section controls under the section title, without a navigation landmark', () => {
@@ -226,7 +239,7 @@ describe('Project', () => {
   it('keeps the card itself, its thumbnail and its like button out of the link', () => {
     render(<Project projects={projects} />);
 
-    expect(cardOf('Chess').tagName).toBe('DIV');
+    expect(cardOf('Chess').tagName).toBe('LI');
     expect(cardOf('Chess').closest('a')).toBeNull();
     expect(screen.getByRole('img', { name: 'Chess' }).closest('a')).toBeNull();
     expect(likeButtonOf('Chess').closest('a')).toBeNull();

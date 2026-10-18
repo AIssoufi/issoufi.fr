@@ -27,6 +27,12 @@ describe('Projects', () => {
     expect(screen.getByText('Projets freelance')).toBeInTheDocument();
   });
 
+  it('has a single main landmark', () => {
+    render(<Projects />);
+
+    expect(screen.getAllByRole('main')).toHaveLength(1);
+  });
+
   it.each(allProjects.map(({ name, imageUrl }) => [name, imageUrl]))(
     'serves the screenshot of %s from public/ (%s)',
     (_name, imageUrl) => {
@@ -79,8 +85,8 @@ describe('Projects layout on mobile', () => {
     const [showAllButton] = screen.getAllByText(/^Tout afficher/);
     await userEvent.click(showAllButton);
 
-    const grid = firstThumbnail().closest('main');
-    const card = firstThumbnail().closest('main > *');
+    const grid = firstThumbnail().closest('ul');
+    const card = firstThumbnail().closest('li');
     const header = screen.getByText('Projets personnels').closest('header');
     const cardMargin = declaredStyle({ element: card, property: 'margin' });
     const gridPadding = `calc(${theme.space.page} - ${cardMargin})`;
@@ -97,7 +103,7 @@ describe('Projects layout on mobile', () => {
     const [showAllButton] = screen.getAllByText(/^Tout afficher/);
     await userEvent.click(showAllButton);
 
-    const grid = firstThumbnail().closest('main');
+    const grid = firstThumbnail().closest('ul');
     expect(declaredStyle({ element: grid, property: 'padding-left', media: TABLET_MEDIA })).toBe(
       '0',
     );
@@ -109,7 +115,7 @@ describe('Projects layout on mobile', () => {
   it('keeps the row of cards without padding, so that it scrolls to the screen edges', () => {
     renderWithTheme();
 
-    const grid = firstThumbnail().closest('main');
+    const grid = firstThumbnail().closest('ul');
     expect(declaredStyle({ element: grid, property: 'display' })).toBe('flex');
     expect(declaredStyle({ element: grid, property: 'padding-left' })).toBe('');
     expect(declaredStyle({ element: grid, property: 'padding-right' })).toBe('');

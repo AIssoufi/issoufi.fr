@@ -121,7 +121,7 @@ export const IconBtn = styled.button`
   }
 `;
 
-export const ProjectGrid = styled.main<{ $displayAll: boolean }>`
+export const ProjectGrid = styled.ul<{ $displayAll: boolean }>`
   display: flex;
   flex-direction: row;
   justify-content: space-between;
@@ -151,7 +151,7 @@ export const ProjectGrid = styled.main<{ $displayAll: boolean }>`
     `}
 `;
 
-export const ProjectItem = styled.div<{ $displayAll?: boolean }>`
+export const ProjectItem = styled.li<{ $displayAll?: boolean }>`
   /* Box covered by the stretched link of the title */
   position: relative;
   display: flex;
@@ -315,7 +315,7 @@ export const LikeCount = styled.span<{ $liked: boolean; $animating: boolean }>`
     `}
 `;
 
-export const ProjectInfo = styled.main`
+export const ProjectInfo = styled.div`
   margin-top: ${th.space(10)};
   padding-left: ${th.space(4)};
 `;
