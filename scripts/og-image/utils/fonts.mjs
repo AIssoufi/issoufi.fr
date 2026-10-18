@@ -25,7 +25,7 @@ const FAMILY_QUOTES_PATTERN = /^['"]|['"]$/g;
 const unquoteFamily = family => family.trim().replace(FAMILY_QUOTES_PATTERN, '');
 
 /**
- * Reads the font the site asks for first in a font stack, the one loaded from Google Fonts.
+ * Reads the font the site asks for first in a font stack, the one served from `public/fonts/`.
  * @param {unknown} stack - CSS font stack, e.g. `'Montserrat', -apple-system, sans-serif`.
  * @returns {string} The first family, without quotes, or `''` when the value is not a string.
  * @example
@@ -71,7 +71,7 @@ const isMissingFont = check => {
 
 /**
  * Lists the fonts that did not load in the page, so the script stops instead of drawing the
- * texts in a fallback or a synthesized bold font, as when the network is down.
+ * texts in a fallback or a synthesized bold font, as when its file is missing or is not a font.
  * @param {unknown[]} [checks] - Results of loading each font, from the page. A value that is not
  * an array counts as no checks.
  * @returns {string[]} The fonts without a loaded face, in the order given, `unknown font` for an

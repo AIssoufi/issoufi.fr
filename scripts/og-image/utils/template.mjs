@@ -158,7 +158,9 @@ export const renderOgImageStyles = theme => {
  * @property {string} styles - Style sheet of the page, from {@link renderOgImageStyles}.
  * @property {string} backgroundImageUrl - Background photo of the home page, as a data URL,
  * since the page is not served from the project.
- * @property {string} fontStylesheetUrl - Google Fonts style sheet of `index.html`.
+ * @property {string} fontFaceStyles - `@font-face` rules of the web fonts of the site, their files
+ * as data URLs, from `renderFontFaces` (`src/theme/utils.ts`), written in the page as they are. A
+ * value that is not a string leaves the style of the fonts empty.
  * @property {string} particlesSvg - Still of the particle field, from `renderParticlesSvg`.
  */
 
@@ -176,7 +178,7 @@ export const renderOgImageStyles = theme => {
  *     texts,
  *     styles,
  *     backgroundImageUrl,
- *     fontStylesheetUrl,
+ *     fontFaceStyles,
  *     particlesSvg,
  *   }),
  * );
@@ -186,9 +188,10 @@ export const renderOgImageHtml = ({
   texts,
   styles,
   backgroundImageUrl,
-  fontStylesheetUrl,
+  fontFaceStyles,
   particlesSvg,
 }) => {
+  const fontStyles = typeof fontFaceStyles === 'string' ? fontFaceStyles : '';
   const passion = texts.passion
     .map(({ text, isHighlighted }) =>
       isHighlighted ? `<strong>${escapeHtml(text)}</strong>` : escapeHtml(text),
@@ -199,7 +202,7 @@ export const renderOgImageHtml = ({
 <html lang="${escapeHtml(language)}">
   <head>
     <meta charset="utf-8" />
-    <link rel="stylesheet" href="${escapeHtml(fontStylesheetUrl)}" />
+    <style>${fontStyles}</style>
     <style>${styles}</style>
   </head>
   <body style="background-image: url('${escapeHtml(backgroundImageUrl)}')">

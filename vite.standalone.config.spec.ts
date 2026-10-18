@@ -2,6 +2,8 @@
 import { resolve } from 'node:path';
 import { build, normalizePath, type Plugin, type Rollup } from 'vite';
 
+import { isGoogleHost } from './e2e/utils';
+import { FONT_FACES } from './src/theme/constants';
 import {
   HASH_ROUTER_MODULE,
   OPTIONAL_ESCAPE_PATTERN,
@@ -10,6 +12,7 @@ import {
   STANDALONE_PAGE_FILE_NAME,
   STANDALONE_README_FILE_NAME,
 } from './vite/standalone/constants';
+import { readFontDataUrl } from './vite/standalone/utils/fonts';
 import { listFileNames } from './vite/standalone/utils/public-files';
 
 /** Longest time the standalone build may take in this test, coverage included. */
@@ -17,6 +20,12 @@ const BUILD_TIMEOUT_MS = 60_000;
 
 /** Module of the app that renders the router. */
 const APP_MODULE = normalizePath(resolve('src/App/App.tsx'));
+
+/** Host of each URL that the page names with `//`, with or without its scheme. */
+const URL_HOST_PATTERN = /\/\/([\w.-]+)/g;
+
+/** A link that preloads a font file, its attributes on one or several lines. */
+const FONT_PRELOAD_PATTERN = /<link(?=[^>]*\srel="preload")[^>]*\sas="font"[^>]*>/;
 
 /** A script tag that loads a file, or a link that preloads one. */
 const EXTERNAL_SCRIPT_PATTERN = /<script[^>]*\ssrc=|<link[^>]*rel="modulepreload"/;
@@ -130,6 +139,32 @@ describe('standalone build', () => {
     ['home.webp', 'projects.webp', 'experiences.webp', 'favicon.ico'].forEach(name => {
       expect(html).toContain(`"./${name}"`);
     });
+  });
+
+  it('embeds the web fonts of the site in the page, as data URLs', () => {
+    const html = getSource(STANDALONE_PAGE_FILE_NAME);
+
+    FONT_FACES.forEach(({ url }) => {
+      const dataUrl = readFontDataUrl({ publicDir: resolve('public'), url });
+
+      expect(dataUrl).toMatch(/^data:font\/woff2;base64,./);
+      expect(html).toContain(dataUrl);
+      expect(html).not.toContain(url);
+    });
+  });
+
+  it('preloads no font, since the page holds them', () => {
+    expect(stripInlineScripts(getSource(STANDALONE_PAGE_FILE_NAME))).not.toMatch(
+      FONT_PRELOAD_PATTERN,
+    );
+  });
+
+  it('names no host of Google, so it renders the same offline', () => {
+    const html = getSource(STANDALONE_PAGE_FILE_NAME);
+    const hosts = [...html.matchAll(URL_HOST_PATTERN)].map(([, host]) => host);
+
+    expect(hosts.length).toBeGreaterThan(0);
+    expect(hosts.filter(isGoogleHost)).toEqual([]);
   });
 
   it('tells how to open it in a README.txt', () => {

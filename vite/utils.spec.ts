@@ -1,3 +1,6 @@
+import { FONT_FACES } from '../src/theme/constants';
+import type { FontFaceDeclaration } from '../src/theme/types';
+import { renderFontFaces } from '../src/theme/utils';
 import {
   DEFAULT_DEV_PORT,
   DEFAULT_PREVIEW_PORT,
@@ -5,7 +8,13 @@ import {
   MAX_PORT,
   MIN_PORT,
 } from './constants';
-import { getChunkName, getPageChunkFile, getServerPorts, parsePort } from './utils';
+import {
+  getChunkName,
+  getFontFaceTags,
+  getPageChunkFile,
+  getServerPorts,
+  parsePort,
+} from './utils';
 
 describe('parsePort', () => {
   it.each([
@@ -232,6 +241,86 @@ describe('getPageChunkFile', () => {
       const otherBundle = { 'assets/x.js': { type: 'chunk', fileName, facadeModuleId } };
 
       expect(getPageChunkFile({ bundle: otherBundle, folder: 'Projects' })).toBeUndefined();
+    });
+  });
+});
+
+describe('getFontFaceTags', () => {
+  const montserrat: FontFaceDeclaration = {
+    family: 'Montserrat',
+    url: '/fonts/montserrat-latin.woff2',
+    weight: '100 900',
+    style: 'normal',
+    unicodeRange: 'U+0000-00FF',
+  };
+
+  it('preloads each font file, then declares the fonts in a style of the head', () => {
+    const saira = { ...montserrat, family: 'Saira Stencil One', url: '/fonts/saira.woff2' };
+
+    expect(getFontFaceTags({ fontFaces: [montserrat, saira] })).toEqual([
+      {
+        tag: 'link',
+        attrs: {
+          rel: 'preload',
+          href: '/fonts/montserrat-latin.woff2',
+          as: 'font',
+          type: 'font/woff2',
+          crossorigin: true,
+        },
+        injectTo: 'head',
+      },
+      {
+        tag: 'link',
+        attrs: {
+          rel: 'preload',
+          href: '/fonts/saira.woff2',
+          as: 'font',
+          type: 'font/woff2',
+          crossorigin: true,
+        },
+        injectTo: 'head',
+      },
+      {
+        tag: 'style',
+        children: renderFontFaces({ fontFaces: [montserrat, saira] }),
+        injectTo: 'head',
+      },
+    ]);
+  });
+
+  it('preloads and declares the web fonts of the site by default', () => {
+    const tags = getFontFaceTags();
+
+    expect(tags.filter(({ tag }) => tag === 'link').map(({ attrs }) => attrs?.href)).toEqual(
+      FONT_FACES.map(({ url }) => url),
+    );
+    expect(tags.at(-1)).toEqual({ tag: 'style', children: renderFontFaces(), injectTo: 'head' });
+  });
+
+  describe('edge cases', () => {
+    it.each([[[]], [null], ['/fonts/a.woff2'], [42], [{}]])(
+      'adds no tag for the fonts %j',
+      fontFaces => {
+        expect(
+          getFontFaceTags({ fontFaces: fontFaces as unknown as FontFaceDeclaration[] }),
+        ).toEqual([]);
+      },
+    );
+
+    it.each([
+      ['no family', { ...montserrat, family: undefined }],
+      ['no URL', { ...montserrat, url: '' }],
+      ['a null entry', null],
+    ])('neither preloads nor declares a font with %s', (_, face) => {
+      const fontFaces = [face, montserrat] as unknown as FontFaceDeclaration[];
+
+      expect(getFontFaceTags({ fontFaces })).toEqual(getFontFaceTags({ fontFaces: [montserrat] }));
+    });
+
+    it('adds no tag when no font can be declared', () => {
+      const fontFaces = [{ ...montserrat, url: ' ' }] as unknown as FontFaceDeclaration[];
+
+      expect(getFontFaceTags({ fontFaces })).toEqual([]);
     });
   });
 });

@@ -3,8 +3,8 @@
 // public/og-image-en.jpg in English (`OG_IMAGE_PATHS` of src/utils/pages.ts), from the texts of the
 // home page in that language, the design tokens, the background photo and the particle field of
 // the home page: run `pnpm og-image` after changing one of them. Chromium, from Playwright,
-// renders each image and saves it as a JPEG. It needs the network, for the Google Fonts of the
-// site.
+// renders each image in the web fonts of the site, read from public/fonts/, and saves it as a
+// JPEG.
 import { readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 
@@ -12,7 +12,6 @@ import { chromium } from '@playwright/test';
 import { createServer } from 'vite';
 
 import {
-  INDEX_HTML_FILE,
   OG_IMAGE_HEIGHT_PX,
   OG_IMAGE_JPEG_QUALITY,
   OG_IMAGE_MAX_BYTES,
@@ -25,7 +24,7 @@ import {
 import { findMissingFonts, listFontsInUse } from './utils/fonts.mjs';
 import { findDotLinks, renderParticlesSvg } from './utils/particles.mjs';
 import { createSeededRandom } from './utils/random.mjs';
-import { findFontStylesheetUrl, hasUnresolvedValue, toImageDataUrl } from './utils/html.mjs';
+import { hasUnresolvedValue, toDataUrl } from './utils/html.mjs';
 import { renderOgImageHtml, renderOgImageStyles } from './utils/template.mjs';
 import { findMissingTexts, getOgImageTexts } from './utils/texts.mjs';
 
@@ -87,7 +86,7 @@ const loadSourceModules = async () => {
  * Renders the page in Chromium at the size of the image, once its fonts are loaded.
  * @param {TakeScreenshotParams} params
  * @returns {Promise<Buffer>} The screenshot, as a JPEG file.
- * @throws {Error} When a font did not load, as when the network is down.
+ * @throws {Error} When a font did not load, as when its file is not a font.
  */
 const takeScreenshot = async ({ html, fonts }) => {
   const browser = await chromium.launch();
@@ -112,7 +111,7 @@ const takeScreenshot = async ({ html, fonts }) => {
     );
     const missingFonts = findMissingFonts(fontChecks);
     if (missingFonts.length > 0) {
-      throw new Error(`Fonts not loaded, check the network: ${missingFonts.join(', ')}`);
+      throw new Error(`Fonts not loaded, check public/fonts/: ${missingFonts.join(', ')}`);
     }
 
     return await page.screenshot({ type: 'jpeg', quality: OG_IMAGE_JPEG_QUALITY });
@@ -143,11 +142,15 @@ images.forEach(({ language, texts }) => {
   }
 });
 
-const fontStylesheetUrl = findFontStylesheetUrl(readFileSync(INDEX_HTML_FILE, 'utf-8'));
-if (!fontStylesheetUrl) throw new Error(`No Google Fonts style sheet in ${INDEX_HTML_FILE}`);
+// The web fonts of the site, whose files the page reads as data URLs, like the photo
+const fontFaceStyles = sources.fonts.renderFontFaces({
+  getUrl: (/** @type {string} */ url) =>
+    toDataUrl({ content: readFileSync(join(PUBLIC_DIR, url)), fileName: url }),
+});
+if (!fontFaceStyles) throw new Error('No web font to load in src/theme/constants.ts');
 
 const backgroundImageFile = join(PUBLIC_DIR, sources.home.BACKGROUND_IMAGE_URL);
-const backgroundImageUrl = toImageDataUrl({
+const backgroundImageUrl = toDataUrl({
   content: readFileSync(backgroundImageFile),
   fileName: backgroundImageFile,
 });
@@ -185,7 +188,7 @@ for (const { language, fileName, texts } of images) {
     texts,
     styles,
     backgroundImageUrl,
-    fontStylesheetUrl,
+    fontFaceStyles,
     particlesSvg,
   });
   const file = await takeScreenshot({ html, fonts: listFontsInUse(theme) });
