@@ -14,7 +14,18 @@ import {
   NOT_FOUND_FOLDER,
 } from './src/utils/pages';
 import { ALL_ENV_VARIABLES_PREFIX, ASSETS_DIR } from './vite/constants';
-import { getChunkName, getPageChunkFile, getServerPorts } from './vite/utils';
+import { getChunkName, getFontFaceTags, getPageChunkFile, getServerPorts } from './vite/utils';
+
+/**
+ * Vite plugin that adds the web fonts of the site to the head of `index.html`, in development as
+ * in the build: a link that preloads each font file, then a `<style>` of their `@font-face` rules
+ * (see {@link getFontFaceTags}). It runs before {@link pageMeta}, which emits every other page
+ * from the same head.
+ */
+const fontFaces = (): Plugin => ({
+  name: 'font-faces',
+  transformIndexHtml: () => getFontFaceTags(),
+});
 
 /** Parameters of the `preloadPageChunk` helper of {@link pageMeta}. */
 interface PreloadPageChunkParams {
@@ -97,9 +108,9 @@ const pageMeta = (): Plugin => {
 const COVERAGE_THRESHOLDS_PERCENT = { lines: 97, statements: 97, branches: 96, functions: 96 };
 
 /**
- * Vite and Vitest configuration: React with SVG components, the page metadata plugin, the dev
- * and preview servers on the port of the worktree (see {@link getServerPorts}), which fail when
- * it is taken, and the tests in jsdom with coverage.
+ * Vite and Vitest configuration: React with SVG components, the web fonts and page metadata
+ * plugins, the dev and preview servers on the port of the worktree (see {@link getServerPorts}),
+ * which fail when it is taken, and the tests in jsdom with coverage.
  * @see https://vitejs.dev/config/
  */
 export default defineConfig(({ mode }) => {
@@ -107,7 +118,7 @@ export default defineConfig(({ mode }) => {
 
   return {
     base: '/',
-    plugins: [react(), svgr(), pageMeta()],
+    plugins: [react(), svgr(), fontFaces(), pageMeta()],
     // The version that release-please writes in package.json, shown after the logo of the header
     // (src/App/Header) and typed in src/vite-env.d.ts; the tests read it too
     define: { __APP_VERSION__: JSON.stringify(packageJson.version) },
