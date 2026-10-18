@@ -11,6 +11,7 @@
 // Usage: DRY_RUN=<true|false> GITHUB_REPOSITORY=<owner/name> GITHUB_TOKEN=<token> \
 //   node scripts/ci/merge-release-pr.mjs
 import { CI_WORKFLOW_FILE, DEVELOP_BRANCH, RELEASE_WORKFLOW_FILE } from './constants.mjs';
+import { writeAnnotation } from './utils/annotations.mjs';
 import { fetchReleasePullRequest, mergePullRequest } from './utils/release-pull-request.mjs';
 import {
   describeRunOutcome,
@@ -41,9 +42,11 @@ const runCi = async branch => {
 const release = async () => {
   const pullRequest = await fetchReleasePullRequest();
   if (!pullRequest) {
-    console.log(
-      '::notice::No release today: no release pull request is open, so develop holds nothing to release.',
-    );
+    writeAnnotation({
+      level: 'notice',
+      message:
+        'No release today: no release pull request is open, so develop holds nothing to release.',
+    });
     return;
   }
 
@@ -53,15 +56,19 @@ const release = async () => {
   const pullRequestOutcome = describeRunOutcome(pullRequestRun);
   // `pullRequestRun` is checked again so that the type checker knows it exists below
   if (!pullRequestOutcome.isSuccess || !pullRequestRun) {
-    console.log(`::notice::No release today: the CI of ${name} ${pullRequestOutcome.outcome}`);
+    writeAnnotation({
+      level: 'notice',
+      message: `No release today: the CI of ${name} ${pullRequestOutcome.outcome}`,
+    });
     return;
   }
   console.log(`The CI of ${name} ${pullRequestOutcome.outcome}`);
 
   if (isDryRun) {
-    console.log(
-      `::notice::Dry run: ${name} passed its CI and would be merged. Nothing was merged.`,
-    );
+    writeAnnotation({
+      level: 'notice',
+      message: `Dry run: ${name} passed its CI and would be merged. Nothing was merged.`,
+    });
     return;
   }
 
@@ -77,10 +84,13 @@ const release = async () => {
   console.log(`Started the release and its standalone build: ${releaseRun.url}`);
 
   const { isSuccess, outcome } = describeRunOutcome(await runCi(DEVELOP_BRANCH));
-  console.log(
+  writeAnnotation(
     isSuccess
-      ? `::notice::Released ${name}, and the CI of ${DEVELOP_BRANCH} ${outcome}`
-      : `::warning::Merged ${name}, but nothing is deployed until the CI of ${DEVELOP_BRANCH} passes: it ${outcome}`,
+      ? { level: 'notice', message: `Released ${name}, and the CI of ${DEVELOP_BRANCH} ${outcome}` }
+      : {
+          level: 'warning',
+          message: `Merged ${name}, but nothing is deployed until the CI of ${DEVELOP_BRANCH} passes: it ${outcome}`,
+        },
   );
 };
 
@@ -88,7 +98,6 @@ try {
   await release();
 } catch (error) {
   // The deploy goes on: a release pull request left open is merged by the next run
-  console.log(
-    `::warning::The daily release stopped: ${error instanceof Error ? error.message : error}`,
-  );
+  const reason = error instanceof Error ? error.message : error;
+  writeAnnotation({ level: 'warning', message: `The daily release stopped: ${reason}` });
 }
