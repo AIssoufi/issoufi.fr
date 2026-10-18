@@ -88,6 +88,17 @@ describe('logDroppedCssRules', () => {
     );
   });
 
+  it('logs both reasons, in order, for a refused rule holding the source of a function', () => {
+    const { prototype } = createStyleSheetPrototype({ refuses: true });
+    logDroppedCssRules(prototype);
+
+    expect(() => prototype.insertRule(FUNCTION_SOURCE_RULE)).toThrow('Refused rule');
+    expect(vi.mocked(console.error).mock.calls.map(([message]) => message)).toEqual([
+      `CSS rule holding the source of a function, which browsers drop: ${FUNCTION_SOURCE_RULE}`,
+      `CSS rule refused by the CSSOM, which browsers drop: ${FUNCTION_SOURCE_RULE}`,
+    ]);
+  });
+
   it('guards the style sheets of every test, through src/setupTests.ts', () => {
     const style = document.createElement('style');
     document.head.append(style);
