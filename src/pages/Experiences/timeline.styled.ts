@@ -1,6 +1,6 @@
 import { css, th } from '@xstyled/styled-components';
 
-/* Glowing dot marking a job on the timeline line. Each caller places it. */
+/* Glowing dot marking an entry on the timeline line. Each caller places it. */
 export const timelineDot = css`
   content: '';
   position: absolute;
