@@ -28,7 +28,7 @@ export const Experiences = () => {
       <PageHeader>
         <PageTitle>{t('exp.pageTitle')}</PageTitle>
       </PageHeader>
-      <Timeline>
+      <Timeline data-timeline-line="before">
         {/* ── Sewan ────────────────────────────────────────── */}
         <ExperienceGroup
           entityName={t('exp.sewan.name')}
@@ -107,7 +107,7 @@ export const Experiences = () => {
         </ExperienceGroup>
 
         {/* ── Wibilong ─────────────────────────────────────── */}
-        <TimelineEntry>
+        <TimelineEntry data-timeline-dot="before">
           <TimelinePeriod
             start={t('exp.periods.wibilongStart')}
             end={t('exp.periods.wibilongEnd')}
@@ -146,7 +146,7 @@ export const Experiences = () => {
         </TimelineEntry>
 
         {/* ── Supralog ─────────────────────────────────────── */}
-        <TimelineEntry>
+        <TimelineEntry data-timeline-dot="before">
           <TimelinePeriod
             start={t('exp.periods.supralogStart')}
             end={t('exp.periods.supralogEnd')}
@@ -192,7 +192,7 @@ export const Experiences = () => {
         </TimelineEntry>
 
         {/* ── Beepeers ─────────────────────────────────────── */}
-        <TimelineEntry>
+        <TimelineEntry data-timeline-dot="before">
           <TimelinePeriod
             start={t('exp.periods.beepeersStart')}
             end={t('exp.periods.beepeersEnd')}

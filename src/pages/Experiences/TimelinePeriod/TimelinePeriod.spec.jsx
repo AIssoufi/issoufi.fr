@@ -14,6 +14,12 @@ describe('TimelinePeriod', () => {
     expect(container.textContent).toBe('');
   });
 
+  it('names the pseudo-element of its dot for the browser test of the timeline', () => {
+    const { container } = render(<TimelinePeriod />);
+
+    expect(container.firstChild).toHaveAttribute('data-timeline-dot', 'after');
+  });
+
   it('renders the start, an arrow and the end, in this order', () => {
     const { container } = render(
       <TimelinePeriod
