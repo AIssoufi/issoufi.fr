@@ -207,7 +207,7 @@ describe('Projects layout on mobile', () => {
       expect(declaredStyle({ element: header, property: 'padding-left' })).toBe(theme.space.page);
       expect(declaredStyle({ element: grid, property: 'padding-left' })).toBe(gridPadding);
       expect(declaredStyle({ element: grid, property: 'padding-right' })).toBe(gridPadding);
-      // Padded by the list, not by its first and last cards, whose width would differ from the others
+      // Padded by the list, not by its first and last cards, which would be wider than the others
       for (const property of ['padding-left', 'padding-right']) {
         expect(declaredStyle({ element: card, property, pseudo: ':first-child' })).toBe('');
         expect(declaredStyle({ element: card, property, pseudo: ':last-child' })).toBe('');

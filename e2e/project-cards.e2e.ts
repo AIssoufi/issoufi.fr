@@ -27,15 +27,9 @@ const texts = TEXTS[DEFAULT_LANGUAGE];
  * shows, in order.
  */
 const SECTIONS = [
-  {
-    titles: { fr: fr.projects.personal, en: en.projects.personal },
-    projects: personalProjectsData.projects,
-  },
-  {
-    titles: { fr: fr.projects.freelance, en: en.projects.freelance },
-    projects: freelanceProjectsData.projects,
-  },
-];
+  { titleKey: 'personal', projects: personalProjectsData.projects },
+  { titleKey: 'freelance', projects: freelanceProjectsData.projects },
+] as const;
 
 /** Box of a card, with the URL of the screenshot it shows, which names its project. */
 interface ProjectCardBox extends CardBox {
@@ -176,8 +170,8 @@ for (const width of PROJECT_CARD_SCREEN_WIDTHS_PX) {
   test.describe(`on a ${width} px wide screen`, () => {
     test.use({ viewport: { width, height: SCREEN_HEIGHT_PX } });
 
-    for (const { titles, projects } of SECTIONS) {
-      const title = titles[DEFAULT_LANGUAGE];
+    for (const { titleKey, projects } of SECTIONS) {
+      const title = texts[titleKey];
 
       test(`"Show all" keeps the cards of the row of "${title}", on as many rows as needed`, async ({
         page,
@@ -295,7 +289,7 @@ for (const width of PROJECT_CARD_SCREEN_WIDTHS_PX) {
           const languageTexts = TEXTS[language];
           const { section, list } = await openSection({
             page,
-            title: titles[language],
+            title: languageTexts[titleKey],
             language,
           });
           const previousButton = section.getByRole('button', { name: languageTexts.previousPage });

@@ -5,8 +5,8 @@ import { renderToString } from 'react-dom/server';
 import { ROW_CARD_COUNT } from '../../constants';
 import { useWholeCardCount } from './useWholeCardCount';
 
-/** Layout of a fake row of cards, which jsdom would not lay out. */
-interface RowLayout {
+/** Parameters of {@link createRow}: the layout of a fake row, which jsdom would not lay out. */
+interface CreateRowParams {
   /** Width of the padding box of the list, in pixels, as `clientWidth` reads it. */
   rowWidth: number;
   /** Left padding of the list. @default '19px' */
@@ -21,8 +21,16 @@ interface RowLayout {
   cardCount?: number;
 }
 
+/** Parameters of {@link setRowWidth}. */
+interface SetRowWidthParams {
+  /** List of cards to resize. */
+  list: HTMLElement;
+  /** Width of its padding box, in pixels. */
+  rowWidth: number;
+}
+
 /** Gives the list the width that `clientWidth` reads, which jsdom always gives as 0. */
-const setRowWidth = ({ list, rowWidth }: { list: HTMLElement; rowWidth: number }) => {
+const setRowWidth = ({ list, rowWidth }: SetRowWidthParams) => {
   Object.defineProperty(list, 'clientWidth', { configurable: true, value: rowWidth });
 };
 
@@ -37,7 +45,7 @@ const createRow = ({
   cardWidth = '327px',
   margin = '5px',
   cardCount = 3,
-}: RowLayout) => {
+}: CreateRowParams) => {
   const list = document.createElement('ul');
   list.style.paddingLeft = paddingLeft;
   list.style.columnGap = columnGap;
@@ -77,8 +85,16 @@ const notifyResize = () => {
   });
 };
 
+/** Parameters of {@link renderWithList}. */
+interface RenderWithListParams {
+  /** List to give to the ref of the hook, or `null` for none. */
+  list: HTMLElement | null;
+  /** `maxCount` of the hook, its default when missing. */
+  maxCount?: number;
+}
+
 /** Renders the hook, then gives it the list, as React does with the ref once the list renders. */
-const renderWithList = ({ list, maxCount }: { list: HTMLElement | null; maxCount?: number }) => {
+const renderWithList = ({ list, maxCount }: RenderWithListParams) => {
   const hook = renderHook(() => useWholeCardCount({ maxCount }));
   act(() => hook.result.current.listRef(list));
   return hook;
@@ -139,13 +155,16 @@ describe('useWholeCardCount', () => {
     expect(withGap.current.wholeCardCount).toBe(1);
   });
 
-  it('counts no more cards than the row holds, however wide the screen', () => {
-    const list = createRow({ rowWidth: 2400, paddingLeft: '0px', cardWidth: '260px' });
+  it.each([2, 3])(
+    'counts no more than the %i cards that the row holds, however wide the screen',
+    maxCount => {
+      const list = createRow({ rowWidth: 2400, paddingLeft: '0px', cardWidth: '260px' });
 
-    const { result } = renderWithList({ list, maxCount: 3 });
+      const { result } = renderWithList({ list, maxCount });
 
-    expect(result.current.wholeCardCount).toBe(3);
-  });
+      expect(result.current.wholeCardCount).toBe(maxCount);
+    },
+  );
 
   it('counts one card when even the first one passes the edge of the row', () => {
     const { result } = renderWithList({ list: createRow({ rowWidth: 280, cardWidth: '300px' }) });

@@ -31,3 +31,15 @@ export interface Like {
 
 /** Like state of each card, by project id. Kept in memory only, never saved. */
 export type LikeState = Record<number, Like>;
+
+/** Measures of the row of cards of a section, in CSS pixels, at its first scroll position. */
+export interface RowMeasures {
+  /** Width that the row shows, its padding box, without the cards it scrolls to. */
+  rowWidth: number;
+  /** Distance from the left edge of the row to the left edge of its first card. */
+  firstCardStart: number;
+  /** Width of a card, the same for every card of the row. */
+  cardWidth: number;
+  /** Distance from the left edge of a card to the left edge of the next one. */
+  cardPitch: number;
+}

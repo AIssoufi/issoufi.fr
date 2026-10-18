@@ -106,12 +106,14 @@ describe('countWholeCards', () => {
       { rowWidth: 768, firstCardStart: 24, cardWidth: 355, cardPitch: 365 },
       2,
     ],
-    // Cards at their minimum width, the third one cut by the edge of the row
+    // Two columns of the desktop layout, the third card out of view on the right
     [
       'a tablet 800 px wide',
-      { rowWidth: 696, firstCardStart: 5, cardWidth: 260, cardPitch: 270 },
+      { rowWidth: 696, firstCardStart: 5, cardWidth: 338, cardPitch: 348 },
       2,
     ],
+    // Cards narrower than the row, the third one cut by its edge
+    ['a row that scrolls', { rowWidth: 696, firstCardStart: 5, cardWidth: 260, cardPitch: 270 }, 2],
     [
       'a laptop 1440 px wide',
       { rowWidth: 1336, firstCardStart: 5, cardWidth: 435.33, cardPitch: 445.33 },

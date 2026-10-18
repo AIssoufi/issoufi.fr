@@ -179,15 +179,16 @@ export const theme = {
   screens: {
     /**
      * From this width, the project sections show two columns of cards instead of one: 600 px, past
-     * the 578 px where two cards of 260 px, with their margins, fit between the page gutters.
+     * the 578 px where two cards with their margins fit between the page gutters without getting
+     * narrower than 260 px.
      */
     'two-project-columns': breakpoints[37.5],
     /** From this width, the desktop layout is used. */
     tablet: breakpoints[50],
     /**
      * From this width, the project sections show three columns of cards instead of two: 914 px,
-     * where three cards of 260 px, with their margins, fit between the left padding of the page
-     * and the room of the floating controls.
+     * where three cards with their margins fit between the left padding of the page and the room
+     * of the floating controls without getting narrower than 260 px.
      */
     'three-project-columns': breakpoints['57.125'],
     /** Wide screens. */

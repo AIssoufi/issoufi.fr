@@ -1,5 +1,5 @@
 import { NO_LIKE, WHOLE_CARD_TOLERANCE_PX } from './constants';
-import type { Like, LikeState, ProjectItemData } from './types';
+import type { Like, LikeState, ProjectItemData, RowMeasures } from './types';
 
 /** Parameters of {@link getLastPageStart}. */
 interface GetLastPageStartParams {
@@ -42,6 +42,12 @@ interface GetNextPageStartParams {
 /**
  * Returns the index of the first card of the next page, staying on the last page once reached,
  * so "next" never shows an empty page.
+ *
+ * @returns `0` without cards, or with a page size that is not a finite number above zero, as
+ * with a single page.
+ *
+ * @example
+ * getNextPageStart({ currentStart: 0, total: 4, pageSize: 1 }); // 1
  */
 export function getNextPageStart({
   currentStart,
@@ -67,18 +73,6 @@ export function getPreviousPageStart({
   pageSize,
 }: GetPreviousPageStartParams): number {
   return Math.max(0, currentStart - pageSize);
-}
-
-/** Measures of the row of cards of a section, in CSS pixels, at its first scroll position. */
-export interface RowMeasures {
-  /** Width that the row shows, its padding box, without the cards it scrolls to. */
-  rowWidth: number;
-  /** Distance from the left edge of the row to the left edge of its first card. */
-  firstCardStart: number;
-  /** Width of a card, the same for every card of the row. */
-  cardWidth: number;
-  /** Distance from the left edge of a card to the left edge of the next one. */
-  cardPitch: number;
 }
 
 /** Parameters of {@link countWholeCards}. */

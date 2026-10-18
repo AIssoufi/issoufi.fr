@@ -1,7 +1,8 @@
 import { type RefCallback, useCallback, useState, useSyncExternalStore } from 'react';
 
 import { ROW_CARD_COUNT } from '../../constants';
-import { countWholeCards, type RowMeasures } from '../../utils';
+import type { RowMeasures } from '../../types';
+import { countWholeCards } from '../../utils';
 
 /** Parameters of {@link useWholeCardCount}. */
 interface UseWholeCardCountParams {
