@@ -42,6 +42,7 @@ The app will be available at [http://localhost:3000](http://localhost:3000), and
 
 ```bash
 pnpm build     # Type-check, then build to dist/
+pnpm build:standalone   # Type-check, then build the site that opens from the disk to dist-standalone/ (see Releases)
 pnpm size      # Check the size of dist/ (run it after pnpm build)
 pnpm preview   # Serve the production build locally
 pnpm smoke-test https://issoufi.fr   # Check that a deployed site serves the pages of dist/
@@ -70,7 +71,7 @@ pnpm test:watch      # Watch mode
 pnpm test:coverage   # Single run with coverage, HTML report in coverage/index.html
 ```
 
-Tests are `*.spec.jsx` (components), `*.spec.ts` (helpers and hooks, those of `e2e/` included) and `*.spec.js` (helpers of the scripts of `scripts/` and the test helpers of `src/styleTestUtils.js`, `src/pages/testUtils.js`, `src/App/testUtils.js` and `src/theme/testUtils.js`) files next to the code they test. Every component has one. `vite.config.spec.ts` builds the site in memory, with the real config, and checks the generated pages. `src/setupTests.ts` renders every component in the theme and global styles of the app (`src/testUtils.tsx`), so the styles hold the values of the tokens, gives no canvas context, as jsdom has none, and fails a test that logs an error with `console.error`, such as a React warning, so the output stays clean. As in production, styled-components inserts its rules into the CSSOM (`SC_DISABLE_SPEEDY` in `vite.config.ts`), which keeps jsdom from parsing a whole `<style>` again on every change, and `src/setupTests.ts` fails a test whose component inserts a rule that browsers would drop, such as one holding the source of a function interpolated outside a `css` block. The tests read the declared styles through the CSSOM (`listStyleRules`, `declaredStyle` and `serializeCssValue` of `src/styleTestUtils.js`), since jsdom ignores media queries and pseudo-elements. `pnpm test:coverage` fails when the coverage of `src/`, of the Vite config helpers (`vite/`), of the browser test helpers (`e2e/`) and of the script helpers (`scripts/ci/utils/` and `scripts/og-image/utils/`) drops below the thresholds of `vite.config.ts` (`COVERAGE_THRESHOLDS_PERCENT`).
+Tests are `*.spec.jsx` (components), `*.spec.ts` (helpers and hooks, those of `e2e/` included) and `*.spec.js` (helpers of the scripts of `scripts/` and the test helpers of `src/styleTestUtils.js`, `src/pages/testUtils.js`, `src/App/testUtils.js` and `src/theme/testUtils.js`) files next to the code they test. Every component has one. `vite.config.spec.ts` builds the site in memory, with the real config, and checks the generated pages, and `vite.standalone.config.spec.ts` does the same for the standalone build (see Releases). `src/setupTests.ts` renders every component in the theme and global styles of the app (`src/testUtils.tsx`), so the styles hold the values of the tokens, gives no canvas context, as jsdom has none, and fails a test that logs an error with `console.error`, such as a React warning, so the output stays clean. As in production, styled-components inserts its rules into the CSSOM (`SC_DISABLE_SPEEDY` in `vite.config.ts`), which keeps jsdom from parsing a whole `<style>` again on every change, and `src/setupTests.ts` fails a test whose component inserts a rule that browsers would drop, such as one holding the source of a function interpolated outside a `css` block. The tests read the declared styles through the CSSOM (`listStyleRules`, `declaredStyle` and `serializeCssValue` of `src/styleTestUtils.js`), since jsdom ignores media queries and pseudo-elements. `pnpm test:coverage` fails when the coverage of `src/`, of the Vite config helpers (`vite/`), of the browser test helpers (`e2e/`) and of the script helpers (`scripts/ci/utils/` and `scripts/og-image/utils/`) drops below the thresholds of `vite.config.ts` (`COVERAGE_THRESHOLDS_PERCENT`).
 
 ### Browser tests
 
@@ -89,7 +90,7 @@ Playwright is a dev dependency, but its browsers are downloaded apart from `node
 ### Checks
 
 ```bash
-pnpm typecheck      # Type-check src/, vite/, e2e/, the configs and vite.config.spec.ts, then the scripts of scripts/, without building
+pnpm typecheck      # Type-check src/, vite/, e2e/, the configs and their specs, then the scripts of scripts/, without building
 pnpm lint           # Lint with ESLint
 pnpm format:check   # Check that every file follows the Prettier style
 pnpm format         # Format every file with Prettier
@@ -146,6 +147,19 @@ The site is hosted on [Cloudflare Pages](https://pages.cloudflare.com/), in the 
 
 The version follows the commits: `fix` bumps the patch version, `feat` the minor version, and a breaking change (`feat!:` or a `BREAKING CHANGE:` footer) the major version. The changelog lists features, fixes, performance improvements, reverts, refactors and documentation; `build`, `ci`, `test`, `style` and `chore` commits stay out of it (`release-please-config.json`). It starts with the React 19 and Vite rewrite of March 2026.
 
+### Standalone build
+
+`pnpm build:standalone` builds to `dist-standalone/` a copy of the site that a visitor opens with a double click on `index.html`, with no server, no Node.js and nothing to install, every page and the language toggle included. Its `README.txt` (`vite/standalone/README.txt`) says so in French and in English. The site requests nothing from issoufi.fr; only the fonts come from Google Fonts, and the browser shows its own offline.
+
+The production build cannot open from the disk: its URLs are absolute (`/assets/…`), which point to the root of the disk under `file://`, `BrowserRouter` would read the path of the file as the route and show the not found page everywhere, and browsers refuse to load module scripts, such as the chunks of the lazily loaded pages, from `file://`. `pnpm build:standalone` therefore builds it again with `vite.standalone.config.ts`, which takes the config of `vite.config.ts` as it is and adds four plugins:
+
+- `vite-plugin-singlefile` inlines the whole app, the pages loaded lazily and `lottie-web` included, in `index.html` (about 620 kB, 193 kB gzip; zipped with the files of `public/`, 2.3 MB, mostly the CV), with a relative base;
+- `standalone-hash-router` resolves the imports of `react-router` from `src/` to `vite/standalone/react-router.ts`, whose `BrowserRouter` is the `HashRouter`, so the routes read the hash of the URL (`index.html#/projects`);
+- `standalone-relative-public-urls` turns the URLs of the files of `public/` that the code writes as strings (`'/home.webp'`, the `imageUrl` of the projects, the CV) into URLs relative to the page (`'./home.webp'`), since Vite copies these files next to `index.html`. Write such a URL as one whole string, never built from parts (`'/' + name`), or the standalone build will not find the file;
+- `standalone-page` removes the other pages (`projects.html`, `experiences.html`, `404.html`), which only a web server needs, and adds the `README.txt`.
+
+The production build and its deployment do not change: neither `vite.config.ts` nor the code of the app knows about the standalone build. `vite.standalone.config.spec.ts` builds it in memory and checks that `index.html` is its only page and loads no script from a file, that the app imports the hash router, that no URL of a file of `public/` is absolute and that the `README.txt` is there; the helpers are in `vite/standalone/utils.ts`, with their spec. To try it, run `pnpm build:standalone` and open `dist-standalone/index.html` in a browser.
+
 ## 📁 Project Structure
 
 ```
@@ -158,7 +172,7 @@ The version follows the commits: `fix` bumps the patch version, `feat` the minor
 │   └── dependabot.yml    # Weekly dependency updates against develop
 ├── .husky/               # Git hooks: lint-staged before a commit, commitlint on its message
 ├── e2e/                  # Browser tests (*.e2e.ts) run by Playwright on the build, their helpers and constants
-├── public/               # Images, link preview image, CV, favicon, manifest and robots.txt, copied as is to dist/
+├── public/               # Images, link preview image, CV, favicon, manifest and robots.txt, copied as is to dist/ and dist-standalone/
 ├── scripts/
 │   ├── ci/               # CI scripts: bundle size, coverage summary, smoke test
 │   │   ├── utils/        # Their helpers, one file per topic, each with its spec
@@ -197,10 +211,13 @@ The version follows the commits: `fix` bumps the patch version, `feat` the minor
 │   ├── testErrors.ts     # describeLoggedErrors: the failure message of a test that logs an error
 │   └── testUtils.tsx     # withTheme: the theme and global styles wrapper of the tests
 ├── vite/                 # Helpers of vite.config.ts and playwright.config.ts: dev and preview ports, chunk names, page chunks
+│   └── standalone/       # Helpers, router module and README.txt of the standalone build (vite.standalone.config.ts)
 ├── index.html            # HTML template of every page, filled at build time by vite.config.ts
 ├── playwright.config.ts  # Playwright: Chromium, on pnpm preview at the port of the worktree
 ├── vite.config.ts        # Vite, the plugin that writes one HTML file per page, Vitest and coverage
-└── vite.config.spec.ts   # Builds the site in memory and checks the generated pages
+├── vite.config.spec.ts   # Builds the site in memory and checks the generated pages
+├── vite.standalone.config.ts      # pnpm build:standalone: the production config, plus the plugins that let it open from the disk
+└── vite.standalone.config.spec.ts # Builds the standalone site in memory and checks it
 ```
 
 ## 📝 Conventions
