@@ -299,10 +299,6 @@ export const LikeButton = styled.button<{ $liked: boolean; $animating: boolean }
   &:active {
     transform: scale(0.93);
   }
-
-  &:hover {
-    transform: scale(1.06);
-  }
 `;
 
 export const LikeCount = styled.span<{ $liked: boolean; $animating: boolean }>`

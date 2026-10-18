@@ -4,7 +4,7 @@ import { ThemeProvider } from '@xstyled/styled-components';
 
 import i18n from '../../../i18n';
 import { theme } from '../../../theme';
-import { INTERACTIVE_SELECTOR, declaredStyle } from '../../testUtils';
+import { INTERACTIVE_SELECTOR, declaredStyle, listStyleRules } from '../../testUtils';
 
 import { CARD_HOVER_LIFT_PX, CARD_MAX_TILT_DEG, CARD_PERSPECTIVE_PX, PAGE_SIZE } from './constants';
 import Project from './Project';
@@ -445,6 +445,31 @@ describe('Project', () => {
       expect(focusedLinkStyle({ property: 'border-radius', pseudo: '::after' })).toBe(
         theme.radii.md,
       );
+    });
+
+    it('shrinks the like button while it is pressed, even under the pointer', () => {
+      renderWithTheme(<Project projects={projects} />);
+      const likeButton = likeButtonOf('Chess');
+      // Position in the cascade of the last rule that sets the button's transform in a state
+      const lastTransformRuleIndex = state => {
+        const stateSelectors = [...likeButton.classList].map(className => `.${className}${state}`);
+        return listStyleRules().findLastIndex(({ media, rule }) => {
+          const isRuleOfState = media === '' && stateSelectors.includes(rule.selectorText);
+          // Also skips the @keyframes rules, which have no style
+          if (!isRuleOfState) return false;
+          return rule.style.getPropertyValue('transform') !== '';
+        });
+      };
+
+      expect(declaredStyle({ element: likeButton, property: 'transform', pseudo: ':hover' })).toBe(
+        'scale(1.06)',
+      );
+      expect(declaredStyle({ element: likeButton, property: 'transform', pseudo: ':active' })).toBe(
+        'scale(0.93)',
+      );
+      // A pressed button is hovered too: the rule of :active must come last to win
+      expect(lastTransformRuleIndex(':hover')).toBeGreaterThan(-1);
+      expect(lastTransformRuleIndex(':active')).toBeGreaterThan(lastTransformRuleIndex(':hover'));
     });
 
     it('shows the cards of a page in a single row', () => {
