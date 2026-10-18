@@ -69,6 +69,8 @@ export const theme = {
   sizes: {
     /** Largest width of the app container. */
     container: '1440px',
+    /** Side of the burger icon of the mobile menu, kept while its animation loads. */
+    'burger-icon': '50px',
   },
   fonts: {
     body: "'Montserrat', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif",
