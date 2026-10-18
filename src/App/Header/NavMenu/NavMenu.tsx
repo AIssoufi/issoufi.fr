@@ -46,10 +46,10 @@ const NO_ITEMS: Item[] = [];
 /**
  * Main navigation: the route links, with the active one highlighted, then the GitHub and LinkedIn
  * icons (see `ProfileLinks`) and the link that downloads the CV, "Télécharger CV". Displayed
- * as a horizontal bar on desktop, where a line stands between the route links and the icons, and
- * another between the icons and the CV link, and as a full-screen overlay on mobile, where the
- * same items follow each other, centered: the links, the icons on one row, then the CV link as a
- * pill with a download icon. On a short screen, as on a phone held sideways, the overlay is more
+ * as a horizontal bar on desktop, where a line stands between the route links, when there are
+ * any, and the icons, and another between the icons and the CV link, and as a full-screen overlay
+ * on mobile, where the same items follow each other, centered: the links, the icons on one row,
+ * then the CV link as a pill with a download icon. On a short screen, as on a phone held sideways, the overlay is more
  * compact, and it scrolls whenever its content is higher than the screen. Must be rendered inside
  * a router, because the links are `NavLink`s.
  */
