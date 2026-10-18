@@ -1,20 +1,10 @@
 import styled, { th } from '@xstyled/styled-components';
 
-export const Article = styled.article`
-  border: ${th.border('card')};
-  border-radius: ${th.radius('md')};
-  background-color: ${th.color('surface')};
-  backdrop-filter: ${th('blurs.8')};
-  -webkit-backdrop-filter: ${th('blurs.8')};
-  padding: ${th.space(16)};
-  box-shadow: ${th.shadow('card')};
-  transition-property: transform, box-shadow;
-  transition-duration: ${th.duration('base')};
+import { card } from '../timeline.styled';
 
-  &:hover {
-    transform: translateY(-2px);
-    box-shadow: ${th.shadow('cardHover')};
-  }
+export const Article = styled.article`
+  ${card}
+  padding: ${th.space(16)};
 `;
 
 export const Details = styled.main`
