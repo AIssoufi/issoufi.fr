@@ -7,6 +7,7 @@ import {
   RELEASE_PENDING_LABEL,
 } from '../constants.mjs';
 import { requestRepositoryApi } from './github-api.mjs';
+import { isPositiveInteger } from './numbers.mjs';
 import { isCommitSha } from './workflow-runs.mjs';
 
 /**
@@ -19,15 +20,6 @@ import { isCommitSha } from './workflow-runs.mjs';
  * @property {string} sha - Full SHA of the head commit of that branch.
  * @property {string} url - Page of the pull request on GitHub.
  */
-
-/**
- * Tells whether a value is a positive integer, such as the number of a pull request.
- * @param {unknown} value - Value to check.
- * @returns {value is number} False for zero, a negative or decimal number and a value that is not
- * a number.
- */
-const isPositiveInteger = value =>
-  typeof value === 'number' && Number.isSafeInteger(value) && value > 0;
 
 /**
  * Tells whether a pull request of the REST API carries the {@link RELEASE_PENDING_LABEL} label.

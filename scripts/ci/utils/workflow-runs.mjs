@@ -13,6 +13,7 @@ import {
   SHORT_SHA_LENGTH,
 } from '../constants.mjs';
 import { getRepositoryApiUrl, requestGitHub, requestRepositoryApi } from './github-api.mjs';
+import { isPositiveInteger } from './numbers.mjs';
 
 /**
  * Tells whether a value is the full SHA of a git commit, as `git rev-parse` writes it.
@@ -279,8 +280,7 @@ export const fetchLatestRun = async ({
  * await fetchRun({ runId: 123 }); // { sha, status: 'in_progress', conclusion: null, url }
  */
 export const fetchRun = async ({ runId, ...api }) => {
-  const isRunId = Number.isSafeInteger(runId) && runId > 0;
-  if (!isRunId) throw new Error(`Invalid workflow run "${runId ?? ''}"`);
+  if (!isPositiveInteger(runId)) throw new Error(`Invalid workflow run "${runId ?? ''}"`);
 
   return readRun(await requestRepositoryApi({ ...api, path: `/actions/runs/${runId}` }));
 };
@@ -305,8 +305,7 @@ export const fetchRun = async ({ runId, ...api }) => {
 export const readDispatchedRun = response => {
   const { workflow_run_id: id, html_url: url } =
     /** @type {Record<string, unknown> | null | undefined} */ (response) ?? {};
-  const isRunId = typeof id === 'number' && Number.isSafeInteger(id) && id > 0;
-  const isRun = isRunId && typeof url === 'string' && url !== '';
+  const isRun = isPositiveInteger(id) && typeof url === 'string' && url !== '';
   return isRun ? { id, url } : undefined;
 };
 
@@ -366,11 +365,13 @@ export const dispatchWorkflow = async ({ workflow, ref, ...api }) => {
  */
 
 /**
- * Waits for a run of a workflow to finish, reading it at regular intervals.
+ * Waits for a run of a workflow to finish, reading it at regular intervals. A read that fails,
+ * such as an error of the API, is tried again at the next attempt.
  * @param {WaitForRunParams} params
  * @returns {Promise<WorkflowRun | undefined>} The run once completed, or as last read when it was
  * still going after every attempt, or `undefined` when it could never be read.
- * @throws {Error} When {@link fetchRun} throws.
+ * @throws {Error} At once when the identifier is not a positive integer, and when every read
+ * failed, with the error of the last one.
  * @example
  * const run = await waitForRun({ runId: 123 });
  * describeRunOutcome(run).isSuccess; // true once the run passed
@@ -380,12 +381,27 @@ export const waitForRun = async ({
   delayMs = RUN_WAIT_DELAY_MS,
   ...params
 }) => {
+  if (!isPositiveInteger(params.runId)) {
+    throw new Error(`Invalid workflow run "${params.runId ?? ''}"`);
+  }
+
   /** @type {WorkflowRun | undefined} */
   let run;
+  let hasRead = false;
+  /** @type {unknown} */
+  let lastError;
   for (let attempt = 1; attempt <= attempts; attempt += 1) {
-    run = await fetchRun(params);
+    try {
+      run = await fetchRun(params);
+      hasRead = true;
+    } catch (error) {
+      lastError = error;
+    }
     if (run?.status === RUN_COMPLETED_STATUS) return run;
     if (attempt < attempts) await new Promise(resolve => setTimeout(resolve, delayMs));
   }
+
+  const hasOnlyFailed = !hasRead && lastError !== undefined;
+  if (hasOnlyFailed) throw lastError;
   return run;
 };

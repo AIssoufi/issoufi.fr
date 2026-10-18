@@ -535,14 +535,49 @@ describe('the API calls on runs', () => {
       expect(fetch).toHaveBeenCalledTimes(2);
     });
 
-    it('throws when a read fails', async () => {
+    it('tries a failed read again', async () => {
+      const answers = [
+        new Response('{}', { status: 502 }),
+        new Response(JSON.stringify(apiRun({ status: 'in_progress', conclusion: null }))),
+        new Response('{}', { status: 500 }),
+        new Response(JSON.stringify(apiRun())),
+      ];
+      const fetch = vi.fn(async () => answers.shift());
+      vi.stubGlobal('fetch', fetch);
+      await expect(waitForRun({ runId: 123, delayMs: 0 })).resolves.toEqual(run());
+      expect(fetch).toHaveBeenCalledTimes(4);
+    });
+
+    it('gives the run as last read when the last reads failed', async () => {
+      const answers = [
+        new Response(JSON.stringify(apiRun({ status: 'in_progress', conclusion: null }))),
+        new Response('{}', { status: 500 }),
+      ];
       vi.stubGlobal(
         'fetch',
-        vi.fn(async () => new Response('{}', { status: 500 })),
+        vi.fn(async () => answers.shift() ?? new Response('{}', { status: 500 })),
       );
-      await expect(waitForRun({ runId: 123, delayMs: 0 })).rejects.toThrow(
-        'The GitHub API answered 500',
+      await expect(waitForRun({ runId: 123, attempts: 3, delayMs: 0 })).resolves.toEqual(
+        run({ status: 'in_progress', conclusion: null }),
       );
     });
+
+    it('throws the error of the last read when every read failed', async () => {
+      const fetch = vi.fn(async () => new Response('{}', { status: 500 }));
+      vi.stubGlobal('fetch', fetch);
+      await expect(waitForRun({ runId: 123, attempts: 3, delayMs: 0 })).rejects.toThrow(
+        'The GitHub API answered 500',
+      );
+      expect(fetch).toHaveBeenCalledTimes(3);
+    });
+
+    it.each([undefined, 0, -1, 1.5, Number.NaN, '123'])(
+      'throws at once without asking the API for the run %o',
+      async runId => {
+        const fetch = stubFetch(apiRun());
+        await expect(waitForRun({ runId, delayMs: 0 })).rejects.toThrow('Invalid workflow run');
+        expect(fetch).not.toHaveBeenCalled();
+      },
+    );
   });
 });
