@@ -12,6 +12,9 @@ const items = [
   { name: 'Projets', url: '/projects' },
 ];
 
+/** Media query of the short screens, on which the open mobile menu is compact. */
+const SHORT_SCREEN_MEDIA_QUERY = `(max-height: ${theme.screenHeights.short})`;
+
 const renderAt = (path, props) =>
   render(
     <MemoryRouter initialEntries={[path]}>
@@ -79,6 +82,61 @@ describe('NavMenu', () => {
         media: DESKTOP_MEDIA_QUERY,
       });
       expect(display).toBe('none');
+    });
+  });
+
+  describe('open mobile menu', () => {
+    const getNavigation = () => screen.getByRole('navigation');
+
+    it('scrolls when higher than the screen, from its top, without scrolling the page', () => {
+      renderAt('/', { items, mobileMenuIsOpen: true });
+
+      expect(getComputedStyle(getNavigation()).overflowY).toBe('auto');
+      expect(declaredStyle({ element: getNavigation(), property: 'overscroll-behavior' })).toBe(
+        'contain',
+      );
+      // Plain centering would push the top of a higher menu above the screen, out of reach
+      expect(declaredStyle({ element: getNavigation(), property: 'justify-content' })).toBe(
+        'safe center',
+      );
+    });
+
+    it('gets more compact on a short screen, as on a phone held sideways', () => {
+      renderAt('/', { items, mobileMenuIsOpen: true });
+      const shortScreenStyle = ({ element, property }) =>
+        declaredStyle({ element, property, media: SHORT_SCREEN_MEDIA_QUERY });
+      const [firstItem] = screen.getAllByRole('listitem');
+
+      expect(shortScreenStyle({ element: getNavigation(), property: 'gap' })).toBe(theme.space[16]);
+      expect(shortScreenStyle({ element: firstItem, property: 'font-size' })).toBe(
+        theme.fontSizes[22],
+      );
+      expect(shortScreenStyle({ element: firstItem, property: 'padding' })).toBe(
+        `${theme.space[6]} ${theme.space[48]}`,
+      );
+      // The gap of the menu alone would leave the tooltip of the CV button over the last link
+      expect(
+        shortScreenStyle({ element: screen.getByRole('list'), property: 'margin-bottom' }),
+      ).toBe(theme.space[20]);
+    });
+
+    it('keeps the menu as it is on a short screen of the desktop layout', () => {
+      renderAt('/', { items });
+
+      expect(
+        declaredStyle({
+          element: screen.getByRole('list', { hidden: true }),
+          property: 'margin-bottom',
+          media: DESKTOP_MEDIA_QUERY,
+        }),
+      ).toBe('0px');
+      expect(
+        declaredStyle({
+          element: screen.getByRole('navigation', { hidden: true }),
+          property: 'overflow-y',
+          media: DESKTOP_MEDIA_QUERY,
+        }),
+      ).toBe('visible');
     });
   });
 

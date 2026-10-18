@@ -26,16 +26,28 @@ export const Nav = styled.nav<{ $mobileMenuIsOpen: boolean }>`
       display: flex;
       flex-direction: column;
       align-items: center;
+      /* Centered while it fits, and from its top once it is higher than the screen, as on a phone
+         held sideways, so that scrolling reaches all of it: plain centering would push its top
+         above the screen. Browsers without the safe keyword keep the centering */
       justify-content: center;
+      justify-content: safe center;
       position: fixed;
       inset: 0;
       z-index: ${th.zIndex('overlay')};
+      overflow-y: auto;
+      /* A scroll that reaches an end of the menu stops there, rather than scrolling the page */
+      overscroll-behavior: contain;
+      padding: ${th.space(20)} 0;
       /* Spaces the links, the CV button and the GitHub icon: a margin on the CV button would move
          its tooltip away from it */
       gap: ${th.space(28)};
       background: ${th.color('overlay-mobile-menu')};
       backdrop-filter: ${th('blurs.20')};
       -webkit-backdrop-filter: ${th('blurs.20')};
+
+      @media (max-height: ${th('screenHeights.short')}) {
+        gap: ${th.space(16)};
+      }
     `}
 
   @media (min-width: ${th('screens.tablet')}) {
@@ -48,6 +60,8 @@ export const Nav = styled.nav<{ $mobileMenuIsOpen: boolean }>`
     -webkit-backdrop-filter: none;
     position: static;
     z-index: auto;
+    overflow-y: visible;
+    padding: 0;
   }
 `;
 
@@ -57,10 +71,18 @@ export const NavList = styled(List)`
   align-items: center;
   gap: ${th.space(8)};
 
+  /* Closer links on a short screen, with room left under the last one for the tooltip that shows
+     above the CV button, which the smaller gap of the menu no longer leaves */
+  @media (max-height: ${th('screenHeights.short')}) {
+    gap: 0;
+    margin-bottom: ${th.space(20)};
+  }
+
   @media (min-width: ${th('screens.tablet')}) {
     flex-direction: row;
     align-items: center;
     gap: 0;
+    margin-bottom: 0;
   }
 `;
 
@@ -81,6 +103,11 @@ export const NavItem = styled.li`
 
   &:active {
     background: ${th.color('accent-a15')};
+  }
+
+  @media (max-height: ${th('screenHeights.short')}) {
+    padding: ${th.space(6)} ${th.space(48)};
+    font-size: ${th.fontSize(22)};
   }
 
   @media (min-width: ${th('screens.tablet')}) {
@@ -150,6 +177,11 @@ export const MenuCvLink = styled(CvLink)`
   &:active {
     background-color: ${th.color('accent-a20')};
     border-color: ${th.color('accent-a60')};
+  }
+
+  /* Still 44 px high on a short screen, the smallest target recommended for a finger */
+  @media (max-height: ${th('screenHeights.short')}) {
+    padding: ${th.space(10)} ${th.space(36)};
   }
 
   @media (min-width: ${th('screens.tablet')}) {

@@ -3,6 +3,7 @@ import userEvent from '@testing-library/user-event';
 import lottie from 'lottie-web/build/player/lottie_light';
 
 import { LANGUAGE_STORAGE_KEY } from '../i18n/constants';
+import { declaredStyle } from '../styleTestUtils';
 import App from './App';
 import { waitForBurgerIcon } from './testUtils';
 
@@ -121,6 +122,15 @@ describe('App', () => {
     await renderApp();
 
     expect(getComputedStyle(screen.getByTestId('app')).gridTemplateColumns).toBe('minmax(0, 1fr)');
+  });
+
+  it('grows with the page, so the sticky header stays on screen down to its end', async () => {
+    // The header sticks within the grid: a grid one screen high would let it leave the screen
+    await renderApp();
+    const app = screen.getByTestId('app');
+
+    expect(declaredStyle({ element: app, property: 'min-height' })).toBe('100vh');
+    expect(declaredStyle({ element: app, property: 'height' })).toBe('');
   });
 
   describe('focus after a navigation', () => {

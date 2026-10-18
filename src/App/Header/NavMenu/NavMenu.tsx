@@ -46,8 +46,10 @@ const NO_ITEMS: Item[] = [];
 /**
  * Main navigation: the route links, with the active one highlighted. Displayed as a horizontal bar
  * on desktop and as a full-screen overlay on mobile, where the CV button and the GitHub icon follow
- * the links; on desktop, the header floats them under the language toggle instead. Must be
- * rendered inside a router, because the links are `NavLink`s.
+ * the links; on desktop, the header floats them under the language toggle instead. On a short
+ * screen, as on a phone held sideways, the overlay is more compact, and it scrolls whenever its
+ * content is higher than the screen. Must be rendered inside a router, because the links are
+ * `NavLink`s.
  */
 const NavMenu = ({ id, items = NO_ITEMS, onClick, mobileMenuIsOpen = false }: NavMenuProps) => {
   return (
