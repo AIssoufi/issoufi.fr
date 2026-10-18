@@ -2,6 +2,7 @@ import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router';
 
+import { declaredStyle } from '../../../styleTestUtils';
 import StatusMessage from './StatusMessage';
 
 describe('StatusMessage', () => {
@@ -22,6 +23,13 @@ describe('StatusMessage', () => {
     expect(screen.getByText("La page /skills n'existe pas.")).toBeInTheDocument();
     expect(screen.getByRole('link', { name: "Retour à l'accueil" })).toHaveAttribute('href', '/');
     expect(screen.queryByRole('button')).not.toBeInTheDocument();
+  });
+
+  it('wraps a word longer than the line of its message, such as a path, at any character', () => {
+    render(<StatusMessage message={`La page /${'a'.repeat(64)} n’existe pas.`} />);
+
+    const message = screen.getByText(/^La page \/a+ n’existe pas\.$/);
+    expect(declaredStyle({ element: message, property: 'overflow-wrap' })).toBe('anywhere');
   });
 
   it('renders without any props', () => {

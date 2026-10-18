@@ -1,7 +1,7 @@
 import styled, { th } from '@xstyled/styled-components';
 
 export const Main = styled.main<{ $backgroundImage?: string }>`
-  padding: ${th.space(16)} ${th.space('page')} 0;
+  padding: ${th.space('page-top')} ${th.space('page')} 0;
   position: relative;
   grid-area: main;
 
