@@ -32,6 +32,13 @@ const escapeCharacter = character =>
   WORKFLOW_COMMAND_ESCAPES[/** @type {keyof WORKFLOW_COMMAND_ESCAPES} */ (character)];
 
 /**
+ * Tells whether a name can be written as is before the `=` of a property of an annotation.
+ * @param {string} name - Name of the property, e.g. `file`.
+ * @returns {boolean} True when it matches {@link ANNOTATION_PROPERTY_NAME_PATTERN}.
+ */
+const isValidPropertyName = name => ANNOTATION_PROPERTY_NAME_PATTERN.test(name);
+
+/**
  * Escapes the message of a workflow command of GitHub Actions, such as the text of an annotation,
  * so that a line break cannot end the command and a `%` is not read as an encoding. GitHub
  * decodes the message, so a line break still shows as a new line.
@@ -73,9 +80,7 @@ export const formatAnnotation = ({ level, message, properties }) => {
 
   const hasProperties = typeof properties === 'object' && properties !== null;
   const entries = Object.entries(hasProperties ? properties : {});
-  const invalidName = entries
-    .map(([name]) => name)
-    .find(name => !ANNOTATION_PROPERTY_NAME_PATTERN.test(name));
+  const invalidName = entries.map(([name]) => name).find(name => !isValidPropertyName(name));
   if (invalidName !== undefined) {
     throw new RangeError(`Invalid annotation property name: "${invalidName}"`);
   }

@@ -46,9 +46,9 @@ const hasValidAddresses = ({ url, expectedUrl }) =>
  */
 export const resolveRedirectUrl = ({ url, status, location }) => {
   // An empty location would resolve to the address requested itself
-  const hasLocation =
+  const hasValidLocation =
     typeof location === 'string' && location.trim() !== '' && URL.canParse(location, url);
-  if (!isRedirectStatus(status) || !hasLocation) return '';
+  if (!isRedirectStatus(status) || !hasValidLocation) return '';
 
   return new URL(location, url).href;
 };
