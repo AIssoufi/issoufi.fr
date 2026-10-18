@@ -10,7 +10,7 @@ pnpm build        # Type-check + production build (tsc && vite build)
 pnpm size         # After a build: fails over the gzip budget of scripts/ci/constants.mjs
 pnpm smoke-test <url> # After a build: checks that a deployed site serves the pages of dist/
 pnpm preview      # Preview production build on port 4173, or on PORT
-pnpm typecheck    # Type-check only: src/, vite/ and vite.config.ts, then scripts/ (scripts/tsconfig.json)
+pnpm typecheck    # Type-check only: src/, vite/, vite.config.ts and its spec, then scripts/ (scripts/tsconfig.json)
 pnpm lint         # ESLint (eslint.config.js)
 pnpm test         # Run tests once
 pnpm test:watch   # Run tests in watch mode
@@ -27,7 +27,7 @@ Personal portfolio SPA built with React 19 + TypeScript + Vite.
 
 **Entry point**: `src/index.tsx` mounts to the `#welcome` DOM element.
 
-**Routing** (`src/App/App.tsx`): flat BrowserRouter setup with three routes — `/` (Home), `/projects`, `/experiences` — and a `*` catch-all rendering the NotFound page at the requested URL, without redirecting. Home is in the main chunk; the other pages are loaded with `React.lazy` on their first visit, each from its own chunk, so import them from their own folder (`../pages/Projects`), never through a barrel that would put them back in the main chunk. A Forbidden page (403) exists for content the visitor may not access. Each route also needs an entry in `PAGES` (`src/utils/pages.ts`), which drives its metadata and the HTML file generated for it at build time. This is required: the build also emits a `404.html`, which turns off Cloudflare's single-page-app fallback, so a route without its own HTML file would return a 404 on reload.
+**Routing** (`src/App/App.tsx`): flat BrowserRouter setup with three routes — `/` (Home), `/projects`, `/experiences` — and a `*` catch-all rendering the NotFound page at the requested URL, without redirecting. Home is in the main chunk; the other pages are loaded with `React.lazy` on their first visit, each from its own chunk, so import them from their own folder (`../pages/Projects`), never through a barrel that would put them back in the main chunk. A Forbidden page (403) exists for content the visitor may not access. Each route also needs an entry in `PAGES` (`src/utils/pages.ts`), which drives its metadata and the HTML file generated for it at build time. This is required: the build also emits a `404.html`, which turns off Cloudflare's single-page-app fallback, so a route without its own HTML file would return a 404 on reload. The `folder` of the entry names the page folder whose chunk that HTML file preloads (`modulepreload`), so a direct visit downloads it with the main chunk.
 
 **Component conventions**: every component lives in its own folder named after it:
 

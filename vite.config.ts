@@ -3,40 +3,69 @@ import { defineConfig, loadEnv, type Plugin } from 'vite';
 import svgr from 'vite-plugin-svgr';
 
 import { getYearsOfExperience } from './src/utils/career';
-import { NOT_FOUND_FILE_NAME, PAGES, renderNotFoundHtml, renderPageHtml } from './src/utils/pages';
+import {
+  addModulePreload,
+  NOT_FOUND_FILE_NAME,
+  NOT_FOUND_FOLDER,
+  PAGES,
+  renderNotFoundHtml,
+  renderPageHtml,
+} from './src/utils/pages';
 import { ALL_ENV_VARIABLES_PREFIX, ASSETS_DIR } from './vite/constants';
-import { getChunkName, getServerPorts } from './vite/utils';
+import { getChunkName, getPageChunkFile, getServerPorts } from './vite/utils';
+
+/** Parameters of the `preloadPageChunk` helper of {@link pageMeta}. */
+interface PreloadPageChunkParams {
+  /** HTML of a generated page. */
+  html: string;
+  /** Folder in `src/pages` of the page that the HTML shows. */
+  folder: string;
+}
 
 /**
  * Vite plugin that fills the metadata of `index.html` for the home page, then emits one HTML
  * file per other page and a `404.html` from the same template. It runs after Vite's own HTML
- * plugin (`enforce: 'post'`), so the template already contains the hashed asset tags.
+ * plugin (`enforce: 'post'`), so the template already contains the hashed asset tags. Each
+ * emitted page also preloads the chunk of the page it shows, so a direct visit downloads it at
+ * the same time as the main chunk; the home page is in the main chunk and needs none.
  */
 const pageMeta = (): Plugin => {
   let template = '';
+  let base = '/';
 
   return {
     name: 'page-meta',
     enforce: 'post',
+    configResolved: config => {
+      base = config.base;
+    },
     transformIndexHtml: html => {
       template = html;
       return renderPageHtml({ template: html, page: PAGES[0], years: getYearsOfExperience() });
     },
-    generateBundle() {
+    generateBundle(_options, bundle) {
       if (!template) this.error('index.html was not transformed before generateBundle');
 
+      /** Preloads in a generated page the chunk of the page in `folder`, when it has one. */
+      const preloadPageChunk = ({ html, folder }: PreloadPageChunkParams) => {
+        const chunkFile = getPageChunkFile({ bundle, folder });
+        return chunkFile ? addModulePreload({ html, href: `${base}${chunkFile}` }) : html;
+      };
+
       PAGES.slice(1).forEach(page => {
+        const html = renderPageHtml({ template, page, years: getYearsOfExperience() });
         this.emitFile({
           type: 'asset',
           fileName: page.fileName,
-          source: renderPageHtml({ template, page, years: getYearsOfExperience() }),
+          source: preloadPageChunk({ html, folder: page.folder }),
         });
       });
 
+      const notFoundHtml = renderNotFoundHtml({ template, years: getYearsOfExperience() });
       this.emitFile({
         type: 'asset',
         fileName: NOT_FOUND_FILE_NAME,
-        source: renderNotFoundHtml({ template, years: getYearsOfExperience() }),
+        source: preloadPageChunk({ html: notFoundHtml, folder: NOT_FOUND_FOLDER }),
       });
     },
   };

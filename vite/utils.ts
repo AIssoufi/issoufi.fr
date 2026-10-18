@@ -4,6 +4,8 @@ import {
   INDEX_CHUNK_NAME,
   MAX_PORT,
   MIN_PORT,
+  PAGE_ENTRY_FILE,
+  PAGES_DIR,
   PATH_SEPARATOR_PATTERN,
   PORT_PATTERN,
 } from './constants';
@@ -91,4 +93,56 @@ export const getChunkName = ({ name, facadeModuleId }: ChunkNameInfo = {}): stri
   const folders = facadeModuleId.split(PATH_SEPARATOR_PATTERN).slice(0, -1);
   const parentFolder = folders[folders.length - 1];
   return parentFolder || name;
+};
+
+/** File of the build, as Rollup passes it to `generateBundle`: the fields that find a chunk. */
+interface BundleFile {
+  /** `chunk` for a script, `asset` for any other file. */
+  type?: string;
+  /** Path of the file in the build, e.g. `assets/Projects-1a2b3c.js`. */
+  fileName?: string;
+  /** Path of the main module of a chunk, `null` for a chunk of modules shared by others. */
+  facadeModuleId?: string | null;
+}
+
+/** Parameters of {@link getPageChunkFile}. */
+interface GetPageChunkFileParams {
+  /** Files of the build, by file name, as Rollup passes them to `generateBundle`. */
+  bundle?: Record<string, BundleFile | null | undefined>;
+  /** Folder of the page in `src/pages`, e.g. `Projects`. */
+  folder?: string;
+}
+
+/**
+ * Finds the chunk built from the `index.ts` of a page folder, the chunk that `App.tsx` loads
+ * lazily on the first visit of the page.
+ *
+ * @returns The path of the chunk in the build, or `undefined` when the page has no chunk of its
+ * own, as the home page, which is in the main chunk, or when the bundle or the folder is missing.
+ *
+ * @example
+ * getPageChunkFile({ bundle, folder: 'Projects' }); // 'assets/Projects-1a2b3c.js'
+ * getPageChunkFile({ bundle, folder: 'Home' }); // undefined
+ */
+export const getPageChunkFile = ({ bundle, folder }: GetPageChunkFileParams = {}):
+  | string
+  | undefined => {
+  const hasFolder = typeof folder === 'string' && folder !== '';
+  const hasBundle = typeof bundle === 'object' && bundle !== null;
+  const canSearch = hasFolder && hasBundle;
+  if (!canSearch) return undefined;
+
+  const pageEntrySuffix = `/${PAGES_DIR}/${folder}/${PAGE_ENTRY_FILE}`;
+  const isPageChunk = (file: BundleFile | null | undefined) => {
+    const moduleId = file?.facadeModuleId;
+    const isChunk = file?.type === 'chunk' && typeof moduleId === 'string';
+    if (!isChunk) return false;
+
+    const modulePath = moduleId.split(PATH_SEPARATOR_PATTERN).join('/');
+    return modulePath.endsWith(pageEntrySuffix);
+  };
+
+  const fileName = Object.values(bundle).find(isPageChunk)?.fileName;
+  const hasFileName = typeof fileName === 'string' && fileName !== '';
+  return hasFileName ? fileName : undefined;
 };
