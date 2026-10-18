@@ -7,7 +7,8 @@ const getSection = container => container.querySelector('section');
 
 /**
  * Reads the `background-image` of a section's `::before` layer in the injected style sheets,
- * since jsdom computes no style for pseudo-elements.
+ * since jsdom computes no style for pseudo-elements. Splitting the CSS on `}` only finds a flat
+ * rule: update it if `Page.styled.ts` ever wraps `::before` in an `@media` block.
  */
 const getBackgroundImage = section => {
   const css = [...document.querySelectorAll('style')].map(style => style.textContent).join('');
