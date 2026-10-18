@@ -2,7 +2,14 @@ import styled, { th } from '@xstyled/styled-components';
 
 import Page from '../../components/Page';
 
-import { companyBlock, timelineRow } from './timeline.styled';
+import {
+  companyBlock,
+  lineWidth,
+  mobileContentIndent,
+  mobileLineLeft,
+  periodColumnWidth,
+  timelineRow,
+} from './timeline.styled';
 
 export const ExperiencesPage = styled(Page)``;
 
@@ -34,10 +41,10 @@ export const Timeline = styled.div`
   &::before {
     content: '';
     position: absolute;
-    left: ${th.space(5)};
+    left: ${mobileLineLeft};
     top: ${th.space(14)};
     bottom: ${th.space(14)};
-    width: 2px;
+    width: ${lineWidth};
     background: linear-gradient(
       to bottom,
       ${th.color('accent-a90')} 0%,
@@ -47,10 +54,10 @@ export const Timeline = styled.div`
     border-radius: ${th.radius(1)};
   }
 
-  /* vertical line — desktop (centered on the 90 px period column) */
+  /* vertical line — desktop (centered on the right edge of the period column) */
   @media (min-width: ${th('screens.tablet')}) {
     &::before {
-      left: 89px; /* 90px col − 1px to center the 2px line */
+      left: calc(${periodColumnWidth} - ${lineWidth} / 2);
     }
   }
 `;
@@ -64,7 +71,7 @@ export const TimelineEntry = styled.div`
 
 export const TimelineContent = styled.div`
   min-width: 0;
-  padding-left: ${th.space(22)}; /* mobile: indent past the dot */
+  padding-left: ${mobileContentIndent};
 
   @media (min-width: ${th('screens.tablet')}) {
     padding-left: ${th.space(20)};
