@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
 
-import { Section } from './Page.styled';
+import { Main } from './Page.styled';
 
 /** Props of {@link Page}. Every prop is optional. */
 interface PageProps {
@@ -16,9 +16,10 @@ interface PageProps {
 }
 
 /**
- * Layout section shared by every page: it fills the main area of the app grid, with the page
- * gutters, over a fixed background image and a dark overlay. Pages extend it with
- * `styled(Page)` in their own style file.
+ * Layout shared by every page, rendered as its `<main>` landmark: it fills the main area of the
+ * app grid, with the page gutters, over a fixed background image and a dark overlay. Pages
+ * extend it with `styled(Page)` in their own style file. A page has a single `<main>`, so the
+ * content inside it never renders another one.
  *
  * @example
  * const ProjectsPage = styled(Page)`
@@ -28,12 +29,12 @@ interface PageProps {
  * <ProjectsPage backgroundImage="/projects.webp">…</ProjectsPage>
  */
 const Page = ({ backgroundImage, children, className }: PageProps) => (
-  <Section
+  <Main
     className={className}
     $backgroundImage={backgroundImage}
   >
     {children}
-  </Section>
+  </Main>
 );
 
 export default Page;

@@ -11,6 +11,13 @@ describe('Experiences', () => {
     expect(screen.getByRole('heading', { name: 'Expériences', level: 1 })).toBeInTheDocument();
   });
 
+  it('has a single main landmark and a single level 1 heading', () => {
+    render(<Experiences />);
+
+    expect(screen.getAllByRole('main')).toHaveLength(1);
+    expect(screen.getAllByRole('heading', { level: 1 })).toHaveLength(1);
+  });
+
   it.each(['Sewan Groupe', 'Wibilong', 'Supralog', 'Beepeers'])('shows the %s experience', name => {
     render(<Experiences />);
 
