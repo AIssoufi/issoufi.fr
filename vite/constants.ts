@@ -23,9 +23,10 @@ export const ALL_ENV_VARIABLES_PREFIX = '';
 
 /**
  * Folder of the hashed scripts in the build: Vite's default `build.assetsDir`. `pnpm size` only
- * counts the scripts of this folder (`ASSETS_SUBDIR` in `scripts/ci/constants.mjs`): keep both equal.
- * Browsers keep its files a year ({@link HEADER_RULES}), so each one needs a hash of its content in
- * its name, which `vite.config.spec.ts` checks.
+ * counts the scripts of this folder (`ASSETS_SUBDIR` in `scripts/ci/constants.mjs`): keep both
+ * equal. Browsers keep its files a year ({@link HEADER_RULES}), so each one needs a hash of its
+ * content in its name, and `public/` no folder of this name, whose files Vite would copy into it
+ * as they are: `vite.config.spec.ts` checks both.
  */
 export const ASSETS_DIR = 'assets';
 

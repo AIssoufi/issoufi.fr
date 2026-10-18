@@ -30,7 +30,8 @@ export const isServerOnlyFile = (fileName?: unknown): boolean => {
   const isHtmlFile = typeof fileName === 'string' && HTML_FILE_PATTERN.test(fileName);
   const isStandalonePage = fileName === STANDALONE_PAGE_FILE_NAME;
   const isServerOnlyPage = isHtmlFile && !isStandalonePage;
-  return isServerOnlyPage || fileName === HEADERS_FILE_NAME;
+  const isHeadersFile = fileName === HEADERS_FILE_NAME;
+  return isServerOnlyPage || isHeadersFile;
 };
 
 /**
