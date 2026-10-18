@@ -5,7 +5,7 @@ import {
   MAX_PORT,
   MIN_PORT,
 } from './constants';
-import { getChunkName, getServerPorts, parsePort } from './utils';
+import { getChunkName, getPageChunkFile, getServerPorts, parsePort } from './utils';
 
 describe('parsePort', () => {
   it.each([
@@ -133,6 +133,105 @@ describe('getChunkName', () => {
       ['an empty name', { name: '' }],
     ])('falls back to a generic name for %s', (_, chunk) => {
       expect(getChunkName(chunk)).toBe(FALLBACK_CHUNK_NAME);
+    });
+  });
+});
+
+describe('getPageChunkFile', () => {
+  const bundle = {
+    'assets/index-1a2b3c.js': {
+      type: 'chunk',
+      fileName: 'assets/index-1a2b3c.js',
+      facadeModuleId: '/app/src/index.tsx',
+    },
+    'assets/Projects-4d5e6f.js': {
+      type: 'chunk',
+      fileName: 'assets/Projects-4d5e6f.js',
+      facadeModuleId: '/app/src/pages/Projects/index.ts',
+    },
+    'assets/Experiences-7a8b9c.js': {
+      type: 'chunk',
+      fileName: 'assets/Experiences-7a8b9c.js',
+      facadeModuleId: 'C:\\app\\src\\pages\\Experiences\\index.ts',
+    },
+    'assets/shared-0d1e2f.js': {
+      type: 'chunk',
+      fileName: 'assets/shared-0d1e2f.js',
+      facadeModuleId: null,
+    },
+    'projects.html': { type: 'asset', fileName: 'projects.html' },
+  };
+
+  it('finds the chunk built from the index file of a page folder', () => {
+    expect(getPageChunkFile({ bundle, folder: 'Projects' })).toBe('assets/Projects-4d5e6f.js');
+  });
+
+  it('finds the chunk of a module path with Windows separators', () => {
+    expect(getPageChunkFile({ bundle, folder: 'Experiences' })).toBe(
+      'assets/Experiences-7a8b9c.js',
+    );
+  });
+
+  it('returns undefined for the home page, which is in the main chunk', () => {
+    expect(getPageChunkFile({ bundle, folder: 'Home' })).toBeUndefined();
+  });
+
+  it.each([
+    ['a folder of the same name elsewhere', '/app/src/components/Projects/index.ts'],
+    ['a sub-component of the page', '/app/src/pages/Projects/Project/index.ts'],
+    ['a page folder that ends with the same name', '/app/src/pages/OldProjects/index.ts'],
+    ['another file of the page folder', '/app/src/pages/Projects/Projects.tsx'],
+  ])('ignores the chunk of %s', (_, facadeModuleId) => {
+    const otherBundle = {
+      'assets/x.js': { type: 'chunk', fileName: 'assets/x.js', facadeModuleId },
+    };
+
+    expect(getPageChunkFile({ bundle: otherBundle, folder: 'Projects' })).toBeUndefined();
+  });
+
+  it('ignores an asset whose name looks like the page module', () => {
+    const otherBundle = {
+      'src/pages/Projects/index.ts': {
+        type: 'asset',
+        fileName: 'src/pages/Projects/index.ts',
+        facadeModuleId: '/app/src/pages/Projects/index.ts',
+      },
+    };
+
+    expect(getPageChunkFile({ bundle: otherBundle, folder: 'Projects' })).toBeUndefined();
+  });
+
+  describe('edge cases', () => {
+    it.each([
+      ['no parameters', undefined],
+      ['no bundle', { folder: 'Projects' }],
+      ['a null bundle', { bundle: null as never, folder: 'Projects' }],
+      ['a bundle that is not an object', { bundle: 'assets' as never, folder: 'Projects' }],
+      ['an empty bundle', { bundle: {}, folder: 'Projects' }],
+      ['no folder', { bundle }],
+      ['an empty folder', { bundle, folder: '' }],
+      ['a blank folder', { bundle, folder: '  ' }],
+      ['a folder that is not a string', { bundle, folder: 42 as never }],
+    ])('returns undefined for %s', (_, params) => {
+      expect(getPageChunkFile(params)).toBeUndefined();
+    });
+
+    it('skips the missing files of a malformed bundle', () => {
+      const malformedBundle = { a: null, b: undefined, ...bundle };
+
+      expect(getPageChunkFile({ bundle: malformedBundle, folder: 'Projects' })).toBe(
+        'assets/Projects-4d5e6f.js',
+      );
+    });
+
+    it.each([
+      ['no file name', undefined],
+      ['an empty file name', ''],
+    ])('returns undefined for a page chunk with %s', (_, fileName) => {
+      const facadeModuleId = '/app/src/pages/Projects/index.ts';
+      const otherBundle = { 'assets/x.js': { type: 'chunk', fileName, facadeModuleId } };
+
+      expect(getPageChunkFile({ bundle: otherBundle, folder: 'Projects' })).toBeUndefined();
     });
   });
 });
