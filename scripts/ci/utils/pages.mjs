@@ -65,6 +65,31 @@ const isHtmlFileName = fileName => typeof fileName === 'string' && HTML_FILE_PAT
 const toPosixPath = fileName => fileName.replace(WINDOWS_PATH_SEPARATOR_PATTERN, PATH_SEPARATOR);
 
 /**
+ * A path of the build split by {@link splitBuildPath}.
+ * @typedef {object} BuildPath
+ * @property {string} folderRoute - Route of the folder of the file, without a trailing slash:
+ * empty at the root of the build, e.g. `/en` for a file of `en/`.
+ * @property {string} name - Name of the file, e.g. `projects.html`.
+ */
+
+/**
+ * Splits a path of the build into the route of its folder and the name of its file.
+ * @param {string} file - Path relative to the build folder, with `/` separators.
+ * @returns {BuildPath} The route of the folder and the file name.
+ * @example
+ * splitBuildPath('en/projects.html'); // { folderRoute: '/en', name: 'projects.html' }
+ * splitBuildPath('index.html'); // { folderRoute: '', name: 'index.html' }
+ */
+export const splitBuildPath = file => {
+  const separatorIndex = file.lastIndexOf(PATH_SEPARATOR);
+  const isAtRoot = separatorIndex === -1;
+  return {
+    folderRoute: isAtRoot ? '' : `${PATH_SEPARATOR}${file.slice(0, separatorIndex)}`,
+    name: file.slice(separatorIndex + 1),
+  };
+};
+
+/**
  * Lists the routes to check from the HTML files of the build, at its root and in its folders,
  * such as `en/`. Each page is served at its folder and its name without the extension, an
  * `index.html` at its folder (`/`, `/en/`), and an unknown path of its folder must get the
@@ -86,11 +111,7 @@ export const getPageChecks = fileNames =>
     .filter(isHtmlFileName)
     .map(toPosixPath)
     .map(file => {
-      const separatorIndex = file.lastIndexOf(PATH_SEPARATOR);
-      const name = file.slice(separatorIndex + 1);
-      // Empty at the root of the build, `/en` for a page of the en/ folder
-      const isAtRoot = separatorIndex === -1;
-      const folderRoute = isAtRoot ? '' : `${PATH_SEPARATOR}${file.slice(0, separatorIndex)}`;
+      const { folderRoute, name } = splitBuildPath(file);
 
       const isNotFoundPage = name === NOT_FOUND_PAGE_FILE;
       if (isNotFoundPage) {

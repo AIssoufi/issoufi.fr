@@ -4,6 +4,7 @@ import {
   isPageCheck,
   readPageHead,
   renderSmokeTestReport,
+  splitBuildPath,
 } from './pages.mjs';
 
 describe('isPageCheck', () => {
@@ -33,6 +34,26 @@ describe('isPageCheck', () => {
     { file: 'index.html', route: '', status: 200 },
   ])('rejects %o', value => {
     expect(isPageCheck(value)).toBe(false);
+  });
+});
+
+describe('splitBuildPath', () => {
+  it.each([
+    ['index.html', '', 'index.html'],
+    ['404.html', '', '404.html'],
+    ['en/projects.html', '/en', 'projects.html'],
+    ['en/index.html', '/en', 'index.html'],
+    ['a/b/page.html', '/a/b', 'page.html'],
+  ])('splits %j into the folder route %j and the name %j', (file, folderRoute, name) => {
+    expect(splitBuildPath(file)).toEqual({ folderRoute, name });
+  });
+
+  it('gives an empty name to a path that ends with a separator', () => {
+    expect(splitBuildPath('en/')).toEqual({ folderRoute: '/en', name: '' });
+  });
+
+  it('gives an empty folder route and name to an empty path', () => {
+    expect(splitBuildPath('')).toEqual({ folderRoute: '', name: '' });
   });
 });
 
