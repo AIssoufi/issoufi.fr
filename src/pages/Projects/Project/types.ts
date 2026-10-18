@@ -1,10 +1,10 @@
-/** One project card, as stored in `.data/*-projects.json`. */
+/** One project card, with its texts in the language of the page. */
 export interface ProjectItemData {
   /** Unique id: the React key and the key of the like state. */
   id: number;
-  /** Project name, shown as the card title and the thumbnail alt text. */
+  /** Project name, already translated, shown as the card title and the thumbnail alt text. */
   name: string;
-  /** Kind of project, e.g. "Application web" or "Site vitrine". */
+  /** Kind of project, translated, e.g. "Web application", or "Application web" in French. */
   type: string;
   /** Absolute URL of the screenshot in `public/`, e.g. `/chess.webp`. */
   imageUrl: string;

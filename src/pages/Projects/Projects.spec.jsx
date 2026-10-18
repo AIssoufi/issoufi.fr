@@ -1,7 +1,9 @@
-import { act, render, screen } from '@testing-library/react';
+import { act, render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
 import i18n from '../../i18n';
+import { LANGUAGES } from '../../i18n/constants';
+import { fr } from '../../i18n/fr';
 import { theme } from '../../theme';
 import { declaredStyle, serializeCssValue } from '../../styleTestUtils';
 import { INTERACTIVE_SELECTOR, isPublicFile } from '../testUtils';
@@ -11,14 +13,41 @@ import personalProjectsData from './.data/personal-projects.json';
 import { Projects } from './Projects';
 
 const allProjects = [...personalProjectsData.projects, ...freelanceProjectsData.projects];
-/** The straight apostrophe, which French text replaces with the typographic one (’). */
-const STRAIGHT_APOSTROPHE = "'";
+
+/** Name and kind of each card of the page in French, in the order of the page. */
+const FRENCH_CARDS = [
+  ['Jeu d’échecs', 'Application web'],
+  ['Magasin de plugins audio', 'Application web'],
+  ['Puissance 4', 'Application web'],
+  ['Calculatrice', 'Application web'],
+  ['Study SARL', 'Site web'],
+  ['Kane Riviera Transfert', 'Application web'],
+  ['Trouillet Décors', 'Site vitrine'],
+  ['Y-YServicies', 'Site vitrine'],
+  ['Cadeaux de naissance', 'Site vitrine'],
+];
+
+/** Name and kind of each card of the page in English: translated, except the client names. */
+const ENGLISH_CARDS = [
+  ['Chess game', 'Web application'],
+  ['Audio plugin store', 'Web application'],
+  ['Connect Four', 'Web application'],
+  ['Calculator', 'Web application'],
+  ['Study SARL', 'Website'],
+  ['Kane Riviera Transfert', 'Web application'],
+  ['Trouillet Décors', 'Brochure website'],
+  ['Y-YServicies', 'Brochure website'],
+  ['Baby gifts', 'Brochure website'],
+];
+
+/** A text that holds more than whitespace. */
+const FILLED_TEXT = /\S/;
 
 const TABLET_MEDIA = `(min-width: ${theme.screens.tablet})`;
 
 /** Thumbnail of the first personal project, which the first section shows on every layout. */
 const firstThumbnail = () =>
-  screen.getByRole('img', { name: personalProjectsData.projects[0].name });
+  screen.getByRole('img', { name: fr.projects.names[personalProjectsData.projects[0].nameKey] });
 
 /** Clicks "Show all" in every section, so that each row shows all its cards. */
 const showAllProjects = async () => {
@@ -77,9 +106,9 @@ describe('Projects', () => {
     expect(style('clip-path')).toBe('inset(50%)');
   });
 
-  it.each(allProjects.map(({ name, imageUrl }) => [name, imageUrl]))(
+  it.each(allProjects.map(({ nameKey, imageUrl }) => [nameKey, imageUrl]))(
     'serves the screenshot of %s from public/ (%s)',
-    (_name, imageUrl) => {
+    (_nameKey, imageUrl) => {
       expect(isPublicFile(imageUrl)).toBe(true);
     },
   );
@@ -88,18 +117,36 @@ describe('Projects', () => {
     expect(isPublicFile(BACKGROUND_IMAGE_URL)).toBe(true);
   });
 
-  it('writes the project names and types with typographic apostrophes', () => {
-    const textsWithStraightApostrophe = allProjects
-      .flatMap(({ name, type }) => [name, type])
-      .filter(text => text.includes(STRAIGHT_APOSTROPHE));
+  it.each(
+    LANGUAGES.flatMap(language =>
+      allProjects.map(({ nameKey, typeKey }) => [language, nameKey, typeKey]),
+    ),
+  )(
+    'translates into %s the name %s and the kind %s of the project',
+    (language, nameKey, typeKey) => {
+      for (const key of [`projects.names.${nameKey}`, `projects.types.${typeKey}`]) {
+        // Read without the fallback to French, which would hide a missing text
+        const text = i18n.getResource(language, 'translation', key);
 
-    expect(textsWithStraightApostrophe).toEqual([]);
-  });
+        expect(text, `${key} in ${language}`).toMatch(FILLED_TEXT);
+      }
+    },
+  );
 
-  it('shows the chess game with its French name', () => {
+  it.each([
+    ['fr', FRENCH_CARDS],
+    ['en', ENGLISH_CARDS],
+  ])('shows the name and the kind of every card in %s', async (language, expectedCards) => {
     render(<Projects />);
+    await showAllProjects();
+    await act(() => i18n.changeLanguage(language));
 
-    expect(screen.getByText('Jeu d’échecs')).toBeInTheDocument();
+    const cards = screen.getAllByRole('listitem');
+    expect(cards).toHaveLength(expectedCards.length);
+    expectedCards.forEach(([name, type], index) => {
+      expect(within(cards[index]).getByRole('img', { name })).toBeInTheDocument();
+      expect(within(cards[index]).getByText(type)).toBeInTheDocument();
+    });
   });
 
   it.each(['Trouillet Décors', 'Y-YServicies'])(
@@ -118,7 +165,9 @@ describe('Projects', () => {
     await showAllProjects();
 
     const links = screen.getAllByRole('link');
-    const linkedProjectNames = allProjects.filter(({ url }) => url).map(({ name }) => name);
+    const linkedProjectNames = allProjects
+      .filter(({ url }) => url)
+      .map(({ nameKey }) => fr.projects.names[nameKey]);
     expect(links.map(link => link.textContent)).toEqual(linkedProjectNames);
     for (const link of links) expect(link.querySelector(INTERACTIVE_SELECTOR)).toBeNull();
   });

@@ -84,6 +84,22 @@ export const en = {
     previousPage: 'Previous page',
     nextPage: 'Next page',
     like: 'Like {{name}}',
+    names: {
+      chess: 'Chess game',
+      audioPluginStore: 'Audio plugin store',
+      connectFour: 'Connect Four',
+      calculator: 'Calculator',
+      studySarl: 'Study SARL',
+      kaneRivieraTransfert: 'Kane Riviera Transfert',
+      trouilletDecors: 'Trouillet Décors',
+      yyServicies: 'Y-YServicies',
+      babyGifts: 'Baby gifts',
+    },
+    types: {
+      webApp: 'Web application',
+      website: 'Website',
+      showcaseWebsite: 'Brochure website',
+    },
   },
   exp: {
     pageTitle: 'Experience',

@@ -45,7 +45,7 @@ Sub-components get the same structure in their own folder inside their parent's 
 
 **Logic, constants and hooks**: magic numbers are named constants with their unit (`constants.ts` next to their users), computations are pure helpers in `utils.ts` with tests, and stateful effects are hooks in `hooks/useThing/` with tests (see `src/pages/Home/hooks`).
 
-**Static data**: page-level data lives in `.data/*.json` files inside the page directory (e.g. `src/pages/Projects/.data/freelance-projects.json`).
+**Static data**: page-level data lives in `.data/*.json` files inside the page directory (e.g. `src/pages/Projects/.data/freelance-projects.json`). A text shown to visitors is not written there but named by a translation key, as the `nameKey` and `typeKey` of each project, translated under `projects.names` and `projects.types` by `translateProjects` (`src/pages/Projects/utils.ts`), so every language has its own; client names keep the same text in both files.
 
 **Link preview image**: each language has its own, `public/og-image.jpg` in French and `public/og-image-en.jpg` in English (`OG_IMAGE_PATHS`, `src/utils/pages.ts`), which every page of that language names in its `og:image` (`%PAGE_IMAGE_URL%`). `pnpm og-image` (`scripts/og-image/`) generates both from the texts of the home page in each language (`TRANSLATION_MODULES`), the theme, the background photo and the particle field of the home page, read through Vite. It runs on demand: regenerate them and commit them when one of those changes. A new language needs its path in `OG_IMAGE_PATHS` and its module in `TRANSLATION_MODULES`.
 
