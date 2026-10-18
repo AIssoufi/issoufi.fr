@@ -11,3 +11,15 @@ export const ProjectsPage = styled(Page)`
     padding-right: ${th.space('page')};
   }
 `;
+
+// The design shows only the section titles, so the page title is read by screen readers alone:
+// a box of one pixel, clipped and out of the flow, that changes nothing on screen
+export const PageTitle = styled.h1`
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+`;

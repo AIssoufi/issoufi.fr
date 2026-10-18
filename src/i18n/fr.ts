@@ -67,6 +67,7 @@ export const fr = {
     secondary: 'Expériences professionnelles',
   },
   projects: {
+    pageTitle: 'Projets',
     personal: 'Projets personnels',
     freelance: 'Projets freelance',
     showLess: 'Afficher moins',

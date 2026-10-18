@@ -3,16 +3,16 @@ import styled from '@xstyled/styled-components';
 
 import Page from './Page';
 
-const getSection = container => container.querySelector('section');
+const getMain = () => screen.getByRole('main');
 
 /**
- * Reads the `background-image` of a section's `::before` layer in the injected style sheets,
+ * Reads the `background-image` of the main element's `::before` layer in the injected style sheets,
  * since jsdom computes no style for pseudo-elements. Splitting the CSS on `}` only finds a flat
  * rule: update it if `Page.styled.ts` ever wraps `::before` in an `@media` block.
  */
-const getBackgroundImage = section => {
+const getBackgroundImage = main => {
   const css = [...document.querySelectorAll('style')].map(style => style.textContent).join('');
-  const classNames = [...section.classList];
+  const classNames = [...main.classList];
   const beforeRule = css
     .split('}')
     .find(rule => classNames.some(className => rule.includes(`.${className}::before`)));
@@ -21,46 +21,44 @@ const getBackgroundImage = section => {
 };
 
 describe('Page', () => {
-  it('renders its content in a section', () => {
-    const { container } = render(
+  it('renders its content in the main landmark of the page', () => {
+    render(
       <Page>
         <h1>Projets</h1>
       </Page>,
     );
 
-    expect(getSection(container)).toContainElement(
-      screen.getByRole('heading', { name: 'Projets' }),
-    );
+    expect(getMain()).toContainElement(screen.getByRole('heading', { name: 'Projets' }));
   });
 
   it('shows the background image behind the page', () => {
-    const { container } = render(<Page backgroundImage="/projects.webp" />);
-    expect(getBackgroundImage(getSection(container))).toBe('url(/projects.webp)');
+    render(<Page backgroundImage="/projects.webp" />);
+    expect(getBackgroundImage(getMain())).toBe('url(/projects.webp)');
   });
 
   it.each([undefined, ''])('draws no background image when it is %j', backgroundImage => {
-    const { container } = render(<Page backgroundImage={backgroundImage} />);
-    expect(getBackgroundImage(getSection(container))).toBe('none');
+    render(<Page backgroundImage={backgroundImage} />);
+    expect(getBackgroundImage(getMain())).toBe('none');
   });
 
   it('keeps the class name it receives', () => {
-    const { container } = render(<Page className="custom-page" />);
-    expect(getSection(container)).toHaveClass('custom-page');
+    render(<Page className="custom-page" />);
+    expect(getMain()).toHaveClass('custom-page');
   });
 
   it('can be extended with styled()', () => {
     const CenteredPage = styled(Page)`
       display: flex;
     `;
-    const { container } = render(<CenteredPage backgroundImage="/experiences.webp" />);
-    const section = getSection(container);
+    render(<CenteredPage backgroundImage="/experiences.webp" />);
+    const main = getMain();
 
-    expect(getComputedStyle(section).display).toBe('flex');
-    expect(getBackgroundImage(section)).toBe('url(/experiences.webp)');
+    expect(getComputedStyle(main).display).toBe('flex');
+    expect(getBackgroundImage(main)).toBe('url(/experiences.webp)');
   });
 
   it('renders without any props', () => {
-    const { container } = render(<Page />);
-    expect(getSection(container)).toBeEmptyDOMElement();
+    render(<Page />);
+    expect(getMain()).toBeEmptyDOMElement();
   });
 });

@@ -65,6 +65,7 @@ export const en = {
     secondary: 'Professional experience',
   },
   projects: {
+    pageTitle: 'Projects',
     personal: 'Personal projects',
     freelance: 'Freelance projects',
     showLess: 'Show less',

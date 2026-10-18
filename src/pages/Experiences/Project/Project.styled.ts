@@ -35,7 +35,7 @@ export const Body = styled.div`
   padding-bottom: ${th.space(4)};
 `;
 
-export const Description = styled.main`
+export const Description = styled.div`
   font-size: ${th.fontSize(13)};
   font-weight: ${th.fontWeight('regular')};
   line-height: ${th.lineHeight(155)};

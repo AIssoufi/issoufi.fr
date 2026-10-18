@@ -14,8 +14,8 @@ import {
   Content,
   CursorGlow,
   HomePage,
+  Intro,
   MagneticWrapper,
-  Main,
   Subtitle,
   Title,
 } from './Home.styled';
@@ -44,7 +44,7 @@ export const Home = () => {
       <ParticleField />
       <CursorGlow ref={cursorRef} />
       <Content ref={contentRef}>
-        <Main>
+        <Intro>
           <Title>
             <SplitWords startIndex={0}>{jobTitle}</SplitWords>
             <br />
@@ -55,7 +55,7 @@ export const Home = () => {
             {t('home.title2Post')}
           </Title>
           <Subtitle>{t('home.subtitle')}</Subtitle>
-        </Main>
+        </Intro>
         <ButtonContainer>
           <MagneticWrapper {...magneticHover}>
             <Btn
