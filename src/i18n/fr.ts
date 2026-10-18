@@ -40,6 +40,9 @@ export const fr = {
     projects: 'Projets',
     experience: 'Expériences',
   },
+  langToggle: {
+    label: 'Langue',
+  },
   home: {
     title1: 'Développeur full-stack JavaScript',
     title2Pre: "passioné par l'",

@@ -1,5 +1,7 @@
 import { render, screen } from '@testing-library/react';
 
+import { isPublicFile } from '../testUtils';
+import { BACKGROUND_IMAGE_URL } from './constants';
 import { Experiences } from './Experiences';
 
 describe('Experiences', () => {
@@ -13,5 +15,9 @@ describe('Experiences', () => {
     render(<Experiences />);
 
     expect(screen.getAllByRole('img', { name }).length).toBeGreaterThan(0);
+  });
+
+  it('serves its background from public/', () => {
+    expect(isPublicFile(BACKGROUND_IMAGE_URL)).toBe(true);
   });
 });
