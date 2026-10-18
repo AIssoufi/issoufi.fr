@@ -205,8 +205,9 @@ describe('useWholeCardCount', () => {
 
     act(() => result.current.listRef(secondList));
 
+    const [, secondObserver] = FakeResizeObserver.instances;
     expect(firstObserver.disconnect).toHaveBeenCalledOnce();
-    expect(FakeResizeObserver.instances.at(-1)?.observe).toHaveBeenCalledWith(secondList);
+    expect(secondObserver.observe).toHaveBeenCalledWith(secondList);
     expect(result.current.wholeCardCount).toBe(2);
   });
 
