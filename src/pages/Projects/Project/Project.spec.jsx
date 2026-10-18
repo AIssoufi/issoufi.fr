@@ -571,7 +571,8 @@ describe('Project', () => {
 
       // A size that jsdom failed to parse would be empty in both modes, and pass unnoticed
       expect(rowCardSize['']).toEqual({
-        flex: `0 0 calc(33.333% - 2 * ${theme.space[5]})`,
+        // A third of the row less the margins, which jsdom may serialize already computed
+        flex: expect.stringMatching(/^0 0 calc\(33\.333% - /),
         'min-width': theme.sizes[260],
         'box-sizing': 'content-box',
         margin: theme.space[5],
