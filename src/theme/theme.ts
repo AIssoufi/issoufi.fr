@@ -85,6 +85,11 @@ export const theme = {
      * 14 px.
      */
     'floating-controls-room': spacing[80],
+    /**
+     * Space between a tooltip and the control it describes, which an invisible bridge fills, so the
+     * pointer can move from the control onto the tooltip without closing it.
+     */
+    'tooltip-gap': spacing[8],
     /** Gap between an icon and its label, relative to the font size. */
     'icon-gap': relativeSpacing[70],
   },

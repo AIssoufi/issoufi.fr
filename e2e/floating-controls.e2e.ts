@@ -4,6 +4,7 @@ import { LANGUAGES } from '../src/i18n/constants';
 import { en } from '../src/i18n/en';
 import { fr } from '../src/i18n/fr';
 import { PAGES } from '../src/utils/pages';
+import { waitForEndingAnimations } from './animations';
 import { FLOATING_CONTROLS_SCREEN_WIDTHS_PX, PAGE_SELECTOR, SCREEN_HEIGHT_PX } from './constants';
 import { doBoxesOverlapHorizontally, getCheckedRoutes, type ScreenBox } from './utils';
 
@@ -89,18 +90,6 @@ const listContentBoxes = (container: Element): ContentBox[] => {
     boxes.push({ ...clipBox({ rect, clipper: element.parentElement }), label });
   }
   return boxes;
-};
-
-/**
- * Waits for the animations and transitions of an element and its content that come to an end, such
- * as the cards of a row shown whole, leaving out those that loop forever. Runs in the browser.
- */
-const waitForEndingAnimations = async (container: Element) => {
-  const animations = container.getAnimations({ subtree: true });
-  const isEnding = (animation: Animation) =>
-    animation.effect?.getComputedTiming().iterations !== Number.POSITIVE_INFINITY;
-  // A cancelled animation rejects its promise: it has ended all the same
-  await Promise.all(animations.filter(isEnding).map(({ finished }) => finished.catch(() => {})));
 };
 
 /** Parameters of {@link listContentUnderControls}. */

@@ -71,6 +71,7 @@ const NavMenu = ({ id, items = NO_ITEMS, onClick, mobileMenuIsOpen = false }: Na
       </NavList>
       <MenuCvLink
         hasIcon
+        tooltipPlacement="top"
         onClick={onClick}
       />
       <MenuGitHubLink onClick={onClick} />

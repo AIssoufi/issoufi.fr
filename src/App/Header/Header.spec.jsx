@@ -181,8 +181,9 @@ describe('Header', () => {
       expect(getFloatingLinks().previousElementSibling).toBe(
         screen.getByRole('group', { name: 'Langue' }),
       );
+      // The CV button sits in the element that also holds its tooltip
       expect([...getFloatingLinks().children]).toEqual([
-        getFloatingCvLink(),
+        getFloatingCvLink().parentElement,
         getFloatingGitHubLink(),
       ]);
     });
@@ -237,6 +238,19 @@ describe('Header', () => {
         declaredStyle({ element: getFloatingCvLink(), property: 'transform', pseudo });
       expect(transform(':hover')).toBe('scale(1.06)');
       expect(transform(':active')).toBe('');
+    });
+
+    it('shows the tooltip of the floating CV button on its left, away from the edge of the screen', async () => {
+      await renderHeader();
+
+      const tooltip = within(getFloatingLinks()).getByRole('tooltip', { hidden: true });
+      expect(getFloatingCvLink()).toHaveAttribute('aria-labelledby', tooltip.id);
+      expect(declaredStyle({ element: tooltip, property: 'right' })).toBe(
+        serializeCssValue({
+          property: 'right',
+          value: `calc(100% + ${theme.space['tooltip-gap']})`,
+        }),
+      );
     });
 
     it('hides the floating CV button and GitHub icon on mobile, where the menu holds them', async () => {
@@ -537,6 +551,25 @@ describe('Header', () => {
       expect(getBurgerButton()).toHaveFocus();
       expect(getNavigation()).not.toBeVisible();
       getCoveredElements().forEach(element => expect(element.closest('[inert]')).toBeNull());
+    });
+
+    it('closes the tooltip of the CV button with a first Escape, then itself with the next', async () => {
+      await renderHeader();
+      await userEvent.click(getBurgerButton());
+      act(() => getCvLink().focus());
+      // jsdom keeps from the other tests of this file a state that stops a focus moved by Tab
+      // from matching :focus-visible here, so the mouse shows the tooltip
+      await userEvent.hover(getCvLink());
+      const tooltip = within(getNavigation()).getByRole('tooltip');
+
+      await userEvent.keyboard('{Escape}');
+      expect(tooltip).not.toBeVisible();
+      expect(getBurgerButton()).toHaveAttribute('aria-expanded', 'true');
+      expect(getCvLink()).toHaveFocus();
+
+      await userEvent.keyboard('{Escape}');
+      expect(getBurgerButton()).toHaveAttribute('aria-expanded', 'false');
+      expect(getBurgerButton()).toHaveFocus();
     });
 
     it('closes with Escape while the burger has the focus', async () => {
