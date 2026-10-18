@@ -1,15 +1,11 @@
-import type { AnimationItem } from 'lottie-web';
-import { type Ref, useEffect, useEffectEvent, useImperativeHandle, useRef } from 'react';
+import type { Ref } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import burgerMenuData from './burger-menu.json';
-import { Button } from './BurgerMenu.styled';
-import { CLOSE_ANIMATION, OPEN_ANIMATION } from './constants';
-import { useLottieAnimation } from './hooks/useLottieAnimation';
+import { BottomBar, Button, MiddleBar, TopBar } from './BurgerMenu.styled';
 
 /** Props of {@link BurgerMenu}. */
 interface BurgerMenuProps {
-  /** Whether the mobile menu is open; drives the icon animation direction. @default false */
+  /** Whether the mobile menu is open; the icon then shows a cross. @default false */
   isOpen?: boolean;
   /**
    * `id` of the menu the button opens and closes, announced to screen readers as the element it
@@ -25,10 +21,10 @@ interface BurgerMenuProps {
 }
 
 /**
- * Animated burger button that opens and closes the mobile menu. Plays a Lottie animation forward
- * on open and backward on close; the animation is drawn once lottie-web is loaded, after the
- * first render, and destroyed on unmount. The icon keeps its size meanwhile, and shows the cross
- * at once when the menu was opened before the animation was drawn.
+ * Burger button that opens and closes the mobile menu. Its icon is three bars drawn in CSS, shown
+ * with the first render: when the menu opens, the outer bars slide onto the middle one, then the
+ * bars turn into a cross; when it closes, the cross turns back, then the bars slide apart. A menu
+ * open from the first render shows the cross at once.
  * The parent owns the open state and passes it back through `isOpen`.
  *
  * It is a native button, so `Tab` reaches it and `Enter` or `Space` toggles the menu. Screen
@@ -37,45 +33,10 @@ interface BurgerMenuProps {
  */
 const BurgerMenu = ({ isOpen = false, menuId, onOpen, onClose, ref }: BurgerMenuProps) => {
   const { t } = useTranslation();
-  const menuBurgerEl = useRef<HTMLButtonElement>(null);
-  // The handle is set once the button is mounted
-  useImperativeHandle(ref, () => menuBurgerEl.current!, []);
-  const lottieInstance = useLottieAnimation({
-    containerRef: menuBurgerEl,
-    animationData: burgerMenuData,
-  });
-
-  // An effect event reads the latest open state but does not run again when it changes: a toggle
-  // plays the animation, and only the first draw jumps straight to the cross
-  const showCrossIfOpen = useEffectEvent((animation: AnimationItem) => {
-    const lastFrame = animation.totalFrames - 1;
-    if (isOpen) animation.goToAndStop(lastFrame, true);
-  });
-
-  useEffect(() => {
-    if (lottieInstance) showCrossIfOpen(lottieInstance);
-  }, [lottieInstance]);
-
-  useEffect(() => {
-    if (!lottieInstance) return;
-    if (!isOpen) {
-      lottieInstance.setSpeed(CLOSE_ANIMATION.speedMultiplier);
-      lottieInstance.setDirection(CLOSE_ANIMATION.direction);
-      lottieInstance.play();
-    }
-  }, [isOpen, lottieInstance]);
 
   const handleBurgerMenuClick = () => {
-    if (isOpen) {
-      onClose?.();
-      lottieInstance?.setSpeed(CLOSE_ANIMATION.speedMultiplier);
-      lottieInstance?.setDirection(CLOSE_ANIMATION.direction);
-    } else {
-      onOpen?.();
-      lottieInstance?.setSpeed(OPEN_ANIMATION.speedMultiplier);
-      lottieInstance?.setDirection(OPEN_ANIMATION.direction);
-    }
-    lottieInstance?.play();
+    if (isOpen) onClose?.();
+    else onOpen?.();
   };
 
   const label = isOpen ? t('burgerMenu.close') : t('burgerMenu.open');
@@ -85,12 +46,16 @@ const BurgerMenu = ({ isOpen = false, menuId, onOpen, onClose, ref }: BurgerMenu
   return (
     <Button
       type="button"
-      ref={menuBurgerEl}
+      ref={ref}
       aria-label={label}
       aria-expanded={isOpen}
       aria-controls={controlledMenuId}
       onClick={handleBurgerMenuClick}
-    />
+    >
+      <TopBar $isOpen={isOpen} />
+      <MiddleBar $isOpen={isOpen} />
+      <BottomBar $isOpen={isOpen} />
+    </Button>
   );
 };
 
