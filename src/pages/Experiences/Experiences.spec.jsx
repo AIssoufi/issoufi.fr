@@ -1,5 +1,6 @@
 import { render, screen } from '@testing-library/react';
 
+import i18n from '../../i18n';
 import { isPublicFile } from '../testUtils';
 import { BACKGROUND_IMAGE_URL } from './constants';
 import { Experiences } from './Experiences';
@@ -16,6 +17,16 @@ describe('Experiences', () => {
 
     expect(screen.getAllByRole('main')).toHaveLength(1);
     expect(screen.getAllByRole('heading', { level: 1 })).toHaveLength(1);
+  });
+
+  it('gives every list, bullet lists included, an explicit list role, which Safari drops from lists without bullets', () => {
+    render(<Experiences />);
+    // b3 has no non-breaking space, so its translated text matches the text of the page exactly
+    const bulletList = screen.getByText(i18n.t('exp.wibilong.b3')).closest('ul');
+    const lists = screen.getAllByRole('list', { hidden: true });
+
+    expect(lists).toContain(bulletList);
+    lists.forEach(list => expect(list).toHaveAttribute('role', 'list'));
   });
 
   it.each(['Sewan Groupe', 'Wibilong', 'Supralog', 'Beepeers'])('shows the %s experience', name => {

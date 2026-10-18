@@ -70,7 +70,7 @@ pnpm test:watch      # Watch mode
 pnpm test:coverage   # Single run with coverage, HTML report in coverage/index.html
 ```
 
-Tests are `*.spec.jsx` (components), `*.spec.ts` (helpers and hooks, those of `e2e/` included) and `*.spec.js` (helpers of the scripts of `scripts/` and the test helpers of `src/pages/testUtils.js`) files next to the code they test. Every component has one. `vite.config.spec.ts` builds the site in memory, with the real config, and checks the generated pages. `pnpm test:coverage` fails when the coverage of `src/`, of the Vite config helpers (`vite/`), of the browser test helpers (`e2e/`) and of the script helpers (`scripts/ci/utils/` and `scripts/og-image/utils/`) drops below the thresholds of `vite.config.ts` (`COVERAGE_THRESHOLDS_PERCENT`).
+Tests are `*.spec.jsx` (components), `*.spec.ts` (helpers and hooks, those of `e2e/` included) and `*.spec.js` (helpers of the scripts of `scripts/` and the test helpers of `src/pages/testUtils.js` and `src/App/testUtils.js`) files next to the code they test. Every component has one. `vite.config.spec.ts` builds the site in memory, with the real config, and checks the generated pages. `src/setupTests.ts` renders every component in the theme and global styles of the app (`src/testUtils.tsx`), so the styles hold the values of the tokens, gives no canvas context, as jsdom has none, and fails a test that logs an error with `console.error`, such as a React warning, so the output stays clean. `pnpm test:coverage` fails when the coverage of `src/`, of the Vite config helpers (`vite/`), of the browser test helpers (`e2e/`) and of the script helpers (`scripts/ci/utils/` and `scripts/og-image/utils/`) drops below the thresholds of `vite.config.ts` (`COVERAGE_THRESHOLDS_PERCENT`).
 
 ### Browser tests
 
@@ -173,8 +173,10 @@ The version follows the commits: `fix` bumps the patch version, `feat` the minor
 │   │   ├── hooks/        # useReloadOnStaleChunk: reloads once when a deployment removed a chunk
 │   │   ├── PageHeadingFocus/ # Gives the keyboard focus to the h1 of the new page after a link
 │   │   ├── RouteErrorBoundary/ # Error message with a reload button in place of a page that fails
-│   │   └── Header/       # Logo, navigation, burger menu and LangToggle/ (FR / EN switch)
+│   │   ├── Header/       # Logo, navigation, burger menu and LangToggle/ (FR / EN switch)
+│   │   └── testUtils.js  # waitForBurgerIcon, shared by the specs that render the burger menu
 │   ├── components/       # Components shared across pages
+│   │   ├── List/         # <ul role="list"> of every list, extended with styled(List)
 │   │   ├── Page/         # <main> landmark of every page, extended with styled(Page)
 │   │   └── StatusMessage/ # Code, title, message, action button and home link of error pages
 │   ├── i18n/             # French and English translations, and the storage of the chosen language
@@ -187,7 +189,10 @@ The version follows the commits: `fix` bumps the patch version, `feat` the minor
 │   │   └── testUtils.js  # Helpers shared by the page tests, e.g. isPublicFile
 │   ├── theme/            # Design tokens (tokens.ts, theme.ts) and global styles
 │   ├── utils/            # Career dates and page metadata helpers
-│   └── index.tsx         # Entry point
+│   ├── index.tsx         # Entry point
+│   ├── setupTests.ts     # Test setup: theme around every render, no canvas, fails on console.error
+│   ├── testErrors.ts     # describeLoggedErrors: the failure message of a test that logs an error
+│   └── testUtils.tsx     # withTheme: the theme and global styles wrapper of the tests
 ├── vite/                 # Helpers of vite.config.ts and playwright.config.ts: dev and preview ports, chunk names, page chunks
 ├── index.html            # HTML template of every page, filled at build time by vite.config.ts
 ├── playwright.config.ts  # Playwright: Chromium, on pnpm preview at the port of the worktree
@@ -199,9 +204,9 @@ The version follows the commits: `fix` bumps the patch version, `feat` the minor
 
 - **Branches**: `main` is production and `develop`, the default branch, the integration branch. A ruleset protects both: changes go through a pull request whose CI checks pass, and force pushes and deletions are refused. The `production` environment only accepts deployments from `main`. Each ticket is worked on in its own [Worktrunk](https://worktrunk.dev) worktree next to the repository (`AIssoufi.github.io.ISF-35`), on a branch named after its reference: the `ISF-` autolink turns `ISF-35` into a link to issue #35. The branch starts from `develop` (`wt switch --create ISF-35 --base develop`) and goes back into it through a pull request that says `Closes #35`, once the CI passes. `.config/wt.toml` installs the dependencies of each new worktree and writes its port to `.env.local` (see Development). A release is a pull request from `develop` to `main`.
 - **Commits**: [Conventional Commits](https://www.conventionalcommits.org/) enforced via commitlint. They also set the next version and the changelog (see Releases).
-- **Linting**: ESLint (`eslint.config.js`) with the recommended rules of ESLint and typescript-eslint, React Hooks (including the React Compiler rules) and React Refresh. It also forbids importing `styled-components` directly, and importing the style file of a component (`Name.styled`) from outside its folder.
+- **Linting**: ESLint (`eslint.config.js`) with the recommended rules of ESLint and typescript-eslint, React Hooks (including the React Compiler rules) and React Refresh. It also forbids importing `styled-components` directly, importing the style file of a component (`Name.styled`) from outside its folder, and rendering a `ul` other than through `List`.
 - **Formatting**: Prettier (via lint-staged + husky)
 - **Language**: code, comments and docs are in English. Only user-facing texts are translated.
 - **Styles**: styled-components read every color, spacing, font, radius, shadow, duration and breakpoint from the design tokens of `src/theme` with the [xstyled](https://xstyled.dev/) `th` helpers (`th.color('accent')`, `th.space(16)`, `th.radius('md')`…). No hard-coded values, and every styled-components API is imported from `@xstyled/styled-components`.
 - **Components**: one folder per component (`Name.tsx`, `Name.spec.jsx`, `Name.styled.ts`, `index.ts`), styles imported only by their own component, optional props that tolerate missing values, and JSDoc on every component and prop. See [`CLAUDE.md`](CLAUDE.md) for the details.
-- **Accessibility**: every page renders a single `<main>` landmark, its `Page` component, and a single `h1`, visually hidden when the design shows none; its sections use `h2` and below. The test of each page checks both.
+- **Accessibility**: every page renders a single `<main>` landmark, its `Page` component, and a single `h1`, visually hidden when the design shows none; its sections use `h2` and below. The test of each page checks both. Every list is a `List` (`src/components/List`): the global style removes the bullets of lists, and Safari then stops exposing a `ul` as a list, which `role="list"` restores, so VoiceOver still announces it and counts its items.

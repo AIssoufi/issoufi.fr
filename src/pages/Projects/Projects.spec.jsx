@@ -1,6 +1,5 @@
 import { act, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { ThemeProvider } from '@xstyled/styled-components';
 
 import i18n from '../../i18n';
 import { theme } from '../../theme';
@@ -109,15 +108,8 @@ describe('Projects', () => {
 });
 
 describe('Projects layout on mobile', () => {
-  const renderWithTheme = () =>
-    render(
-      <ThemeProvider theme={theme}>
-        <Projects />
-      </ThemeProvider>,
-    );
-
   it('lines the cards of the "Show all" grid up with the section title below the tablet width', async () => {
-    renderWithTheme();
+    render(<Projects />);
 
     const [showAllButton] = screen.getAllByText(/^Tout afficher/);
     await userEvent.click(showAllButton);
@@ -135,7 +127,7 @@ describe('Projects layout on mobile', () => {
   });
 
   it('removes the padding of the "Show all" grid from the tablet width', async () => {
-    renderWithTheme();
+    render(<Projects />);
 
     const [showAllButton] = screen.getAllByText(/^Tout afficher/);
     await userEvent.click(showAllButton);
@@ -150,7 +142,7 @@ describe('Projects layout on mobile', () => {
   });
 
   it('keeps the row of cards without padding, so that it scrolls to the screen edges', () => {
-    renderWithTheme();
+    render(<Projects />);
 
     const grid = firstThumbnail().closest('ul');
     expect(declaredStyle({ element: grid, property: 'display' })).toBe('flex');

@@ -26,6 +26,8 @@ export const GlobalStyle = createGlobalStyle`
     font-family: ${th.font('code')};
   }
 
+  /* Without bullets, Safari no longer exposes a ul as a list: render lists with List
+     (src/components/List), which gives them back their role */
   ul {
     margin: 0;
     padding: 0;
