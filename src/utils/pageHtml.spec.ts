@@ -88,6 +88,7 @@ describe('renderPageHtml', () => {
     expect(html.match(/%PAGE_DESCRIPTION%/g)).toHaveLength(3);
     expect(html.match(/%PAGE_URL%/g)).toHaveLength(2);
     expect(html.match(/%PAGE_IMAGE_ALT%/g)).toHaveLength(1);
+    expect(html.match(/%PAGE_NOSCRIPT%/g)).toHaveLength(1);
     getPageFiles().forEach(({ page, language }) =>
       expect(renderPageHtml({ template: html, page, language, years: 8 })).not.toMatch(
         /%PAGE_\w+%/,
@@ -99,6 +100,28 @@ describe('renderPageHtml', () => {
     expect(renderPageHtml({ template: '%PAGE_AUTHOR% %PAGE_TITLE%', page: home, years: 8 })).toBe(
       '%PAGE_AUTHOR% ADAM Issoufi - Développeur full-stack JavaScript',
     );
+  });
+});
+
+describe('message shown without JavaScript', () => {
+  const html = readFileSync('index.html', 'utf-8');
+
+  it('is in French on the French pages', () => {
+    const page = renderPageHtml({ template: html, page: projects, years: 8 });
+
+    expect(page).toContain('<noscript>Activez JavaScript pour afficher ce site.</noscript>');
+  });
+
+  it('is in English on the English pages', () => {
+    const page = renderPageHtml({ template: html, page: projects, language: 'en', years: 8 });
+
+    expect(page).toContain('<noscript>Enable JavaScript to view this site.</noscript>');
+  });
+
+  it.each(['fr', 'en'] as const)('is in the language of the %s not found page', language => {
+    const page = renderNotFoundHtml({ template: html, language, years: 8 });
+
+    expect(page).toContain(`<noscript>${{ fr, en }[language].meta.noScript}</noscript>`);
   });
 });
 

@@ -12,10 +12,11 @@ const escapeHtml = (value: string) =>
 const META_TRANSLATIONS: Record<Language, Translations['meta']> = { fr: fr.meta, en: en.meta };
 
 /**
- * Key of a page's title and description in the `meta` translations: every key but `ogImageAlt`,
- * the description of the link preview image that all pages share.
+ * Key of a page's title and description in the `meta` translations: every key but those that all
+ * pages share, `ogImageAlt`, the description of the link preview image, and `noScript`, the
+ * message shown without JavaScript.
  */
-type PageMetaKey = Exclude<keyof Translations['meta'], 'ogImageAlt'>;
+type PageMetaKey = Exclude<keyof Translations['meta'], 'ogImageAlt' | 'noScript'>;
 
 /** A `%PAGE_*%` placeholder of `index.html`. Its first group captures its name. */
 const PLACEHOLDER_PATTERN = /%(PAGE_[A-Z_]+)%/g;
@@ -36,8 +37,9 @@ interface FillPlaceholdersParams {
 
 /**
  * Replaces every `%PAGE_*%` placeholder with the metadata of a page in a language, HTML-escaped:
- * its language code (`<html lang>`), its Open Graph locale, its title, its description, its URL
- * and the description of the link preview image. An unknown placeholder is left as it is.
+ * its language code (`<html lang>`), its Open Graph locale, its title, its description, its URL,
+ * the description of the link preview image and the message shown without JavaScript. An unknown
+ * placeholder is left as it is.
  */
 function fillPlaceholders({ template, meta, language, url, years }: FillPlaceholdersParams) {
   const translations = META_TRANSLATIONS[language];
@@ -49,6 +51,7 @@ function fillPlaceholders({ template, meta, language, url, years }: FillPlacehol
     PAGE_DESCRIPTION: description.replace(/{{years}}/g, String(years)),
     PAGE_URL: url,
     PAGE_IMAGE_ALT: translations.ogImageAlt,
+    PAGE_NOSCRIPT: translations.noScript,
   };
 
   return template.replace(PLACEHOLDER_PATTERN, (placeholder, key: string) =>
