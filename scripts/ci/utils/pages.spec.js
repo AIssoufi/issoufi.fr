@@ -238,15 +238,15 @@ describe('getFileChecks', () => {
 });
 
 describe('compareFile', () => {
-  const file = { file: 'sitemap.xml', route: '/sitemap.xml', status: 200 };
+  const check = { file: 'sitemap.xml', route: '/sitemap.xml', status: 200 };
   const builtText = '<?xml version="1.0" encoding="UTF-8"?>\n<urlset></urlset>\n';
 
   it('finds no problem when the file is served as built', () => {
-    expect(compareFile({ file, status: 200, servedText: builtText, builtText })).toEqual([]);
+    expect(compareFile({ check, status: 200, servedText: builtText, builtText })).toEqual([]);
   });
 
   it('reports an unexpected status', () => {
-    expect(compareFile({ file, status: 404, servedText: builtText, builtText })).toEqual([
+    expect(compareFile({ check, status: 404, servedText: builtText, builtText })).toEqual([
       '/sitemap.xml: status 404 instead of 200',
     ]);
   });
@@ -254,7 +254,7 @@ describe('compareFile', () => {
   it('reports a content that differs from the build, by a single character', () => {
     const servedText = builtText.replace('\n<urlset>', '<urlset>');
 
-    expect(compareFile({ file, status: 200, servedText, builtText })).toEqual([
+    expect(compareFile({ check, status: 200, servedText, builtText })).toEqual([
       '/sitemap.xml: content differs from sitemap.xml of the build',
     ]);
   });
@@ -262,7 +262,7 @@ describe('compareFile', () => {
   it('reports the not found page served in place of the file, with both problems', () => {
     const servedText = '<!doctype html><title>Page introuvable</title>';
 
-    expect(compareFile({ file, status: 404, servedText, builtText })).toEqual([
+    expect(compareFile({ check, status: 404, servedText, builtText })).toEqual([
       '/sitemap.xml: status 404 instead of 200',
       '/sitemap.xml: content differs from sitemap.xml of the build',
     ]);
@@ -271,14 +271,14 @@ describe('compareFile', () => {
   it.each([undefined, null, 42, ''])(
     'reports a file empty in the build, %o, even when the site serves it empty too',
     emptyText => {
-      expect(compareFile({ file, status: 200, servedText: '', builtText: emptyText })).toEqual([
+      expect(compareFile({ check, status: 200, servedText: '', builtText: emptyText })).toEqual([
         '/sitemap.xml: sitemap.xml is empty in the build',
       ]);
     },
   );
 
   it.each([undefined, null, 42])('reports the served content %o as differing', servedText => {
-    expect(compareFile({ file, status: 200, servedText, builtText })).toEqual([
+    expect(compareFile({ check, status: 200, servedText, builtText })).toEqual([
       '/sitemap.xml: content differs from sitemap.xml of the build',
     ]);
   });
@@ -286,7 +286,7 @@ describe('compareFile', () => {
   it.each([undefined, null, NaN, 200.5, '200'])(
     'reports the served status %o as unknown',
     status => {
-      expect(compareFile({ file, status, servedText: builtText, builtText })).toEqual([
+      expect(compareFile({ check, status, servedText: builtText, builtText })).toEqual([
         '/sitemap.xml: status unknown instead of 200',
       ]);
     },
@@ -296,7 +296,7 @@ describe('compareFile', () => {
     'reports the missing or malformed file check %o as a single problem',
     malformedFile => {
       expect(
-        compareFile({ file: malformedFile, status: 200, servedText: builtText, builtText }),
+        compareFile({ check: malformedFile, status: 200, servedText: builtText, builtText }),
       ).toEqual(['A file check without a file, a route or an integer status cannot be compared']);
     },
   );

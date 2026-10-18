@@ -95,7 +95,7 @@ const checkSite = async () => {
       checkRoute({
         check: file,
         compare: ({ status, served, built }) =>
-          compareFile({ file, status, servedText: served, builtText: built }),
+          compareFile({ check: file, status, servedText: served, builtText: built }),
       }),
     ),
   ]);

@@ -243,7 +243,7 @@ export const comparePage = ({ page, status, servedHtml, builtHtml }) => {
 /**
  * Parameters of {@link compareFile}.
  * @typedef {object} CompareFileParams
- * @property {PageCheck} [file] - File to check, from {@link getFileChecks}, and its expected
+ * @property {PageCheck} [check] - File to check, from {@link getFileChecks}, and its expected
  * status. A missing or malformed check (see {@link isPageCheck}) is reported as a problem.
  * @property {number} [status] - Status the site answered with. Missing or not an integer, it is
  * reported as unknown.
@@ -261,27 +261,27 @@ export const comparePage = ({ page, status, servedHtml, builtHtml }) => {
  * problem when the file check is missing or malformed.
  * @example
  * compareFile({
- *   file: { file: 'robots.txt', route: '/robots.txt', status: 200 },
+ *   check: { file: 'robots.txt', route: '/robots.txt', status: 200 },
  *   status: 200,
  *   servedText: 'User-agent: *\n',
  *   builtText: 'User-agent: *\nSitemap: https://issoufi.fr/sitemap.xml\n',
  * }); // ['/robots.txt: content differs from robots.txt of the build']
  */
-export const compareFile = ({ file, status, servedText, builtText }) => {
-  if (!isPageCheck(file)) {
+export const compareFile = ({ check, status, servedText, builtText }) => {
+  if (!isPageCheck(check)) {
     return ['A file check without a file, a route or an integer status cannot be compared'];
   }
 
   const served = typeof servedText === 'string' ? servedText : '';
   const built = typeof builtText === 'string' ? builtText : '';
-  const problems = compareStatus({ check: file, status });
+  const problems = compareStatus({ check, status });
 
   // Without content in the build, an empty served file would pass the comparison
   const isEmptyInBuild = built === '';
   if (isEmptyInBuild) {
-    problems.push(`${file.route}: ${file.file} is empty in the build`);
+    problems.push(`${check.route}: ${check.file} is empty in the build`);
   } else if (served !== built) {
-    problems.push(`${file.route}: content differs from ${file.file} of the build`);
+    problems.push(`${check.route}: content differs from ${check.file} of the build`);
   }
 
   return problems;
