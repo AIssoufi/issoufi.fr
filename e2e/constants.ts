@@ -53,6 +53,29 @@ export const PSEUDO_ELEMENT_TYPES = ['before', 'after'] as const;
  */
 export const MAX_DOT_OFFSET_PX = 0.5;
 
+/**
+ * Screen widths, in pixels, at which the browser test of the Experiences page checks what screen
+ * readers read: the narrowest phones still in use (320), two common phone widths (375 and 414)
+ * and a tablet in portrait (768), below the tablet breakpoint, where the header of each card shows
+ * the period of its job, then a common desktop width (1440), where the period column of the
+ * timeline shows it.
+ */
+export const EXPERIENCES_SCREEN_WIDTHS_PX = [320, 375, 414, 768, 1440] as const;
+
+/**
+ * Row of each job of the timeline of the Experiences page, a job alone at its company or one of
+ * the roles of a company: the list item that holds its period column, the only element whose
+ * `::after` draws a dot ({@link TIMELINE_DOT_ATTRIBUTE}).
+ */
+export const JOB_ROW_SELECTOR = `li:has(> [${TIMELINE_DOT_ATTRIBUTE}="after"])`;
+
+/**
+ * Characters that only decorate the Experiences page, which screen readers must not read: the
+ * arrow of the period column, the dash of the period in the header of a card, and the chevron
+ * before each bullet point. The texts of the page use none of them.
+ */
+export const DECORATION_PATTERN = /[↓–›]/;
+
 /** Number of coordinates in a quad of the DevTools protocol: the x and the y of its 4 corners. */
 export const QUAD_COORDINATE_COUNT = 8;
 

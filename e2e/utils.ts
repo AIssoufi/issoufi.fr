@@ -485,3 +485,79 @@ export const getScreenCenter = (viewport?: ViewportSize | null): ScreenPoint | n
   const screen = getScreenBox(viewport);
   return screen && { x: screen.width / 2, y: screen.height / 2 };
 };
+
+/** How many levels deeper than the heading before it a heading may be: one at most. */
+const MAX_HEADING_LEVEL_STEP = 1;
+
+/** Deepest heading level of HTML, a `h6`. */
+const MAX_HEADING_LEVEL = 6;
+
+/** A heading that skips a level, found by {@link findSkippedHeadingLevels}. */
+export interface SkippedHeading {
+  /** Position of the heading among the headings of the page. */
+  index: number;
+  /** Its level, as given. */
+  level: unknown;
+}
+
+/** Tells whether a value is a heading level: a whole number from 1 to 6. */
+const isHeadingLevel = (value: unknown): value is number =>
+  Number.isInteger(value) && Number(value) >= 1 && Number(value) <= MAX_HEADING_LEVEL;
+
+/**
+ * Finds the headings that skip a level, as the `heading-order` rule of axe-core does: a heading
+ * more than one level deeper than the heading before it, such as a `h3` right after the `h1`.
+ * Going back up any number of levels is fine.
+ *
+ * @param levels - Levels of the headings of a page, in its order, such as the ones that
+ * `listBrowserHeadingLevels` reads. Any value that is not an array counts as no heading.
+ * @returns The position and the level of each heading that skips one, in order, or an empty list.
+ * The first heading may only be a `h1`. Each heading is compared with the one right before it,
+ * even when that one skipped a level. A level that is not a whole number from 1 to 6 counts as a
+ * skip, and the heading after it is compared with the last valid one.
+ *
+ * @example
+ * findSkippedHeadingLevels([1, 3, 3, 2, 3, 4, 2]); // [{ index: 1, level: 3 }]
+ */
+export const findSkippedHeadingLevels = (levels?: readonly unknown[] | null): SkippedHeading[] => {
+  if (!Array.isArray(levels)) return [];
+
+  const skips: SkippedHeading[] = [];
+  // The page itself stands above its first heading, which may only be a h1
+  let previousLevel = 0;
+  levels.forEach((level: unknown, index) => {
+    if (!isHeadingLevel(level)) {
+      skips.push({ index, level });
+      return;
+    }
+
+    const isTooDeep = level > previousLevel + MAX_HEADING_LEVEL_STEP;
+    if (isTooDeep) skips.push({ index, level });
+    previousLevel = level;
+  });
+  return skips;
+};
+
+/** Parameters of {@link countOccurrences}. */
+interface CountOccurrencesParams {
+  /** Text to search in. Any value that is not a string counts as an empty text. */
+  text?: unknown;
+  /** Text to count. An empty or missing one is never counted. */
+  searched?: unknown;
+}
+
+/**
+ * Counts how many times a text holds another, without overlaps, such as how many times a screen
+ * reader reads the period of a job.
+ *
+ * @returns The number of occurrences, `0` when either text is empty or not a string.
+ *
+ * @example
+ * countOccurrences({ text: 'août 2021 à Aujourd’hui · août 2021', searched: 'août 2021' }); // 2
+ */
+export const countOccurrences = ({ text, searched }: CountOccurrencesParams = {}): number => {
+  const areTexts = typeof text === 'string' && typeof searched === 'string';
+  if (!areTexts || searched === '') return 0;
+
+  return text.split(searched).length - 1;
+};
