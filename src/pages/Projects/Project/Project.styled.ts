@@ -1,7 +1,7 @@
 import styled, { css, keyframes, th } from '@xstyled/styled-components';
 
 import List from '../../../components/List';
-import { CARD_PERSPECTIVE_PX } from './constants';
+import { CARD_PERSPECTIVE_PX, LIKE_ANIMATION_MS } from './constants';
 
 const heartPop = keyframes`
   0%   { transform: scale(1); }
@@ -275,7 +275,7 @@ export const LikeButton = styled.button<{ $liked: boolean; $animating: boolean }
     ${props =>
       props.$animating &&
       css`
-        animation: ${heartPop} ${th.duration(450)} ${th.timingFunction('standard')} forwards;
+        animation: ${heartPop} ${LIKE_ANIMATION_MS}ms ${th.timingFunction('standard')} forwards;
       `}
   }
 
