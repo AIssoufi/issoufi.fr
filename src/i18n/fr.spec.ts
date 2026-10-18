@@ -1,10 +1,13 @@
 import { fr } from './fr';
 
-/** A colon, semicolon, question or exclamation mark without a no-break space before it (or another mark, as in "?!"). */
+/**
+ * A colon, semicolon, question or exclamation mark with neither a no-break space nor another mark
+ * (as in "?!") before it.
+ */
 const PUNCTUATION_WITHOUT_NO_BREAK_SPACE = /(^|[^\u00a0\u202f:;?!])[:;?!]/;
 /** A colon after a narrow no-break space, instead of the full-width one French puts there. */
 const NARROW_SPACE_BEFORE_COLON = /\u202f:/;
-/** A semicolon, question or exclamation mark after a full-width no-break space, not a narrow one. */
+/** A semicolon, question or exclamation mark after a full-width no-break space, not a narrow. */
 const FULL_SPACE_BEFORE_SHORT_PUNCTUATION = /\u00a0[;?!]/;
 /** A straight apostrophe, instead of the typographic one (’). */
 const STRAIGHT_APOSTROPHE = /'/;
@@ -75,4 +78,22 @@ describe('getEntries', () => {
   it('uses the key of a translation at the root', () => {
     expect(getEntries({ value: 'Accueil', key: 'nav.home' })).toEqual([['nav.home', 'Accueil']]);
   });
+});
+
+describe('PUNCTUATION_WITHOUT_NO_BREAK_SPACE', () => {
+  it.each([
+    'Vraiment\u202f?!',
+    'Quoi\u202f!?',
+    'transverse\u00a0: store',
+    'Cette page n’existe pas.',
+  ])('accepts %j', text => {
+    expect(text).not.toMatch(PUNCTUATION_WITHOUT_NO_BREAK_SPACE);
+  });
+
+  it.each([':début', 'transverse: store', 'transverse : store', 'Vraiment?!', 'Vraiment ?!'])(
+    'catches %j',
+    text => {
+      expect(text).toMatch(PUNCTUATION_WITHOUT_NO_BREAK_SPACE);
+    },
+  );
 });
