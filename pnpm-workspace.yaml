@@ -16,10 +16,15 @@ overrides:
   # close GHSA path-traversal/file-read alerts not covered by any Dependabot PR.
   postcss: ^8.5.25
 
+# A patch that no longer applies, after an update changed the code it patches, fails the install
+# instead of a warning, so an update never drops it silently. A patch whose package left the
+# dependencies fails it too (allowUnusedPatches is false by default).
+ignorePatchFailures: false
 patchedDependencies:
   # The selector engine of jsdom keeps the last element that matched :focus-visible for the whole
   # test file, and refuses :focus-visible to an element that Tab reaches from another one unless
   # that last element is none or the one reached: after the first Tab of a file, the CV tooltip no
-  # longer showed. The patch counts such a Tab as a keyboard focus, as browsers do. Remove it once
-  # fixed upstream (asamuzaK/domSelector).
+  # longer showed. The patch counts such a Tab as a keyboard focus, as browsers do. It has no
+  # version, so it applies to every version: remove it once a release of asamuzaK/domSelector that
+  # jsdom uses fixes the bug (ISF-173).
   '@asamuzakjp/dom-selector': patches/@asamuzakjp__dom-selector.patch
