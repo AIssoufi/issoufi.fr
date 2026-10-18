@@ -1,7 +1,7 @@
 // @ts-check
 // Reports the size of the production build in the job summary. Fails when the scripts and style
 // sheets that the home page loads first, or those of the whole build, exceed their gzip budget,
-// and warns about large images. Run it after `pnpm build`.
+// and warns about the other large files, such as images or the CV. Run it after `pnpm build`.
 import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
 import { join } from 'node:path';
 import { gzipSync } from 'node:zlib';
@@ -11,15 +11,16 @@ import {
   DIST_DIR,
   HOME_PAGE_FILE,
   INITIAL_LOAD_BUDGET_GZIP_BYTES,
-  LARGE_IMAGE_BYTES,
+  LARGE_FILE_BYTES,
   MISSING_INITIAL_LOAD_REASON,
   PUBLIC_DIR,
   SCRIPT_BUDGET_GZIP_BYTES,
 } from './constants.mjs';
 import {
   checkBundleBudgets,
-  findLargeImages,
+  findLargeFiles,
   findUncountedPaths,
+  getCompressionAdvice,
   isBudgetedScript,
 } from './utils/bundle.mjs';
 import { renderBundleReport } from './utils/bundle-report.mjs';
@@ -44,7 +45,7 @@ const scripts = files
   .filter(({ path }) => isBudgetedScript(path))
   .map(file => ({ ...file, gzipBytes: gzipSync(readFileSync(join(DIST_DIR, file.path))).length }));
 const initialPaths = readInitialLoadPaths(readFileSync(homePage, 'utf8'));
-const largeImages = findLargeImages({ files, limitBytes: LARGE_IMAGE_BYTES });
+const largeFiles = findLargeFiles({ files, limitBytes: LARGE_FILE_BYTES });
 
 appendJobSummary({
   markdown: renderBundleReport({
@@ -52,17 +53,17 @@ appendJobSummary({
     initialPaths,
     budgetBytes: SCRIPT_BUDGET_GZIP_BYTES,
     initialLoadBudgetBytes: INITIAL_LOAD_BUDGET_GZIP_BYTES,
-    largeImages,
-    largeImageBytes: LARGE_IMAGE_BYTES,
+    largeFiles,
+    largeFileBytes: LARGE_FILE_BYTES,
   }),
 });
 
-largeImages.forEach(({ path, bytes }) => {
-  // Annotate the source file when the image comes from public/
+largeFiles.forEach(({ path, bytes }) => {
+  // Annotate the source file when the file comes from public/
   const source = join(PUBLIC_DIR, path);
   const location = existsSync(source) ? ` file=${source}` : '';
   console.log(
-    `::warning${location}::${path} weighs ${formatKilobytes(bytes)}, over ${formatKilobytes(LARGE_IMAGE_BYTES)}. Compress it or convert it to WebP or AVIF.`,
+    `::warning${location}::${path} weighs ${formatKilobytes(bytes)}, over ${formatKilobytes(LARGE_FILE_BYTES)}. ${getCompressionAdvice(path)}`,
   );
 });
 
