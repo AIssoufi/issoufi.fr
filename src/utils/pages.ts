@@ -312,8 +312,8 @@ export const NOT_FOUND_FOLDER = 'NotFound';
 
 /**
  * Photo behind every status page (not found, forbidden, unexpected error), which `StatusPage`
- * shows: mountains lost in the clouds, for a visitor who lost their way. The home page shows it
- * too, but each may change its own.
+ * shows: mountains lost in the clouds, for a visitor who lost their way. It is the photo of the
+ * home page, the same object, so changing one changes both: give it its own to set them apart.
  */
 export const STATUS_PAGE_BACKGROUND_PHOTO: BackgroundPhoto = HOME_PAGE.backgroundPhoto;
 
