@@ -4,6 +4,7 @@ import { ThemeProvider } from '@xstyled/styled-components';
 
 import { theme } from '../../../theme';
 
+import { CARD_HOVER_LIFT_PX, CARD_MAX_TILT_DEG, CARD_PERSPECTIVE_PX } from './constants';
 import Project from './Project';
 
 const project = (id, name, extra = {}) => ({
@@ -24,8 +25,28 @@ const projects = [
   project(4, 'Connect Four'),
 ];
 
+/** Project that is not in the list of the first render. */
+const ADDED_PROJECT = project(6, 'Weather app', { likeCount: 5, isLikedByOwnUser: true });
+const TOOLLESS_PROJECT = project(7, 'Landing page', { tools: undefined });
+
+/** Box of a card in the viewport. */
+const CARD_BOX = { left: 100, top: 100, width: 200, height: 100 };
+/**
+ * Pointer on the right edge of {@link CARD_BOX}, a quarter of the way down: the full tilt around
+ * the vertical axis and half of it around the horizontal one, so the two cannot be mixed up.
+ */
+const CARD_POINTER = { x: CARD_BOX.width, y: CARD_BOX.height / 4 };
+
 const likeButtonOf = name =>
   within(screen.getByRole('img', { name }).parentElement).getByRole('button');
+
+/** Previous and next page buttons, which have no accessible name to find them by. */
+const pageButtons = () => {
+  const [, previousButton, nextButton] = within(screen.getByRole('navigation')).getAllByRole(
+    'button',
+  );
+  return { previousButton, nextButton };
+};
 
 /** Renders with the theme, so that the styles hold the token values instead of their names. */
 const renderWithTheme = ui => render(<ThemeProvider theme={theme}>{ui}</ThemeProvider>);
@@ -127,6 +148,70 @@ describe('Project', () => {
 
     await userEvent.click(likeButtonOf('Chess'));
     expect(likeButtonOf('Chess')).toHaveTextContent('1');
+  });
+
+  it('starts a card missing from the likes of the first render at no like', async () => {
+    const { rerender } = render(<Project projects={projects} />);
+    rerender(<Project projects={[ADDED_PROJECT, ...projects]} />);
+
+    expect(likeButtonOf(ADDED_PROJECT.name)).toHaveTextContent('0');
+
+    await userEvent.click(likeButtonOf(ADDED_PROJECT.name));
+    expect(likeButtonOf(ADDED_PROJECT.name)).toHaveTextContent('1');
+  });
+
+  it('pages through the projects, without going past the first or the last page', async () => {
+    render(<Project projects={projects} />);
+    const { previousButton, nextButton } = pageButtons();
+
+    await userEvent.click(previousButton);
+    expect(screen.getByText('Chess')).toBeInTheDocument();
+
+    await userEvent.click(nextButton);
+    expect(screen.getByText('Connect Four')).toBeInTheDocument();
+    expect(screen.queryByText('Chess')).not.toBeInTheDocument();
+
+    await userEvent.click(nextButton);
+    expect(screen.getByText('Connect Four')).toBeInTheDocument();
+
+    await userEvent.click(previousButton);
+    expect(screen.getByText('Chess')).toBeInTheDocument();
+    expect(screen.queryByText('Connect Four')).not.toBeInTheDocument();
+  });
+
+  it('hides the page buttons while every project is shown', async () => {
+    render(<Project projects={projects} />);
+
+    await userEvent.click(screen.getByText('Tout afficher (4)'));
+
+    expect(within(screen.getByRole('navigation')).getAllByRole('button')).toHaveLength(1);
+  });
+
+  it('tilts a card toward the pointer, then flattens it when the pointer leaves', () => {
+    render(<Project projects={projects} />);
+    const card = screen.getByText('Chess').closest('a');
+    // jsdom lays nothing out: give the card a box so that it can tilt
+    vi.spyOn(card, 'getBoundingClientRect').mockReturnValue(CARD_BOX);
+
+    fireEvent.mouseMove(card, {
+      clientX: CARD_BOX.left + CARD_POINTER.x,
+      clientY: CARD_BOX.top + CARD_POINTER.y,
+    });
+    expect(card.style.transform).toBe(
+      `perspective(${CARD_PERSPECTIVE_PX}px) rotateX(${CARD_MAX_TILT_DEG / 2}deg) rotateY(${CARD_MAX_TILT_DEG}deg) translateY(-${CARD_HOVER_LIFT_PX}px)`,
+    );
+    expect(card.style.getPropertyValue('--mouse-x')).toBe(`${CARD_POINTER.x}px`);
+    expect(card.style.getPropertyValue('--mouse-y')).toBe(`${CARD_POINTER.y}px`);
+
+    fireEvent.mouseLeave(card);
+    expect(card.style.transform).toBe('');
+  });
+
+  it('leaves the tech line of a project without tools empty', () => {
+    render(<Project projects={[TOOLLESS_PROJECT]} />);
+
+    const [, , techLine] = screen.getByText(TOOLLESS_PROJECT.name).parentElement.children;
+    expect(techLine).toBeEmptyDOMElement();
   });
 
   describe('layout', () => {
