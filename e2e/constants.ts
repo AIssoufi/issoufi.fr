@@ -53,3 +53,9 @@ export const MAX_DOT_OFFSET_PX = 0.5;
 
 /** Number of coordinates in a quad of the DevTools protocol: the x and the y of its 4 corners. */
 export const QUAD_COORDINATE_COUNT = 8;
+
+/**
+ * Site badge (`src/App/SiteBadge`): the footer landmark, right inside the app grid, that holds the
+ * GitHub button and the version of the site in the bottom left corner of every page.
+ */
+export const SITE_BADGE_SELECTOR = '[data-testid="app"] > footer';

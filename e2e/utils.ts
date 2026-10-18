@@ -76,3 +76,111 @@ interface GetCenterDistanceXParams {
  */
 export const getCenterDistanceX = ({ quad, referenceQuad }: GetCenterDistanceXParams = {}) =>
   Math.abs(getQuadCenterX(quad) - getQuadCenterX(referenceQuad));
+
+/** Box of an element on the screen, in CSS pixels, as `boundingBox()` of Playwright returns it. */
+export interface ScreenBox {
+  /** Distance from the left edge of the screen to the left edge of the box. */
+  x: number;
+  /** Distance from the top edge of the screen to the top edge of the box. */
+  y: number;
+  /** Width of the box. */
+  width: number;
+  /** Height of the box. */
+  height: number;
+}
+
+/** Size of the screen, in CSS pixels, such as the `viewport` of a Playwright test. */
+interface ScreenSize {
+  /** Width of the screen. */
+  width: number;
+  /** Height of the screen. */
+  height: number;
+}
+
+/** Tells whether a value is a finite number above zero, such as the side of a visible box. */
+const isPositiveLength = (value: unknown): value is number =>
+  typeof value === 'number' && Number.isFinite(value) && value > 0;
+
+/**
+ * Tells whether a value is a box that covers some area of the screen: a finite position and a
+ * width and height above zero.
+ */
+const isVisibleBox = (box: unknown): box is ScreenBox => {
+  if (typeof box !== 'object' || box === null) return false;
+
+  const { x, y, width, height } = box as Partial<ScreenBox>;
+  return (
+    Number.isFinite(x) && Number.isFinite(y) && isPositiveLength(width) && isPositiveLength(height)
+  );
+};
+
+/** Tells whether a value is the size of a screen: a width and a height above zero. */
+const isScreenSize = (screen: unknown): screen is ScreenSize => {
+  if (typeof screen !== 'object' || screen === null) return false;
+
+  const { width, height } = screen as Partial<ScreenSize>;
+  return isPositiveLength(width) && isPositiveLength(height);
+};
+
+/** Parameters of {@link doBoxesOverlap}. */
+interface DoBoxesOverlapParams {
+  /** One of the boxes, such as the box of a line of text. */
+  box?: ScreenBox | null;
+  /** The other box, such as the box of an element fixed on the screen. */
+  otherBox?: ScreenBox | null;
+}
+
+/**
+ * Tells whether two boxes on the screen share some area, so that one hides part of the other when
+ * it is drawn above it. Boxes that only touch by an edge do not overlap.
+ *
+ * @returns `false` when either box is missing, has a width or a height of zero or less, or a
+ * coordinate that is not a finite number: such a box covers nothing.
+ *
+ * @example
+ * doBoxesOverlap({
+ *   box: { x: 0, y: 0, width: 100, height: 20 },
+ *   otherBox: { x: 50, y: 10, width: 100, height: 20 },
+ * }); // true
+ */
+export const doBoxesOverlap = ({ box, otherBox }: DoBoxesOverlapParams = {}): boolean => {
+  if (!isVisibleBox(box) || !isVisibleBox(otherBox)) return false;
+
+  const overlapsHorizontally =
+    box.x < otherBox.x + otherBox.width && otherBox.x < box.x + box.width;
+  const overlapsVertically =
+    box.y < otherBox.y + otherBox.height && otherBox.y < box.y + box.height;
+  return overlapsHorizontally && overlapsVertically;
+};
+
+/** Parameters of {@link isInBottomLeftCorner}. */
+interface IsInBottomLeftCornerParams {
+  /** Box of the element, such as the site badge. */
+  box?: ScreenBox | null;
+  /** Size of the screen the box is drawn on. */
+  screen?: ScreenSize | null;
+}
+
+/**
+ * Tells whether a box sits in the bottom left corner of the screen: whole on the screen, nearer its
+ * left edge than its right edge, and nearer its bottom edge than its top edge, whatever its size.
+ *
+ * @returns `false` when the box covers no area or holds a coordinate that is not a finite number,
+ * or when the size of the screen is missing or not positive.
+ *
+ * @example
+ * isInBottomLeftCorner({
+ *   box: { x: 20, y: 738, width: 180, height: 42 },
+ *   screen: { width: 320, height: 800 },
+ * }); // true
+ */
+export const isInBottomLeftCorner = ({ box, screen }: IsInBottomLeftCornerParams = {}): boolean => {
+  if (!isVisibleBox(box) || !isScreenSize(screen)) return false;
+
+  const leftGap = box.x;
+  const rightGap = screen.width - (box.x + box.width);
+  const topGap = box.y;
+  const bottomGap = screen.height - (box.y + box.height);
+  const isWholeOnScreen = [leftGap, rightGap, topGap, bottomGap].every(gap => gap >= 0);
+  return isWholeOnScreen && leftGap < rightGap && bottomGap < topGap;
+};
