@@ -53,3 +53,23 @@ export const MAX_DOT_OFFSET_PX = 0.5;
 
 /** Number of coordinates in a quad of the DevTools protocol: the x and the y of its 4 corners. */
 export const QUAD_COORDINATE_COUNT = 8;
+
+/**
+ * Route of the Projects page, whose sections show the project cards. Typed by `PAGES`
+ * (`src/utils/pages.ts`), so the type-check fails when the route changes there.
+ */
+export const PROJECTS_ROUTE: Page['path'] = '/projects';
+
+/**
+ * Screen widths, in pixels, at which the browser test of the project cards compares the row of
+ * each section with its "Show all" rows: a phone (375), the tablet breakpoint, where the desktop
+ * layout starts while the row still scrolls (800), two laptop widths (1280 and 1440), then past
+ * the `wide` breakpoint (1600), with the page content at its largest width (1720 and 2400).
+ */
+export const PROJECT_CARD_SCREEN_WIDTHS_PX = [375, 800, 1280, 1440, 1720, 2400] as const;
+
+/**
+ * Largest difference, in pixels, allowed between the sizes or the positions of two project cards
+ * that should match. Half a pixel lets through subpixel rounding, but not a card 1 px wider.
+ */
+export const MAX_CARD_OFFSET_PX = 0.5;
