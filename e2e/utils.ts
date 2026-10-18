@@ -270,9 +270,9 @@ interface DoBoxesOverlapHorizontallyParams {
 }
 
 /**
- * Tells whether two boxes share some width, whatever their heights: a box of the page that does
- * passes under an element fixed on the screen at some point while the page scrolls. Boxes that
- * only touch by an edge do not overlap.
+ * Tells whether two boxes share some width, whatever their heights: a box of the page that shares
+ * some width with an element fixed on the screen passes under it while the page scrolls. Boxes
+ * that only touch by an edge do not overlap.
  *
  * @returns `false` when either box is missing, holds a value that is not a finite number, or has
  * no width: such a box covers nothing.

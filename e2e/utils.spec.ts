@@ -472,6 +472,10 @@ describe('doBoxesOverlapHorizontally', () => {
     ['a button whose right end is under it', { x: 1289, y: 517, width: 127, height: 32 }],
     ['a line of text far above it, across its width', { x: 24, y: -900, width: 1392, height: 18 }],
     ['an icon inside its width', { x: 1380, y: 900, width: 33, height: 32 }],
+    [
+      'a box overlapping its left edge by half a pixel',
+      { x: 1300, y: 411, width: 74.5, height: 78 },
+    ],
   ])('finds that %s overlaps it', (_name, box) => {
     expect(doBoxesOverlapHorizontally({ box, otherBox: toggle })).toBe(true);
     expect(doBoxesOverlapHorizontally({ box: toggle, otherBox: box })).toBe(true);

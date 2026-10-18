@@ -19,6 +19,14 @@ interface ContentBox extends ScreenBox {
   label: string;
 }
 
+/** Parameters of the `clipBox` helper of {@link listContentBoxes}. */
+interface ClipBoxParams {
+  /** Box of a line of text or of an element, as the browser lays it out. */
+  rect: DOMRect;
+  /** First element whose overflow may cut the box, then each of its ancestors in turn. */
+  clipper: Element | null;
+}
+
 /**
  * Lists the boxes of what a visitor reads or uses in an element: each line of its texts, and its
  * links, buttons, form fields, images and icons, each cut to the part that its scrolling or
@@ -40,7 +48,7 @@ const listContentBoxes = (container: Element): ContentBox[] => {
     Boolean(element?.checkVisibility({ visibilityProperty: true })) && !isFixedOnScreen(element);
 
   /** Cuts a box to the part that `clipper` and its ancestors leave visible. */
-  const clipBox = (rect: DOMRect, clipper: Element | null) => {
+  const clipBox = ({ rect, clipper }: ClipBoxParams) => {
     let { left, top, right, bottom } = rect;
     for (let current = clipper; current; current = current.parentElement) {
       const { overflowX, overflowY } = getComputedStyle(current);
@@ -61,19 +69,21 @@ const listContentBoxes = (container: Element): ContentBox[] => {
   const texts = document.createTreeWalker(container, NodeFilter.SHOW_TEXT);
   for (let text = texts.nextNode(); text; text = texts.nextNode()) {
     const content = text.textContent?.trim() ?? '';
-    if (!content || !isShown(text.parentElement)) continue;
+    if (!content) continue;
+    if (!isShown(text.parentElement)) continue;
 
     const range = document.createRange();
     range.selectNodeContents(text);
     for (const rect of range.getClientRects()) {
       const label = content.slice(0, MAX_LABEL_LENGTH_CHARS);
-      boxes.push({ ...clipBox(rect, text.parentElement), label });
+      boxes.push({ ...clipBox({ rect, clipper: text.parentElement }), label });
     }
   }
   for (const element of container.querySelectorAll(CONTROL_AND_MEDIA_SELECTOR)) {
     if (!isShown(element)) continue;
     const label = `<${element.localName}>`;
-    boxes.push({ ...clipBox(element.getBoundingClientRect(), element.parentElement), label });
+    const rect = element.getBoundingClientRect();
+    boxes.push({ ...clipBox({ rect, clipper: element.parentElement }), label });
   }
   return boxes;
 };
