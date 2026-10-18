@@ -33,3 +33,9 @@ export const FALLBACK_CHUNK_NAME = 'chunk';
 
 /** Separators of the folders in a module path, on every system. */
 export const PATH_SEPARATOR_PATTERN = /[\\/]/;
+
+/** Folder of the pages, from the root of the project, with `/` separators. */
+export const PAGES_DIR = 'src/pages';
+
+/** File of a page folder that `App.tsx` imports lazily, so the module of the page chunk. */
+export const PAGE_ENTRY_FILE = 'index.ts';
