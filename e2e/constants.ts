@@ -339,3 +339,19 @@ export const INSTANT_ANIMATION_MAX_MS = 1;
  * reduced motion: long enough for the dots, the glow or a pushed word to move.
  */
 export const STILLNESS_DELAY_MS = 1000;
+
+/**
+ * Message of the browser console about a security policy of the page: Chrome writes one for each
+ * resource or inline code that the Content Security Policy blocks ("Loading the script '…'
+ * violates the following Content Security Policy directive: …"), for a directive it cannot read,
+ * and for a feature that the Permissions-Policy header denies or does not know.
+ */
+export const SECURITY_POLICY_MESSAGE_PATTERN =
+  /content[ -]security[ -]policy|permissions[ -]policy/i;
+
+/**
+ * Function that the browser tests add to each page, through which the page reports to them each
+ * `securitypolicyviolation` event, a resource or inline code that its Content Security Policy
+ * blocked.
+ */
+export const REPORT_POLICY_VIOLATION_FUNCTION = 'reportSecurityPolicyViolation';

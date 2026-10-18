@@ -6,8 +6,10 @@ import {
   DEFAULT_PREVIEW_PORT,
   FALLBACK_CHUNK_NAME,
   HASHED_ASSET_MAX_AGE_SECONDS,
+  HSTS_MAX_AGE_SECONDS,
   MAX_PORT,
   MIN_PORT,
+  SECURITY_HEADERS,
 } from './constants';
 import type { HeaderRule } from './types';
 import {
@@ -338,10 +340,25 @@ describe('renderHeaderRules', () => {
   /** Writes rules that may hold anything, as from a malformed config. */
   const render = (rules: unknown) => renderHeaderRules({ rules: rules as HeaderRule[] });
 
+  it('gives every file the security headers by default', () => {
+    const securityLines = Object.entries(SECURITY_HEADERS).map(
+      ([name, value]) => `  ${name}: ${value}`,
+    );
+    const [firstRule] = renderHeaderRules().split('\n\n');
+
+    expect(securityLines).toHaveLength(5);
+    expect(firstRule).toBe(['/*', ...securityLines].join('\n'));
+  });
+
+  it('asks browsers for HTTPS only for a year, on this host alone, by default', () => {
+    expect(HSTS_MAX_AGE_SECONDS).toBe(365 * 24 * 60 * 60);
+    expect(renderHeaderRules()).toContain('  Strict-Transport-Security: max-age=31536000\n');
+  });
+
   it('caches the hashed files of assets/ for a year by default, as immutable', () => {
     expect(HASHED_ASSET_MAX_AGE_SECONDS).toBe(365 * 24 * 60 * 60);
-    expect(renderHeaderRules()).toBe(
-      '/assets/*\n  Cache-Control: public, max-age=31536000, immutable\n',
+    expect(renderHeaderRules()).toMatch(
+      /\n\n\/assets\/\*\n {2}Cache-Control: public, max-age=31536000, immutable\n$/,
     );
   });
 
