@@ -1,6 +1,7 @@
 import { expect, test } from '@playwright/test';
 
 import { fr } from '../src/i18n/fr';
+import { waitForEndingAnimations } from './animations';
 import {
   CV_FILE_NAME,
   FLOATING_CONTROLS_SCREEN_WIDTHS_PX,
@@ -89,11 +90,7 @@ for (const width of MOBILE_SCREEN_WIDTHS_PX) {
       await expect(gitHubLink).toBeVisible();
       // The links of the menu slide in: measure them once they have stopped. The home page has
       // endless animations of its own, so only those of the menu are awaited
-      await page
-        .getByRole('navigation')
-        .evaluate(navigation =>
-          Promise.all(navigation.getAnimations({ subtree: true }).map(({ finished }) => finished)),
-        );
+      await page.getByRole('navigation').evaluate(waitForEndingAnimations);
 
       const cvBox = await page.getByRole('link', { name: fr.cvLink.label }).boundingBox();
       const gitHubBox = await gitHubLink.boundingBox();

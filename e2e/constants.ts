@@ -1,3 +1,4 @@
+import { theme } from '../src/theme/theme';
 import type { Page } from '../src/utils/pages';
 
 /**
@@ -105,3 +106,16 @@ export const MAX_ICON_OFFSET_PX = 0.5;
  * `src/App/Header/CvLink/constants.ts`).
  */
 export const CV_FILE_NAME = 'CV - Adam Issoufi.pdf';
+
+/**
+ * Largest distance, in pixels, allowed between the center of a tooltip and the center of the
+ * control it is centered on, across or along the side it shows on. Half a pixel lets through
+ * subpixel rounding, but not a 1 px shift.
+ */
+export const MAX_TOOLTIP_OFFSET_PX = 0.5;
+
+/**
+ * Space, in pixels, between a tooltip and the control it describes: the `tooltip-gap` of the
+ * theme, which an invisible bridge fills.
+ */
+export const TOOLTIP_GAP_PX = Number.parseFloat(theme.space['tooltip-gap']);
