@@ -27,6 +27,19 @@ export const toNonNegativeNumber = value => {
 export const isPositiveNumber = value => toNonNegativeNumber(value) > 0;
 
 /**
+ * Tells whether an identifier read from an answer of the GitHub API or a parameter is usable: a
+ * whole number above 0, such as the number of a pull request or the identifier of a run.
+ * @param {unknown} value - Value to check.
+ * @returns {value is number} False for 0, a negative or decimal number, a number too large to be
+ * exact, `NaN` and a value that is not a number.
+ * @example
+ * isPositiveInteger(162); // true
+ * isPositiveInteger('162'); // false
+ */
+export const isPositiveInteger = value =>
+  typeof value === 'number' && Number.isSafeInteger(value) && value > 0;
+
+/**
  * Formats a size in kilobytes with one decimal, the unit of Vite's build report.
  * @param {unknown} bytes - Size in bytes. An invalid size is shown as `0.0 kB`.
  * @returns {string} The formatted size, e.g. `224.9 kB`.

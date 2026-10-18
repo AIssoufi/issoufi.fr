@@ -246,6 +246,43 @@ export const RUN_COMPLETED_STATUS = 'completed';
 export const RUN_SUCCESS_CONCLUSION = 'success';
 
 /**
+ * Number of times the daily release reads a run of the CI it started before giving up, every
+ * {@link RUN_WAIT_DELAY_MS}: 20 minutes in all, while a run of `ci.yml`, its preview deployment
+ * and smoke test included, took about 5 minutes in October 2026.
+ */
+export const RUN_WAIT_ATTEMPTS = 40;
+
+/** Pause between two reads of a run of the CI that the daily release waits for, in milliseconds. */
+export const RUN_WAIT_DELAY_MS = 30_000;
+
+/**
+ * Workflow that keeps the release pull request open and publishes the release once it is merged,
+ * which the daily release starts by hand after merging it.
+ */
+export const RELEASE_WORKFLOW_FILE = 'release.yml';
+
+/** Label that release-please gives its release pull request until the release is published. */
+export const RELEASE_PENDING_LABEL = 'autorelease: pending';
+
+/**
+ * Start of the branch of the release pull request that release-please keeps open against
+ * {@link DEVELOP_BRANCH}, such as `release-please--branches--develop--components--issoufi-v3`.
+ */
+export const RELEASE_BRANCH_PREFIX = 'release-please--branches--develop--';
+
+/**
+ * Merge method of the release pull request: a merge commit, like every pull request merged into
+ * {@link DEVELOP_BRANCH}.
+ */
+export const RELEASE_MERGE_METHOD = 'merge';
+
+/**
+ * Number of open pull requests into {@link DEVELOP_BRANCH} that the daily release reads to find
+ * the release pull request: the most the REST API gives in one page.
+ */
+export const OPEN_PULL_REQUESTS_PAGE_SIZE = 100;
+
+/**
  * Format of `git log` read by the deploy report: the full SHA and the subject of each commit,
  * separated by a tab. A line is split at its first tab, so a subject keeps any tab it holds.
  */

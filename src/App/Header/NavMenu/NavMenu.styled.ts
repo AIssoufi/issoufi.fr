@@ -30,6 +30,9 @@ export const Nav = styled.nav<{ $mobileMenuIsOpen: boolean }>`
       position: fixed;
       inset: 0;
       z-index: ${th.zIndex('overlay')};
+      /* Spaces the links, the CV button and the GitHub icon: a margin on the CV button would move
+         its tooltip away from it */
+      gap: ${th.space(28)};
       background: ${th.color('overlay-mobile-menu')};
       backdrop-filter: ${th('blurs.20')};
       -webkit-backdrop-filter: ${th('blurs.20')};
@@ -40,6 +43,7 @@ export const Nav = styled.nav<{ $mobileMenuIsOpen: boolean }>`
     flex-direction: row;
     align-items: center;
     background: transparent;
+    gap: 0;
     backdrop-filter: none;
     -webkit-backdrop-filter: none;
     position: static;
@@ -135,7 +139,6 @@ export const MenuCvLink = styled(CvLink)`
   height: max-content;
   transition-property: border-color, background-color;
   transition-duration: ${th.duration('base')};
-  margin-top: ${th.space(28)};
   padding: ${th.space(14)} ${th.space(36)};
   background-color: transparent;
   border: ${th.borderWidth('thin')} solid ${th.color('foreground-a50')};
@@ -157,7 +160,6 @@ export const MenuCvLink = styled(CvLink)`
 /* Shown in the mobile menu only: on desktop, the header floats the GitHub icon under the CV
    button */
 export const MenuGitHubLink = styled(GitHubLink)`
-  margin-top: ${th.space(28)};
   animation: ${fadeSlideIn} ${th.duration(300)} ${th.timingFunction('standard')} ${th.duration(300)}
     both;
 

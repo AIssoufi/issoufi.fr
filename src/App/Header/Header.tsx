@@ -95,7 +95,7 @@ const Header = ({ testId, version = __APP_VERSION__ }: HeaderProps) => {
         <FloatingControls>
           <LangToggle />
           <FloatingLinks>
-            <FloatingCvLink />
+            <FloatingCvLink tooltipPlacement="left" />
             <GitHubLink />
           </FloatingLinks>
         </FloatingControls>
