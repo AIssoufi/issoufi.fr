@@ -7,8 +7,8 @@ export const Summary = styled.header`
 `;
 
 export const EntityLogo = styled.img`
-  height: 52px;
-  width: 52px;
+  height: 54px;
+  width: 54px;
   object-fit: cover;
   border-radius: ${th.radius('sm')};
   border: ${th.border('card')};
