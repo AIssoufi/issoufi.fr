@@ -1,17 +1,22 @@
 // @vitest-environment node
+import { HEADERS_FILE_NAME } from '../../constants';
 import { STANDALONE_PAGE_FILE_NAME } from '../constants';
-import { inlineScript, isEntryChunk, isServerOnlyPage, removePreloadMarkers } from './bundle';
+import { inlineScript, isEntryChunk, isServerOnlyFile, removePreloadMarkers } from './bundle';
 
-describe('isServerOnlyPage', () => {
+describe('isServerOnlyFile', () => {
   it.each(['projects.html', 'experiences.html', '404.html', 'nested/index.html'])(
     'is true for the page %s',
     fileName => {
-      expect(isServerOnlyPage(fileName)).toBe(true);
+      expect(isServerOnlyFile(fileName)).toBe(true);
     },
   );
 
+  it('is true for the headers of Cloudflare Pages, at the root of the build', () => {
+    expect(isServerOnlyFile(HEADERS_FILE_NAME)).toBe(true);
+  });
+
   it('is false for the page of the standalone build', () => {
-    expect(isServerOnlyPage(STANDALONE_PAGE_FILE_NAME)).toBe(false);
+    expect(isServerOnlyFile(STANDALONE_PAGE_FILE_NAME)).toBe(false);
   });
 
   it.each([
@@ -22,13 +27,23 @@ describe('isServerOnlyPage', () => {
     'projects.html.bak',
     '',
   ])('is false for %j, which is not an HTML page', fileName => {
-    expect(isServerOnlyPage(fileName)).toBe(false);
+    expect(isServerOnlyFile(fileName)).toBe(false);
   });
 
+  it.each(['_headers.txt', 'headers', '_Headers', 'nested/_headers', ' _headers'])(
+    'is false for %j, which Cloudflare Pages does not read as its headers',
+    fileName => {
+      expect(isServerOnlyFile(fileName)).toBe(false);
+    },
+  );
+
   describe('edge cases', () => {
-    it.each([undefined, null, 42, {}, ['projects.html']])('is false for %j', fileName => {
-      expect(isServerOnlyPage(fileName)).toBe(false);
-    });
+    it.each([undefined, null, 42, {}, ['projects.html'], ['_headers']])(
+      'is false for %j',
+      fileName => {
+        expect(isServerOnlyFile(fileName)).toBe(false);
+      },
+    );
   });
 });
 
