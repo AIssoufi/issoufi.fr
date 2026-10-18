@@ -2,32 +2,11 @@ import { act, renderHook } from '@testing-library/react';
 import { createElement } from 'react';
 import { renderToString } from 'react-dom/server';
 
+import { stubMatchMedia } from '../../mediaQueryTestUtils';
 import { useMediaQuery } from './useMediaQuery';
 
 const DESKTOP_QUERY = '(min-width: 50em)';
 const WIDE_QUERY = '(min-width: 100em)';
-
-/**
- * Replaces `window.matchMedia`, which jsdom lacks, with a stub whose queries match while
- * `matches` is true. `setMatches` changes it and notifies the listeners, as a resize would.
- */
-const stubMatchMedia = ({ matches }: { matches: boolean }) => {
-  const listeners = new Set<() => void>();
-  const mediaQueryList = {
-    matches,
-    addEventListener: vi.fn((_type: string, listener: () => void) => listeners.add(listener)),
-    removeEventListener: vi.fn((_type: string, listener: () => void) => listeners.delete(listener)),
-  };
-  const matchMedia = vi.fn(() => mediaQueryList);
-  vi.stubGlobal('matchMedia', matchMedia);
-
-  const setMatches = (nextMatches: boolean) => {
-    mediaQueryList.matches = nextMatches;
-    act(() => listeners.forEach(listener => listener()));
-  };
-
-  return { matchMedia, mediaQueryList, setMatches };
-};
 
 describe('useMediaQuery', () => {
   afterEach(() => {

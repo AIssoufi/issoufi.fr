@@ -53,3 +53,11 @@ export const FONT_FACES: readonly FontFaceDeclaration[] = [
     unicodeRange: LATIN_UNICODE_RANGE,
   },
 ];
+
+/**
+ * Media query of the visitors who asked their system to reduce motion, for instance because of a
+ * vestibular disorder. With it, `GlobalStyle` makes every animation and transition instant, and
+ * the effects that follow the pointer or loop in JavaScript stand still (`usePrefersReducedMotion`,
+ * `src/hooks`).
+ */
+export const REDUCED_MOTION_QUERY = '(prefers-reduced-motion: reduce)';
