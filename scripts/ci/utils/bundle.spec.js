@@ -1,11 +1,11 @@
 import {
+  checkBundleBudgets,
   checkScriptBudget,
   findLargeImages,
+  findUncountedPaths,
   isBudgetedScript,
   isBuildFile,
-  renderBundleReport,
-  renderLargeImagesSection,
-  renderScriptsTable,
+  splitInitialLoad,
 } from './bundle.mjs';
 
 describe('isBuildFile', () => {
@@ -59,6 +59,90 @@ describe('isBudgetedScript', () => {
   );
 });
 
+describe('splitInitialLoad', () => {
+  const main = { path: 'assets/index-abc.js', bytes: 403_180, gzipBytes: 131_860 };
+  const style = { path: 'assets/index-abc.css', bytes: 2_100, gzipBytes: 900 };
+  const page = { path: 'assets/Projects-abc.js', bytes: 14_140, gzipBytes: 4_520 };
+
+  it('splits the scripts of the initial load from the others, in the order of the list', () => {
+    const scripts = [page, main, style];
+    expect(splitInitialLoad({ scripts, initialPaths: [style.path, main.path] })).toEqual({
+      initialScripts: [main, style],
+      otherScripts: [page],
+    });
+  });
+
+  it('matches the paths exactly', () => {
+    const initialPaths = ['assets/index-abc', 'ASSETS/INDEX-ABC.JS', `/${main.path}`];
+    expect(splitInitialLoad({ scripts: [main], initialPaths })).toEqual({
+      initialScripts: [],
+      otherScripts: [main],
+    });
+  });
+
+  it.each([undefined, null, {}, 'assets/index-abc.js', []])(
+    'puts every script among the others for the paths %o',
+    initialPaths => {
+      expect(splitInitialLoad({ scripts: [main, page], initialPaths })).toEqual({
+        initialScripts: [],
+        otherScripts: [main, page],
+      });
+    },
+  );
+
+  it.each([undefined, null, {}, []])('gives two empty lists for the scripts %o', scripts => {
+    expect(splitInitialLoad({ scripts, initialPaths: [main.path] })).toEqual({
+      initialScripts: [],
+      otherScripts: [],
+    });
+  });
+
+  it('leaves out the entries that are not build files', () => {
+    const scripts = [null, main.path, { gzipBytes: 9_000 }, { path: '' }, main, page];
+    expect(splitInitialLoad({ scripts, initialPaths: [main.path, ''] })).toEqual({
+      initialScripts: [main],
+      otherScripts: [page],
+    });
+  });
+});
+
+describe('findUncountedPaths', () => {
+  const scripts = [{ path: 'assets/index-abc.js', bytes: 403_180, gzipBytes: 131_860 }];
+
+  it('lists the paths that no script of the build matches, in their order', () => {
+    const initialPaths = ['register-sw.js', 'assets/index-abc.js', 'assets/missing.css'];
+    expect(findUncountedPaths({ scripts, initialPaths })).toEqual([
+      'register-sw.js',
+      'assets/missing.css',
+    ]);
+  });
+
+  it('gives an empty list when every path is counted', () => {
+    expect(findUncountedPaths({ scripts, initialPaths: ['assets/index-abc.js'] })).toEqual([]);
+  });
+
+  it.each([undefined, null, {}, 'register-sw.js', []])(
+    'gives an empty list for the paths %o',
+    initialPaths => {
+      expect(findUncountedPaths({ scripts, initialPaths })).toEqual([]);
+    },
+  );
+
+  it.each([undefined, null, {}, [], [null, { gzipBytes: 900 }, { path: '' }]])(
+    'lists every path for the scripts %o',
+    list => {
+      expect(findUncountedPaths({ scripts: list, initialPaths: ['assets/index-abc.js'] })).toEqual([
+        'assets/index-abc.js',
+      ]);
+    },
+  );
+
+  it('ignores the entries that are not paths', () => {
+    const initialPaths = [null, undefined, '', 42, {}, ['register-sw.js'], 'register-sw.js'];
+    expect(findUncountedPaths({ scripts, initialPaths })).toEqual(['register-sw.js']);
+  });
+});
+
 describe('checkScriptBudget', () => {
   it('adds up the gzip sizes', () => {
     const scripts = [{ gzipBytes: 100 }, { gzipBytes: 50 }];
@@ -94,6 +178,97 @@ describe('checkScriptBudget', () => {
     'throws for the invalid budget %s',
     budgetBytes => {
       expect(() => checkScriptBudget({ scripts: [], budgetBytes })).toThrow(RangeError);
+    },
+  );
+});
+
+describe('checkBundleBudgets', () => {
+  const main = { path: 'assets/index-abc.js', bytes: 403_180, gzipBytes: 131_860 };
+  const page = { path: 'assets/Projects-abc.js', bytes: 14_140, gzipBytes: 4_520 };
+  const budgets = { budgetBytes: 210_000, initialLoadBudgetBytes: 150_000 };
+
+  it('checks the initial load and all the scripts against their budgets', () => {
+    expect(
+      checkBundleBudgets({ scripts: [page, main], initialPaths: [main.path], ...budgets }),
+    ).toEqual({
+      initialScripts: [main],
+      otherScripts: [page],
+      hasInitialLoad: true,
+      initialLoad: { totalGzipBytes: 131_860, isOverBudget: false },
+      total: { totalGzipBytes: 136_380, isOverBudget: false },
+    });
+  });
+
+  it('fails the initial load over its budget, even with the total within its own', () => {
+    const { initialLoad, total } = checkBundleBudgets({
+      scripts: [page, main],
+      initialPaths: [main.path],
+      budgetBytes: 210_000,
+      initialLoadBudgetBytes: 131_859,
+    });
+    expect(initialLoad.isOverBudget).toBe(true);
+    expect(total.isOverBudget).toBe(false);
+  });
+
+  it('fails the total over its budget, even with the initial load within its own', () => {
+    const { initialLoad, total } = checkBundleBudgets({
+      scripts: [page, main],
+      initialPaths: [main.path],
+      budgetBytes: 136_379,
+      initialLoadBudgetBytes: 150_000,
+    });
+    expect(initialLoad.isOverBudget).toBe(false);
+    expect(total.isOverBudget).toBe(true);
+  });
+
+  it('accepts sizes equal to the budgets', () => {
+    const { initialLoad, total } = checkBundleBudgets({
+      scripts: [page, main],
+      initialPaths: [main.path],
+      budgetBytes: 136_380,
+      initialLoadBudgetBytes: 131_860,
+    });
+    expect(initialLoad.isOverBudget).toBe(false);
+    expect(total.isOverBudget).toBe(false);
+  });
+
+  it.each([undefined, null, {}, [], main.path, ['register-sw.js']])(
+    'has no initial load for the initial paths %o',
+    initialPaths => {
+      expect(checkBundleBudgets({ scripts: [page, main], initialPaths, ...budgets })).toEqual({
+        initialScripts: [],
+        otherScripts: [page, main],
+        hasInitialLoad: false,
+        initialLoad: { totalGzipBytes: 0, isOverBudget: false },
+        total: { totalGzipBytes: 136_380, isOverBudget: false },
+      });
+    },
+  );
+
+  it.each([undefined, null, {}, [], [null, { gzipBytes: 9_000 }, { path: '' }]])(
+    'has no initial load and sizes of 0 for the scripts %o',
+    scripts => {
+      expect(checkBundleBudgets({ scripts, initialPaths: [main.path], ...budgets })).toEqual({
+        initialScripts: [],
+        otherScripts: [],
+        hasInitialLoad: false,
+        initialLoad: { totalGzipBytes: 0, isOverBudget: false },
+        total: { totalGzipBytes: 0, isOverBudget: false },
+      });
+    },
+  );
+
+  it.each([0, -1, NaN, Infinity, undefined, null, '210000'])(
+    'throws for the invalid budget %s',
+    budgetBytes => {
+      expect(() => checkBundleBudgets({ ...budgets, budgetBytes })).toThrow(RangeError);
+    },
+  );
+
+  it.each([0, -1, NaN, Infinity, undefined, null, '150000'])(
+    'throws for the invalid initial load budget %s',
+    initialLoadBudgetBytes => {
+      expect(() => checkBundleBudgets({ ...budgets, initialLoadBudgetBytes })).toThrow(RangeError);
     },
   );
 });
@@ -141,214 +316,6 @@ describe('findLargeImages', () => {
     limitBytes => {
       const files = [{ path: 'chess.png', bytes: 900 }];
       expect(() => findLargeImages({ files, limitBytes })).toThrow(RangeError);
-    },
-  );
-});
-
-describe('renderScriptsTable', () => {
-  const scripts = [
-    { path: 'assets/index-abc.js', bytes: 788_320, gzipBytes: 224_940 },
-    { path: 'assets/index-abc.css', bytes: 2_100, gzipBytes: 900 },
-  ];
-
-  it('lists each script with its sizes, then the total', () => {
-    expect(renderScriptsTable({ scripts, totalGzipBytes: 225_840 })).toBe(
-      [
-        '| File | Size | Gzip |',
-        '| --- | ---: | ---: |',
-        '| `assets/index-abc.js` | 788.3 kB | 224.9 kB |',
-        '| `assets/index-abc.css` | 2.1 kB | 0.9 kB |',
-        '| **Total** | | **225.8 kB** |',
-      ].join('\n'),
-    );
-  });
-
-  it.each([undefined, null, [], {}])(
-    'shows only the header and a total of 0 for the scripts %o',
-    list => {
-      expect(renderScriptsTable({ scripts: list })).toBe(
-        ['| File | Size | Gzip |', '| --- | ---: | ---: |', '| **Total** | | **0.0 kB** |'].join(
-          '\n',
-        ),
-      );
-    },
-  );
-
-  it('leaves out the entries that are not build files', () => {
-    const table = renderScriptsTable({
-      scripts: [null, 'assets/x.js', { bytes: 9_000 }, { path: '' }, scripts[0]],
-      totalGzipBytes: 224_940,
-    });
-    expect(table.split('\n')).toHaveLength(4);
-    expect(table).toContain('| `assets/index-abc.js` | 788.3 kB | 224.9 kB |');
-  });
-
-  it('shows invalid sizes and totals as 0', () => {
-    const table = renderScriptsTable({
-      scripts: [{ path: 'assets/x.js', bytes: NaN, gzipBytes: -1 }],
-      totalGzipBytes: Infinity,
-    });
-    expect(table).toContain('| `assets/x.js` | 0.0 kB | 0.0 kB |');
-    expect(table).toContain('| **Total** | | **0.0 kB** |');
-    expect(table).not.toMatch(/NaN|undefined|Infinity/);
-  });
-});
-
-describe('renderLargeImagesSection', () => {
-  it('lists the images under a heading with the limit', () => {
-    const largeImages = [
-      { path: 'chess.png', bytes: 928_988 },
-      { path: 'study-sarl.png', bytes: 840_000 },
-    ];
-    expect(renderLargeImagesSection({ largeImages, largeImageBytes: 500_000 })).toBe(
-      [
-        '### Images over 500.0 kB',
-        '',
-        '| Image | Size |',
-        '| --- | ---: |',
-        '| `chess.png` | 929.0 kB |',
-        '| `study-sarl.png` | 840.0 kB |',
-      ].join('\n'),
-    );
-  });
-
-  it.each([undefined, null, [], {}, [null, { bytes: 900_000 }, { path: '' }]])(
-    'gives an empty string for the images %o',
-    largeImages => {
-      expect(renderLargeImagesSection({ largeImages, largeImageBytes: 500_000 })).toBe('');
-    },
-  );
-
-  it('leaves out the entries that are not build files', () => {
-    const section = renderLargeImagesSection({
-      largeImages: [null, { path: 'chess.png', bytes: 928_988 }, { bytes: 900_000 }],
-      largeImageBytes: 500_000,
-    });
-    expect(section.endsWith('| --- | ---: |\n| `chess.png` | 929.0 kB |')).toBe(true);
-  });
-
-  it.each([0, -1, NaN, Infinity, undefined, null, '500000'])(
-    'throws for the invalid limit %s, even without images',
-    largeImageBytes => {
-      expect(() => renderLargeImagesSection({ largeImageBytes })).toThrow(RangeError);
-    },
-  );
-});
-
-describe('renderBundleReport', () => {
-  const scripts = [{ path: 'assets/index-abc.js', bytes: 788_320, gzipBytes: 224_940 }];
-
-  it('lists the scripts, the total and the verdict', () => {
-    expect(renderBundleReport({ scripts, budgetBytes: 250_000, largeImageBytes: 500_000 })).toBe(
-      [
-        '## Bundle size',
-        '',
-        '| File | Size | Gzip |',
-        '| --- | ---: | ---: |',
-        '| `assets/index-abc.js` | 788.3 kB | 224.9 kB |',
-        '| **Total** | | **224.9 kB** |',
-        '',
-        '✅ Within budget: 224.9 kB gzip for a budget of 250.0 kB.',
-        '',
-      ].join('\n'),
-    );
-  });
-
-  it('says when the scripts are over budget', () => {
-    const report = renderBundleReport({ scripts, budgetBytes: 200_000, largeImageBytes: 500_000 });
-    expect(report).toContain('❌ Over budget: 224.9 kB gzip for a budget of 200.0 kB.');
-  });
-
-  it('lists the large images', () => {
-    const report = renderBundleReport({
-      scripts,
-      budgetBytes: 250_000,
-      largeImages: [{ path: 'chess.png', bytes: 928_988 }],
-      largeImageBytes: 500_000,
-    });
-    expect(report).toContain('### Images over 500.0 kB');
-    expect(report).toContain('| `chess.png` | 929.0 kB |');
-  });
-
-  it('leaves out the image section when no image is too large', () => {
-    const report = renderBundleReport({ scripts, budgetBytes: 250_000, largeImageBytes: 500_000 });
-    expect(report).not.toContain('Images over');
-  });
-
-  it('leaves out the entries that are not build files, from the total too', () => {
-    const report = renderBundleReport({
-      scripts: [null, 'assets/x.js', { bytes: 9_000, gzipBytes: 5_000 }, ...scripts],
-      budgetBytes: 250_000,
-      largeImages: [null, { bytes: 900_000 }, { path: '', bytes: 900_000 }],
-      largeImageBytes: 500_000,
-    });
-    expect(report).toBe(
-      [
-        '## Bundle size',
-        '',
-        '| File | Size | Gzip |',
-        '| --- | ---: | ---: |',
-        '| `assets/index-abc.js` | 788.3 kB | 224.9 kB |',
-        '| **Total** | | **224.9 kB** |',
-        '',
-        '✅ Within budget: 224.9 kB gzip for a budget of 250.0 kB.',
-        '',
-      ].join('\n'),
-    );
-  });
-
-  it('lists the valid large images next to malformed ones', () => {
-    const report = renderBundleReport({
-      scripts,
-      budgetBytes: 250_000,
-      largeImages: [null, { path: 'chess.png', bytes: 928_988 }, { bytes: 900_000 }],
-      largeImageBytes: 500_000,
-    });
-    expect(report).toContain(
-      ['| Image | Size |', '| --- | ---: |', '| `chess.png` | 929.0 kB |', ''].join('\n'),
-    );
-    expect(report).not.toContain('undefined');
-  });
-
-  it.each([0, -1, NaN, Infinity, undefined, null, '250000'])(
-    'throws for the invalid budget %s',
-    budgetBytes => {
-      expect(() => renderBundleReport({ scripts, budgetBytes, largeImageBytes: 500_000 })).toThrow(
-        RangeError,
-      );
-    },
-  );
-
-  it.each([0, -1, NaN, Infinity, undefined, null, '500000'])(
-    'throws for the invalid image size limit %s',
-    largeImageBytes => {
-      expect(() => renderBundleReport({ scripts, budgetBytes: 250_000, largeImageBytes })).toThrow(
-        RangeError,
-      );
-    },
-  );
-
-  it.each([undefined, null, {}, 'assets/index.js'])(
-    'reports a total of 0 and no image for the lists %o',
-    list => {
-      const report = renderBundleReport({
-        scripts: list,
-        budgetBytes: 250_000,
-        largeImages: list,
-        largeImageBytes: 500_000,
-      });
-      expect(report).toBe(
-        [
-          '## Bundle size',
-          '',
-          '| File | Size | Gzip |',
-          '| --- | ---: | ---: |',
-          '| **Total** | | **0.0 kB** |',
-          '',
-          '✅ Within budget: 0.0 kB gzip for a budget of 250.0 kB.',
-          '',
-        ].join('\n'),
-      );
     },
   );
 });
