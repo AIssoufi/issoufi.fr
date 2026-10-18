@@ -46,8 +46,10 @@ describe('Experiences', () => {
     name => {
       render(<Experiences />);
 
+      // Each company is a child of the timeline, a single job or the group of its roles
       const [logo] = screen.getAllByRole('img', { name });
-      expect(logo.closest('[data-timeline-dot="before"]')).not.toBeNull();
+      const company = logo.closest('[data-timeline-line] > *');
+      expect(company).toHaveAttribute('data-timeline-dot', 'before');
     },
   );
 
