@@ -9,7 +9,7 @@ export const WebApp = styled.div`
   /* A plain 1fr never shrinks below its content, which would widen the page past the screen */
   grid-template-columns: minmax(0, 1fr);
   height: 100vh;
-  max-width: 1440px;
+  max-width: ${th.size('container')};
   margin: 0 auto;
 
   > header {
