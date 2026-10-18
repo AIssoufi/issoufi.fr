@@ -1,4 +1,5 @@
 import { fr } from './fr';
+import { getEntries } from './testUtils';
 
 /**
  * A colon, semicolon, question or exclamation mark with neither a no-break space nor another mark
@@ -11,24 +12,6 @@ const NARROW_SPACE_BEFORE_COLON = /\u202f:/;
 const FULL_SPACE_BEFORE_SHORT_PUNCTUATION = /\u00a0[;?!]/;
 /** A straight apostrophe, instead of the typographic one (’). */
 const STRAIGHT_APOSTROPHE = /'/;
-
-/** Parameters of {@link getEntries}. */
-interface GetEntriesParams {
-  /** A translation, or an object of nested translations. */
-  value: unknown;
-  /** Dotted key of `value`, empty at the root. */
-  key?: string;
-}
-
-/** Lists every translation of a nested translations object, as `[dotted key, text]` pairs. */
-const getEntries = ({ value, key = '' }: GetEntriesParams): [string, string][] => {
-  if (typeof value === 'string') return [[key, value]];
-  if (typeof value !== 'object' || value === null) return [];
-
-  return Object.entries(value).flatMap(([childKey, child]) =>
-    getEntries({ value: child, key: key ? `${key}.${childKey}` : childKey }),
-  );
-};
 
 /** Keys of the French translations whose text matches a pattern. */
 const getKeysMatching = (pattern: RegExp) =>
@@ -62,21 +45,6 @@ describe('fr', () => {
     expect(fr.exp.sewanLead.proj1B3).toBe(
       'npm + Lerna v4 → pnpm + Lerna v8\u202f; passage à TypeScript strict',
     );
-  });
-});
-
-describe('getEntries', () => {
-  it.each([
-    ['a missing value', undefined],
-    ['null', null],
-    ['a number', 42],
-    ['an empty object', {}],
-  ])('finds no translation in %s', (_, value) => {
-    expect(getEntries({ value })).toEqual([]);
-  });
-
-  it('uses the key of a translation at the root', () => {
-    expect(getEntries({ value: 'Accueil', key: 'nav.home' })).toEqual([['nav.home', 'Accueil']]);
   });
 });
 
