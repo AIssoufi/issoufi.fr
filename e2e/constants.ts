@@ -144,3 +144,31 @@ export const STICKY_HEADER_SCREEN_HEIGHT_PX = 600;
  * 1 px shorter.
  */
 export const MAX_BAND_OFFSET_PX = 0.5;
+
+/**
+ * Phones held sideways, on which the open mobile menu must show each of its links whole without
+ * scrolling: the smallest still in use (568 × 320, an iPhone SE of the first generation) and a
+ * common one (667 × 375, an iPhone 8).
+ */
+export const LANDSCAPE_PHONE_SCREENS = [
+  { width: 568, height: 320 },
+  { width: 667, height: 375 },
+] as const;
+
+/**
+ * Screen lower than the open mobile menu, even compact, as a phone held sideways with the bars of
+ * its browser shown: the menu must scroll to show each of its links whole.
+ */
+export const SHORTER_THAN_MENU_SCREEN = { width: 568, height: 240 } as const;
+
+/**
+ * Distance, in pixels, of each wheel scroll or swipe of the browser tests: more than half a phone
+ * screen, so that a page left free to scroll visibly moves.
+ */
+export const SCROLL_GESTURE_DISTANCE_PX = 600;
+
+/**
+ * Speed of the wheel scrolls and swipes of the browser tests, in pixels per second: fast, so that
+ * each one lasts a fifth of a second.
+ */
+export const SCROLL_GESTURE_SPEED_PX_PER_S = 3000;

@@ -356,3 +356,34 @@ export const isBoxInside = ({ box, container }: IsBoxInsideParams = {}): boolean
   const isInsideVertically = getBoxBottom(box) <= getBoxBottom(container) && box.y >= container.y;
   return isInsideHorizontally && isInsideVertically;
 };
+
+/** Size of the screen of a page, as `page.viewportSize()` of Playwright returns it. */
+interface ViewportSize {
+  /** Width of the screen, in CSS pixels. */
+  width: number;
+  /** Height of the screen, in CSS pixels. */
+  height: number;
+}
+
+/** Tells whether a value is a length that a box can have: a finite number. */
+const isLength = (value: unknown): value is number => Number.isFinite(value);
+
+/**
+ * Builds the box of the whole screen of a page from its size, to check with {@link isBoxInside}
+ * that an element shows whole on it.
+ *
+ * @param viewport - Size of the screen, such as the one that `page.viewportSize()` returns.
+ * @returns The box at `x` and `y` 0, or `null` when the size is missing or holds a value that is
+ * not a finite number, as `viewportSize()` returns `null` for a page without a fixed size; no box
+ * is inside `null`.
+ *
+ * @example
+ * getScreenBox({ width: 568, height: 320 }); // { x: 0, y: 0, width: 568, height: 320 }
+ */
+export const getScreenBox = (viewport?: ViewportSize | null): ScreenBox | null => {
+  const width = viewport?.width;
+  const height = viewport?.height;
+  if (!isLength(width) || !isLength(height)) return null;
+
+  return { x: 0, y: 0, width, height };
+};

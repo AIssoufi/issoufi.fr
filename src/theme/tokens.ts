@@ -255,8 +255,12 @@ export const zIndices = {
   9999: 9999,
 } as const;
 
-/** Viewport widths where the layout changes; keys are em values, which follow the font size. */
+/**
+ * Viewport widths and heights where the layout changes; keys are em values, which follow the font
+ * size.
+ */
 export const breakpoints = {
+  30: '30em',
   50: '50em',
   100: '100em',
 } as const;

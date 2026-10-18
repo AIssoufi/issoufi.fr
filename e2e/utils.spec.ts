@@ -10,6 +10,7 @@ import {
   getCenterDistanceX,
   getCheckedRoutes,
   getQuadCenterX,
+  getScreenBox,
   groupCardsIntoRows,
   isBoxInside,
 } from './utils';
@@ -628,6 +629,57 @@ describe('isBoxInside', () => {
 
     it('returns false without any parameters', () => {
       expect(isBoxInside()).toBe(false);
+    });
+  });
+});
+
+describe('getScreenBox', () => {
+  it.each([
+    [
+      { width: 568, height: 320 },
+      { x: 0, y: 0, width: 568, height: 320 },
+    ],
+    [
+      { width: 1440, height: 800 },
+      { x: 0, y: 0, width: 1440, height: 800 },
+    ],
+    [
+      { width: 0, height: 0 },
+      { x: 0, y: 0, width: 0, height: 0 },
+    ],
+  ])('builds the box of a screen of %j', (viewport, expected) => {
+    expect(getScreenBox(viewport)).toEqual(expected);
+  });
+
+  it('holds what shows whole on the screen, and not what it cuts', () => {
+    const screen = getScreenBox({ width: 568, height: 320 });
+
+    expect(isBoxInside({ box: { x: 230, y: 250, width: 32, height: 32 }, container: screen })).toBe(
+      true,
+    );
+    expect(isBoxInside({ box: { x: 230, y: 305, width: 32, height: 32 }, container: screen })).toBe(
+      false,
+    );
+  });
+
+  describe('edge cases', () => {
+    it.each([
+      undefined,
+      null,
+      {},
+      'screen',
+      { width: 568 },
+      { width: Number.NaN, height: 320 },
+      { width: 568, height: Number.POSITIVE_INFINITY },
+      { width: '568', height: 320 },
+    ])('returns null for the size %j, inside which no box is', viewport => {
+      expect(getScreenBox(viewport as never)).toBeNull();
+      expect(
+        isBoxInside({
+          box: { x: 0, y: 0, width: 1, height: 1 },
+          container: getScreenBox(viewport as never),
+        }),
+      ).toBe(false);
     });
   });
 });

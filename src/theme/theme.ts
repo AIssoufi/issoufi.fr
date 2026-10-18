@@ -185,4 +185,12 @@ export const theme = {
     /** Wide screens. */
     wide: breakpoints[100],
   },
+  /**
+   * Screen heights where the layout changes, in `em` like `screens`, kept apart from them since
+   * xstyled reads `screens` as widths. Not an xstyled namespace: use `th('screenHeights.short')`.
+   */
+  screenHeights: {
+    /** Up to this height, as on a phone held sideways, the open mobile menu is compact. */
+    short: breakpoints[30],
+  },
 } as const;
