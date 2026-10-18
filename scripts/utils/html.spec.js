@@ -57,6 +57,7 @@ describe('toDataUrl', () => {
     ['photo.PNG', 'image/png'],
     ['photo.avif', 'image/avif'],
     ['/fonts/montserrat-latin.woff2', 'font/woff2'],
+    ['scripts/cv/fonts/Montserrat-Regular.ttf', 'font/ttf'],
   ])('builds the data URL of %s', (fileName, mediaType) => {
     expect(toDataUrl({ content, fileName })).toBe(`data:${mediaType};base64,aW1hZ2U=`);
   });
@@ -67,7 +68,7 @@ describe('toDataUrl', () => {
     );
   });
 
-  it.each(['photo.gif', 'photo.svg', 'font.woff', 'font.ttf', 'photo', 'webp', ''])(
+  it.each(['photo.gif', 'photo.svg', 'font.woff', 'font.otf', 'photo', 'webp', ''])(
     'refuses the unknown file type of %j',
     fileName => {
       expect(() => toDataUrl({ content, fileName })).toThrow(`Unknown file type: ${fileName}`);

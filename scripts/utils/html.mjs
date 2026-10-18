@@ -1,7 +1,7 @@
 // @ts-check
 import { extname } from 'node:path';
 
-import { DATA_URL_MEDIA_TYPES } from '../constants.mjs';
+import { DATA_URL_MEDIA_TYPES } from './constants.mjs';
 
 /** Words that a template literal writes for a missing value or a failed computation. */
 const UNRESOLVED_VALUE_PATTERN = /\b(undefined|null|NaN)\b/;
@@ -11,7 +11,7 @@ const HTML_ENTITIES = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "
 
 /**
  * Escapes a text for an HTML text node or a quoted attribute, so that a translation can never
- * break the markup of the image.
+ * break the markup of a page that a script renders.
  * @param {unknown} value - Text to escape. A value that is not a string gives an empty text.
  * @returns {string} The escaped text.
  * @example
@@ -25,7 +25,7 @@ export const escapeHtml = value =>
 /**
  * Tells whether generated markup holds a value that was never resolved, such as a design token
  * renamed in the theme, which a template literal writes as `undefined`, or a computation on it,
- * which gives `NaN`. The browser would drop the style silently and draw a wrong image.
+ * which gives `NaN`. The browser would drop the style silently and draw a wrong page.
  * @param {unknown} markup - CSS or SVG built from the tokens. Keep data URLs out: their base64
  * may spell one of these words.
  * @returns {boolean} True when the markup contains `undefined`, `null` or `NaN` as a word, or when

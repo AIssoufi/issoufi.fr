@@ -1,9 +1,9 @@
-import { LANGUAGES } from '../../../src/i18n/constants';
-import { en } from '../../../src/i18n/en';
-import { fr } from '../../../src/i18n/fr';
-import { OG_IMAGE_PATHS, SITE_URL } from '../../../src/utils/pages';
-import { TRANSLATION_MODULES } from '../constants.mjs';
-import { findMissingTexts, getAuthorName, getOgImageTexts } from './texts.mjs';
+import { LANGUAGES } from '../../src/i18n/constants';
+import { en } from '../../src/i18n/en';
+import { fr } from '../../src/i18n/fr';
+import { SITE_URL } from '../../src/utils/pages';
+import { TRANSLATION_MODULES } from './constants.mjs';
+import { findMissingTexts, getAuthorName, getHomeTexts } from './home-texts.mjs';
 
 describe('getAuthorName', () => {
   it('reads the name before the job title', () => {
@@ -54,9 +54,9 @@ describe('getAuthorName', () => {
   });
 });
 
-describe('getOgImageTexts', () => {
+describe('getHomeTexts', () => {
   it('reads the texts of the home page in the French translations', () => {
-    expect(getOgImageTexts({ translations: fr, siteUrl: SITE_URL })).toEqual({
+    expect(getHomeTexts({ translations: fr, siteUrl: SITE_URL })).toEqual({
       logo: 'AI',
       name: 'ADAM Issoufi',
       jobTitle: 'Développeur full-stack JavaScript',
@@ -73,7 +73,7 @@ describe('getOgImageTexts', () => {
   });
 
   it('reads the texts of the home page in the English translations', () => {
-    expect(getOgImageTexts({ translations: en, siteUrl: SITE_URL })).toEqual({
+    expect(getHomeTexts({ translations: en, siteUrl: SITE_URL })).toEqual({
       logo: 'AI',
       name: 'ADAM Issoufi',
       jobTitle: 'Full-stack JavaScript Developer',
@@ -94,17 +94,17 @@ describe('getOgImageTexts', () => {
     ['https://www.issoufi.fr/projects', 'www.issoufi.fr'],
     ['http://localhost:4173', 'localhost:4173'],
   ])('reads the domain of %s', (siteUrl, expected) => {
-    expect(getOgImageTexts({ translations: fr, siteUrl }).site).toBe(expected);
+    expect(getHomeTexts({ translations: fr, siteUrl }).site).toBe(expected);
   });
 
   it.each(['issoufi.fr', '', undefined, null, 42])('gives no domain for %j', siteUrl => {
-    expect(getOgImageTexts({ translations: fr, siteUrl }).site).toBe('');
+    expect(getHomeTexts({ translations: fr, siteUrl }).site).toBe('');
   });
 
   it.each([undefined, null, {}, 'fr', { home: null, meta: 42 }])(
     'gives empty texts, but the logo and the skills, for the translations %j',
     translations => {
-      const texts = getOgImageTexts({ translations, siteUrl: SITE_URL });
+      const texts = getHomeTexts({ translations, siteUrl: SITE_URL });
 
       expect(texts).toMatchObject({ logo: 'AI', name: '', jobTitle: '', subtitle: '' });
       expect(texts.passion.map(({ text }) => text)).toEqual(['', 'UX', '', 'UI', '']);
@@ -113,7 +113,7 @@ describe('getOgImageTexts', () => {
 
   it('gives an empty text for a translation that is not a string', () => {
     const translations = { ...fr, home: { ...fr.home, subtitle: 42, title2Mid: null } };
-    const texts = getOgImageTexts({ translations, siteUrl: SITE_URL });
+    const texts = getHomeTexts({ translations, siteUrl: SITE_URL });
 
     expect(texts.subtitle).toBe('');
     expect(texts.passion[2].text).toBe('');
@@ -121,13 +121,13 @@ describe('getOgImageTexts', () => {
 });
 
 describe('findMissingTexts', () => {
-  const texts = getOgImageTexts({ translations: fr, siteUrl: SITE_URL });
+  const texts = getHomeTexts({ translations: fr, siteUrl: SITE_URL });
 
   it.each([
     ['French', fr],
     ['English', en],
   ])('finds none in the %s translations', (_, translations) => {
-    expect(findMissingTexts(getOgImageTexts({ translations, siteUrl: SITE_URL }))).toEqual([]);
+    expect(findMissingTexts(getHomeTexts({ translations, siteUrl: SITE_URL }))).toEqual([]);
   });
 
   it.each([
@@ -155,7 +155,7 @@ describe('findMissingTexts', () => {
   });
 
   it('reports every text of empty translations', () => {
-    const emptyTexts = getOgImageTexts({ translations: {}, siteUrl: '' });
+    const emptyTexts = getHomeTexts({ translations: {}, siteUrl: '' });
 
     expect(findMissingTexts(emptyTexts)).toEqual([
       'name',
@@ -171,18 +171,15 @@ describe('TRANSLATION_MODULES', () => {
   /** Sorts a list of language codes, so lists in another order compare equal. */
   const sortLanguages = languages => [...languages].sort();
 
-  it('names a module for every language of the site and of the images', () => {
-    const languages = sortLanguages(Object.keys(TRANSLATION_MODULES));
-
-    expect(languages).toEqual(sortLanguages(LANGUAGES));
-    expect(languages).toEqual(sortLanguages(Object.keys(OG_IMAGE_PATHS)));
+  it('names a module for every language of the site', () => {
+    expect(sortLanguages(Object.keys(TRANSLATION_MODULES))).toEqual(sortLanguages(LANGUAGES));
   });
 
   it.each(Object.entries(TRANSLATION_MODULES))(
-    'reads every text of the image in the %s module, under the code of its language',
+    'reads every text of the home page in the %s module, under the code of its language',
     async (language, id) => {
-      const module = await import(/* @vite-ignore */ `../../..${id}`);
-      const texts = getOgImageTexts({ translations: module[language], siteUrl: SITE_URL });
+      const module = await import(/* @vite-ignore */ `../..${id}`);
+      const texts = getHomeTexts({ translations: module[language], siteUrl: SITE_URL });
 
       expect(findMissingTexts(texts)).toEqual([]);
     },

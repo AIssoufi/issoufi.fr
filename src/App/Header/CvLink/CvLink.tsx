@@ -1,8 +1,8 @@
 import { useTranslation } from 'react-i18next';
 
-import { CV_URL } from './constants';
 import { Icon, Link } from './CvLink.styled';
 import Tooltip, { type TooltipPlacement } from './Tooltip';
+import { getCvUrl } from './utils';
 
 /** Props of {@link CvLink}. Every prop is optional. */
 interface CvLinkProps {
@@ -28,7 +28,8 @@ interface CvLinkProps {
 }
 
 /**
- * Link that downloads the CV of the site owner, a PDF, rather than opening it, written "CV". It
+ * Link that downloads the CV of the site owner, a PDF, rather than opening it, written "CV": the
+ * CV written in the active language, generated from the content of the site by `pnpm cv`. It
  * has no shape of its own: each place gives it one with `styled(CvLink)`, a pill with a download
  * icon in the mobile menu, and a round button without icon in the floating controls of the header
  * on desktop.
@@ -47,7 +48,7 @@ interface CvLinkProps {
  * <FloatingCvLink tooltipPlacement="left" />
  */
 const CvLink = ({ hasIcon = false, tooltipPlacement, onClick, className }: CvLinkProps) => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
 
   return (
     <Tooltip
@@ -57,7 +58,7 @@ const CvLink = ({ hasIcon = false, tooltipPlacement, onClick, className }: CvLin
       {tooltipId => (
         <Link
           className={className}
-          href={CV_URL}
+          href={getCvUrl(i18n.resolvedLanguage)}
           download
           aria-labelledby={tooltipId}
           onClick={onClick}

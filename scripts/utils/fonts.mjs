@@ -1,7 +1,20 @@
 // @ts-check
-import { FONT_CHECK_SIZE_PX, FONTS_IN_USE } from '../constants.mjs';
+import { FONT_CHECK_SIZE_PX } from './constants.mjs';
 
-/** @typedef {import('./template.mjs').OgImageTheme} OgImageTheme */
+/**
+ * Design tokens of `src/theme/theme.ts` that give the fonts of a page.
+ * @typedef {object} FontTheme
+ * @property {Record<string, string>} fonts - Font stacks, e.g. `body` and `display`.
+ * @property {Record<string, number>} fontWeights - Font weights, e.g. `bold`.
+ */
+
+/**
+ * A font of the theme that a page uses, with its weights.
+ * @typedef {object} FontInUse
+ * @property {string} font - Name of its stack in the `fonts` of the theme, e.g. `body`.
+ * @property {string[]} weights - Names of its weights in the `fontWeights` of the theme, e.g.
+ * `bold`.
+ */
 
 /**
  * Result of loading one font in the page.
@@ -35,16 +48,25 @@ export const getFirstFontFamily = stack =>
   typeof stack === 'string' ? unquoteFamily(stack.split(',')[0]) : '';
 
 /**
- * Lists the fonts that the page of the image uses, each family of {@link FONTS_IN_USE} in each of
- * its weights, as CSS fonts that `document.fonts.load` takes.
- * @param {OgImageTheme} theme - Design tokens of the site, for the font stacks and weights.
+ * Parameters of {@link listFontsInUse}.
+ * @typedef {object} ListFontsInUseParams
+ * @property {FontTheme} theme - Design tokens of the site, for the font stacks and weights.
+ * @property {FontInUse[]} fontsInUse - Fonts that the page uses, e.g. `FONTS_IN_USE` of
+ * `scripts/og-image/constants.mjs`.
+ */
+
+/**
+ * Lists the fonts that a page uses, each family of `fontsInUse` in each of its weights, as CSS
+ * fonts that `document.fonts.load` takes.
+ * @param {ListFontsInUseParams} params
  * @returns {string[]} The fonts, e.g. `700 16px "Montserrat"`, without those whose family or
  * weight is missing from the theme.
  * @example
- * listFontsInUse(theme); // ['400 16px "Montserrat"', …, '400 16px "Saira Stencil One"']
+ * listFontsInUse({ theme, fontsInUse: [{ font: 'body', weights: ['regular', 'bold'] }] });
+ * // ['400 16px "Montserrat"', '700 16px "Montserrat"']
  */
-export const listFontsInUse = theme =>
-  FONTS_IN_USE.flatMap(({ font, weights }) => {
+export const listFontsInUse = ({ theme, fontsInUse }) =>
+  fontsInUse.flatMap(({ font, weights }) => {
     const family = getFirstFontFamily(theme.fonts[font]);
     if (!family) return [];
 
@@ -70,7 +92,7 @@ const isMissingFont = check => {
 };
 
 /**
- * Lists the fonts that did not load in the page, so the script stops instead of drawing the
+ * Lists the fonts that did not load in a page, so the script stops instead of drawing the
  * texts in a fallback or a synthesized bold font, as when its file is missing or is not a font.
  * @param {unknown[]} [checks] - Results of loading each font, from the page. A value that is not
  * an array counts as no checks.
