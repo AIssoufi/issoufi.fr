@@ -1,5 +1,7 @@
 import styled, { css, keyframes, th } from '@xstyled/styled-components';
 
+import List from '../../../components/List';
+
 const heartPop = keyframes`
   0%   { transform: scale(1); }
   25%  { transform: scale(1.7); }
@@ -121,7 +123,7 @@ export const IconBtn = styled.button`
   }
 `;
 
-export const ProjectGrid = styled.ul<{ $displayAll: boolean }>`
+export const ProjectGrid = styled(List)<{ $displayAll: boolean }>`
   display: flex;
   flex-direction: row;
   justify-content: space-between;

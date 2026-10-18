@@ -1,5 +1,7 @@
 import styled, { css, keyframes, th } from '@xstyled/styled-components';
 
+import List from '../../../components/List';
+
 const fadeSlideIn = keyframes`
   from {
     opacity: 0;
@@ -41,7 +43,7 @@ export const Nav = styled.nav<{ $mobileMenuIsOpen: boolean }>`
   }
 `;
 
-export const NavList = styled.ul`
+export const NavList = styled(List)`
   display: flex;
   flex-direction: column;
   align-items: center;

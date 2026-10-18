@@ -1,5 +1,6 @@
 import styled, { th } from '@xstyled/styled-components';
 
+import List from '../../../components/List';
 import { card, companyBlock, timelineRow } from '../timeline.styled';
 
 /* ── Group wrapper — participates directly in Timeline ─────── */
@@ -15,7 +16,7 @@ export const GroupArticle = styled.section`
 
 /* ── Role list ─────────────────────────────────────────────── */
 
-export const RolesList = styled.ul`
+export const RolesList = styled(List)`
   list-style: none;
   margin: 0;
   padding: 0;

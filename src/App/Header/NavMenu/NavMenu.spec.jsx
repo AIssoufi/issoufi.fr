@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router';
 
@@ -28,6 +28,22 @@ describe('NavMenu', () => {
 
     expect(screen.getByText('Projets').closest('a')).toHaveClass('active');
     expect(screen.getByText('Accueil').closest('a')).not.toHaveClass('active');
+  });
+
+  it('lists the links with an explicit list role, which Safari drops from lists without bullets', () => {
+    renderAt('/', { items });
+    const list = screen.getByRole('list', { hidden: true });
+
+    expect(list).toHaveAttribute('role', 'list');
+    expect(within(list).getAllByRole('listitem', { hidden: true })).toHaveLength(items.length);
+  });
+
+  it('keeps the list role without any links', () => {
+    renderAt('/');
+    const list = screen.getByRole('list', { hidden: true });
+
+    expect(list).toHaveAttribute('role', 'list');
+    expect(list).toBeEmptyDOMElement();
   });
 
   it('calls onClick when a link is clicked', async () => {

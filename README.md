@@ -173,6 +173,7 @@ The version follows the commits: `fix` bumps the patch version, `feat` the minor
 │   │   ├── RouteErrorBoundary/ # Error message with a reload button in place of a page that fails
 │   │   └── Header/       # Logo, navigation, burger menu and LangToggle/ (FR / EN switch)
 │   ├── components/       # Components shared across pages
+│   │   ├── List/         # <ul role="list"> of every list, extended with styled(List)
 │   │   ├── Page/         # <main> landmark of every page, extended with styled(Page)
 │   │   └── StatusMessage/ # Code, title, message, action button and home link of error pages
 │   ├── i18n/             # French and English translations, and the storage of the chosen language
@@ -202,4 +203,4 @@ The version follows the commits: `fix` bumps the patch version, `feat` the minor
 - **Language**: code, comments and docs are in English. Only user-facing texts are translated.
 - **Styles**: styled-components read every color, spacing, font, radius, shadow, duration and breakpoint from the design tokens of `src/theme` with the [xstyled](https://xstyled.dev/) `th` helpers (`th.color('accent')`, `th.space(16)`, `th.radius('md')`…). No hard-coded values, and every styled-components API is imported from `@xstyled/styled-components`.
 - **Components**: one folder per component (`Name.tsx`, `Name.spec.jsx`, `Name.styled.ts`, `index.ts`), styles imported only by their own component, optional props that tolerate missing values, and JSDoc on every component and prop. See [`CLAUDE.md`](CLAUDE.md) for the details.
-- **Accessibility**: every page renders a single `<main>` landmark, its `Page` component, and a single `h1`, visually hidden when the design shows none; its sections use `h2` and below. The test of each page checks both.
+- **Accessibility**: every page renders a single `<main>` landmark, its `Page` component, and a single `h1`, visually hidden when the design shows none; its sections use `h2` and below. The test of each page checks both. Every list is a `List` (`src/components/List`): the global style removes the bullets of lists, and Safari then stops exposing a `ul` as a list, which `role="list"` restores, so VoiceOver still announces it and counts its items.
