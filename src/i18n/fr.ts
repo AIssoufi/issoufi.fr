@@ -47,6 +47,10 @@ export const fr = {
   langToggle: {
     label: 'Langue',
   },
+  burgerMenu: {
+    open: 'Ouvrir le menu',
+    close: 'Fermer le menu',
+  },
   home: {
     title1: 'Développeur full-stack JavaScript',
     title2Pre: 'passionné par l’',
