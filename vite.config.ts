@@ -5,12 +5,7 @@ import svgr from 'vite-plugin-svgr';
 import packageJson from './package.json';
 import { DEFAULT_LANGUAGE } from './src/i18n/constants';
 import { getYearsOfExperience } from './src/utils/career';
-import {
-  addModulePreload,
-  DEFAULT_BASE,
-  renderNotFoundHtml,
-  renderPageHtml,
-} from './src/utils/pageHtml';
+import { addModulePreload, renderNotFoundHtml, renderPageHtml } from './src/utils/pageHtml';
 import {
   getNotFoundFiles,
   getPageFiles,
@@ -52,14 +47,13 @@ interface PreloadPageChunkParams {
  * then emits from the same template the HTML file of every other page in every language
  * (`projects.html`, `en/index.html`, `en/projects.html`…) and a not found page per language
  * (`404.html`, `en/404.html`). It runs after Vite's own HTML plugin (`enforce: 'post'`), so the
- * template already contains the hashed asset tags. Every page preloads its background photo
- * under the `base` of the build (see `renderPageHtml` and `renderNotFoundHtml`), and each emitted
- * page also preloads the chunk of the page it shows, so a direct visit downloads them at the same
- * time as the main chunk; the home page is in the main chunk and needs none.
+ * template already contains the hashed asset tags. Each emitted page also preloads the chunk of
+ * the page it shows, so a direct visit downloads it at the same time as the main chunk; the home
+ * page is in the main chunk and needs none.
  */
 const pageMeta = (): Plugin => {
   let template = '';
-  let base = DEFAULT_BASE;
+  let base = '/';
 
   return {
     name: 'page-meta',
@@ -74,7 +68,6 @@ const pageMeta = (): Plugin => {
         page: HOME_PAGE,
         language: DEFAULT_LANGUAGE,
         years: getYearsOfExperience(),
-        base,
       });
     },
     generateBundle(_options, bundle) {
@@ -91,7 +84,7 @@ const pageMeta = (): Plugin => {
       getPageFiles()
         .filter(file => !isTemplatePageFile(file))
         .forEach(({ page, language, fileName }) => {
-          const html = renderPageHtml({ template, page, language, years, base });
+          const html = renderPageHtml({ template, page, language, years });
           this.emitFile({
             type: 'asset',
             fileName,
@@ -100,7 +93,7 @@ const pageMeta = (): Plugin => {
         });
 
       getNotFoundFiles().forEach(({ language, fileName }) => {
-        const html = renderNotFoundHtml({ template, language, years, base });
+        const html = renderNotFoundHtml({ template, language, years });
         this.emitFile({
           type: 'asset',
           fileName,

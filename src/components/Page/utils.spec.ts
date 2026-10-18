@@ -28,6 +28,34 @@ describe('toBackgroundImage', () => {
 });
 
 describe('getBackgroundImages', () => {
+  const placeholderUrl = 'data:image/webp;base64,UklGRg==';
+
+  it('shows each version of the photo over its placeholder', () => {
+    expect(
+      getBackgroundImages({
+        url: '/home.webp',
+        portraitUrl: '/home-portrait.webp',
+        placeholderUrl,
+      }),
+    ).toEqual({
+      image: `url("/home.webp"), url("${placeholderUrl}")`,
+      portraitImage: `url("/home-portrait.webp"), url("${placeholderUrl}")`,
+    });
+  });
+
+  it('shows the placeholder alone when the photo has no other URL', () => {
+    expect(getBackgroundImages({ placeholderUrl })).toEqual({
+      image: `url("${placeholderUrl}")`,
+      portraitImage: `url("${placeholderUrl}")`,
+    });
+  });
+
+  it.each(['', '  ', 42, null])('leaves out a placeholder of %j', placeholder => {
+    expect(
+      getBackgroundImages({ url: '/home.webp', placeholderUrl: placeholder as never }),
+    ).toEqual({ image: 'url("/home.webp")', portraitImage: 'url("/home.webp")' });
+  });
+
   it('shows the whole photo, and its portrait version on narrow portrait screens', () => {
     expect(getBackgroundImages({ url: '/home.webp', portraitUrl: '/home-portrait.webp' })).toEqual({
       image: 'url("/home.webp")',

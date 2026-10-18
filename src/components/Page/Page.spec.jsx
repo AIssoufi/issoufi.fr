@@ -11,8 +11,12 @@ const TABLET_MEDIA = `(min-width: ${theme.screens.tablet})`;
 
 const getMain = () => screen.getByRole('main');
 
-/** A background photo in its two versions. */
-const PHOTO = { url: '/projects.webp', portraitUrl: '/projects-portrait.webp' };
+/** A background photo in its two versions, with its placeholder. */
+const PHOTO = {
+  url: '/projects.webp',
+  portraitUrl: '/projects-portrait.webp',
+  placeholderUrl: 'data:image/webp;base64,UklGRg==',
+};
 
 /**
  * Reads the `background-image` declared for the main element's `::before` layer, outside any media
@@ -35,14 +39,18 @@ describe('Page', () => {
     expect(getMain()).toContainElement(screen.getByRole('heading', { name: 'Projets' }));
   });
 
-  it('shows the whole photo behind the page', () => {
+  it('shows the whole photo behind the page, over its placeholder', () => {
     render(<Page backgroundPhoto={PHOTO} />);
-    expect(getBackgroundImage(getMain())).toBe('url("/projects.webp")');
+    expect(getBackgroundImage(getMain())).toBe(
+      `url("/projects.webp"), url("${PHOTO.placeholderUrl}")`,
+    );
   });
 
-  it('shows the portrait version of the photo on narrow portrait screens', () => {
+  it('shows the portrait version of the photo on narrow portrait screens, over its placeholder', () => {
     render(<Page backgroundPhoto={PHOTO} />);
-    expect(getPortraitBackgroundImage(getMain())).toBe('url("/projects-portrait.webp")');
+    expect(getPortraitBackgroundImage(getMain())).toBe(
+      `url("/projects-portrait.webp"), url("${PHOTO.placeholderUrl}")`,
+    );
   });
 
   it.each([

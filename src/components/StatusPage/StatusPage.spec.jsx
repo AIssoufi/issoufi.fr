@@ -47,13 +47,13 @@ describe('StatusPage', () => {
     expect(onAction).toHaveBeenCalledTimes(1);
   });
 
-  it('shows the photo of the status pages behind the page, which the not found pages preload', () => {
-    const { url, portraitUrl } = STATUS_PAGE_BACKGROUND_PHOTO;
+  it('shows the photo of the status pages behind the page, over its placeholder', () => {
+    const { url, portraitUrl, placeholderUrl } = STATUS_PAGE_BACKGROUND_PHOTO;
     render(<StatusPage title="Page introuvable" />);
 
     expect(readBackgroundImages(getMain())).toEqual({
-      image: `url("${url}")`,
-      portraitImage: `url("${portraitUrl}")`,
+      image: `url("${url}"), url("${placeholderUrl}")`,
+      portraitImage: `url("${portraitUrl}"), url("${placeholderUrl}")`,
     });
   });
 

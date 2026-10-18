@@ -150,13 +150,6 @@ describe('standalone build', () => {
     });
   });
 
-  it('preloads the background photo of the home page from the folder of the page', () => {
-    const html = stripInlineScripts(getSource(STANDALONE_PAGE_FILE_NAME));
-
-    expect(html).toContain('<link rel="preload" as="image" href="./home-portrait.webp"');
-    expect(html).toContain('<link rel="preload" as="image" href="./home.webp"');
-  });
-
   it('embeds the web fonts of the site in the page, as data URLs', () => {
     const html = getSource(STANDALONE_PAGE_FILE_NAME);
 

@@ -87,13 +87,16 @@ for (const language of LANGUAGES) {
             query => matchMedia(query).matches,
             PORTRAIT_PHOTO_MEDIA_QUERY,
           );
-          const { url, portraitUrl } = STATUS_PAGE_BACKGROUND_PHOTO;
+          const { url, portraitUrl, placeholderUrl } = STATUS_PAGE_BACKGROUND_PHOTO;
           const photoPath = isPortraitScreen ? portraitUrl : url;
           const photoUrl = new URL(photoPath, page.url()).href;
           const backgroundImage = await main.evaluate(
             element => getComputedStyle(element, '::before').backgroundImage,
           );
-          expect.soft(backgroundImage, 'background of the page').toBe(`url("${photoUrl}")`);
+          // The photo, over the placeholder that shows until it is downloaded
+          expect
+            .soft(backgroundImage, 'background of the page')
+            .toBe(`url("${photoUrl}"), url("${placeholderUrl}")`);
           const photoResponse = await page.request.get(photoUrl);
           expect.soft(photoResponse.ok(), `${photoPath} served`).toBe(true);
 

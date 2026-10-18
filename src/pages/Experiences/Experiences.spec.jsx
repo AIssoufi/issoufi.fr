@@ -143,13 +143,13 @@ describe('Experiences', () => {
     });
   });
 
-  it('shows the background photo of its entry in PAGES, which its HTML files preload', () => {
-    const { url, portraitUrl } = getPage('/experiences').backgroundPhoto;
+  it('shows the background photo of its entry in PAGES, over its placeholder', () => {
+    const { url, portraitUrl, placeholderUrl } = getPage('/experiences').backgroundPhoto;
     render(<Experiences />);
 
     expect(readBackgroundImages(screen.getByRole('main'))).toEqual({
-      image: `url("${url}")`,
-      portraitImage: `url("${portraitUrl}")`,
+      image: `url("${url}"), url("${placeholderUrl}")`,
+      portraitImage: `url("${portraitUrl}"), url("${placeholderUrl}")`,
     });
   });
 });

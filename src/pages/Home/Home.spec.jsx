@@ -108,13 +108,13 @@ describe('Home', () => {
     expect(glowStyle.display).not.toBe('none');
   });
 
-  it('shows the background photo of its entry in PAGES, which its HTML files preload', () => {
-    const { url, portraitUrl } = getPage('/').backgroundPhoto;
+  it('shows the background photo of its entry in PAGES, over its placeholder', () => {
+    const { url, portraitUrl, placeholderUrl } = getPage('/').backgroundPhoto;
     renderHome();
 
     expect(readBackgroundImages(screen.getByRole('main'))).toEqual({
-      image: `url("${url}")`,
-      portraitImage: `url("${portraitUrl}")`,
+      image: `url("${url}"), url("${placeholderUrl}")`,
+      portraitImage: `url("${portraitUrl}"), url("${placeholderUrl}")`,
     });
   });
 });

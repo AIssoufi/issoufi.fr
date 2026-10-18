@@ -4,6 +4,7 @@ import { LANGUAGES } from '../i18n/constants';
 import { theme } from '../theme/theme';
 import {
   EXPERIENCES_PAGE,
+  getBackgroundPhotoUrl,
   HOME_PAGE,
   NOT_FOUND_FOLDER,
   OG_IMAGE_PATHS,
@@ -65,11 +66,10 @@ const WEBP_EXTENDED_HEIGHT_OFFSET_BYTES = 27;
 const WEBP_EXTENDED_SIZE_BYTES = 3;
 
 /**
- * Reads the width and height of a WebP file of `public/` in its header, lossy (`VP8 `) or extended
- * (`VP8X`). Returns `undefined` for any other kind of WebP file.
+ * Reads the width and height of a WebP file in its header, lossy (`VP8 `) or extended (`VP8X`).
+ * Returns `undefined` for any other kind of WebP file.
  */
-const readWebpSize = (url: string) => {
-  const webp = readFileSync(`public${url}`);
+const readWebpSize = (webp: Buffer) => {
   const chunkType = webp.toString(
     'ascii',
     WEBP_CHUNK_TYPE_OFFSET_BYTES,
@@ -90,6 +90,22 @@ const readWebpSize = (url: string) => {
   }
   return undefined;
 };
+
+/** Reads the width and height of a WebP file of `public/`, named by its absolute URL. */
+const readPublicWebpSize = (url: string) => readWebpSize(readFileSync(`public${url}`));
+
+/** Start of the data URL of a placeholder: a WebP image in base64. */
+const PLACEHOLDER_URL_PREFIX = 'data:image/webp;base64,';
+
+/** Reads the WebP image of a placeholder from its data URL. */
+const readPlaceholder = (placeholderUrl: string) =>
+  Buffer.from(placeholderUrl.slice(PLACEHOLDER_URL_PREFIX.length), 'base64');
+
+/** Width of the placeholder of a background photo, which the page shows enlarged, so blurred. */
+const PLACEHOLDER_WIDTH_PX = 32;
+
+/** Heaviest placeholder, written in the main chunk of the app, which every page loads. */
+const PLACEHOLDER_MAX_BYTES = 400;
 
 describe('getPage', () => {
   it('finds the page matching the path', () => {
@@ -246,6 +262,48 @@ describe('PAGES', () => {
   });
 });
 
+describe('getBackgroundPhotoUrl', () => {
+  it.each([
+    ['/', '/home.webp'],
+    ['/projects', '/projects.webp'],
+    ['/en/experiences/', '/experiences.webp'],
+  ])('gives the whole photo of the page at %s: %s', (pathname, url) => {
+    expect(getBackgroundPhotoUrl({ pathname })).toBe(url);
+    expect(getBackgroundPhotoUrl({ pathname, isPortraitScreen: false })).toBe(url);
+  });
+
+  it.each([
+    ['/', '/home-portrait.webp'],
+    ['/en/projects', '/projects-portrait.webp'],
+  ])('gives the portrait version on a narrow portrait screen at %s: %s', (pathname, url) => {
+    expect(getBackgroundPhotoUrl({ pathname, isPortraitScreen: true })).toBe(url);
+  });
+
+  it.each([
+    ['an unknown path', '/skills'],
+    ['the path of the file of the standalone build', '/Users/adam/site/index.html'],
+    ['no path', undefined],
+    ['a path that is not a string', 42 as never],
+  ])('gives no URL for %s', (_, pathname) => {
+    expect(getBackgroundPhotoUrl({ pathname })).toBe('');
+    expect(getBackgroundPhotoUrl({ pathname, isPortraitScreen: true })).toBe('');
+  });
+
+  it('takes an empty path for the root, as getPage does', () => {
+    expect(getBackgroundPhotoUrl({ pathname: '' })).toBe('/home.webp');
+  });
+
+  it('gives no URL without parameters', () => {
+    expect(getBackgroundPhotoUrl()).toBe('');
+  });
+
+  it('takes only true as a portrait screen', () => {
+    expect(getBackgroundPhotoUrl({ pathname: '/', isPortraitScreen: 'yes' as never })).toBe(
+      '/home.webp',
+    );
+  });
+});
+
 describe('background photos', () => {
   const photos = [
     ...PAGES.map(({ folder, backgroundPhoto }) => ({ folder, ...backgroundPhoto })),
@@ -272,14 +330,14 @@ describe('background photos', () => {
 
   it.each(photos)('keeps the whole photo of $folder light and at most 1920 px wide', ({ url }) => {
     expect(statSync(`public${url}`).size).toBeLessThanOrEqual(WHOLE_PHOTO_MAX_BYTES);
-    expect(readWebpSize(url)?.width).toBeLessThanOrEqual(WHOLE_PHOTO_MAX_WIDTH_PX);
+    expect(readPublicWebpSize(url)?.width).toBeLessThanOrEqual(WHOLE_PHOTO_MAX_WIDTH_PX);
   });
 
   it.each(photos)(
     'gives $folder a portrait version in 3:4, no taller than the photo',
     ({ url, portraitUrl }) => {
-      const photo = readWebpSize(url);
-      const portrait = readWebpSize(portraitUrl);
+      const photo = readPublicWebpSize(url);
+      const portrait = readPublicWebpSize(portraitUrl);
       const expectedWidth = (portrait?.height ?? 0) * PORTRAIT_PHOTO_ASPECT_RATIO;
 
       expect(portrait?.height).toBeGreaterThan(0);
@@ -287,6 +345,23 @@ describe('background photos', () => {
         PORTRAIT_PHOTO_ROUNDING_PX,
       );
       expect(portrait?.height).toBeLessThanOrEqual(photo?.height ?? 0);
+    },
+  );
+
+  it.each(photos)(
+    'gives $folder a placeholder of 32 px wide in WebP, framed as the photo, written in the app',
+    ({ url, placeholderUrl }) => {
+      const placeholder = readPlaceholder(placeholderUrl);
+      const placeholderSize = readWebpSize(placeholder);
+      const photoSize = readPublicWebpSize(url);
+      const photoRatio = (photoSize?.height ?? 0) / (photoSize?.width ?? 1);
+
+      expect(placeholderUrl.startsWith(PLACEHOLDER_URL_PREFIX)).toBe(true);
+      expect(placeholder.length).toBeLessThanOrEqual(PLACEHOLDER_MAX_BYTES);
+      expect(placeholderSize?.width).toBe(PLACEHOLDER_WIDTH_PX);
+      expect(
+        Math.abs((placeholderSize?.height ?? 0) - PLACEHOLDER_WIDTH_PX * photoRatio),
+      ).toBeLessThanOrEqual(PORTRAIT_PHOTO_ROUNDING_PX);
     },
   );
 

@@ -118,7 +118,7 @@ export const PHOTO_SCREENS: readonly PhotoScreen[] = [
 
 /**
  * `initiatorType` of the resource timing of a file that a `<link>` loaded, such as a background
- * photo preloaded by the HTML file of its page, rather than by the style that shows it (`css`).
+ * photo preloaded by the app when it starts, rather than by the style that shows it (`css`).
  */
 export const LINK_INITIATOR_TYPE = 'link';
 

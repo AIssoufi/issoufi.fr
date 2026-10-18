@@ -1,3 +1,6 @@
+// First, so that the background photo starts downloading before the app is evaluated
+import './preloadBackgroundPhoto';
+
 import { StrictMode } from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App/App';

@@ -2,6 +2,7 @@ import { DEFAULT_LANGUAGE, LANGUAGES } from '../i18n/constants';
 import type { Language } from '../i18n/types';
 import { getLanguagePrefix, isLanguage, localizePath, removeLanguagePrefix } from '../i18n/utils';
 import { theme } from '../theme/theme';
+import { isNonBlankString } from './strings';
 
 /**
  * Production origin of the site, without a trailing slash. Used to build canonical URLs. The CI
@@ -37,8 +38,9 @@ export const getOgImageUrl = (language: unknown): string => {
 };
 
 /**
- * Photo covering the screen behind a page, in two files of `public/`, each written as one whole
- * absolute URL, which the standalone build makes relative to its page.
+ * Photo covering the screen behind a page, under its dark overlay: two files of `public/`, each
+ * written as one whole absolute URL, which the standalone build makes relative to its page, and a
+ * tiny version written in the page itself.
  */
 export interface BackgroundPhoto {
   /** URL of the whole photo, shown on every screen but narrow portrait ones, e.g. `/home.webp`. */
@@ -49,13 +51,19 @@ export interface BackgroundPhoto {
    * whole photo, at a lower resolution.
    */
   portraitUrl: string;
+  /**
+   * Data URL of a tiny version of the whole photo, 32 px wide, which the page shows enlarged, so
+   * blurred, under the photo: written in the code of the app, it needs no request and shows with
+   * the text, so the page never goes from black to the photo once the photo is downloaded.
+   */
+  placeholderUrl: string;
 }
 
 /**
  * Media query of the screens that show the portrait version of a {@link BackgroundPhoto}: narrower
  * than the tablet breakpoint and in portrait, as a phone held upright. The other screens, landscape
- * phones included, show the whole photo, framed as before. The style of `Page` and the links that
- * preload the photo in the HTML file of each page (`renderPageHtml`) both read it, so a browser
+ * phones included, show the whole photo, framed as before. The style of `Page` and the preload of
+ * the photo when the app starts (`src/preloadBackgroundPhoto.ts`) both read it, so a browser
  * downloads only the version that it shows.
  */
 export const PORTRAIT_PHOTO_MEDIA_QUERY = `(orientation: portrait) and (width < ${theme.screens.tablet})`;
@@ -69,7 +77,12 @@ export const HOME_PAGE = {
   meta: 'home',
   fileName: 'index.html',
   folder: 'Home',
-  backgroundPhoto: { url: '/home.webp', portraitUrl: '/home-portrait.webp' },
+  backgroundPhoto: {
+    url: '/home.webp',
+    portraitUrl: '/home-portrait.webp',
+    placeholderUrl:
+      'data:image/webp;base64,UklGRjQBAABXRUJQVlA4ICgBAADQBQCdASogABYAPtFUo0uoJKMhsAgBABoJZgCuHYxinDlETSrB7m5u+XMQWvVkyNMrAXtNg/agAPZ3HlmiXGvwqAAVccCdh4MXckPyw/kUwofEYv4G7P/uIAT2EWfKf/0moY3cmoYMwqQ4ZIoN+1vWA8Suu8c/PAoxPt2W39bXUDvn55tGeoFBuzZZ9AuBSV576MVGAkeCKLiB80/A3VR7AH+/sPZwsD+ojfzQAqJA9LzmLz/rhND6vQ6YRu9lC2SfQ6fw19Wv5Qpm33ov8uEV6D8uTPfhFgYFKr7RfVxfbYWVJFw19L849RVdY72GxdGGI0egefwh/CbO9JT81lAUDiau2ZTkqiXbS2/nqtPN/fE+gBhx76aju08GpagxBmaS2GBwEkAAAA==',
+  },
 } as const;
 
 /** Projects page, an entry of {@link PAGES}. */
@@ -78,7 +91,12 @@ export const PROJECTS_PAGE = {
   meta: 'projects',
   fileName: 'projects.html',
   folder: 'Projects',
-  backgroundPhoto: { url: '/projects.webp', portraitUrl: '/projects-portrait.webp' },
+  backgroundPhoto: {
+    url: '/projects.webp',
+    portraitUrl: '/projects-portrait.webp',
+    placeholderUrl:
+      'data:image/webp;base64,UklGRpwAAABXRUJQVlA4IJAAAABwBACdASogABYAPtFYpEuoJSOhsAgBABoJQBdmW+Bpt/l5jbP7YEktJrO6IAD+7EAM1xhnG6LbJsn4LcCwztk+KQVOSTVvqAW9fQ5o+DFKOEqtGztNm5qhO6sQlUZ36ktuqMFOesO9XtuwaU2QHhMPG13eEwpW72sOHvZp9+R3oD8obaOuxt8JV79vwHAAAAA=',
+  },
 } as const;
 
 /** Experiences page, an entry of {@link PAGES}. */
@@ -87,16 +105,21 @@ export const EXPERIENCES_PAGE = {
   meta: 'experiences',
   fileName: 'experiences.html',
   folder: 'Experiences',
-  backgroundPhoto: { url: '/experiences.webp', portraitUrl: '/experiences-portrait.webp' },
+  backgroundPhoto: {
+    url: '/experiences.webp',
+    portraitUrl: '/experiences-portrait.webp',
+    placeholderUrl:
+      'data:image/webp;base64,UklGRpwAAABXRUJQVlA4IJAAAABQBQCdASogABYAPtFcoEwoJaMiMBgMAQAaCUATplvgpEOU7m8qsMFyrlKfkdJIJdXKhqAA/vbftWZT+DtFeTcc1wL0QkP0+JKqN2a3hLZMA7oExM7rZpr5J0YGJ03ru4+6N0rT31neK1tZ0U+ZNKS5dA7hUkFf7gZPzZh6Jm0bHGbmeDkGA7ioPoWgaWuAAAA=',
+  },
 } as const;
 
 /**
  * Routes that get their own HTML file at build time in every language, so link previews and
  * search engines see their title, description, canonical URL and translations without running
- * JavaScript, and the browser downloads the chunk of a lazily loaded page and its background photo
- * at the same time as the app. Each `path` and `fileName` is the one of the default language; the
- * other languages put them behind their prefix (see {@link getPageFiles}). Every route declared in
- * `App.tsx` needs an entry here, and each page shows the `backgroundPhoto` of its entry.
+ * JavaScript, and the browser downloads the chunk of a lazily loaded page at the same time as the
+ * app. Each `path` and `fileName` is the one of the default language; the other languages put them
+ * behind their prefix (see {@link getPageFiles}). Every route declared in `App.tsx` needs an entry
+ * here, and each page shows the `backgroundPhoto` of its entry.
  */
 export const PAGES = [HOME_PAGE, PROJECTS_PAGE, EXPERIENCES_PAGE] as const;
 
@@ -104,7 +127,7 @@ export const PAGES = [HOME_PAGE, PROJECTS_PAGE, EXPERIENCES_PAGE] as const;
  * One entry of {@link PAGES}: the route `path`, the `meta` translation key holding its title
  * and description, the `fileName` generated for it in `dist`, the `folder` of its page in
  * `src/pages`, whose `index.ts` is the module of its chunk when the page is loaded lazily, and the
- * `backgroundPhoto` that the page shows and that its HTML file preloads.
+ * `backgroundPhoto` that the page shows and that the app preloads as soon as it starts.
  */
 export type Page = (typeof PAGES)[number];
 
@@ -124,6 +147,40 @@ export function getPage(pathname: string): Page | undefined {
   const path = removeLanguagePrefix(pathname).replace(/\/+$/, '') || '/';
   return PAGES.find(page => page.path === path);
 }
+
+/** Parameters of {@link getBackgroundPhotoUrl}. */
+interface GetBackgroundPhotoUrlParams {
+  /** Path of the current URL, e.g. `location.pathname`, in any language. */
+  pathname?: string;
+  /**
+   * Whether the screen matches {@link PORTRAIT_PHOTO_MEDIA_QUERY}, so shows the portrait version
+   * of the photo. @default false
+   */
+  isPortraitScreen?: boolean;
+}
+
+/**
+ * Finds the file of the background photo that the page at a path shows on the screen, as the
+ * style of `Page` picks it: the portrait version on narrow portrait screens, the whole photo on
+ * the others.
+ *
+ * @returns Its URL, or an empty string for a path of no page of {@link PAGES}, such as an unknown
+ * path, which shows the not found page, or the path of the file of the standalone build, whose
+ * routes are in the hash of the URL.
+ *
+ * @example
+ * getBackgroundPhotoUrl({ pathname: '/en/projects', isPortraitScreen: true });
+ * // '/projects-portrait.webp'
+ * getBackgroundPhotoUrl({ pathname: '/skills' }); // ''
+ */
+export const getBackgroundPhotoUrl = ({
+  pathname,
+  isPortraitScreen = false,
+}: GetBackgroundPhotoUrlParams = {}): string => {
+  const photo = typeof pathname === 'string' ? getPage(pathname)?.backgroundPhoto : undefined;
+  const url = isPortraitScreen === true ? photo?.portraitUrl : photo?.url;
+  return isNonBlankString(url) ? url : '';
+};
 
 /** Parameters of {@link getLanguageFileName}. */
 interface GetLanguageFileNameParams {
@@ -255,13 +312,14 @@ export const NOT_FOUND_FOLDER = 'NotFound';
 
 /**
  * Photo behind every status page (not found, forbidden, unexpected error), which `StatusPage`
- * shows and the not found pages of {@link getNotFoundFiles} preload: mountains lost in the
- * clouds, for a visitor who lost their way. The home page shows it too, but each may change its
- * own.
+ * shows: mountains lost in the clouds, for a visitor who lost their way. The home page shows it
+ * too, but each may change its own.
  */
 export const STATUS_PAGE_BACKGROUND_PHOTO: BackgroundPhoto = {
   url: '/home.webp',
   portraitUrl: '/home-portrait.webp',
+  placeholderUrl:
+    'data:image/webp;base64,UklGRjQBAABXRUJQVlA4ICgBAADQBQCdASogABYAPtFUo0uoJKMhsAgBABoJZgCuHYxinDlETSrB7m5u+XMQWvVkyNMrAXtNg/agAPZ3HlmiXGvwqAAVccCdh4MXckPyw/kUwofEYv4G7P/uIAT2EWfKf/0moY3cmoYMwqQ4ZIoN+1vWA8Suu8c/PAoxPt2W39bXUDvn55tGeoFBuzZZ9AuBSV576MVGAkeCKLiB80/A3VR7AH+/sPZwsD+ojfzQAqJA9LzmLz/rhND6vQ6YRu9lC2SfQ6fw19Wv5Qpm33ov8uEV6D8uTPfhFgYFKr7RfVxfbYWVJFw19L849RVdY72GxdGGI0egefwh/CbO9JT81lAUDiau2ZTkqiXbS2/nqtPN/fE+gBhx76aju08GpagxBmaS2GBwEkAAAA==',
 };
 
 /** Not found page of one language, emitted at build time. */
