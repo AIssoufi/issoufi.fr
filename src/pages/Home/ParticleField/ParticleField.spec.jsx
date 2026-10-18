@@ -6,20 +6,26 @@ import {
   CURSOR_LINK_MAX_WIDTH_PX,
   LINK_RGB,
   PARTICLE_AREA_PX2,
+  REPEL_DISTANCE_PX,
 } from './constants';
 import { ParticleField } from './ParticleField';
 
 const FRAME_MS = 16;
 
+/** Height of a thin window, wide enough to put the cursor out of reach of a dot on its row. */
+const ONE_DOT_WINDOW_HEIGHT_PX = 10;
 /** Window whose area holds exactly one dot, at its center while `Math.random` returns 0.5. */
-const ONE_DOT_WINDOW = { width: PARTICLE_AREA_PX2 / 10, height: 10 };
+const ONE_DOT_WINDOW = {
+  width: PARTICLE_AREA_PX2 / ONE_DOT_WINDOW_HEIGHT_PX,
+  height: ONE_DOT_WINDOW_HEIGHT_PX,
+};
 const DOT = { x: ONE_DOT_WINDOW.width / 2, y: ONE_DOT_WINDOW.height / 2 };
 /** Distance between the cursor and the dot: beyond the push of the mouse, within a cursor link. */
-const LINKED_DISTANCE_PX = 200;
+const LINKED_DISTANCE_PX = (REPEL_DISTANCE_PX + CURSOR_LINK_DISTANCE_PX) / 2;
 /** Strength of a cursor link at {@link LINKED_DISTANCE_PX}, fading linearly to 0 at its reach. */
 const LINKED_STRENGTH = 1 - LINKED_DISTANCE_PX / CURSOR_LINK_DISTANCE_PX;
 /** Distance between the cursor and the dot, beyond any cursor link. */
-const UNLINKED_DISTANCE_PX = 500;
+const UNLINKED_DISTANCE_PX = CURSOR_LINK_DISTANCE_PX * 2;
 
 const DEFAULT_WINDOW = { width: window.innerWidth, height: window.innerHeight };
 
