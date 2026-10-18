@@ -4,6 +4,7 @@ import { join } from 'node:path';
 import { render } from '@testing-library/react';
 import styled, { th, ThemeProvider } from '@xstyled/styled-components';
 
+import { findRawValues } from './testUtils';
 import { theme } from './theme';
 
 /** Namespace of the theme read by each xstyled `th.*` helper. */
@@ -65,6 +66,16 @@ describe('theme', () => {
   it('defines every token used in the style files', () => {
     const missing = tokenUsages.filter(usage => resolve(usage) === undefined);
     expect(missing.map(({ file, call }) => `${file}: ${call}`)).toEqual([]);
+  });
+
+  // Zero, percentages, viewport units, angles and unitless numbers may stay raw: see findRawValues
+  it('writes no length, duration, color, easing or scaled value by hand in the style files', () => {
+    const rawValues = listStyleFiles('src').flatMap(file =>
+      findRawValues(readFileSync(file, 'utf8')).map(
+        ({ line, kind, value }) => `${file}:${line}: ${kind} ${value}`,
+      ),
+    );
+    expect(rawValues).toEqual([]);
   });
 
   it('only uses th helpers that map to a theme namespace', () => {
