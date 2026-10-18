@@ -50,7 +50,7 @@ const pageMeta = (): Plugin => {
  * Vitest 4 maps the V8 coverage onto the syntax tree and counts only the executable code, so its
  * figures differ from those of Vitest 3 for the same tests. Raise them when the coverage goes up.
  */
-const COVERAGE_THRESHOLDS_PERCENT = { lines: 97, statements: 97, branches: 96, functions: 95 };
+const COVERAGE_THRESHOLDS_PERCENT = { lines: 97, statements: 97, branches: 96, functions: 96 };
 
 /**
  * Vite and Vitest configuration: React with SVG components, the page metadata plugin, the dev
