@@ -453,11 +453,27 @@ describe('Project', () => {
   });
 
   describe('layout', () => {
-    const ONE_COLUMN = 'repeat(1, minmax(min-content, 1fr))';
-    const TWO_COLUMNS = 'repeat(2, minmax(min-content, 1fr))';
-    const THREE_COLUMNS = 'repeat(3, minmax(min-content, 1fr))';
     const TABLET_MEDIA = `(min-width: ${theme.screens.tablet})`;
     const WIDE_MEDIA = `(min-width: ${theme.screens.wide})`;
+    /** Properties that size a card: its width, its minimum width and the space around it. */
+    const CARD_SIZE_PROPERTIES = ['flex', 'min-width', 'box-sizing', 'margin'];
+
+    /**
+     * Size of the card of a project as the generated CSS declares it, outside any media query and
+     * at each breakpoint, since jsdom lays nothing out.
+     */
+    const cardSizeOf = name =>
+      Object.fromEntries(
+        ['', TABLET_MEDIA, WIDE_MEDIA].map(media => [
+          media,
+          Object.fromEntries(
+            CARD_SIZE_PROPERTIES.map(property => [
+              property,
+              declaredStyle({ element: cardOf(name), property, media }),
+            ]),
+          ),
+        ]),
+      );
 
     it('stretches the title link over its card, above the thumbnail and under the like button', () => {
       render(<Project projects={projects} />);
@@ -529,26 +545,44 @@ describe('Project', () => {
       const grid = gridOf('Chess');
       expect(declaredStyle({ element: grid, property: 'display' })).toBe('flex');
       expect(declaredStyle({ element: grid, property: 'grid-template-columns' })).toBe('');
+      // A last page with fewer cards starts on the left, in the columns of the first page
+      expect(declaredStyle({ element: grid, property: 'justify-content' })).toBe('flex-start');
     });
 
-    it('shows every card in a grid of one, then two, then three columns after "Show all"', async () => {
+    it('wraps the row of cards onto as many rows as needed after "Show all"', async () => {
       render(<Project projects={projects} />);
 
       await userEvent.click(screen.getByText('Tout afficher (4)'));
 
       const grid = gridOf('Connect Four');
-      expect(declaredStyle({ element: grid, property: 'display' })).toBe('grid');
+      expect(declaredStyle({ element: grid, property: 'display' })).toBe('flex');
+      expect(declaredStyle({ element: grid, property: 'flex-wrap' })).toBe('wrap');
+      // A last row with fewer cards starts on the left, under the first columns
+      expect(declaredStyle({ element: grid, property: 'justify-content' })).toBe('flex-start');
       expect(declaredStyle({ element: grid, property: 'row-gap' })).toBe(theme.space[5]);
-      expect(declaredStyle({ element: grid, property: 'grid-template-columns' })).toBe(ONE_COLUMN);
-      expect(
-        declaredStyle({ element: grid, property: 'grid-template-columns', media: TABLET_MEDIA }),
-      ).toBe(TWO_COLUMNS);
-      expect(
-        declaredStyle({ element: grid, property: 'grid-template-columns', media: WIDE_MEDIA }),
-      ).toBe(THREE_COLUMNS);
+      for (const media of ['', TABLET_MEDIA, WIDE_MEDIA]) {
+        expect(declaredStyle({ element: grid, property: 'grid-template-columns', media })).toBe('');
+      }
     });
 
-    it('generates no function source text in the CSS of the "Show all" grid', async () => {
+    it('keeps the size of the cards of the row after "Show all", at every breakpoint', async () => {
+      render(<Project projects={projects} />);
+      const rowCardSize = cardSizeOf('Chess');
+
+      await userEvent.click(screen.getByText('Tout afficher (4)'));
+
+      // A size that jsdom failed to parse would be empty in both modes, and pass unnoticed
+      expect(rowCardSize['']).toEqual({
+        // A third of the row less the margins, which jsdom may serialize already computed
+        flex: expect.stringMatching(/^0 0 calc\(33\.333% - /),
+        'min-width': theme.sizes[260],
+        'box-sizing': 'content-box',
+        margin: theme.space[5],
+      });
+      expect(cardSizeOf('Chess')).toEqual(rowCardSize);
+    });
+
+    it('generates no function source text in the CSS of the "Show all" rows', async () => {
       render(<Project projects={projects} />);
 
       await userEvent.click(screen.getByText('Tout afficher (4)'));
@@ -562,7 +596,7 @@ describe('Project', () => {
 
     it.each([
       ['the row of a page', false],
-      ['the "Show all" grid', true],
+      ['the "Show all" rows', true],
     ])('lets a long tech line wrap inside its card in %s', async (_layout, isShowingAll) => {
       render(<Project projects={[LONG_TECH_LINE_PROJECT, ...projects]} />);
 

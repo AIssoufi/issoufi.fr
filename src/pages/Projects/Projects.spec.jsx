@@ -109,7 +109,7 @@ describe('Projects', () => {
 });
 
 describe('Projects layout on mobile', () => {
-  it('lines the cards of the "Show all" grid up with the section title below the tablet width', async () => {
+  it('lines the cards of the "Show all" rows up with the section title below the tablet width', async () => {
     render(<Projects />);
 
     const [showAllButton] = screen.getAllByText(/^Tout afficher/);
@@ -130,7 +130,7 @@ describe('Projects layout on mobile', () => {
     expect(declaredStyle({ element: grid, property: 'padding-right' })).toBe(gridPadding);
   });
 
-  it('removes the padding of the "Show all" grid from the tablet width', async () => {
+  it('removes the padding of the "Show all" rows from the tablet width', async () => {
     render(<Projects />);
 
     const [showAllButton] = screen.getAllByText(/^Tout afficher/);
