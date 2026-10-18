@@ -289,7 +289,9 @@ describe('App', () => {
       await reloadI18n();
       render(<App />);
 
-      expect(screen.getByRole('heading', { name: 'Projets personnels' })).toBeInTheDocument();
+      expect(
+        await screen.findByRole('heading', { name: 'Projets personnels' }),
+      ).toBeInTheDocument();
       expect(document.documentElement.lang).toBe('fr');
       expect(document.title).toBe('Projets - ADAM Issoufi');
     });
@@ -300,7 +302,7 @@ describe('App', () => {
       await reloadI18n();
       render(<App />);
 
-      expect(screen.getByRole('heading', { name: 'Personal projects' })).toBeInTheDocument();
+      expect(await screen.findByRole('heading', { name: 'Personal projects' })).toBeInTheDocument();
       expect(screen.getByRole('button', { name: 'English' })).toHaveAttribute(
         'aria-pressed',
         'true',
@@ -334,7 +336,9 @@ describe('App', () => {
       render(<App />);
 
       expect(window.location.pathname).toBe('/projects');
-      expect(screen.getByRole('heading', { name: 'Projets personnels' })).toBeInTheDocument();
+      expect(
+        await screen.findByRole('heading', { name: 'Projets personnels' }),
+      ).toBeInTheDocument();
       expect(document.documentElement.lang).toBe('fr');
     });
 
@@ -356,11 +360,12 @@ describe('App', () => {
     it('switches the URL and the language with the toggle, and back with the back button', async () => {
       const user = userEvent.setup();
       render(<App />);
+      await screen.findByRole('heading', { name: 'Projets personnels' });
 
       await user.click(screen.getByRole('button', { name: 'English' }));
 
       expect(window.location.pathname).toBe('/en/projects');
-      expect(screen.getByRole('heading', { name: 'Personal projects' })).toBeInTheDocument();
+      expect(await screen.findByRole('heading', { name: 'Personal projects' })).toBeInTheDocument();
       expect(document.title).toBe('Projects - ADAM Issoufi');
       // Only the language changed: the focus stays on the toggle
       expect(screen.getByRole('button', { name: 'English' })).toHaveFocus();
