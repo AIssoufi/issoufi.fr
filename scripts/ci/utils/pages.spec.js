@@ -301,9 +301,9 @@ describe('compareFile', () => {
 
   it.each([undefined, null, {}, { route: '/sitemap.xml', status: 200 }])(
     'reports the missing or malformed file check %o as a single problem',
-    malformedFile => {
+    malformedCheck => {
       expect(
-        compareFile({ check: malformedFile, status: 200, servedText: builtText, builtText }),
+        compareFile({ check: malformedCheck, status: 200, servedText: builtText, builtText }),
       ).toEqual(['A file check without a file, a route or an integer status cannot be compared']);
     },
   );

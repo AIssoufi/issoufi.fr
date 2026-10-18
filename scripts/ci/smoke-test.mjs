@@ -91,11 +91,11 @@ const checkSite = async () => {
           comparePage({ page, status, servedHtml: served, builtHtml: built }),
       }),
     ),
-    ...files.map(file =>
+    ...files.map(check =>
       checkRoute({
-        check: file,
+        check,
         compare: ({ status, served, built }) =>
-          compareFile({ check: file, status, servedText: served, builtText: built }),
+          compareFile({ check, status, servedText: served, builtText: built }),
       }),
     ),
   ]);
