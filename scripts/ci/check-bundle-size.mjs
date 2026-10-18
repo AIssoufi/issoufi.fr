@@ -98,7 +98,8 @@ const totalBudget = {
   budgetBytes: SCRIPT_BUDGET_GZIP_BYTES,
   advice: 'Split the bundle or remove code',
 };
-const budgets = [initialLoadBudget, totalBudget];
+// Without an initial load, the error above replaces its verdict
+const budgets = hasInitialLoad ? [initialLoadBudget, totalBudget] : [totalBudget];
 
 budgets.forEach(({ name, check: { totalGzipBytes, isOverBudget }, budgetBytes, advice }) => {
   const verdict = `${name}: ${formatKilobytes(totalGzipBytes)} gzip, for a budget of ${formatKilobytes(budgetBytes)}`;
