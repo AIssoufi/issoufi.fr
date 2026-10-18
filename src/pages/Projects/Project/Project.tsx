@@ -108,7 +108,10 @@ const Project = ({ title, projects = NO_PROJECTS }: ProjectProps) => {
           role="group"
           aria-labelledby={titleId}
         >
-          <CtrlItem onClick={() => setIsShowingAll(!isShowingAll)}>
+          <CtrlItem
+            type="button"
+            onClick={() => setIsShowingAll(!isShowingAll)}
+          >
             {isShowingAll
               ? t('projects.showLess')
               : t('projects.showAll', { count: projects.length })}

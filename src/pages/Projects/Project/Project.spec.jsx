@@ -5,7 +5,7 @@ import { ThemeProvider } from '@xstyled/styled-components';
 import i18n from '../../../i18n';
 import { theme } from '../../../theme';
 
-import { CARD_HOVER_LIFT_PX, CARD_MAX_TILT_DEG, CARD_PERSPECTIVE_PX } from './constants';
+import { CARD_HOVER_LIFT_PX, CARD_MAX_TILT_DEG, CARD_PERSPECTIVE_PX, PAGE_SIZE } from './constants';
 import Project from './Project';
 
 const project = (id, name, extra = {}) => ({
@@ -166,13 +166,22 @@ describe('Project', () => {
     }
   });
 
-  it('makes the page buttons plain buttons, which submit no form', () => {
-    render(<Project projects={projects} />);
-    const { previousButton, nextButton } = pageButtons();
+  // "Show all" and the two page buttons, then "Show less" alone, plus one like button per card
+  it.each([
+    ['a page of cards', { isShowingAll: false, controlCount: 3, cardCount: PAGE_SIZE }],
+    ['every card', { isShowingAll: true, controlCount: 1, cardCount: projects.length }],
+  ])(
+    'makes every button a plain button, which submits no form, while showing %s',
+    async (_shownCards, { isShowingAll, controlCount, cardCount }) => {
+      render(<Project projects={projects} />);
 
-    expect(previousButton).toHaveAttribute('type', 'button');
-    expect(nextButton).toHaveAttribute('type', 'button');
-  });
+      if (isShowingAll) await userEvent.click(screen.getByText('Tout afficher (4)'));
+
+      const buttons = screen.getAllByRole('button');
+      expect(buttons).toHaveLength(controlCount + cardCount);
+      for (const button of buttons) expect(button).toHaveAttribute('type', 'button');
+    },
+  );
 
   it('shows the first three projects, then all of them on demand', async () => {
     render(
