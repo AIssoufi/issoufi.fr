@@ -17,7 +17,7 @@ const PROFILES = [
   {
     name: 'Profil LinkedIn d’ADAM Issoufi',
     englishName: "ADAM Issoufi's LinkedIn profile",
-    url: 'https://www.linkedin.com/in/issoufiadam/',
+    url: 'https://www.linkedin.com/in/issoufiadam',
   },
 ];
 
