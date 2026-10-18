@@ -1,0 +1,134 @@
+name: Deploy to production
+
+on:
+  schedule:
+    # 6:00 in Paris: 4:00 UTC in summer (UTC+2) and 5:00 UTC in winter (UTC+1). Both run every day,
+    # and the schedule step lets only the one of the day's offset go on. Keep them equal to
+    # DEPLOY_CRON_BY_UTC_OFFSET_MINUTES (scripts/ci/constants.mjs), which a test checks.
+    - cron: '0 4 * * *'
+    - cron: '0 5 * * *'
+  # Deploys at once, from the Actions tab or with gh workflow run deploy-production.yml
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: Show what would be deployed, without pushing to main
+        type: boolean
+        default: false
+
+# The push to main uses the deploy key, not the GITHUB_TOKEN, which only reads
+permissions:
+  contents: read
+  actions: read
+
+concurrency:
+  group: deploy-production
+  cancel-in-progress: false
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      sha: ${{ steps.ci.outputs.sha }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          # The trees of main and develop are compared below
+          fetch-depth: 0
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+
+      - id: schedule
+        name: Check the schedule
+        run: node scripts/ci/check-deploy-schedule.mjs
+        env:
+          DEPLOY_SCHEDULE: ${{ github.event.schedule }}
+
+      # A job condition cannot read secrets, and the key itself stays out of this job
+      - name: Check the deploy key
+        if: steps.schedule.outputs.due == 'true'
+        env:
+          HAS_DEPLOY_KEY: ${{ secrets.DEPLOY_KEY != '' }}
+        run: |
+          if [ "$HAS_DEPLOY_KEY" != "true" ]; then
+            echo "::error::The DEPLOY_KEY secret is not set: add a deploy key with write access to the repository, and its private key as the DEPLOY_KEY secret (see the README, Deployment)."
+            exit 1
+          fi
+
+      # main holds merge commits that develop lacks, but no content of its own: the same tree
+      # means that main already serves develop
+      - id: trees
+        name: Compare develop with main
+        if: steps.schedule.outputs.due == 'true'
+        run: |
+          if [ "$(git rev-parse 'origin/develop^{tree}')" = "$(git rev-parse 'origin/main^{tree}')" ]; then
+            echo "::notice::Nothing to deploy: main already holds the content of develop."
+          else
+            echo "sha=$(git rev-parse origin/develop)" >> "$GITHUB_OUTPUT"
+          fi
+
+      - id: ci
+        name: Check the CI of develop
+        if: steps.trees.outputs.sha != ''
+        run: node scripts/ci/check-develop-ci.mjs
+        env:
+          DEPLOY_SHA: ${{ steps.trees.outputs.sha }}
+          GITHUB_TOKEN: ${{ github.token }}
+
+  promote:
+    needs: check
+    if: needs.check.outputs.sha != ''
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      # A push with the deploy key, unlike one with the GITHUB_TOKEN, starts the CI on main, and
+      # the ruleset of main lets the deploy keys push without a pull request
+      - uses: actions/checkout@v7
+        with:
+          ref: main
+          fetch-depth: 0
+          ssh-key: ${{ secrets.DEPLOY_KEY }}
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+
+      # Merges the commit whose CI passed, even when develop moved since the check
+      - id: merge
+        name: Merge develop into main
+        env:
+          DEPLOY_SHA: ${{ needs.check.outputs.sha }}
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          echo "main_sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+          if ! git merge --no-ff --no-edit -m 'chore: deploy develop to production' "$DEPLOY_SHA"; then
+            echo "::error::develop does not merge into main without conflicts: merge main into develop first."
+            exit 1
+          fi
+          # Production must serve exactly the tested commit, not a mix with changes of main
+          if [ "$(git rev-parse 'HEAD^{tree}')" != "$(git rev-parse "$DEPLOY_SHA^{tree}")" ]; then
+            echo "::error::main holds changes that develop lacks, so the merge differs from the tested commit: merge main into develop first."
+            exit 1
+          fi
+          echo "merge_sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+
+      # The push starts the CI on main: tests, build, browser test, production deploy, smoke test
+      - name: Push to main
+        if: ${{ !inputs.dry_run }}
+        run: git push origin HEAD:main
+
+      # Connects with the deploy key as the push would, but sends nothing: only a real push meets
+      # the ruleset of main
+      - name: Push to main (dry run)
+        if: ${{ inputs.dry_run }}
+        run: git push --dry-run origin HEAD:main
+
+      - name: Report
+        run: node scripts/ci/write-deploy-report.mjs
+        env:
+          MAIN_SHA: ${{ steps.merge.outputs.main_sha }}
+          DEPLOY_SHA: ${{ needs.check.outputs.sha }}
+          MERGE_SHA: ${{ steps.merge.outputs.merge_sha }}
+          DRY_RUN: ${{ inputs.dry_run }}
+          GITHUB_TOKEN: ${{ github.token }}
