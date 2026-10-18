@@ -4,15 +4,13 @@ import svgr from 'vite-plugin-svgr';
 
 import { DEFAULT_LANGUAGE } from './src/i18n/constants';
 import { getYearsOfExperience } from './src/utils/career';
+import { addModulePreload, renderNotFoundHtml, renderPageHtml } from './src/utils/pageHtml';
 import {
-  addModulePreload,
   getNotFoundFiles,
   getPageFiles,
+  isTemplatePageFile,
   NOT_FOUND_FOLDER,
   PAGES,
-  renderNotFoundHtml,
-  renderPageHtml,
-  type PageFile,
 } from './src/utils/pages';
 import { ALL_ENV_VARIABLES_PREFIX, ASSETS_DIR } from './vite/constants';
 import { getChunkName, getPageChunkFile, getServerPorts } from './vite/utils';
@@ -27,10 +25,6 @@ interface PreloadPageChunkParams {
 
 /** Home page of the default language: `index.html` itself, which Vite writes from the template. */
 const [HOME_PAGE] = PAGES;
-
-/** Tells whether a page file is `index.html`, which Vite writes, rather than one to emit. */
-const isTemplateFile = ({ page, language }: PageFile) =>
-  page === HOME_PAGE && language === DEFAULT_LANGUAGE;
 
 /**
  * Vite plugin that fills the metadata of `index.html` for the home page of the default language,
@@ -72,7 +66,7 @@ const pageMeta = (): Plugin => {
       const years = getYearsOfExperience();
 
       getPageFiles()
-        .filter(file => !isTemplateFile(file))
+        .filter(file => !isTemplatePageFile(file))
         .forEach(({ page, language, fileName }) => {
           const html = renderPageHtml({ template, page, language, years });
           this.emitFile({
