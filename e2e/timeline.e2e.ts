@@ -1,6 +1,7 @@
 import { expect, test } from '@playwright/test';
 
-import { LANGUAGE_STORAGE_KEY, LANGUAGES } from '../src/i18n/constants';
+import { LANGUAGES } from '../src/i18n/constants';
+import { localizePath } from '../src/i18n/utils';
 import {
   MAX_DOT_OFFSET_PX,
   SCREEN_HEIGHT_PX,
@@ -20,17 +21,10 @@ for (const language of LANGUAGES) {
     test.describe(`in ${language}, on a ${width} px wide screen`, () => {
       test.use({ viewport: { width, height: SCREEN_HEIGHT_PX } });
 
-      // The app opens in the language the toggle stored
-      test.beforeEach(async ({ page }) => {
-        await page.addInitScript(({ key, value }) => localStorage.setItem(key, value), {
-          key: LANGUAGE_STORAGE_KEY,
-          value: language,
-        });
-      });
-
       test('the dots of the timeline are centered on its line', async ({ page }) => {
-        await page.goto(TIMELINE_ROUTE);
-        // Without the stored language, every run would test the default language
+        // The page opens in the language of its URL: /en/experiences in English
+        await page.goto(localizePath({ path: TIMELINE_ROUTE, language }));
+        // A route that lost its language would test the default language twice
         await expect(page.locator('html')).toHaveAttribute('lang', language);
         // Measured before the chunk of the page is loaded, there would be no timeline to measure
         await expect(page.locator(`[${TIMELINE_LINE_ATTRIBUTE}]`)).toBeVisible();

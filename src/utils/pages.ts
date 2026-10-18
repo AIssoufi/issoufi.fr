@@ -1,13 +1,17 @@
-import { fr } from '../i18n/fr';
+import { DEFAULT_LANGUAGE, LANGUAGES } from '../i18n/constants';
+import type { Language } from '../i18n/types';
+import { getLanguagePrefix, localizePath, removeLanguagePrefix } from '../i18n/utils';
 
 /** Production origin of the site, without a trailing slash. Used to build canonical URLs. */
 export const SITE_URL = 'https://issoufi.fr';
 
 /**
- * Routes that get their own HTML file at build time, so link previews and search engines see
- * their title, description and canonical URL without running JavaScript, and the browser
- * downloads the chunk of a lazily loaded page at the same time as the app.
- * Every route declared in `App.tsx` needs an entry here.
+ * Routes that get their own HTML file at build time in every language, so link previews and
+ * search engines see their title, description, canonical URL and translations without running
+ * JavaScript, and the browser downloads the chunk of a lazily loaded page at the same time as the
+ * app. Each `path` and `fileName` is the one of the default language; the other languages put them
+ * behind their prefix (see {@link getPageFiles}). Every route declared in `App.tsx` needs an entry
+ * here.
  */
 export const PAGES = [
   { path: '/', meta: 'home', fileName: 'index.html', folder: 'Home' },
@@ -28,149 +32,138 @@ export const PAGES = [
 export type Page = (typeof PAGES)[number];
 
 /**
- * Finds the page declared for a route path.
+ * Finds the page declared for a route path, in any language.
  *
- * @param pathname - Path of the current URL, e.g. `location.pathname`. A trailing slash is ignored.
+ * @param pathname - Path of the current URL, e.g. `location.pathname`. A language prefix and a
+ * trailing slash are ignored.
  * @returns The matching page, or `undefined` when no page exists at that path.
  *
  * @example
  * getPage('/projects/'); // { path: '/projects', meta: 'projects', fileName: 'projects.html' }
+ * getPage('/en/projects'); // the same page
  * getPage('/skills'); // undefined
  */
 export function getPage(pathname: string): Page | undefined {
-  const path = pathname.replace(/\/+$/, '') || '/';
+  const path = removeLanguagePrefix(pathname).replace(/\/+$/, '') || '/';
   return PAGES.find(page => page.path === path);
 }
 
-/** Escapes a value for use inside a double-quoted HTML attribute or a text node. */
-const escapeHtml = (value: string) =>
-  value.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-
-/**
- * Key of a page's title and description in the `meta` translations: every key but `ogImageAlt`,
- * the description of the link preview image that all pages share.
- */
-type PageMetaKey = Exclude<keyof typeof fr.meta, 'ogImageAlt'>;
-
-/** Parameters of {@link fillPlaceholders}. */
-interface FillPlaceholdersParams {
-  /** HTML containing the `%PAGE_*%` placeholders. */
-  template: string;
-  /** Translation key of the title and description to inject. */
-  meta: PageMetaKey;
-  /** Absolute URL injected as the canonical and `og:url`. */
-  url: string;
-  /** Years of experience, replacing `{{years}}` in the description. */
-  years: number;
+/** Parameters of {@link getLanguageFileName}. */
+interface GetLanguageFileNameParams {
+  /** Name of the file in the default language, at the root of the build, e.g. `projects.html`. */
+  fileName: string;
+  /** Language of the file. */
+  language: Language;
 }
 
 /**
- * Replaces every `%PAGE_*%` placeholder with the French metadata, the URL and the description of
- * the link preview image, HTML-escaped.
- */
-function fillPlaceholders({ template, meta, url, years }: FillPlaceholdersParams): string {
-  const { title, description } = fr.meta[meta];
-  const values: Record<string, string> = {
-    PAGE_TITLE: title,
-    PAGE_DESCRIPTION: description.replace(/{{years}}/g, String(years)),
-    PAGE_URL: url,
-    PAGE_IMAGE_ALT: fr.meta.ogImageAlt,
-  };
-
-  return template.replace(
-    /%(PAGE_TITLE|PAGE_DESCRIPTION|PAGE_URL|PAGE_IMAGE_ALT)%/g,
-    (_, key: string) => escapeHtml(values[key]),
-  );
-}
-
-/** Parameters of {@link renderPageHtml}. */
-interface RenderPageHtmlParams {
-  /** Content of `index.html`, with its placeholders. */
-  template: string;
-  /** Page whose metadata to inject. */
-  page: Page;
-  /** Years of experience, replacing `{{years}}` in the description. */
-  years: number;
-}
-
-/**
- * Fills the `%PAGE_TITLE%`, `%PAGE_DESCRIPTION%`, `%PAGE_URL%` and `%PAGE_IMAGE_ALT%`
- * placeholders of `index.html` with the French metadata of a page and the description of the
- * link preview image. Used by the Vite plugin at build time.
+ * Names the HTML file of a page in a language: at the root of the build for the default language,
+ * in the folder of its prefix for the others, which Cloudflare Pages serves at the URLs of that
+ * prefix (`en/projects.html` at `/en/projects`, `en/index.html` at `/en/`).
  *
- * @returns The HTML with every placeholder replaced and HTML-escaped.
+ * @returns The path of the file in the build.
+ *
+ * @example
+ * getLanguageFileName({ fileName: 'projects.html', language: 'fr' }); // 'projects.html'
+ * getLanguageFileName({ fileName: 'projects.html', language: 'en' }); // 'en/projects.html'
  */
-export function renderPageHtml({ template, page, years }: RenderPageHtmlParams): string {
-  const url = page.path === '/' ? `${SITE_URL}/` : `${SITE_URL}${page.path}`;
-  return fillPlaceholders({ template, meta: page.meta, url, years });
+export function getLanguageFileName({ fileName, language }: GetLanguageFileNameParams): string {
+  const prefix = getLanguagePrefix(language);
+  // The prefix starts with the slash that roots the URL, which a path of the build has not
+  const folder = prefix ? `${prefix.slice(1)}/` : '';
+  return `${folder}${fileName}`;
 }
+
+/** HTML file of a page in one language, emitted at build time. */
+export interface PageFile {
+  /** Page the file shows. */
+  page: Page;
+  /** Language of the file. */
+  language: Language;
+  /** Path of the file in the build, e.g. `en/projects.html`. */
+  fileName: string;
+}
+
+/**
+ * Lists the HTML file of every page of {@link PAGES} in every language of `LANGUAGES`, language
+ * by language, in the order of `PAGES`.
+ *
+ * @example
+ * getPageFiles().map(({ fileName }) => fileName);
+ * // ['index.html', 'projects.html', 'experiences.html', 'en/index.html', 'en/projects.html', …]
+ */
+export const getPageFiles = (): PageFile[] =>
+  LANGUAGES.flatMap(language =>
+    PAGES.map(page => ({
+      page,
+      language,
+      fileName: getLanguageFileName({ fileName: page.fileName, language }),
+    })),
+  );
+
+/**
+ * Home page, the first entry of {@link PAGES}. In the default language, its HTML file is
+ * `index.html` itself, which Vite writes from the template.
+ */
+export const [HOME_PAGE] = PAGES;
+
+/**
+ * Tells whether a page file is the home page of the default language, `index.html`, which Vite
+ * writes itself from the template, rather than a file the build emits.
+ *
+ * @param file - Page file of {@link getPageFiles}.
+ *
+ * @example
+ * isTemplatePageFile({ page: HOME_PAGE, language: 'fr', fileName: 'index.html' }); // true
+ * isTemplatePageFile({ page: HOME_PAGE, language: 'en', fileName: 'en/index.html' }); // false
+ */
+export const isTemplatePageFile = ({ page, language }: PageFile): boolean =>
+  page === HOME_PAGE && language === DEFAULT_LANGUAGE;
+
+/** Parameters of {@link getPageUrl}. */
+interface GetPageUrlParams {
+  /** Path of the page in the default language, e.g. `/projects`. */
+  path: string;
+  /** Language of the URL. */
+  language: Language;
+}
+
+/**
+ * Builds the absolute URL of a page in a language, its canonical URL.
+ *
+ * @example
+ * getPageUrl({ path: '/', language: 'fr' }); // 'https://issoufi.fr/'
+ * getPageUrl({ path: '/projects', language: 'en' }); // 'https://issoufi.fr/en/projects'
+ */
+export const getPageUrl = ({ path, language }: GetPageUrlParams): string =>
+  `${SITE_URL}${localizePath({ path, language })}`;
 
 /**
  * Name of the file that Cloudflare Pages and GitHub Pages serve, with a 404 status, for any path
  * that matches no file. Its presence turns off the single-page-app fallback of Cloudflare Pages,
- * which is fine because every route in {@link PAGES} has its own HTML file.
+ * which is fine because every route in {@link PAGES} has its own HTML file. Cloudflare Pages
+ * serves the closest one up the folders of the path, so each language has its own, in the folder
+ * of its prefix (see {@link getNotFoundFiles}).
  */
 export const NOT_FOUND_FILE_NAME = '404.html';
 
 /** Folder of the page that {@link NOT_FOUND_FILE_NAME} shows, in `src/pages`. */
 export const NOT_FOUND_FOLDER = 'NotFound';
 
-const CANONICAL_TAG = /<link\s+rel="canonical"[^>]*>\s*/;
-const OG_URL_TAG = /<meta\s+property="og:url"[^>]*>\s*/;
-const NO_INDEX_TAG = '<meta name="robots" content="noindex" />';
-const HEAD_END_TAG = '</head>';
-
-/** Parameters of {@link renderNotFoundHtml}. */
-interface RenderNotFoundHtmlParams {
-  /** Content of `index.html`, with its placeholders. */
-  template: string;
-  /** Years of experience, in case the not found description uses `{{years}}`. */
-  years: number;
+/** Not found page of one language, emitted at build time. */
+export interface NotFoundFile {
+  /** Language of the page. */
+  language: Language;
+  /** Path of the file in the build, e.g. `en/404.html`. */
+  fileName: string;
 }
 
 /**
- * Builds the `404.html` page from the `index.html` template: the "page not found" title and
- * description, no canonical URL or `og:url` (the page has no address of its own), and a
- * `noindex` robots tag. The app loads normally and shows its NotFound page at the requested URL.
- *
- * @returns The HTML of the not found page, with every placeholder replaced.
+ * Lists the not found page of every language of `LANGUAGES`: `404.html` for the default language,
+ * `en/404.html` for English, which Cloudflare Pages serves for the unknown paths under `/en/`.
  */
-export function renderNotFoundHtml({ template, years }: RenderNotFoundHtmlParams): string {
-  return fillPlaceholders({ template, meta: 'notFound', url: '', years })
-    .replace(CANONICAL_TAG, '')
-    .replace(OG_URL_TAG, '')
-    .replace(HEAD_END_TAG, `  ${NO_INDEX_TAG}\n  ${HEAD_END_TAG}`);
-}
-
-/** Parameters of {@link addModulePreload}. */
-interface AddModulePreloadParams {
-  /** HTML of a generated page. Missing or not a string, it counts as empty. */
-  html?: string;
-  /**
-   * URL of the script to preload, e.g. `/assets/Projects-1a2b3c.js`. Missing, empty or blank,
-   * no link is added.
-   */
-  href?: string;
-}
-
-/**
- * Adds a `modulepreload` link to a script in the head of a generated page, so that on a direct
- * visit the browser downloads the chunk of a lazily loaded page at the same time as the app,
- * instead of once the app has run. Used by the Vite plugin at build time.
- *
- * @returns The HTML with the link, HTML-escaped, just before `</head>`, or unchanged when there
- * is no URL or no head.
- *
- * @example
- * addModulePreload({ html: '<head>\n  </head>', href: '/assets/P-1.js' });
- * // '<head>\n    <link rel="modulepreload" crossorigin href="/assets/P-1.js" />\n  </head>'
- */
-export function addModulePreload({ html, href }: AddModulePreloadParams = {}): string {
-  const page = typeof html === 'string' ? html : '';
-  const hasHref = typeof href === 'string' && href.trim() !== '';
-  const canAddLink = hasHref && page.includes(HEAD_END_TAG);
-  if (!canAddLink) return page;
-
-  const link = `<link rel="modulepreload" crossorigin href="${escapeHtml(href)}" />`;
-  return page.replace(HEAD_END_TAG, `  ${link}\n  ${HEAD_END_TAG}`);
-}
+export const getNotFoundFiles = (): NotFoundFile[] =>
+  LANGUAGES.map(language => ({
+    language,
+    fileName: getLanguageFileName({ fileName: NOT_FOUND_FILE_NAME, language }),
+  }));

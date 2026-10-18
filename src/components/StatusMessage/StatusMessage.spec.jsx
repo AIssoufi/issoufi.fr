@@ -95,4 +95,14 @@ describe('StatusMessage', () => {
       expect(screen.getByRole('link', { name: 'Retour à l’accueil' })).toBeInTheDocument();
     });
   });
+
+  it('links to the home page in the language of the URL', () => {
+    render(
+      <MemoryRouter initialEntries={['/en/page-inconnue']}>
+        <StatusMessage homeLinkLabel="Back to home" />
+      </MemoryRouter>,
+    );
+
+    expect(screen.getByRole('link', { name: 'Back to home' })).toHaveAttribute('href', '/en/');
+  });
 });

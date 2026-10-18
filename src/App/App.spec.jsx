@@ -1,4 +1,4 @@
-import { cleanup, render, screen } from '@testing-library/react';
+import { act, cleanup, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import lottie from 'lottie-web/build/player/lottie_light';
 
@@ -64,7 +64,7 @@ describe('App', () => {
     expect(await screen.findByRole('heading', { name: heading })).toBeInTheDocument();
   });
 
-  it.each(['/', '/projects', '/experiences', '/page-inconnue'])(
+  it.each(['/', '/projects', '/experiences', '/page-inconnue', '/en/', '/en/experiences'])(
     'gives the page at %s a single main landmark and a single level 1 heading, with the header',
     async path => {
       window.history.pushState({}, '', path);
@@ -81,6 +81,30 @@ describe('App', () => {
     expect(screen.getByRole('link', { name: 'Voir mes projets' })).toBeInTheDocument();
     await waitForBurgerIcon();
   });
+
+  it.each([
+    ['/en/', 'link', 'View my projects'],
+    ['/en', 'link', 'View my projects'],
+    ['/en/projects', 'heading', 'Personal projects'],
+    ['/en/experiences', 'heading', 'Experience'],
+  ])('shows the English page at %s on a direct visit', async (path, role, name) => {
+    window.history.pushState({}, '', path);
+    await renderApp();
+
+    expect(await screen.findByRole(role, { name })).toBeInTheDocument();
+    expect(document.documentElement.lang).toBe('en');
+  });
+
+  it.each(['/en/page-inconnue', '/en/projects/inconnu'])(
+    'shows the not found page in English at %s',
+    async path => {
+      window.history.pushState({}, '', path);
+      await renderApp();
+
+      expect(await screen.findByText(`The page ${path} does not exist.`)).toBeInTheDocument();
+      expect(screen.getByRole('link', { name: 'Back to home' })).toHaveAttribute('href', '/en/');
+    },
+  );
 
   it('loads the other pages on navigation', async () => {
     const user = userEvent.setup();
@@ -259,8 +283,8 @@ describe('App', () => {
       expect(document.title).toBe('Projets - ADAM Issoufi');
     });
 
-    it('opens in the language chosen before the reload, metadata included', async () => {
-      localStorage.setItem(LANGUAGE_STORAGE_KEY, 'en');
+    it('opens an English URL in English, metadata included', async () => {
+      window.history.pushState({}, '', '/en/projects');
 
       await reloadI18n();
       await renderApp();
@@ -277,18 +301,77 @@ describe('App', () => {
       );
     });
 
-    it('opens in French when the browser blocks the storage', async () => {
+    it('opens the root at the English home page when English was chosen before', async () => {
       localStorage.setItem(LANGUAGE_STORAGE_KEY, 'en');
-      vi.spyOn(window, 'localStorage', 'get').mockImplementation(() => {
-        throw new DOMException('The operation is insecure.', 'SecurityError');
-      });
+      window.history.pushState({}, '', '/');
 
       await reloadI18n();
       await renderApp();
 
+      expect(window.location.pathname).toBe('/en/');
+      expect(screen.getByRole('link', { name: 'View my projects' })).toHaveAttribute(
+        'href',
+        '/en/projects',
+      );
+      expect(document.documentElement.lang).toBe('en');
+    });
+
+    it('opens a French URL in French, whatever the language chosen before', async () => {
+      localStorage.setItem(LANGUAGE_STORAGE_KEY, 'en');
+
+      await reloadI18n();
+      await renderApp();
+
+      expect(window.location.pathname).toBe('/projects');
       expect(screen.getByRole('heading', { name: 'Projets personnels' })).toBeInTheDocument();
       expect(document.documentElement.lang).toBe('fr');
-      expect(document.title).toBe('Projets - ADAM Issoufi');
+    });
+
+    it('opens the root in French when the browser blocks the storage', async () => {
+      localStorage.setItem(LANGUAGE_STORAGE_KEY, 'en');
+      vi.spyOn(window, 'localStorage', 'get').mockImplementation(() => {
+        throw new DOMException('The operation is insecure.', 'SecurityError');
+      });
+      window.history.pushState({}, '', '/');
+
+      await reloadI18n();
+      await renderApp();
+
+      expect(window.location.pathname).toBe('/');
+      expect(screen.getByRole('link', { name: 'Voir mes projets' })).toBeInTheDocument();
+      expect(document.documentElement.lang).toBe('fr');
+    });
+
+    it('switches the URL and the language with the toggle, and back with the back button', async () => {
+      const user = userEvent.setup();
+      await renderApp();
+
+      await user.click(screen.getByRole('button', { name: 'English' }));
+
+      expect(window.location.pathname).toBe('/en/projects');
+      expect(screen.getByRole('heading', { name: 'Personal projects' })).toBeInTheDocument();
+      expect(document.title).toBe('Projects - ADAM Issoufi');
+      // Only the language changed: the focus stays on the toggle
+      expect(screen.getByRole('button', { name: 'English' })).toHaveFocus();
+
+      await act(async () => window.history.back());
+
+      expect(
+        await screen.findByRole('heading', { name: 'Projets personnels' }),
+      ).toBeInTheDocument();
+      expect(window.location.pathname).toBe('/projects');
+      expect(document.documentElement.lang).toBe('fr');
+    });
+
+    it('keeps the English pages when following their links', async () => {
+      const user = userEvent.setup();
+      window.history.pushState({}, '', '/en/');
+      await renderApp();
+
+      await user.click(screen.getByRole('link', { name: 'Professional experience' }));
+
+      expect(await screen.findByRole('heading', { name: 'Experience' })).toBeInTheDocument();
+      expect(window.location.pathname).toBe('/en/experiences');
     });
   });
 });

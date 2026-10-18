@@ -52,6 +52,17 @@ describe('DocumentMeta', () => {
     expect(description()).toBe('Cette page n’existe pas.');
   });
 
+  it.each([
+    ['/en/projects', 'Projects - ADAM Issoufi'],
+    ['/en/', 'ADAM Issoufi - Full-stack JavaScript Developer'],
+    ['/en/skills', 'Page not found - ADAM Issoufi'],
+  ])('finds the page of the English URL %s', async (path, title) => {
+    renderAt(path);
+    await act(() => i18n.changeLanguage('en'));
+
+    expect(document.title).toBe(title);
+  });
+
   it('follows the language', async () => {
     renderAt('/');
     await act(() => i18n.changeLanguage('en'));

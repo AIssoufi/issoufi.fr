@@ -26,6 +26,7 @@ export const en = {
       description: 'This page does not exist.',
     },
     ogImageAlt: 'ADAM Issoufi, full-stack JavaScript developer with a passion for UX and UI Design',
+    noScript: 'Enable JavaScript to view this site.',
   },
   errors: {
     backHome: 'Back to home',

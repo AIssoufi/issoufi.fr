@@ -1,5 +1,6 @@
-import { Link } from 'react-router';
 import styled, { css, th } from '@xstyled/styled-components';
+
+import LocalizedLink from '../LocalizedLink';
 
 export const Container = styled.section`
   display: flex;
@@ -59,7 +60,7 @@ const pillAction = css`
   }
 `;
 
-export const HomeLink = styled(Link)`
+export const HomeLink = styled(LocalizedLink)`
   ${pillAction}
 `;
 
