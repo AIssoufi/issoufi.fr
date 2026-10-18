@@ -80,6 +80,12 @@ describe('readPageHead', () => {
     expect(readPageHead(html).canonical).toBe('https://issoufi.fr/');
   });
 
+  it('reads the href attribute, not a data-href one', () => {
+    const html =
+      '<link rel="canonical" data-href="https://example.com/" href="https://issoufi.fr/">';
+    expect(readPageHead(html).canonical).toBe('https://issoufi.fr/');
+  });
+
   it('ignores the other links', () => {
     const html = '<link rel="icon" href="/favicon.ico" /><title>Home</title>';
     expect(readPageHead(html)).toEqual({ title: 'Home', canonical: '' });

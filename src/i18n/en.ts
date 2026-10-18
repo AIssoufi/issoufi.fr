@@ -1,4 +1,9 @@
-/** English translations. Must keep exactly the same keys as the French ones in `fr.ts`. */
+import type { Translations } from './types';
+
+/**
+ * English translations. Typed with {@link Translations}, so they must keep exactly the keys of the
+ * French ones in `fr.ts`: `tsc` names a key missing from either file.
+ */
 export const en = {
   meta: {
     home: {
@@ -181,4 +186,4 @@ export const en = {
       proj1B3: 'Maintenance of existing AngularJS websites',
     },
   },
-} as const;
+} as const satisfies Translations;
