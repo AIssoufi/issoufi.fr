@@ -2,6 +2,7 @@ import styled, { css, keyframes, th } from '@xstyled/styled-components';
 
 import Page from '../../components/Page';
 import { theme } from '../../theme';
+import { REDUCED_MOTION_QUERY } from '../../theme/constants';
 import { CURSOR_GLOW_RADIUS_PX } from './constants';
 
 // Keyframes have no theme context, so they read the theme object rather than the th helpers
@@ -34,6 +35,11 @@ export const CursorGlow = styled.div`
   pointer-events: none;
   z-index: ${th.zIndex('cursor')};
   will-change: transform;
+
+  /* With reduced motion, useCursorFollower leaves it at the top-left corner of the screen */
+  @media ${REDUCED_MOTION_QUERY} {
+    display: none;
+  }
 `;
 
 export const Content = styled.div`

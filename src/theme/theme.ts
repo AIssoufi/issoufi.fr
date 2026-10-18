@@ -148,7 +148,16 @@ export const theme = {
   },
   /** Background blurs for frosted-glass panels. Not an xstyled namespace: use `th('blurs.8')`. */
   blurs,
-  durations: { ...durations, base: durations[250] },
+  durations: {
+    ...durations,
+    base: durations[250],
+    /**
+     * Near zero: what the reduced motion rule of `GlobalStyle` gives every animation and
+     * transition, so they jump to their end, and a transition still sends its `transitionend`
+     * event, which a zero duration would not start.
+     */
+    instant: durations[0.01],
+  },
   timingFunctions: {
     standard: easings.ease,
     linear: easings.linear,

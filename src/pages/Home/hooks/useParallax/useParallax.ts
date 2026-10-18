@@ -1,5 +1,6 @@
 import { type RefObject, useEffect } from 'react';
 
+import { usePrefersReducedMotion } from '../../../../hooks/usePrefersReducedMotion';
 import {
   PARALLAX_MAX_OFFSET_PX,
   PARALLAX_RESET_DURATION_MS,
@@ -9,13 +10,22 @@ import { getParallaxOffset } from '../../utils';
 
 /**
  * Shifts an element slightly away from the mouse, for a depth effect, and eases it back to the
- * center when the mouse leaves the window. Listeners and the pending reset timer are removed on
- * unmount.
+ * center when the mouse leaves the window. With reduced motion, it does nothing, and puts back an
+ * element it shifted before the visitor turned it on. Listeners and the pending reset timer are
+ * removed on unmount.
  *
  * @param elementRef - Ref to the element to shift.
  */
 export function useParallax(elementRef: RefObject<HTMLElement | null>): void {
+  const prefersReducedMotion = usePrefersReducedMotion();
+
   useEffect(() => {
+    if (prefersReducedMotion) {
+      const element = elementRef.current;
+      if (element) element.style.transform = '';
+      return;
+    }
+
     let resetTimer: ReturnType<typeof setTimeout> | undefined;
 
     const handleMove = (event: MouseEvent) => {
@@ -50,5 +60,5 @@ export function useParallax(elementRef: RefObject<HTMLElement | null>): void {
       document.removeEventListener('mouseleave', handleLeave);
       clearTimeout(resetTimer);
     };
-  }, [elementRef]);
+  }, [elementRef, prefersReducedMotion]);
 }
