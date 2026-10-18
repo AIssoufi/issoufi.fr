@@ -88,12 +88,14 @@ describe('RouteErrorBoundary', () => {
   });
 
   it.each([
-    ['fr', 'Une erreur est survenue', 'Recharger la page'],
-    ['en', 'Something went wrong', 'Reload the page'],
-  ])('shows the error in %s when a page fails to load', async (language, title, reload) => {
+    ['throws', '/broken', 'fr', 'Une erreur est survenue', 'Recharger la page'],
+    ['throws', '/broken', 'en', 'Something went wrong', 'Reload the page'],
+    ['fails to load', '/lazy', 'fr', 'Une erreur est survenue', 'Recharger la page'],
+    ['fails to load', '/lazy', 'en', 'Something went wrong', 'Reload the page'],
+  ])('shows the error when a page %s (%s, %s)', async (_, path, language, title, reload) => {
     await act(() => i18n.changeLanguage(language));
 
-    renderAt('/lazy');
+    renderAt(path);
 
     expect(await screen.findByRole('heading', { name: title })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: reload })).toBeInTheDocument();
