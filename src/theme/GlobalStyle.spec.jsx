@@ -8,13 +8,15 @@ import { theme } from './theme';
 
 /**
  * Properties that the reduced motion rule sets, with the value it gives each one: a single
- * near-zero iteration, so a loop stops, without the delay that would hide an entrance meanwhile.
+ * near-zero iteration, so a loop stops, without the delays that would hide an entrance or hold a
+ * step of a transition meanwhile.
  */
 const REDUCED_MOTION_VALUES = {
   'animation-duration': theme.durations.instant,
   'animation-delay': '0s',
   'animation-iteration-count': '1',
   'transition-duration': theme.durations.instant,
+  'transition-delay': '0s',
 };
 
 const ContentBox = styled.div`

@@ -1,11 +1,9 @@
-import { act, cleanup, render, screen } from '@testing-library/react';
+import { act, cleanup, configure, getConfig, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import lottie from 'lottie-web/build/player/lottie_light';
 
 import { LANGUAGE_STORAGE_KEY } from '../i18n/constants';
 import { declaredStyle } from '../styleTestUtils';
 import App from './App';
-import { waitForBurgerIcon } from './testUtils';
 
 /** Runs the i18n setup again, as on a new page load. */
 const reloadI18n = async () => {
@@ -19,15 +17,29 @@ const description = () =>
 /** Query of the French page title of /projects, which only screen readers announce. */
 const PROJECTS_PAGE_TITLE = { level: 1, name: 'Projets' };
 
-/** Renders the app, or the given version of it, then waits for the burger icon animation. */
-const renderApp = async (app = <App />) => {
-  render(app);
-  await waitForBurgerIcon();
-};
+/**
+ * Timeout of the `findBy` queries, in milliseconds: the app loads its pages lazily, and evaluates
+ * them again after `vi.resetModules`, which can outlast the default of 1 s while the whole suite
+ * runs with coverage.
+ */
+const PAGE_LOAD_TIMEOUT_MS = 3000;
 
 describe('App', () => {
-  beforeEach(() => {
-    vi.spyOn(lottie, 'loadAnimation');
+  const { asyncUtilTimeout } = getConfig();
+
+  beforeAll(() => {
+    configure({ asyncUtilTimeout: PAGE_LOAD_TIMEOUT_MS });
+    // Vite transforms a lazily loaded page on its first import: import them once before the
+    // tests, which still load them through React.lazy
+    return Promise.all([
+      import('../pages/Projects'),
+      import('../pages/Experiences'),
+      import('../pages/NotFound'),
+    ]);
+  });
+
+  afterAll(() => {
+    configure({ asyncUtilTimeout });
   });
 
   afterEach(() => {
@@ -39,7 +51,7 @@ describe('App', () => {
     'shows the not found page at %s without redirecting',
     async path => {
       window.history.pushState({}, '', path);
-      await renderApp();
+      render(<App />);
 
       expect(await screen.findByText('404')).toBeInTheDocument();
       expect(screen.getByText(`La page ${path} n’existe pas.`)).toBeInTheDocument();
@@ -49,7 +61,7 @@ describe('App', () => {
 
   it('does not render the not found page for known routes', async () => {
     window.history.pushState({}, '', '/experiences');
-    await renderApp();
+    render(<App />);
 
     expect(await screen.findByRole('heading', { name: 'Expériences' })).toBeInTheDocument();
     expect(screen.queryByText('404')).not.toBeInTheDocument();
@@ -60,7 +72,7 @@ describe('App', () => {
     ['/experiences', 'Expériences'],
   ])('loads the page at %s on a direct visit', async (path, heading) => {
     window.history.pushState({}, '', path);
-    await renderApp();
+    render(<App />);
 
     expect(await screen.findByRole('heading', { name: heading })).toBeInTheDocument();
   });
@@ -69,18 +81,17 @@ describe('App', () => {
     'gives the page at %s a single main landmark and a single level 1 heading, with the header',
     async path => {
       window.history.pushState({}, '', path);
-      await renderApp();
+      render(<App />);
 
       expect(await screen.findAllByRole('main')).toHaveLength(1);
       expect(screen.getAllByRole('heading', { level: 1 })).toHaveLength(1);
     },
   );
 
-  it('renders the home page at once, without waiting for a chunk', async () => {
+  it('renders the home page at once, without waiting for a chunk', () => {
     render(<App />);
 
     expect(screen.getByRole('link', { name: 'Voir mes projets' })).toBeInTheDocument();
-    await waitForBurgerIcon();
   });
 
   it.each([
@@ -90,7 +101,7 @@ describe('App', () => {
     ['/en/experiences', 'heading', 'Experience'],
   ])('shows the English page at %s on a direct visit', async (path, role, name) => {
     window.history.pushState({}, '', path);
-    await renderApp();
+    render(<App />);
 
     expect(await screen.findByRole(role, { name })).toBeInTheDocument();
     expect(document.documentElement.lang).toBe('en');
@@ -100,7 +111,7 @@ describe('App', () => {
     'shows the not found page in English at %s',
     async path => {
       window.history.pushState({}, '', path);
-      await renderApp();
+      render(<App />);
 
       expect(await screen.findByText(`The page ${path} does not exist.`)).toBeInTheDocument();
       expect(screen.getByRole('link', { name: 'Back to home' })).toHaveAttribute('href', '/en/');
@@ -109,7 +120,7 @@ describe('App', () => {
 
   it('loads the other pages on navigation', async () => {
     const user = userEvent.setup();
-    await renderApp();
+    render(<App />);
 
     await user.click(screen.getByRole('link', { name: 'Voir mes projets' }));
 
@@ -117,16 +128,16 @@ describe('App', () => {
     expect(window.location.pathname).toBe('/projects');
   });
 
-  it('lets the page column shrink to the screen width', async () => {
+  it('lets the page column shrink to the screen width', () => {
     // A plain 1fr column grows to its widest content and makes narrow screens scroll sideways
-    await renderApp();
+    render(<App />);
 
     expect(getComputedStyle(screen.getByTestId('app')).gridTemplateColumns).toBe('minmax(0, 1fr)');
   });
 
-  it('grows with the page, so the sticky header stays on screen down to its end', async () => {
+  it('grows with the page, so the sticky header stays on screen down to its end', () => {
     // The header sticks within the grid: a grid one screen high would let it leave the screen
-    await renderApp();
+    render(<App />);
     const app = screen.getByTestId('app');
 
     expect(declaredStyle({ element: app, property: 'min-height' })).toBe('100vh');
@@ -136,7 +147,7 @@ describe('App', () => {
   describe('focus after a navigation', () => {
     it('leaves the focus alone on the first load', async () => {
       window.history.pushState({}, '', '/projects');
-      await renderApp();
+      render(<App />);
 
       expect(await screen.findByRole('heading', PROJECTS_PAGE_TITLE)).not.toHaveFocus();
       expect(document.body).toHaveFocus();
@@ -144,7 +155,7 @@ describe('App', () => {
 
     it('moves the focus to the new page after a link of the mobile menu is chosen with the keyboard', async () => {
       const user = userEvent.setup();
-      await renderApp();
+      render(<App />);
       screen.getByRole('button', { name: 'Ouvrir le menu' }).focus();
 
       await user.keyboard('{Enter}');
@@ -162,7 +173,7 @@ describe('App', () => {
 
     it('moves the focus to the new page after a link of the page is chosen with the keyboard', async () => {
       const user = userEvent.setup();
-      await renderApp();
+      render(<App />);
       screen.getByRole('link', { name: 'Expériences professionnelles' }).focus();
 
       await user.keyboard('{Enter}');
@@ -172,7 +183,7 @@ describe('App', () => {
 
     it('draws no focus ring around the heading, which is not a control', async () => {
       const user = userEvent.setup();
-      await renderApp();
+      render(<App />);
       screen.getByRole('link', { name: 'Voir mes projets' }).focus();
 
       await user.keyboard('{Enter}');
@@ -226,7 +237,7 @@ describe('App', () => {
         }),
       });
       window.history.pushState({}, '', '/experiences');
-      await renderApp(<AppWithFailingPage />);
+      render(<AppWithFailingPage />);
 
       expect(
         await screen.findByRole('heading', { name: 'Une erreur est survenue' }),
@@ -253,7 +264,7 @@ describe('App', () => {
         },
       });
       window.history.pushState({}, '', '/projects');
-      await renderApp(<AppWithFailingPage />);
+      render(<AppWithFailingPage />);
 
       expect(
         await screen.findByRole('heading', { name: 'Une erreur est survenue' }),
@@ -286,9 +297,11 @@ describe('App', () => {
 
     it('opens in French on a first visit', async () => {
       await reloadI18n();
-      await renderApp();
+      render(<App />);
 
-      expect(screen.getByRole('heading', { name: 'Projets personnels' })).toBeInTheDocument();
+      expect(
+        await screen.findByRole('heading', { name: 'Projets personnels' }),
+      ).toBeInTheDocument();
       expect(document.documentElement.lang).toBe('fr');
       expect(document.title).toBe('Projets - ADAM Issoufi');
     });
@@ -297,9 +310,9 @@ describe('App', () => {
       window.history.pushState({}, '', '/en/projects');
 
       await reloadI18n();
-      await renderApp();
+      render(<App />);
 
-      expect(screen.getByRole('heading', { name: 'Personal projects' })).toBeInTheDocument();
+      expect(await screen.findByRole('heading', { name: 'Personal projects' })).toBeInTheDocument();
       expect(screen.getByRole('button', { name: 'English' })).toHaveAttribute(
         'aria-pressed',
         'true',
@@ -316,7 +329,7 @@ describe('App', () => {
       window.history.pushState({}, '', '/');
 
       await reloadI18n();
-      await renderApp();
+      render(<App />);
 
       expect(window.location.pathname).toBe('/en/');
       expect(screen.getByRole('link', { name: 'View my projects' })).toHaveAttribute(
@@ -330,10 +343,12 @@ describe('App', () => {
       localStorage.setItem(LANGUAGE_STORAGE_KEY, 'en');
 
       await reloadI18n();
-      await renderApp();
+      render(<App />);
 
       expect(window.location.pathname).toBe('/projects');
-      expect(screen.getByRole('heading', { name: 'Projets personnels' })).toBeInTheDocument();
+      expect(
+        await screen.findByRole('heading', { name: 'Projets personnels' }),
+      ).toBeInTheDocument();
       expect(document.documentElement.lang).toBe('fr');
     });
 
@@ -345,7 +360,7 @@ describe('App', () => {
       window.history.pushState({}, '', '/');
 
       await reloadI18n();
-      await renderApp();
+      render(<App />);
 
       expect(window.location.pathname).toBe('/');
       expect(screen.getByRole('link', { name: 'Voir mes projets' })).toBeInTheDocument();
@@ -354,12 +369,13 @@ describe('App', () => {
 
     it('switches the URL and the language with the toggle, and back with the back button', async () => {
       const user = userEvent.setup();
-      await renderApp();
+      render(<App />);
+      await screen.findByRole('heading', { name: 'Projets personnels' });
 
       await user.click(screen.getByRole('button', { name: 'English' }));
 
       expect(window.location.pathname).toBe('/en/projects');
-      expect(screen.getByRole('heading', { name: 'Personal projects' })).toBeInTheDocument();
+      expect(await screen.findByRole('heading', { name: 'Personal projects' })).toBeInTheDocument();
       expect(document.title).toBe('Projects - ADAM Issoufi');
       // Only the language changed: the focus stays on the toggle
       expect(screen.getByRole('button', { name: 'English' })).toHaveFocus();
@@ -376,7 +392,7 @@ describe('App', () => {
     it('keeps the English pages when following their links', async () => {
       const user = userEvent.setup();
       window.history.pushState({}, '', '/en/');
-      await renderApp();
+      render(<App />);
 
       await user.click(screen.getByRole('link', { name: 'Professional experience' }));
 
