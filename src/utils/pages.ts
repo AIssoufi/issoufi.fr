@@ -178,7 +178,7 @@ export interface PageAlternate {
  * Lists the translations of a page, which search engines use to show each visitor the page in
  * their language: its URL in every language of `LANGUAGES`, the page itself included, then its URL
  * in the default language as {@link DEFAULT_HREFLANG}. The HTML file of each page links to them
- * (`renderPageHtml`).
+ * (`renderPageHtml`), and so does the sitemap (`renderSitemap`), so both list the same ones.
  *
  * @param path - Path of the page in the default language, e.g. `/projects`.
  *
