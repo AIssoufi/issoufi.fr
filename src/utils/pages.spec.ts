@@ -1,5 +1,6 @@
 import { readFileSync, statSync } from 'node:fs';
 
+import { fr } from '../i18n/fr';
 import {
   NOT_FOUND_FOLDER,
   PAGES,
@@ -12,11 +13,18 @@ import {
 
 const [home, projects, experiences] = PAGES;
 
-/** First bytes of every PNG file. */
-const PNG_SIGNATURE = Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]);
-/** Offsets of the width and height in a PNG file, inside its IHDR chunk. */
-const PNG_WIDTH_OFFSET_BYTES = 16;
-const PNG_HEIGHT_OFFSET_BYTES = 20;
+/** First bytes of every JPEG file: its start of image marker. */
+const JPEG_START_OF_IMAGE = Buffer.from([0xff, 0xd8]);
+/** Bytes of a marker of a JPEG file, and of the segment length that follows it. */
+const JPEG_MARKER_BYTES = 2;
+const JPEG_SEGMENT_LENGTH_BYTES = 2;
+/** Offsets of the height and width in a frame header, from its marker. */
+const JPEG_FRAME_HEIGHT_OFFSET_BYTES = 5;
+const JPEG_FRAME_WIDTH_OFFSET_BYTES = 7;
+/** Markers of the frame headers of a JPEG file (SOF0 to SOF15, without DHT, JPG and DAC). */
+const JPEG_FRAME_MARKERS = new Set([
+  0xc0, 0xc1, 0xc2, 0xc3, 0xc5, 0xc6, 0xc7, 0xc9, 0xca, 0xcb, 0xcd, 0xce, 0xcf,
+]);
 /** Largest link preview image WhatsApp reliably shows. */
 const OG_IMAGE_MAX_BYTES = 300_000;
 
@@ -31,6 +39,28 @@ interface GetMetaContentParams {
 /** Reads the `content` of the `<meta property="…">` tag of an HTML document. */
 const getMetaContent = ({ html, property }: GetMetaContentParams) =>
   html.match(new RegExp(`property="${property}"\\s+content="([^"]*)"`))?.[1];
+
+/**
+ * Reads the width and height of a JPEG file in its frame header, going from segment to segment.
+ * Returns `undefined` when the file has no frame header.
+ */
+const readJpegSize = (jpeg: Buffer) => {
+  let offset = JPEG_START_OF_IMAGE.length;
+  const hasSegmentAt = (start: number) =>
+    start + JPEG_MARKER_BYTES + JPEG_SEGMENT_LENGTH_BYTES <= jpeg.length;
+
+  while (hasSegmentAt(offset)) {
+    const isFrameHeader = JPEG_FRAME_MARKERS.has(jpeg[offset + 1]);
+    if (isFrameHeader) {
+      return {
+        width: jpeg.readUInt16BE(offset + JPEG_FRAME_WIDTH_OFFSET_BYTES),
+        height: jpeg.readUInt16BE(offset + JPEG_FRAME_HEIGHT_OFFSET_BYTES),
+      };
+    }
+    offset += JPEG_MARKER_BYTES + jpeg.readUInt16BE(offset + JPEG_MARKER_BYTES);
+  }
+  return undefined;
+};
 
 describe('getPage', () => {
   it('finds the page matching the path', () => {
@@ -87,6 +117,7 @@ describe('renderPageHtml', () => {
     expect(html.match(/%PAGE_TITLE%/g)).toHaveLength(3);
     expect(html.match(/%PAGE_DESCRIPTION%/g)).toHaveLength(3);
     expect(html.match(/%PAGE_URL%/g)).toHaveLength(2);
+    expect(html.match(/%PAGE_IMAGE_ALT%/g)).toHaveLength(1);
     PAGES.forEach(page =>
       expect(renderPageHtml({ template: html, page, years: 8 })).not.toMatch(/%PAGE_\w+%/),
     );
@@ -103,24 +134,27 @@ describe('Open Graph image of index.html', () => {
     expect(statSync(imageFile).isFile()).toBe(true);
   });
 
-  it('is a PNG of the declared width and height', () => {
-    const png = readFileSync(imageFile);
+  it('is a JPEG of the declared type, width and height', () => {
+    const jpeg = readFileSync(imageFile);
 
-    expect(png.subarray(0, PNG_SIGNATURE.length)).toEqual(PNG_SIGNATURE);
-    expect(png.readUInt32BE(PNG_WIDTH_OFFSET_BYTES)).toBe(
-      Number(getMetaContent({ html, property: 'og:image:width' })),
-    );
-    expect(png.readUInt32BE(PNG_HEIGHT_OFFSET_BYTES)).toBe(
-      Number(getMetaContent({ html, property: 'og:image:height' })),
-    );
+    expect(jpeg.subarray(0, JPEG_START_OF_IMAGE.length)).toEqual(JPEG_START_OF_IMAGE);
+    expect(getMetaContent({ html, property: 'og:image:type' })).toBe('image/jpeg');
+    expect(readJpegSize(jpeg)).toEqual({
+      width: Number(getMetaContent({ html, property: 'og:image:width' })),
+      height: Number(getMetaContent({ html, property: 'og:image:height' })),
+    });
   });
 
   it('is light enough for every link preview', () => {
     expect(statSync(imageFile).size).toBeLessThan(OG_IMAGE_MAX_BYTES);
   });
 
-  it('describes the image for screen readers', () => {
-    expect(getMetaContent({ html, property: 'og:image:alt' })).toMatch(/ADAM Issoufi/);
+  it('describes the image with the French translation, for screen readers', () => {
+    const page = renderPageHtml({ template: html, page: home, years: 8 });
+
+    expect(getMetaContent({ html: page, property: 'og:image:alt' })).toBe(
+      'ADAM Issoufi, développeur full-stack JavaScript passionné par l’UX et l’UI Design',
+    );
   });
 
   it('is kept, with its description, in every generated page', () => {
@@ -131,7 +165,8 @@ describe('Open Graph image of index.html', () => {
 
     generatedPages.forEach(page => {
       expect(getMetaContent({ html: page, property: 'og:image' })).toBe(imageUrl);
-      expect(getMetaContent({ html: page, property: 'og:image:alt' })).toMatch(/ADAM Issoufi/);
+      expect(getMetaContent({ html: page, property: 'og:image:type' })).toBe('image/jpeg');
+      expect(getMetaContent({ html: page, property: 'og:image:alt' })).toBe(fr.meta.ogImageAlt);
     });
   });
 });
