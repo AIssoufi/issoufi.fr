@@ -29,6 +29,7 @@ const projects = [
 /** Project that is not in the list of the first render. */
 const ADDED_PROJECT = project(6, 'Weather app', { likeCount: 5, isLikedByOwnUser: true });
 const TOOLLESS_PROJECT = project(7, 'Landing page', { tools: undefined });
+const NAMELESS_PROJECT = project(8, undefined);
 
 /** Box of a card in the viewport. */
 const CARD_BOX = { left: 100, top: 100, width: 200, height: 100 };
@@ -38,8 +39,8 @@ const CARD_BOX = { left: 100, top: 100, width: 200, height: 100 };
  */
 const CARD_POINTER = { x: CARD_BOX.width, y: CARD_BOX.height / 4 };
 
-const likeButtonOf = name =>
-  within(screen.getByRole('img', { name }).parentElement).getByRole('button');
+/** Like button of a card, found by its French accessible name, which holds the project name. */
+const likeButtonOf = name => screen.getByRole('button', { name: `Aimer ${name}` });
 
 /** French accessible names of the previous and next page buttons. */
 const PREVIOUS_PAGE_NAME = 'Page précédente';
@@ -174,6 +175,58 @@ describe('Project', () => {
 
     expect(isDefaultAllowed).toBe(false);
     expect(likeButtonOf('Chess')).toHaveTextContent('1');
+  });
+
+  it('names each like button after its project, and tells its state and count', async () => {
+    render(<Project projects={projects} />);
+
+    expect(likeButtonOf('Chess')).toHaveAttribute('aria-pressed', 'true');
+    expect(likeButtonOf('Chess')).toHaveAccessibleDescription('2');
+    expect(likeButtonOf('Calculator')).toHaveAttribute('aria-pressed', 'false');
+    expect(likeButtonOf('Calculator')).toHaveAccessibleDescription('0');
+
+    await userEvent.click(likeButtonOf('Calculator'));
+
+    expect(likeButtonOf('Calculator')).toHaveAttribute('aria-pressed', 'true');
+    expect(likeButtonOf('Calculator')).toHaveAccessibleDescription('1');
+  });
+
+  it('names the like buttons in English once the language changes', async () => {
+    render(<Project projects={projects} />);
+
+    await act(() => i18n.changeLanguage('en'));
+
+    expect(screen.getByRole('button', { name: 'Like Chess' })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Aimer Chess' })).not.toBeInTheDocument();
+  });
+
+  it('hides the like icon from assistive technologies, in a plain button', () => {
+    render(<Project projects={projects} />);
+    const likeButton = likeButtonOf('Chess');
+
+    expect(likeButton.querySelector('svg')).toHaveAttribute('aria-hidden', 'true');
+    expect(likeButton).toHaveAttribute('type', 'button');
+  });
+
+  it('describes each like button by the count of its own card, in every section', () => {
+    render(
+      <>
+        <Project projects={projects} />
+        <Project projects={[project(1, 'Chess', { likeCount: 9 })]} />
+      </>,
+    );
+
+    const [firstChessLike, secondChessLike] = screen.getAllByRole('button', {
+      name: 'Aimer Chess',
+    });
+    expect(firstChessLike).toHaveAccessibleDescription('2');
+    expect(secondChessLike).toHaveAccessibleDescription('9');
+  });
+
+  it('still names the like button of a project without a name', () => {
+    render(<Project projects={[NAMELESS_PROJECT]} />);
+
+    expect(screen.getByRole('button', { name: 'Aimer' })).toHaveAccessibleDescription('0');
   });
 
   it('toggles the like count', async () => {

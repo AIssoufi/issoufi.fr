@@ -59,6 +59,7 @@ export const fr = {
     showAll: 'Tout afficher ({{count}})',
     previousPage: 'Page précédente',
     nextPage: 'Page suivante',
+    like: 'Aimer {{name}}',
   },
   exp: {
     pageTitle: 'Expériences',

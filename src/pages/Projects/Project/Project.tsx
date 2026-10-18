@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useId, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import LikeIcon from './icons/heart.svg?react';
@@ -47,11 +47,13 @@ const NO_PROJECTS: ProjectItemData[] = [];
 /**
  * Section of project cards with a title, paginated three at a time with previous and next
  * buttons, named for screen readers, or showing all cards after "Show all". Cards tilt toward
- * the mouse, link to the project when it has a `url`, and have a like button whose state is kept
- * in memory only.
+ * the mouse, link to the project when it has a `url`, and have a like button, named after the
+ * project and described by its count, whose state is kept in memory only.
  */
 const Project = ({ title, projects = NO_PROJECTS }: ProjectProps) => {
   const { t } = useTranslation();
+  // Prefix of the element ids, unique to each section since a page shows several of them
+  const sectionId = useId();
   const [pageStart, setPageStart] = useState(0);
   const [isShowingAll, setIsShowingAll] = useState(false);
   const { likes, animatingIds, toggleLike } = useLikes(projects);
@@ -128,6 +130,7 @@ const Project = ({ title, projects = NO_PROJECTS }: ProjectProps) => {
           const { count, liked } = likes[id] ?? NO_LIKE;
           const isAnimating = animatingIds.has(id);
           const linkProps = url ? { href: url, target: '_blank', rel: 'noreferrer' } : {};
+          const likeCountId = `${sectionId}-like-count-${id}`;
 
           return (
             <ProjectItem
@@ -144,12 +147,17 @@ const Project = ({ title, projects = NO_PROJECTS }: ProjectProps) => {
                   alt={name}
                 />
                 <LikeButton
+                  type="button"
+                  aria-label={t('projects.like', { name })}
+                  aria-pressed={liked}
+                  aria-describedby={likeCountId}
                   $liked={liked}
                   $animating={isAnimating}
                   onClick={event => handleLike({ id, event })}
                 >
-                  <LikeIcon />
+                  <LikeIcon aria-hidden />
                   <LikeCount
+                    id={likeCountId}
                     $liked={liked}
                     $animating={isAnimating}
                   >
