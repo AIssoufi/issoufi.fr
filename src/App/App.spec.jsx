@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { cleanup, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
 import { LANGUAGE_STORAGE_KEY } from '../i18n/constants';
@@ -69,6 +69,93 @@ describe('App', () => {
     render(<App />);
 
     expect(getComputedStyle(screen.getByTestId('app')).gridTemplateColumns).toBe('minmax(0, 1fr)');
+  });
+
+  describe('when a page fails', () => {
+    /** Error of a chunk that cannot be fetched, as the browser reports it. */
+    const CHUNK_ERROR = new TypeError(
+      'Failed to fetch dynamically imported module: https://issoufi.fr/assets/Projects-abc123.js',
+    );
+
+    /**
+     * Imports the app again with one of its pages replaced, so that its lazy pages load anew.
+     * `page` is the path of the page module, as `App` imports it.
+     */
+    const importAppWith = async ({ page, factory }) => {
+      vi.resetModules();
+      vi.doMock(page, factory);
+      const { default: AppWithFailingPage } = await import('./App');
+      return AppWithFailingPage;
+    };
+
+    beforeEach(() => {
+      // React logs every caught error
+      vi.spyOn(console, 'error').mockImplementation(() => {});
+    });
+
+    afterEach(async () => {
+      // Unmounts first, so that the language reset below updates no mounted page
+      cleanup();
+      vi.doUnmock('../pages/Experiences');
+      vi.doUnmock('../pages/Projects');
+      vi.restoreAllMocks();
+      localStorage.clear();
+      await reloadI18n();
+    });
+
+    it('shows the error below a header that still works when a page throws', async () => {
+      const user = userEvent.setup();
+      const AppWithFailingPage = await importAppWith({
+        page: '../pages/Experiences',
+        factory: () => ({
+          default: () => {
+            throw new Error('Broken page');
+          },
+        }),
+      });
+      window.history.pushState({}, '', '/experiences');
+      render(<AppWithFailingPage />);
+
+      expect(
+        await screen.findByRole('heading', { name: 'Une erreur est survenue' }),
+      ).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: 'Recharger la page' })).toBeInTheDocument();
+
+      // The navigation is hidden on the narrow jsdom screen, hence a query by text
+      await user.click(screen.getByText('Projets'));
+
+      expect(
+        await screen.findByRole('heading', { name: 'Projets personnels' }),
+      ).toBeInTheDocument();
+      expect(
+        screen.queryByRole('heading', { name: 'Une erreur est survenue' }),
+      ).not.toBeInTheDocument();
+    });
+
+    it('shows the error when a page fails to load, in English after the toggle', async () => {
+      const user = userEvent.setup();
+      const AppWithFailingPage = await importAppWith({
+        page: '../pages/Projects',
+        factory: () => {
+          throw CHUNK_ERROR;
+        },
+      });
+      window.history.pushState({}, '', '/projects');
+      render(<AppWithFailingPage />);
+
+      expect(
+        await screen.findByRole('heading', { name: 'Une erreur est survenue' }),
+      ).toBeInTheDocument();
+
+      await user.click(screen.getByRole('button', { name: 'English' }));
+
+      expect(screen.getByRole('heading', { name: 'Something went wrong' })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: 'Reload the page' })).toBeInTheDocument();
+
+      await user.click(screen.getByText('Experience'));
+
+      expect(await screen.findByRole('heading', { name: 'Experience' })).toBeInTheDocument();
+    });
   });
 
   describe('language', () => {
