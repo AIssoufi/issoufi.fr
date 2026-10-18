@@ -3,6 +3,7 @@ import userEvent from '@testing-library/user-event';
 
 import i18n from '../../../i18n';
 import { theme } from '../../../theme';
+import { holdsFunctionSource } from '../../../cssRuleGuard';
 import { INTERACTIVE_SELECTOR, declaredStyle, listStyleRules } from '../../testUtils';
 
 import { CARD_HOVER_LIFT_PX, CARD_MAX_TILT_DEG, CARD_PERSPECTIVE_PX, PAGE_SIZE } from './constants';
@@ -555,7 +556,7 @@ describe('Project', () => {
       const css = rules.map(({ rule }) => rule.cssText).join('');
       expect(css).toContain(`row-gap: ${theme.space[5]}`);
       expect(rules.map(({ media }) => media)).toContain(`(min-width: ${theme.screens.tablet})`);
-      expect(css).not.toMatch(/=>|\bfunction\b|\bprops\b/);
+      expect(holdsFunctionSource(css)).toBe(false);
     });
 
     it.each([

@@ -3,13 +3,8 @@ import type { RenderOptions } from '@testing-library/react';
 import type { ReactNode } from 'react';
 import { afterEach, vi } from 'vitest';
 import './i18n/index';
+import { logDroppedCssRules } from './cssRuleGuard';
 import { describeLoggedErrors } from './testErrors';
-
-/**
- * Finds the source of a function in a CSS rule: an arrow, or the `function` keyword before its
- * parameters (a plain `transition-timing-function` has none). No valid CSS of the app holds one.
- */
-const FUNCTION_SOURCE_PATTERN = /=>|\bfunction\s*\(/;
 
 // jsdom ignores the inert attribute: like a browser, refuse the focus to an element inside an
 // inert subtree, so that keyboard tests see the focus stay out of it. The specs that run in the
@@ -27,26 +22,9 @@ if (hasDom) {
   // replace it with a fake 2D context to check the drawing.
   HTMLCanvasElement.prototype.getContext = () => null;
 
-  // styled-components inserts its rules with insertRule (SC_DISABLE_SPEEDY in vite.config.ts) and
-  // silently skips a rule that the CSSOM refuses, while jsdom keeps even a rule holding the source
-  // of a function interpolated outside a css block. A browser drops both: log them, so that the
-  // test fails.
-  const nativeInsertRule = CSSStyleSheet.prototype.insertRule;
-  CSSStyleSheet.prototype.insertRule = function insertRule(
-    this: CSSStyleSheet,
-    rule: string,
-    index?: number,
-  ) {
-    if (FUNCTION_SOURCE_PATTERN.test(rule)) {
-      console.error(`CSS rule holding the source of a function, which browsers drop: ${rule}`);
-    }
-    try {
-      return nativeInsertRule.call(this, rule, index);
-    } catch (error) {
-      console.error(`CSS rule refused by the CSSOM, which browsers drop: ${rule}`, error);
-      throw error;
-    }
-  };
+  // styled-components inserts its rules with insertRule (SC_DISABLE_SPEEDY in vite.config.ts): a
+  // test whose component inserts a rule that browsers drop logs it, and fails
+  logDroppedCssRules(CSSStyleSheet.prototype);
 }
 
 // jsdom cannot draw the animation: the BurgerMenu icon loads this build of lottie-web

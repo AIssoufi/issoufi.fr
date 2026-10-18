@@ -31,15 +31,17 @@ const findRulesSelecting = selectors =>
 /**
  * Style rules of the document, outside any media query, that select the element and declare its
  * box sizing. jsdom 30 leaves a rule out of the computed styles when its selector list holds a
- * pseudo-element, as `*, *::before, *::after` does, so the tests read the rules themselves.
+ * pseudo-element, as `*, *::before, *::after` does, so the tests read the rules themselves until
+ * it is fixed (ISF-137).
  */
 const findBoxSizingRulesOf = element =>
   listStyleRules()
     .filter(({ media, rule }) => media === '' && rule instanceof CSSStyleRule)
     .map(({ rule }) => rule)
-    .filter(
-      rule => rule.style.getPropertyValue('box-sizing') && element.matches(rule.selectorText),
-    );
+    .filter(rule => {
+      const declaresBoxSizing = rule.style.getPropertyValue('box-sizing') !== '';
+      return declaresBoxSizing && element.matches(rule.selectorText);
+    });
 
 describe('GlobalStyle', () => {
   it('renders without crashing', () => {
