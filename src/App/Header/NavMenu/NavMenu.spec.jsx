@@ -38,4 +38,19 @@ describe('NavMenu', () => {
 
     expect(onClick).toHaveBeenCalledTimes(1);
   });
+
+  it('gives the navigation its id, so a button can name it as the menu it controls', () => {
+    renderAt('/', { id: 'mobile-menu' });
+
+    expect(screen.getByRole('navigation', { hidden: true })).toHaveAttribute('id', 'mobile-menu');
+  });
+
+  it.each([
+    ['without one', {}],
+    ['when it is empty', { id: '' }],
+  ])('gives the navigation no id %s', (_case, props) => {
+    renderAt('/', props);
+
+    expect(screen.getByRole('navigation', { hidden: true })).not.toHaveAttribute('id');
+  });
 });
