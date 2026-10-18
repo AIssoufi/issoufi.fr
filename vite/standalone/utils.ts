@@ -128,9 +128,9 @@ export const isServerOnlyPage = (fileName?: unknown): boolean => {
  * listFileNames('/app/public'); // ['favicon.ico', 'home.webp', …]
  */
 export const listFileNames = (dir?: unknown): string[] => {
-  const hasDir = typeof dir === 'string' && dir !== '';
-  if (!hasDir || !existsSync(dir)) return [];
-  if (!statSync(dir).isDirectory()) return [];
+  const isFolder =
+    typeof dir === 'string' && dir !== '' && existsSync(dir) && statSync(dir).isDirectory();
+  if (!isFolder) return [];
 
   return readdirSync(dir, { withFileTypes: true })
     .filter(entry => entry.isFile())
