@@ -131,6 +131,19 @@ describe('Header', () => {
     expect(screen.getByText('AI')).toBeInTheDocument();
   });
 
+  it('gives its blurred band its own height, so the band covers the header and nothing else', async () => {
+    await renderHeader();
+    const header = screen.getByTestId('header');
+
+    expect(declaredStyle({ element: header, property: 'height' })).toBe(theme.sizes.header);
+    expect(declaredStyle({ element: header, property: 'height', pseudo: '::after' })).toBe(
+      theme.sizes.header,
+    );
+    expect(declaredStyle({ element: header, property: 'position', pseudo: '::after' })).toBe(
+      'fixed',
+    );
+  });
+
   describe('version', () => {
     it('shows the version of the build after the logo', async () => {
       await renderHeader();

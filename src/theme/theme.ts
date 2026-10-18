@@ -97,6 +97,11 @@ export const theme = {
     ...sizes,
     /** Largest width of the app container. */
     container: sizes[1440],
+    /**
+     * Height of the site header: the logo, 54 px high, with 20 px above and below. Its blurred
+     * band, fixed on the screen, has the same height, so it covers the header and nothing else.
+     */
+    header: sizes[94],
     /** Side of the burger icon of the mobile menu, kept while its animation loads. */
     'burger-icon': sizes[50],
     /**

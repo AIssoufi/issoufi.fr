@@ -8,18 +8,21 @@ export const Container = styled.header`
   justify-content: space-between;
   align-items: center;
   font-size: ${th.fontSize(18)};
-  padding: ${th.space(20)} 0;
+  /* A height rather than a vertical padding, which its blurred band shares: fixed on the screen,
+     the band cannot take the height of the header from it */
+  height: ${th.size('header')};
   position: sticky;
   top: 0;
   z-index: ${th.zIndex('header')};
 
+  /* Blurs what scrolls under the header, over the whole width of the screen */
   &::after {
     content: '';
     position: fixed;
     top: 0;
     left: 0;
     right: 0;
-    height: ${th.size(72)};
+    height: ${th.size('header')};
     backdrop-filter: ${th('blurs.12')};
     -webkit-backdrop-filter: ${th('blurs.12')};
     background: linear-gradient(180deg, ${th.color('shade-a55')} 0%, ${th.color('shade-a0')} 100%);

@@ -119,3 +119,28 @@ export const MAX_TOOLTIP_OFFSET_PX = 0.5;
  * theme, which an invisible bridge fills.
  */
 export const TOOLTIP_GAP_PX = Number.parseFloat(theme.space['tooltip-gap']);
+
+/** Name of the "Show all" buttons of the Projects page, in both languages, whatever their count. */
+export const SHOW_ALL_BUTTON_NAME = /^(Tout afficher|Show all) \(\d+\)$/;
+
+/**
+ * Screen widths, in pixels, at which the sticky header must stay on the screen down to the end of
+ * the long pages: a phone (375), a tablet held upright, still on the mobile layout (768), a tablet
+ * held sideways (1024) and a laptop (1440).
+ */
+export const STICKY_HEADER_SCREEN_WIDTHS_PX = [375, 768, 1024, 1440] as const;
+
+/**
+ * Screen height, in pixels, of the sticky header test: the height left to a page on a 1366 × 768
+ * laptop once the browser shows its bars. The Projects page, the shorter of the long pages, then
+ * scrolls by more than one screen at every width, beyond which a header stuck within one screen
+ * would leave it.
+ */
+export const STICKY_HEADER_SCREEN_HEIGHT_PX = 600;
+
+/**
+ * Largest difference, in pixels, allowed between the blurred band of the header and the header
+ * itself, at the top or in height. Half a pixel lets through subpixel rounding, but not a band
+ * 1 px shorter.
+ */
+export const MAX_BAND_OFFSET_PX = 0.5;
