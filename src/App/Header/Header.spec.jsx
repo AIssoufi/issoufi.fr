@@ -25,15 +25,25 @@ const renderHeader = async () => {
 };
 
 /**
- * Replaces `window.matchMedia`, which jsdom lacks, so that every media query matches: the header
- * then sees the desktop layout.
+ * Replaces `window.matchMedia`, which jsdom lacks, with a screen on the desktop layout or not:
+ * every media query matches on desktop. `setDesktop` switches the layout and notifies the
+ * listeners, as a resize or a rotation would.
  */
-const stubDesktopScreen = () => {
-  vi.stubGlobal('matchMedia', () => ({
-    matches: true,
-    addEventListener: vi.fn(),
-    removeEventListener: vi.fn(),
-  }));
+const stubScreen = ({ isDesktop }) => {
+  const listeners = new Set();
+  const mediaQueryList = {
+    matches: isDesktop,
+    addEventListener: (_type, listener) => listeners.add(listener),
+    removeEventListener: (_type, listener) => listeners.delete(listener),
+  };
+  vi.stubGlobal('matchMedia', () => mediaQueryList);
+
+  const setDesktop = nextIsDesktop => {
+    mediaQueryList.matches = nextIsDesktop;
+    act(() => listeners.forEach(listener => listener()));
+  };
+
+  return { setDesktop };
 };
 
 /** The burger button, whatever its state and language. */
@@ -157,6 +167,34 @@ describe('Header', () => {
       expect(getNavigation()).not.toBeVisible();
     });
 
+    it('closes when the screen grows to the desktop layout, and stays closed back on mobile', async () => {
+      const { setDesktop } = stubScreen({ isDesktop: false });
+      await renderHeader();
+      await userEvent.click(getBurgerButton());
+
+      setDesktop(true);
+
+      expect(getBurgerButton()).toHaveAttribute('aria-expanded', 'false');
+      expect(getComputedStyle(getMenu()).position).not.toBe('fixed');
+      expect(getComputedStyle(getNavigation()).position).not.toBe('fixed');
+      getCoveredElements().forEach(element => expect(element.closest('[inert]')).toBeNull());
+
+      setDesktop(false);
+
+      expect(getBurgerButton()).toHaveAttribute('aria-expanded', 'false');
+      expect(getNavigation()).not.toBeVisible();
+    });
+
+    it('stays closed when the screen shrinks to the mobile layout', async () => {
+      const { setDesktop } = stubScreen({ isDesktop: true });
+      await renderHeader();
+
+      setDesktop(false);
+
+      expect(getBurgerButton()).toHaveAttribute('aria-expanded', 'false');
+      expect(getNavigation()).not.toBeVisible();
+    });
+
     it('links the burger button to the navigation it controls', async () => {
       await renderHeader();
 
@@ -271,9 +309,9 @@ describe('Header', () => {
     });
 
     it('changes nothing on the desktop layout, where the menu is a bar of the page', async () => {
-      stubDesktopScreen();
+      stubScreen({ isDesktop: true });
       await renderHeader();
-      // The burger is hidden on desktop: its menu stays open when a screen grows to this layout
+      // The burger is hidden on desktop, but jsdom still lets a click reach it
       await userEvent.click(getBurgerButton());
 
       getCoveredElements().forEach(element => expect(element.closest('[inert]')).toBeNull());

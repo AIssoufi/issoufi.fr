@@ -14,8 +14,9 @@ import { Actions, Container, Logo, Menu } from './Header.styled';
 
 /**
  * Site header: the "AI" logo linking home, the language toggle, the navigation and, on mobile,
- * the burger button that opens it. Owns the open state of the mobile menu and closes it after
- * each navigation. Must be rendered inside a router.
+ * the burger button that opens it. Owns the open state of the mobile menu, and closes it after
+ * each navigation and when the screen grows to the desktop layout, as when a tablet is rotated.
+ * Must be rendered inside a router.
  *
  * The burger button comes before the links in the page, so once a keyboard user opens the menu,
  * the next `Tab` reaches its first link. While open, the mobile menu acts as a modal dialog: the
@@ -28,11 +29,18 @@ const Header = ({ testId }: HeaderProps) => {
   const navMenuId = useId();
   const menuRef = useRef<HTMLDivElement>(null);
   const burgerRef = useRef<HTMLButtonElement>(null);
-  const isDesktop = useMediaQuery({ query: DESKTOP_MEDIA_QUERY });
   const { t } = useTranslation();
 
-  // A menu opened on mobile stays open when the screen grows to the desktop layout, as when a
-  // tablet is rotated: it then no longer covers the page
+  const closeMobileMenuOnDesktop = (isDesktopLayout: boolean) => {
+    if (isDesktopLayout) setMobileMenuIsOpen(false);
+  };
+  const isDesktop = useMediaQuery({
+    query: DESKTOP_MEDIA_QUERY,
+    onChange: closeMobileMenuOnDesktop,
+  });
+
+  // The burger is hidden on the desktop layout, where the links are a bar of the page: the menu
+  // never covers the page there
   const isMenuCoveringPage = mobileMenuIsOpen && !isDesktop;
 
   useInertOutside({ containerRef: menuRef, isActive: isMenuCoveringPage });
