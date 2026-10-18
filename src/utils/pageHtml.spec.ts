@@ -1,9 +1,10 @@
 import { readFileSync, statSync } from 'node:fs';
 
+import { LANGUAGES } from '../i18n/constants';
 import { en } from '../i18n/en';
 import { fr } from '../i18n/fr';
 import { addModulePreload, renderNotFoundHtml, renderPageHtml } from './pageHtml';
-import { PAGES, SITE_URL, getNotFoundFiles, getPageFiles } from './pages';
+import { OG_IMAGE_PATHS, PAGES, SITE_URL, getNotFoundFiles, getPageFiles } from './pages';
 
 const [home, projects, experiences] = PAGES;
 
@@ -87,6 +88,7 @@ describe('renderPageHtml', () => {
     expect(html.match(/%PAGE_TITLE%/g)).toHaveLength(3);
     expect(html.match(/%PAGE_DESCRIPTION%/g)).toHaveLength(3);
     expect(html.match(/%PAGE_URL%/g)).toHaveLength(2);
+    expect(html.match(/%PAGE_IMAGE_URL%/g)).toHaveLength(1);
     expect(html.match(/%PAGE_IMAGE_ALT%/g)).toHaveLength(1);
     expect(html.match(/%PAGE_NOSCRIPT%/g)).toHaveLength(1);
     getPageFiles().forEach(({ page, language }) =>
@@ -134,6 +136,9 @@ describe('renderPageHtml in English', () => {
     expect(page).toContain('<title>Projects - ADAM Issoufi</title>');
     expect(getMetaContent({ html: page, property: 'og:title' })).toBe('Projects - ADAM Issoufi');
     expect(getMetaContent({ html: page, property: 'og:locale' })).toBe('en_US');
+    expect(getMetaContent({ html: page, property: 'og:image' })).toBe(
+      'https://issoufi.fr/og-image-en.jpg',
+    );
     expect(getMetaContent({ html: page, property: 'og:image:alt' })).toBe(en.meta.ogImageAlt);
   });
 
@@ -206,13 +211,18 @@ describe('links between the translations of a page', () => {
   });
 });
 
-describe('Open Graph image of index.html', () => {
-  const html = readFileSync('index.html', 'utf-8');
+describe.each(LANGUAGES)('Open Graph image of the %s pages', language => {
+  const html = renderPageHtml({
+    template: readFileSync('index.html', 'utf-8'),
+    page: home,
+    language,
+    years: 8,
+  });
   const imageUrl = getMetaContent({ html, property: 'og:image' }) ?? '';
   const imageFile = `public${imageUrl.replace(SITE_URL, '')}`;
 
-  it('points to a file of public/ served by the site', () => {
-    expect(imageUrl.startsWith(`${SITE_URL}/`)).toBe(true);
+  it('points to the image of the language, a file of public/ served by the site', () => {
+    expect(imageUrl).toBe(`${SITE_URL}${OG_IMAGE_PATHS[language]}`);
     expect(statSync(imageFile).isFile()).toBe(true);
   });
 
@@ -230,6 +240,18 @@ describe('Open Graph image of index.html', () => {
   it('is light enough for every link preview', () => {
     expect(statSync(imageFile).size).toBeLessThan(OG_IMAGE_MAX_BYTES);
   });
+});
+
+describe('Open Graph image of index.html', () => {
+  const html = readFileSync('index.html', 'utf-8');
+
+  it('draws each language in its own image', () => {
+    const images = LANGUAGES.map(language =>
+      readFileSync(`public${OG_IMAGE_PATHS[language]}`).toString('base64'),
+    );
+
+    expect(new Set(images).size).toBe(LANGUAGES.length);
+  });
 
   it('describes the image with the French translation, for screen readers', () => {
     const page = renderPageHtml({ template: html, page: home, years: 8 });
@@ -239,7 +261,7 @@ describe('Open Graph image of index.html', () => {
     );
   });
 
-  it('is kept, with its description in the language of the page, in every generated page', () => {
+  it('names the image of its language, with its description, in every generated page', () => {
     const translations = { fr, en };
     const generatedPages = [
       ...getPageFiles().map(({ page, language }) => ({
@@ -253,7 +275,9 @@ describe('Open Graph image of index.html', () => {
     ];
 
     generatedPages.forEach(({ language, page }) => {
-      expect(getMetaContent({ html: page, property: 'og:image' })).toBe(imageUrl);
+      expect(getMetaContent({ html: page, property: 'og:image' })).toBe(
+        `${SITE_URL}${OG_IMAGE_PATHS[language]}`,
+      );
       expect(getMetaContent({ html: page, property: 'og:image:type' })).toBe('image/jpeg');
       expect(getMetaContent({ html: page, property: 'og:image:alt' })).toBe(
         translations[language].meta.ogImageAlt,

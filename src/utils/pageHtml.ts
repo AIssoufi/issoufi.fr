@@ -2,7 +2,7 @@ import { DEFAULT_LANGUAGE, LANGUAGES, OPEN_GRAPH_LOCALES } from '../i18n/constan
 import { en } from '../i18n/en';
 import { fr } from '../i18n/fr';
 import type { Language, Translations } from '../i18n/types';
-import { getPageUrl, type Page } from './pages';
+import { getOgImageUrl, getPageUrl, type Page } from './pages';
 
 /** Escapes a value for use inside a double-quoted HTML attribute or a text node. */
 const escapeHtml = (value: string) =>
@@ -41,8 +41,8 @@ interface FillPlaceholdersParams {
 /**
  * Replaces every `%PAGE_*%` placeholder with the metadata of a page in a language, HTML-escaped:
  * its language code (`<html lang>`), its Open Graph locale, its title, its description, its URL,
- * the description of the link preview image and the message shown without JavaScript. An unknown
- * placeholder is left as it is.
+ * the URL and description of the link preview image of its language, and the message shown
+ * without JavaScript. An unknown placeholder is left as it is.
  */
 function fillPlaceholders({ template, meta, language, url, years }: FillPlaceholdersParams) {
   const translations = META_TRANSLATIONS[language];
@@ -53,6 +53,7 @@ function fillPlaceholders({ template, meta, language, url, years }: FillPlacehol
     PAGE_TITLE: title,
     PAGE_DESCRIPTION: description.replace(/{{years}}/g, String(years)),
     PAGE_URL: url,
+    PAGE_IMAGE_URL: getOgImageUrl(language),
     PAGE_IMAGE_ALT: translations.ogImageAlt,
     PAGE_NOSCRIPT: translations.noScript,
   };
