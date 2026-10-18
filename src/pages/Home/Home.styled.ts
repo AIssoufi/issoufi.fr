@@ -53,35 +53,34 @@ export const Content = styled.div`
 
 export const Intro = styled.div`
   text-align: center;
-  max-width: ${th.size(640)};
+  /* Sets the em of its largest width, the size of the title words, which grows with the screen */
+  font-size: ${th.fontSize('hero-title')};
+  max-width: ${th.size('hero-intro')};
   animation: ${float} ${th.duration(7000)} ${th.timingFunction('inOut')} infinite;
   animation-delay: ${th.duration(500)};
 `;
 
 export const Title = styled.h1`
-  font-size: ${th.fontSize(18)};
+  font-size: ${th.fontSize('hero-text')};
   font-weight: ${th.fontWeight('regular')};
   line-height: ${th.lineHeight(170)};
   letter-spacing: ${th.letterSpacing(1)};
   margin: 0 0 ${th.space(12)};
   animation: ${fadeUp} ${th.duration(900)} ${th.timingFunction('standard')} both;
 
-  @media (min-width: ${th('screens.tablet')}) {
-    font-size: ${th.fontSize(22)};
+  /* A phone held sideways shows the buttons under the title without scrolling */
+  @media (max-height: ${th('screenHeights.short')}) {
+    margin-bottom: ${th.space(4)};
   }
 `;
 
 export const Subtitle = styled.p`
-  font-size: ${th.fontSize(16)};
+  font-size: ${th.fontSize('hero-subtitle')};
   font-weight: ${th.fontWeight('regular')};
   color: ${th.color('foreground-secondary')};
   line-height: ${th.lineHeight(160)};
   margin: 0 0 ${th.space(4)};
   animation: ${fadeUp} ${th.duration(900)} ${th.timingFunction('standard')} ${th.duration(200)} both;
-
-  @media (min-width: ${th('screens.tablet')}) {
-    font-size: ${th.fontSize(18)};
-  }
 `;
 
 export const ButtonContainer = styled.div`
@@ -89,12 +88,16 @@ export const ButtonContainer = styled.div`
   flex-direction: column;
   /* Mobile: both buttons take the width of the widest one */
   align-items: stretch;
-  padding-top: ${th.space(56)};
+  padding-top: ${th.space('hero-actions')};
   gap: ${th.space(14)};
   animation: ${fadeUp} ${th.duration(900)} ${th.timingFunction('standard')} ${th.duration(400)} both;
 
   @media (min-width: ${th('screens.tablet')}) {
     align-items: center;
+  }
+
+  @media (max-height: ${th('screenHeights.short')}) {
+    gap: ${th.space(8)};
   }
 `;
 

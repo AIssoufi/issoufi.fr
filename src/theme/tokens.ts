@@ -85,6 +85,15 @@ export const relativeSpacing = {
   70: '0.7em',
 } as const;
 
+/**
+ * Spacing that grows with the height of the screen, between a smallest and a largest space; keys
+ * are `<smallest>-<largest>` in pixels. `16-80` is 6 % of the height: 19 px on a phone held
+ * sideways, 54 px on a 900 px high laptop screen.
+ */
+export const fluidSpacing = {
+  '16-80': 'clamp(16px, 6vh, 80px)',
+} as const;
+
 /** Widths and heights of elements, from hairlines to the app container; keys are pixel values. */
 export const sizes = {
   1: '1px',
@@ -104,6 +113,11 @@ export const sizes = {
   240: '240px',
   640: '640px',
   1440: '1440px',
+} as const;
+
+/** Widths and heights that follow the font size of the element; keys are hundredths of an em. */
+export const relativeSizes = {
+  1525: '15.25em',
 } as const;
 
 /** Line lengths of text blocks; keys are numbers of characters. */
@@ -166,6 +180,20 @@ export const fontSizes = {
   42: '42px',
   72: '72px',
   120: '120px',
+} as const;
+
+/**
+ * Font sizes that grow with the smaller side of the screen (`vmin`), its width on a phone held
+ * upright and its height on a phone held sideways or a laptop, between a smallest and a largest
+ * size; keys are `<smallest>-<largest>` in pixels.
+ */
+export const fluidFontSizes = {
+  /** 16 px on a phone, 19 px on a 1440 × 900 screen, 23 px on a 2560 × 1440 one. */
+  '16-24': 'clamp(16px, 12px + 0.75vmin, 24px)',
+  /** 18 px on a phone, 23 px on a 1440 × 900 screen, 28 px on a 2560 × 1440 one. */
+  '18-28': 'clamp(18px, 14px + 1vmin, 28px)',
+  /** 25 to 29 px on a phone, 48 px on a 1440 × 900 screen, 70 px on a 2560 × 1440 one. */
+  '24-72': 'clamp(24px, 12px + 4vmin, 72px)',
 } as const;
 
 /** Font weights, named after their usual names in fonts (`semibold` is 600). */
