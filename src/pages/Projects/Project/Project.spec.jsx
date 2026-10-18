@@ -551,9 +551,10 @@ describe('Project', () => {
 
       await userEvent.click(screen.getByText('Tout afficher (4)'));
 
-      const css = [...document.querySelectorAll('style')].map(style => style.textContent).join('');
-      expect(css).toContain(`row-gap:${theme.space[5]}`);
-      expect(css).toMatch(new RegExp(`@media \\(min-width: ?${theme.screens.tablet}\\)`));
+      const rules = listStyleRules();
+      const css = rules.map(({ rule }) => rule.cssText).join('');
+      expect(css).toContain(`row-gap: ${theme.space[5]}`);
+      expect(rules.map(({ media }) => media)).toContain(`(min-width: ${theme.screens.tablet})`);
       expect(css).not.toMatch(/=>|\bfunction\b|\bprops\b/);
     });
 
