@@ -5,6 +5,7 @@ import { BrowserRouter as Router } from 'react-router';
 
 import packageJson from '../../../package.json';
 import i18n from '../../i18n';
+import { LANGUAGE_STORAGE_KEY } from '../../i18n/constants';
 import { declaredStyle, serializeCssValue } from '../../styleTestUtils';
 import { theme } from '../../theme';
 import { waitForBurgerIcon } from '../testUtils';
@@ -425,6 +426,8 @@ describe('Header', () => {
     describe('language toggle', () => {
       afterEach(() => {
         window.history.pushState({}, '', '/');
+        // The toggle stores the language it switches to
+        localStorage.removeItem(LANGUAGE_STORAGE_KEY);
       });
 
       it('stays above it, like the burger', async () => {

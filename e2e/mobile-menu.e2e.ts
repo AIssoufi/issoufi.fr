@@ -19,7 +19,7 @@ import {
 } from './constants';
 import { scrollDownWithGesture, type ScrollGestureSource } from './gestures';
 import { getPageScrollY } from './scroll';
-import { getScreenBox, getScreenCenter, isBoxInside } from './utils';
+import { doBoxesOverlapHorizontally, getScreenBox, getScreenCenter, isBoxInside } from './utils';
 
 /** Translations of each language, to find the burger button and the links of the menu. */
 const TRANSLATIONS = { fr, en };
@@ -67,6 +67,34 @@ const getMenuLinks = ({ navigation, translations }: GetMenuLinksParams) =>
     translations.githubLink.label,
   ].map(name => ({ name, link: navigation.getByRole('link', { name, exact: true }) }));
 
+/** Parameters of {@link expectLinksBesideToggle}. */
+interface ExpectLinksBesideToggleParams extends GetMenuLinksParams {
+  /** Page of the test, with the menu open. */
+  page: Page;
+}
+
+/**
+ * Checks that no link of the open menu shares some width with the language toggle, which stays
+ * above the menu: the toggle then covers none of them, wherever the menu is scrolled.
+ */
+const expectLinksBesideToggle = async ({
+  page,
+  navigation,
+  translations,
+}: ExpectLinksBesideToggleParams) => {
+  const toggleBox = await page
+    .getByRole('group', { name: translations.langToggle.label })
+    .boundingBox();
+  expect(toggleBox, 'box of the language toggle').not.toBeNull();
+  for (const { name, link } of getMenuLinks({ navigation, translations })) {
+    const box = await link.boundingBox();
+    expect(
+      doBoxesOverlapHorizontally({ box, otherBox: toggleBox }),
+      `"${name}" in the column of the language toggle: ${JSON.stringify(box)}`,
+    ).toBe(false);
+  }
+};
+
 /** Tells whether an element holds more than it shows, so it scrolls. Runs in the browser. */
 const isScrollable = (element: Element) => element.scrollHeight > element.clientHeight;
 
@@ -111,6 +139,7 @@ for (const language of LANGUAGES) {
           FINGER_TARGET_HEIGHT_PX,
         );
         expect(await navigation.evaluate(isScrollable), 'menu higher than the screen').toBe(false);
+        await expectLinksBesideToggle({ page, navigation, translations });
       });
     });
   }
@@ -124,6 +153,7 @@ for (const language of LANGUAGES) {
       await page.goto(route);
       const navigation = await openMenu({ page, translations });
       expect(await navigation.evaluate(isScrollable), 'menu higher than the screen').toBe(true);
+      await expectLinksBesideToggle({ page, navigation, translations });
 
       // From the top of the menu, in order: centered content cut above the screen fails here
       for (const { name, link } of getMenuLinks({ navigation, translations })) {

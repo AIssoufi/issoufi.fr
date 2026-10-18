@@ -56,19 +56,20 @@ const expectBandOnHeader = async (header: Locator) => {
  * so it uses nothing from outside its own body.
  */
 const listHeaderRowControlBoxes = (header: Element) => {
-  const isFixedBelowHeader = (element: Element) => {
-    for (let current: Element | null = element; current && current !== header; ) {
+  const hasFixedAncestorInHeader = (element: Element) => {
+    for (let current = element.parentElement; current && current !== header; ) {
       if (getComputedStyle(current).position === 'fixed') return true;
       current = current.parentElement;
     }
     return false;
   };
-  return [...header.querySelectorAll('a, button')]
-    .filter(control => control.checkVisibility() && !isFixedBelowHeader(control))
-    .map(control => {
-      const { x, y, width, height } = control.getBoundingClientRect();
-      return { label: control.textContent?.trim() || control.localName, x, y, width, height };
-    });
+  const isShownInHeaderRow = (control: Element) =>
+    control.checkVisibility() && !hasFixedAncestorInHeader(control);
+
+  return [...header.querySelectorAll('a, button')].filter(isShownInHeaderRow).map(control => {
+    const { x, y, width, height } = control.getBoundingClientRect();
+    return { label: control.textContent?.trim() || control.localName, x, y, width, height };
+  });
 };
 
 // jsdom computes no layout and scrolls nothing, so only a real browser sees the header leave the
@@ -132,7 +133,7 @@ for (const language of LANGUAGES) {
         );
         await expectBandOnHeader(header);
         const controlBoxes = await header.evaluate(listHeaderRowControlBoxes);
-        // The logo at least: an empty list would let a broken selector pass
+        // The logo, then the burger or the navigation links: fewer would mean a broken selector
         expect(controlBoxes.length, 'links and buttons of the header row').toBeGreaterThan(1);
         for (const { label, ...box } of controlBoxes) {
           expect(
