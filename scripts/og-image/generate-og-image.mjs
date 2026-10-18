@@ -9,71 +9,26 @@ import { readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 
 import { chromium } from '@playwright/test';
-import { createServer } from 'vite';
 
+import { checkFontsLoaded } from '../utils/browser.mjs';
+import { INDEX_HTML_FILE, PUBLIC_DIR, TRANSLATION_MODULES } from '../utils/constants.mjs';
+import { listFontsInUse } from '../utils/fonts.mjs';
+import { findMissingTexts, getHomeTexts } from '../utils/home-texts.mjs';
+import { findFontStylesheetUrl, hasUnresolvedValue } from '../utils/html.mjs';
+import { loadSiteModules } from '../utils/site-modules.mjs';
 import {
-  INDEX_HTML_FILE,
+  FONTS_IN_USE,
   OG_IMAGE_HEIGHT_PX,
   OG_IMAGE_JPEG_QUALITY,
   OG_IMAGE_MAX_BYTES,
   OG_IMAGE_WIDTH_PX,
   PARTICLE_SEED,
-  PUBLIC_DIR,
   SOURCE_MODULES,
-  TRANSLATION_MODULES,
 } from './constants.mjs';
-import { findMissingFonts, listFontsInUse } from './utils/fonts.mjs';
+import { toImageDataUrl } from './utils/images.mjs';
 import { findDotLinks, renderParticlesSvg } from './utils/particles.mjs';
 import { createSeededRandom } from './utils/random.mjs';
-import { findFontStylesheetUrl, hasUnresolvedValue, toImageDataUrl } from './utils/html.mjs';
 import { renderOgImageHtml, renderOgImageStyles } from './utils/template.mjs';
-import { findMissingTexts, getOgImageTexts } from './utils/texts.mjs';
-
-/**
- * Modules of the site loaded by {@link loadSourceModules}: the exports of each module, by name.
- * @typedef {object} SourceModules
- * @property {Record<keyof typeof SOURCE_MODULES, Record<string, any>>} sources - Modules of
- * {@link SOURCE_MODULES}.
- * @property {Record<string, Record<string, any>>} translations - Modules of
- * {@link TRANSLATION_MODULES}, by language.
- */
-
-/**
- * Loads the TypeScript modules of the site listed in {@link SOURCE_MODULES} and
- * {@link TRANSLATION_MODULES}, compiled by Vite.
- * @returns {Promise<SourceModules>} The exports of each module.
- */
-const loadSourceModules = async () => {
-  const server = await createServer({
-    configFile: false,
-    logLevel: 'error',
-    appType: 'custom',
-    // Nothing is served to a browser, so there are no dependencies to prebundle
-    optimizeDeps: { noDiscovery: true, entries: [] },
-    server: { middlewareMode: true, hmr: false, ws: false },
-  });
-
-  /**
-   * Loads each module of a list.
-   * @param {Record<string, string>} ids - Path of each module, by name.
-   * @returns {Promise<Record<string, Record<string, any>>>} The exports of each module, by name.
-   */
-  const loadModules = async ids => {
-    const modules = await Promise.all(
-      Object.entries(ids).map(async ([name, id]) => [name, await server.ssrLoadModule(id)]),
-    );
-    return Object.fromEntries(modules);
-  };
-
-  try {
-    return {
-      sources: await loadModules(SOURCE_MODULES),
-      translations: await loadModules(TRANSLATION_MODULES),
-    };
-  } finally {
-    await server.close();
-  }
-};
 
 /**
  * Parameters of {@link takeScreenshot}.
@@ -98,22 +53,7 @@ const takeScreenshot = async ({ html, fonts }) => {
       deviceScaleFactor: 1,
     });
     await page.setContent(html, { waitUntil: 'networkidle' });
-    const fontChecks = await page.evaluate(
-      fontsToLoad =>
-        Promise.all(
-          fontsToLoad.map(async font => {
-            // A face that fails to download rejects the promise: it counts as not loaded
-            const faces = await document.fonts.load(font).catch(() => []);
-            const loadedFaces = faces.filter(({ status }) => status === 'loaded');
-            return { font, loadedFaceCount: loadedFaces.length };
-          }),
-        ),
-      fonts,
-    );
-    const missingFonts = findMissingFonts(fontChecks);
-    if (missingFonts.length > 0) {
-      throw new Error(`Fonts not loaded, check the network: ${missingFonts.join(', ')}`);
-    }
+    await checkFontsLoaded({ page, fonts });
 
     return await page.screenshot({ type: 'jpeg', quality: OG_IMAGE_JPEG_QUALITY });
   } finally {
@@ -121,7 +61,10 @@ const takeScreenshot = async ({ html, fonts }) => {
   }
 };
 
-const { sources, translations } = await loadSourceModules();
+const { sources, translations } = await loadSiteModules({
+  sources: SOURCE_MODULES,
+  translations: TRANSLATION_MODULES,
+});
 const { theme } = sources.theme;
 const particles = { ...sources.particleConstants, ...sources.particleUtils };
 
@@ -130,7 +73,7 @@ const imagePaths = sources.pages.OG_IMAGE_PATHS;
 const images = Object.entries(imagePaths).map(([language, imagePath]) => ({
   language,
   fileName: join(PUBLIC_DIR, imagePath),
-  texts: getOgImageTexts({
+  texts: getHomeTexts({
     // Each module of translations exports them under the code of its language
     translations: translations[language]?.[language],
     siteUrl: sources.pages.SITE_URL,
@@ -188,7 +131,10 @@ for (const { language, fileName, texts } of images) {
     fontStylesheetUrl,
     particlesSvg,
   });
-  const file = await takeScreenshot({ html, fonts: listFontsInUse(theme) });
+  const file = await takeScreenshot({
+    html,
+    fonts: listFontsInUse({ theme, fontsInUse: FONTS_IN_USE }),
+  });
   if (file.length > OG_IMAGE_MAX_BYTES) {
     throw new Error(
       `${fileName} would weigh ${file.length} bytes, over ${OG_IMAGE_MAX_BYTES}: lighten the image`,

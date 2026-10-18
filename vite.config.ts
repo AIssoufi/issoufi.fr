@@ -145,6 +145,7 @@ export default defineConfig(({ mode }) => {
           'src/**/*.{ts,tsx}',
           'vite/**/*.ts',
           'e2e/**/*.ts',
+          'scripts/utils/**/*.mjs',
           'scripts/ci/utils/**/*.mjs',
           'scripts/og-image/utils/**/*.mjs',
         ],

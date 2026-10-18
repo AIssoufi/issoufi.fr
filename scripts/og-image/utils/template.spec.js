@@ -2,12 +2,13 @@ import { en } from '../../../src/i18n/en';
 import { fr } from '../../../src/i18n/fr';
 import { theme } from '../../../src/theme/theme';
 import { SITE_URL } from '../../../src/utils/pages';
-import { listFontsInUse } from './fonts.mjs';
-import { hasUnresolvedValue } from './html.mjs';
+import { listFontsInUse } from '../../utils/fonts.mjs';
+import { getHomeTexts } from '../../utils/home-texts.mjs';
+import { hasUnresolvedValue } from '../../utils/html.mjs';
+import { FONTS_IN_USE } from '../constants.mjs';
 import { renderOgImageHtml, renderOgImageStyles } from './template.mjs';
-import { getOgImageTexts } from './texts.mjs';
 
-const texts = getOgImageTexts({ translations: fr, siteUrl: SITE_URL });
+const texts = getHomeTexts({ translations: fr, siteUrl: SITE_URL });
 const styles = renderOgImageStyles(theme);
 const params = {
   language: 'fr',
@@ -54,7 +55,7 @@ describe('renderOgImageStyles', () => {
 
   it('only uses font weights that the font check loads', () => {
     const weights = [...styles.matchAll(/font-weight: (\d+);/g)].map(([, weight]) => weight);
-    const checkedFonts = listFontsInUse(theme);
+    const checkedFonts = listFontsInUse({ theme, fontsInUse: FONTS_IN_USE });
 
     expect(weights.length).toBeGreaterThan(0);
     weights.forEach(weight => expect(checkedFonts).toContain(`${weight} 16px "Montserrat"`));
@@ -89,7 +90,7 @@ describe('renderOgImageHtml', () => {
   it('writes the texts of the home page in English', () => {
     const page = renderDocument({
       language: 'en',
-      texts: getOgImageTexts({ translations: en, siteUrl: SITE_URL }),
+      texts: getHomeTexts({ translations: en, siteUrl: SITE_URL }),
     });
 
     expect(page.querySelector('.name').textContent).toBe('ADAM Issoufi');
