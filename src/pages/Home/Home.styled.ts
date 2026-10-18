@@ -42,7 +42,7 @@ export const Content = styled.div`
   will-change: transform;
 `;
 
-export const Main = styled.main`
+export const Intro = styled.div`
   text-align: center;
   max-width: 640px;
   animation: ${float} ${th.duration(7000)} ${th.timingFunction('inOut')} infinite;

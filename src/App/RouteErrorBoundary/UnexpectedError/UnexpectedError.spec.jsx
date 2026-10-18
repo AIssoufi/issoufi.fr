@@ -34,6 +34,13 @@ describe('UnexpectedError', () => {
     expect(container).not.toHaveTextContent(/\d/);
   });
 
+  it('has a single main landmark and a single level 1 heading', () => {
+    render(<UnexpectedError />);
+
+    expect(screen.getAllByRole('main')).toHaveLength(1);
+    expect(screen.getAllByRole('heading', { level: 1 })).toHaveLength(1);
+  });
+
   it('says it in English once the language is switched', async () => {
     render(<UnexpectedError />);
 

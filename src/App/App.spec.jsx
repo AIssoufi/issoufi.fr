@@ -14,6 +14,9 @@ const reloadI18n = async () => {
 const description = () =>
   document.querySelector('meta[name="description"]').getAttribute('content');
 
+/** Query of the French page title of /projects, which only screen readers announce. */
+const PROJECTS_PAGE_TITLE = { level: 1, name: 'Projets' };
+
 /**
  * Waits for the burger icon animation of the header, drawn once lottie-web is loaded, so that
  * this update never lands outside `act` after the test.
@@ -66,6 +69,17 @@ describe('App', () => {
     expect(await screen.findByRole('heading', { name: heading })).toBeInTheDocument();
   });
 
+  it.each(['/', '/projects', '/experiences', '/page-inconnue'])(
+    'gives the page at %s a single main landmark and a single level 1 heading, with the header',
+    async path => {
+      window.history.pushState({}, '', path);
+      await renderApp();
+
+      expect(await screen.findAllByRole('main')).toHaveLength(1);
+      expect(screen.getAllByRole('heading', { level: 1 })).toHaveLength(1);
+    },
+  );
+
   it('renders the home page at once, without waiting for a chunk', async () => {
     render(<App />);
 
@@ -95,7 +109,7 @@ describe('App', () => {
       window.history.pushState({}, '', '/projects');
       await renderApp();
 
-      expect(await screen.findByRole('heading', { name: 'Projets personnels' })).not.toHaveFocus();
+      expect(await screen.findByRole('heading', PROJECTS_PAGE_TITLE)).not.toHaveFocus();
       expect(document.body).toHaveFocus();
     });
 
@@ -110,7 +124,7 @@ describe('App', () => {
       expect(screen.getByRole('link', { name: 'Projets' })).toHaveFocus();
       await user.keyboard('{Enter}');
 
-      expect(await screen.findByRole('heading', { name: 'Projets personnels' })).toHaveFocus();
+      expect(await screen.findByRole('heading', PROJECTS_PAGE_TITLE)).toHaveFocus();
       expect(screen.getByRole('button', { name: 'Ouvrir le menu' })).toHaveAttribute(
         'aria-expanded',
         'false',
@@ -134,7 +148,7 @@ describe('App', () => {
 
       await user.keyboard('{Enter}');
 
-      const heading = await screen.findByRole('heading', { name: 'Projets personnels' });
+      const heading = await screen.findByRole('heading', PROJECTS_PAGE_TITLE);
       expect(heading).toHaveFocus();
       expect(getComputedStyle(heading).outline).toBe('none');
     });

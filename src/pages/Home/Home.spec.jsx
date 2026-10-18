@@ -31,6 +31,13 @@ describe('Home', () => {
     expect(screen.getByText('UI')).toBeInTheDocument();
   });
 
+  it('has a single main landmark and a single level 1 heading', () => {
+    renderHome();
+
+    expect(screen.getAllByRole('main')).toHaveLength(1);
+    expect(screen.getAllByRole('heading', { level: 1 })).toHaveLength(1);
+  });
+
   it('links to the projects and experiences pages', () => {
     renderHome();
 
