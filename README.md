@@ -70,7 +70,7 @@ pnpm test:watch      # Watch mode
 pnpm test:coverage   # Single run with coverage, HTML report in coverage/index.html
 ```
 
-Tests are `*.spec.jsx` (components), `*.spec.ts` (helpers and hooks, those of `e2e/` included) and `*.spec.js` (helpers of the scripts of `scripts/` and the test helpers of `src/pages/testUtils.js`, `src/App/testUtils.js` and `src/theme/testUtils.js`) files next to the code they test. Every component has one. `vite.config.spec.ts` builds the site in memory, with the real config, and checks the generated pages. `src/setupTests.ts` renders every component in the theme and global styles of the app (`src/testUtils.tsx`), so the styles hold the values of the tokens, gives no canvas context, as jsdom has none, and fails a test that logs an error with `console.error`, such as a React warning, so the output stays clean. `pnpm test:coverage` fails when the coverage of `src/`, of the Vite config helpers (`vite/`), of the browser test helpers (`e2e/`) and of the script helpers (`scripts/ci/utils/` and `scripts/og-image/utils/`) drops below the thresholds of `vite.config.ts` (`COVERAGE_THRESHOLDS_PERCENT`).
+Tests are `*.spec.jsx` (components), `*.spec.ts` (helpers and hooks, those of `e2e/` included) and `*.spec.js` (helpers of the scripts of `scripts/` and the test helpers of `src/styleTestUtils.js`, `src/pages/testUtils.js`, `src/App/testUtils.js` and `src/theme/testUtils.js`) files next to the code they test. Every component has one. `vite.config.spec.ts` builds the site in memory, with the real config, and checks the generated pages. `src/setupTests.ts` renders every component in the theme and global styles of the app (`src/testUtils.tsx`), so the styles hold the values of the tokens, gives no canvas context, as jsdom has none, and fails a test that logs an error with `console.error`, such as a React warning, so the output stays clean. As in production, styled-components inserts its rules into the CSSOM (`SC_DISABLE_SPEEDY` in `vite.config.ts`), which keeps jsdom from parsing a whole `<style>` again on every change, and `src/setupTests.ts` fails a test whose component inserts a rule that browsers would drop, such as one holding the source of a function interpolated outside a `css` block. The tests read the declared styles through the CSSOM (`listStyleRules`, `declaredStyle` and `serializeCssValue` of `src/styleTestUtils.js`), since jsdom ignores media queries and pseudo-elements. `pnpm test:coverage` fails when the coverage of `src/`, of the Vite config helpers (`vite/`), of the browser test helpers (`e2e/`) and of the script helpers (`scripts/ci/utils/` and `scripts/og-image/utils/`) drops below the thresholds of `vite.config.ts` (`COVERAGE_THRESHOLDS_PERCENT`).
 
 ### Browser tests
 
@@ -190,8 +190,10 @@ The version follows the commits: `fix` bumps the patch version, `feat` the minor
 │   ├── theme/            # Design tokens (primitives in tokens.ts, roles in theme.ts) and global styles
 │   │   └── testUtils.js  # Raw-value guards that the theme spec runs on the style files and theme.ts
 │   ├── utils/            # Career dates and page metadata helpers
+│   ├── cssRuleGuard.ts   # logDroppedCssRules: fails a test whose component inserts a CSS rule that browsers drop
 │   ├── index.tsx         # Entry point
 │   ├── setupTests.ts     # Test setup: theme around every render, no canvas, fails on console.error
+│   ├── styleTestUtils.js # listStyleRules, declaredStyle, serializeCssValue: the declared styles, read through the CSSOM
 │   ├── testErrors.ts     # describeLoggedErrors: the failure message of a test that logs an error
 │   └── testUtils.tsx     # withTheme: the theme and global styles wrapper of the tests
 ├── vite/                 # Helpers of vite.config.ts and playwright.config.ts: dev and preview ports, chunk names, page chunks

@@ -1,24 +1,17 @@
 import { render, screen } from '@testing-library/react';
 import styled from '@xstyled/styled-components';
 
+import { declaredStyle } from '../../styleTestUtils';
 import Page from './Page';
 
 const getMain = () => screen.getByRole('main');
 
 /**
- * Reads the `background-image` of the main element's `::before` layer in the injected style sheets,
- * since jsdom computes no style for pseudo-elements. Splitting the CSS on `}` only finds a flat
- * rule: update it if `Page.styled.ts` ever wraps `::before` in an `@media` block.
+ * Reads the `background-image` declared for the main element's `::before` layer, since jsdom
+ * computes no style for pseudo-elements.
  */
-const getBackgroundImage = main => {
-  const css = [...document.querySelectorAll('style')].map(style => style.textContent).join('');
-  const classNames = [...main.classList];
-  const beforeRule = css
-    .split('}')
-    .find(rule => classNames.some(className => rule.includes(`.${className}::before`)));
-
-  return beforeRule?.match(/background-image:([^;]+)/)?.[1];
-};
+const getBackgroundImage = main =>
+  declaredStyle({ element: main, property: 'background-image', pseudo: '::before' });
 
 describe('Page', () => {
   it('renders its content in the main landmark of the page', () => {
@@ -33,7 +26,7 @@ describe('Page', () => {
 
   it('shows the background image behind the page', () => {
     render(<Page backgroundImage="/projects.webp" />);
-    expect(getBackgroundImage(getMain())).toBe('url(/projects.webp)');
+    expect(getBackgroundImage(getMain())).toBe('url("/projects.webp")');
   });
 
   it.each([undefined, ''])('draws no background image when it is %j', backgroundImage => {
@@ -54,7 +47,7 @@ describe('Page', () => {
     const main = getMain();
 
     expect(getComputedStyle(main).display).toBe('flex');
-    expect(getBackgroundImage(main)).toBe('url(/experiences.webp)');
+    expect(getBackgroundImage(main)).toBe('url("/experiences.webp")');
   });
 
   it('renders without any props', () => {

@@ -56,6 +56,15 @@ const getNavigation = () => screen.getByRole('navigation', { hidden: true });
 /** The element holding the burger button and the navigation, fixed while the menu is open. */
 const getMenu = () => getBurgerButton().parentElement;
 
+/**
+ * Shows the closed navigation as the tablet media query of `NavMenu` does on the desktop layout.
+ * jsdom ignores the media queries of the styles, so the navigation keeps the `display: none` of the
+ * mobile layout, and jsdom does not focus a link that it hides.
+ */
+const showDesktopNavigation = () => {
+  getNavigation().style.display = 'flex';
+};
+
 /** The last link of the menu, which downloads the CV. */
 const getCvLink = () => screen.getByRole('link', { name: 'CV' });
 
@@ -341,8 +350,10 @@ describe('Header', () => {
     it('leaves the focus on a link chosen on the desktop layout', async () => {
       stubScreen({ isDesktop: true });
       await renderHeader();
-      const projectsLink = screen.getByRole('link', { name: 'Projets', hidden: true });
+      showDesktopNavigation();
+      const projectsLink = screen.getByRole('link', { name: 'Projets' });
       act(() => projectsLink.focus());
+      expect(projectsLink).toHaveFocus();
 
       await userEvent.keyboard('{Enter}');
 
