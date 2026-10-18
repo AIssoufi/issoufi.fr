@@ -1,7 +1,8 @@
 // @ts-check
 // Tells deploy-production.yml whether the commit of develop it would deploy is tested: the last
-// push run of ci.yml on develop for that exact commit must have succeeded. Writes the commit to
-// the `sha` step output when it did, and a notice saying why when it did not.
+// run of ci.yml on develop for that exact commit must have succeeded, whether a push started it
+// or the daily release (merge-release-pr.mjs), whose merge starts no push run. Writes the commit
+// to the `sha` step output when it did, and a notice saying why when it did not.
 // Usage: DEPLOY_SHA=<full SHA> GITHUB_REPOSITORY=<owner/name> GITHUB_TOKEN=<token> \
 //   node scripts/ci/check-develop-ci.mjs
 import { DEVELOP_BRANCH } from './constants.mjs';
@@ -16,7 +17,7 @@ if (!isCommitSha(sha)) {
 }
 
 try {
-  const run = await fetchLatestRun({ branch: DEVELOP_BRANCH, sha });
+  const run = await fetchLatestRun({ branch: DEVELOP_BRANCH, event: null, sha });
   const { isTested, message } = getCiVerdict({ run, sha, branch: DEVELOP_BRANCH });
 
   if (isTested) {

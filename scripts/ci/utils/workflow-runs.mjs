@@ -4,16 +4,15 @@ import {
   COMMIT_SHA_PATTERN,
   DEFAULT_GITHUB_API_URL,
   DEVELOP_BRANCH,
-  GITHUB_API_MEDIA_TYPE,
-  GITHUB_API_VERSION,
   LATEST_RUN_PAGE_SIZE,
   PUSH_EVENT,
-  REPOSITORY_PATTERN,
   RUN_COMPLETED_STATUS,
   RUN_SUCCESS_CONCLUSION,
+  RUN_WAIT_ATTEMPTS,
+  RUN_WAIT_DELAY_MS,
   SHORT_SHA_LENGTH,
-  TRAILING_SLASH_PATTERN,
 } from '../constants.mjs';
+import { getRepositoryApiUrl, requestGitHub, requestRepositoryApi } from './github-api.mjs';
 
 /**
  * Tells whether a value is the full SHA of a git commit, as `git rev-parse` writes it.
@@ -44,7 +43,8 @@ export const shortenSha = sha => (typeof sha === 'string' ? sha.slice(0, SHORT_S
  * @property {string} [repository] - Repository as `owner/name`, the `GITHUB_REPOSITORY` variable.
  * @property {string} [workflow] - File name of the workflow. Defaults to {@link CI_WORKFLOW_FILE}.
  * @property {string} [branch] - Branch the runs were started on, e.g. `develop`.
- * @property {string} [event] - Event that started the runs. Defaults to {@link PUSH_EVENT}.
+ * @property {string | null} [event] - Event that started the runs, or `null` for runs started by
+ * any event. Defaults to {@link PUSH_EVENT}.
  * @property {string} [sha] - Full SHA of the commit the runs tested.
  */
 
@@ -68,22 +68,25 @@ export const getWorkflowRunsUrl = ({
   event = PUSH_EVENT,
   sha,
 }) => {
-  const isRepository = typeof repository === 'string' && REPOSITORY_PATTERN.test(repository);
   const hasBranch = typeof branch === 'string' && branch !== '';
-  const canBuildUrl = isRepository && hasBranch && isCommitSha(sha) && URL.canParse(apiUrl);
-  if (!canBuildUrl) return undefined;
+  if (!hasBranch || !isCommitSha(sha)) return undefined;
 
-  const url = new URL(apiUrl);
-  // Keeps the path of a GitHub Enterprise API, such as https://example.com/api/v3
-  const apiPath = url.pathname.replace(TRAILING_SLASH_PATTERN, '');
-  url.pathname = `${apiPath}/repos/${repository}/actions/workflows/${encodeURIComponent(workflow)}/runs`;
   const perPage = String(LATEST_RUN_PAGE_SIZE);
-  url.search = new URLSearchParams({ branch, event, head_sha: sha, per_page: perPage }).toString();
-  return url.toString();
+  return getRepositoryApiUrl({
+    apiUrl,
+    repository,
+    path: `/actions/workflows/${encodeURIComponent(workflow)}/runs`,
+    query: {
+      branch,
+      ...(event !== null && { event }),
+      head_sha: sha,
+      per_page: perPage,
+    },
+  });
 };
 
 /**
- * A run of a workflow, as {@link readLatestRun} reads it from the REST API.
+ * A run of a workflow, as {@link readRun} reads it from the REST API.
  * @typedef {object} WorkflowRun
  * @property {string} sha - Commit the run tested.
  * @property {string} status - `queued`, `in_progress`, `completed`…
@@ -93,11 +96,36 @@ export const getWorkflowRunsUrl = ({
  */
 
 /**
+ * Reads a run of a workflow from an answer of the REST API.
+ * @param {unknown} value - The run, as the API writes it.
+ * @returns {WorkflowRun | undefined} The run, or `undefined` when the value is not an object, or
+ * when it lacks its commit, status, conclusion or page.
+ * @example
+ * readRun({ head_sha, status: 'completed', conclusion: 'success', html_url });
+ * // { sha: head_sha, status: 'completed', conclusion: 'success', url: html_url }
+ */
+export const readRun = value => {
+  const isObject = typeof value === 'object' && value !== null;
+  if (!isObject) return undefined;
+
+  const {
+    head_sha: sha,
+    status,
+    conclusion,
+    html_url: url,
+  } = /** @type {Record<string, unknown>} */ (value);
+  const hasConclusion = typeof conclusion === 'string' || conclusion === null;
+  const isRun =
+    isCommitSha(sha) && typeof status === 'string' && hasConclusion && typeof url === 'string';
+  return isRun ? { sha, status, conclusion, url } : undefined;
+};
+
+/**
  * Reads the latest run from the answer of the endpoint that lists the runs of a workflow, newest
  * first.
  * @param {unknown} response - Parsed JSON answer, with its `workflow_runs` list.
  * @returns {WorkflowRun | undefined} The first run of the list, or `undefined` when the list is
- * missing or empty, or when that run lacks its commit, status, conclusion or page.
+ * missing or empty, or when {@link readRun} cannot read that run.
  * @example
  * readLatestRun({
  *   workflow_runs: [{ head_sha, status: 'completed', conclusion: 'success', html_url }],
@@ -106,15 +134,49 @@ export const getWorkflowRunsUrl = ({
  */
 export const readLatestRun = response => {
   const runs = /** @type {Record<string, unknown> | null | undefined} */ (response)?.workflow_runs;
-  const latestRun = Array.isArray(runs) ? runs[0] : undefined;
-  const isObject = typeof latestRun === 'object' && latestRun !== null;
-  if (!isObject) return undefined;
+  return Array.isArray(runs) ? readRun(runs[0]) : undefined;
+};
 
-  const { head_sha: sha, status, conclusion, html_url: url } = latestRun;
-  const hasConclusion = typeof conclusion === 'string' || conclusion === null;
-  const isRun =
-    isCommitSha(sha) && typeof status === 'string' && hasConclusion && typeof url === 'string';
-  return isRun ? { sha, status, conclusion, url } : undefined;
+/**
+ * How a run ended, from {@link describeRunOutcome}.
+ * @typedef {object} RunOutcome
+ * @property {boolean} isSuccess - Whether the run finished with a success.
+ * @property {string} outcome - What happened, as the end of a sentence about the run, such as
+ * `the CI of develop passed on 58ff9ea: <page of the run>`.
+ */
+
+/**
+ * Tells how a run of a workflow ended, for a message about it: passed, still running, or did not
+ * pass. A run still in progress, failed, cancelled or timed out does not count as a success.
+ * @param {WorkflowRun | undefined} run - The run, from {@link readRun}.
+ * @returns {RunOutcome} Whether the run passed, and the end of a sentence that says what
+ * happened: `passed on <commit>: <page>`, `is still running on <commit> (<status>): <page>`,
+ * `did not pass on <commit> (<conclusion>): <page>`, or `could not be read.` without a run.
+ * @example
+ * `The CI of develop ${describeRunOutcome(run).outcome}`;
+ * // 'The CI of develop is still running on 58ff9ea (in_progress): https://github.com/…'
+ */
+export const describeRunOutcome = run => {
+  if (!run) return { isSuccess: false, outcome: 'could not be read.' };
+
+  const commit = shortenSha(run.sha);
+  const isCompleted = run.status === RUN_COMPLETED_STATUS;
+  if (!isCompleted) {
+    return {
+      isSuccess: false,
+      outcome: `is still running on ${commit} (${run.status}): ${run.url}`,
+    };
+  }
+
+  const isSuccess = run.conclusion === RUN_SUCCESS_CONCLUSION;
+  if (!isSuccess) {
+    return {
+      isSuccess: false,
+      outcome: `did not pass on ${commit} (${run.conclusion ?? 'no conclusion'}): ${run.url}`,
+    };
+  }
+
+  return { isSuccess: true, outcome: `passed on ${commit}: ${run.url}` };
 };
 
 /**
@@ -127,8 +189,8 @@ export const readLatestRun = response => {
 /**
  * Parameters of {@link getCiVerdict}.
  * @typedef {object} GetCiVerdictParams
- * @property {WorkflowRun} [run] - Latest push run of the CI for the commit, from
- * {@link readLatestRun}. Missing when the CI has not run on that commit.
+ * @property {WorkflowRun} [run] - Latest run of the CI for the commit, from {@link readLatestRun}.
+ * Missing when the CI has not run on that commit.
  * @property {string} [sha] - Full SHA of the commit to deploy.
  * @property {string} [branch] - Branch the run was started on, named in the message. Defaults to
  * {@link DEVELOP_BRANCH}.
@@ -147,33 +209,18 @@ export const readLatestRun = response => {
  * // 58ff9ea (in_progress): https://github.com/…' }
  */
 export const getCiVerdict = ({ run, sha, branch = DEVELOP_BRANCH }) => {
-  const commit = shortenSha(sha);
   const isRunOfCommit = isCommitSha(sha) && run?.sha === sha;
-  // `run` is checked again so that the type checker knows it exists below
-  if (!run || !isRunOfCommit) {
+  if (!isRunOfCommit) {
     return {
       isTested: false,
-      message: `Nothing deployed: the CI has not run on ${branch} for ${commit || 'this commit'}.`,
+      message: `Nothing deployed: the CI has not run on ${branch} for ${shortenSha(sha) || 'this commit'}.`,
     };
   }
 
-  const isCompleted = run.status === RUN_COMPLETED_STATUS;
-  if (!isCompleted) {
-    return {
-      isTested: false,
-      message: `Nothing deployed: the CI of ${branch} is still running on ${commit} (${run.status}): ${run.url}`,
-    };
-  }
-
-  const isSuccess = run.conclusion === RUN_SUCCESS_CONCLUSION;
-  if (!isSuccess) {
-    return {
-      isTested: false,
-      message: `Nothing deployed: the CI of ${branch} did not pass on ${commit} (${run.conclusion ?? 'no conclusion'}): ${run.url}`,
-    };
-  }
-
-  return { isTested: true, message: `The CI of ${branch} passed on ${commit}: ${run.url}` };
+  const { isSuccess, outcome } = describeRunOutcome(run);
+  return isSuccess
+    ? { isTested: true, message: `The CI of ${branch} ${outcome}` }
+    : { isTested: false, message: `Nothing deployed: the CI of ${branch} ${outcome}` };
 };
 
 /**
@@ -207,16 +254,138 @@ export const fetchLatestRun = async ({
     );
   }
 
-  /** @type {Record<string, string>} */
-  const headers = {
-    Accept: GITHUB_API_MEDIA_TYPE,
-    'X-GitHub-Api-Version': GITHUB_API_VERSION,
-  };
-  if (token) headers.Authorization = `Bearer ${token}`;
+  return readLatestRun(await requestGitHub({ url, token }));
+};
 
-  const response = await fetch(url, { headers });
-  if (!response.ok) {
-    throw new Error(`The GitHub API answered ${response.status} to ${url}`);
+/**
+ * Parameters of {@link fetchRun}.
+ * @typedef {object} FetchRunParams
+ * @property {number} runId - Identifier of the run, e.g. from {@link dispatchWorkflow}.
+ * @property {string} [apiUrl] - REST API of GitHub. Defaults to the `GITHUB_API_URL` variable.
+ * @property {string} [repository] - Repository as `owner/name`. Defaults to the
+ * `GITHUB_REPOSITORY` variable.
+ * @property {string} [token] - Token to read the run with, which needs the `actions: read`
+ * permission. Defaults to the `GITHUB_TOKEN` variable.
+ */
+
+/**
+ * Asks the REST API of GitHub for a run of a workflow.
+ * @param {FetchRunParams} params
+ * @returns {Promise<WorkflowRun | undefined>} The run, or `undefined` when {@link readRun}
+ * cannot read the answer.
+ * @throws {Error} When the identifier is not a positive integer, or when the API answers with an
+ * error status.
+ * @example
+ * await fetchRun({ runId: 123 }); // { sha, status: 'in_progress', conclusion: null, url }
+ */
+export const fetchRun = async ({ runId, ...api }) => {
+  const isRunId = Number.isSafeInteger(runId) && runId > 0;
+  if (!isRunId) throw new Error(`Invalid workflow run "${runId ?? ''}"`);
+
+  return readRun(await requestRepositoryApi({ ...api, path: `/actions/runs/${runId}` }));
+};
+
+/**
+ * A run that {@link dispatchWorkflow} started.
+ * @typedef {object} DispatchedRun
+ * @property {number} id - Identifier of the run, to follow it with {@link fetchRun}.
+ * @property {string} url - Page of the run on GitHub.
+ */
+
+/**
+ * Reads the run that GitHub started from the answer of the endpoint that dispatches a workflow,
+ * asked with `return_run_details`.
+ * @param {unknown} response - Parsed JSON answer, `{ workflow_run_id, run_url, html_url }`.
+ * @returns {DispatchedRun | undefined} The run, or `undefined` when the answer lacks a positive
+ * integer identifier or the page of the run.
+ * @example
+ * readDispatchedRun({ workflow_run_id: 123, html_url: 'https://github.com/…/runs/123' });
+ * // { id: 123, url: 'https://github.com/…/runs/123' }
+ */
+export const readDispatchedRun = response => {
+  const { workflow_run_id: id, html_url: url } =
+    /** @type {Record<string, unknown> | null | undefined} */ (response) ?? {};
+  const isRunId = typeof id === 'number' && Number.isSafeInteger(id) && id > 0;
+  const isRun = isRunId && typeof url === 'string' && url !== '';
+  return isRun ? { id, url } : undefined;
+};
+
+/**
+ * Parameters of {@link dispatchWorkflow}.
+ * @typedef {object} DispatchWorkflowParams
+ * @property {string} workflow - File name of the workflow, which must have a
+ * `workflow_dispatch` trigger, e.g. `ci.yml`.
+ * @property {string} ref - Branch or tag to run the workflow on, e.g. `develop`.
+ * @property {string} [apiUrl] - REST API of GitHub. Defaults to the `GITHUB_API_URL` variable.
+ * @property {string} [repository] - Repository as `owner/name`. Defaults to the
+ * `GITHUB_REPOSITORY` variable.
+ * @property {string} [token] - Token to start the run with, which needs the `actions: write`
+ * permission. Defaults to the `GITHUB_TOKEN` variable.
+ */
+
+/**
+ * Starts a workflow by hand on a branch, as _Run workflow_ does. Unlike the other events that the
+ * `GITHUB_TOKEN` triggers, such a run starts at once, without approval.
+ * @param {DispatchWorkflowParams} params
+ * @returns {Promise<DispatchedRun>} The run that GitHub started.
+ * @throws {Error} When the workflow or the branch is missing, when the API answers with an error
+ * status, or when it does not say which run it started.
+ * @example
+ * await dispatchWorkflow({ workflow: 'ci.yml', ref: 'develop' }); // { id: 123, url: '…' }
+ */
+export const dispatchWorkflow = async ({ workflow, ref, ...api }) => {
+  const hasWorkflow = typeof workflow === 'string' && workflow !== '';
+  const hasRef = typeof ref === 'string' && ref !== '';
+  if (!hasWorkflow || !hasRef) {
+    throw new Error(`Cannot start the workflow "${workflow ?? ''}" on "${ref ?? ''}"`);
   }
-  return readLatestRun(await response.json());
+
+  const response = await requestRepositoryApi({
+    ...api,
+    path: `/actions/workflows/${encodeURIComponent(workflow)}/dispatches`,
+    method: 'POST',
+    body: { ref, return_run_details: true },
+  });
+  const run = readDispatchedRun(response);
+  if (!run) throw new Error(`GitHub started ${workflow} on ${ref} without saying which run`);
+  return run;
+};
+
+/**
+ * How long {@link waitForRun} waits.
+ * @typedef {object} RunWaitOptions
+ * @property {number} [attempts] - Number of times the run is read. Defaults to
+ * {@link RUN_WAIT_ATTEMPTS}.
+ * @property {number} [delayMs] - Pause between two reads, in milliseconds. Defaults to
+ * {@link RUN_WAIT_DELAY_MS}.
+ */
+
+/**
+ * Parameters of {@link waitForRun}: those of {@link fetchRun}, and how long to wait.
+ * @typedef {FetchRunParams & RunWaitOptions} WaitForRunParams
+ */
+
+/**
+ * Waits for a run of a workflow to finish, reading it at regular intervals.
+ * @param {WaitForRunParams} params
+ * @returns {Promise<WorkflowRun | undefined>} The run once completed, or as last read when it was
+ * still going after every attempt, or `undefined` when it could never be read.
+ * @throws {Error} When {@link fetchRun} throws.
+ * @example
+ * const run = await waitForRun({ runId: 123 });
+ * describeRunOutcome(run).isSuccess; // true once the run passed
+ */
+export const waitForRun = async ({
+  attempts = RUN_WAIT_ATTEMPTS,
+  delayMs = RUN_WAIT_DELAY_MS,
+  ...params
+}) => {
+  /** @type {WorkflowRun | undefined} */
+  let run;
+  for (let attempt = 1; attempt <= attempts; attempt += 1) {
+    run = await fetchRun(params);
+    if (run?.status === RUN_COMPLETED_STATUS) return run;
+    if (attempt < attempts) await new Promise(resolve => setTimeout(resolve, delayMs));
+  }
+  return run;
 };

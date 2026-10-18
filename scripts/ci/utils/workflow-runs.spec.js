@@ -1,10 +1,16 @@
 import {
+  describeRunOutcome,
+  dispatchWorkflow,
   fetchLatestRun,
+  fetchRun,
   getCiVerdict,
   getWorkflowRunsUrl,
   isCommitSha,
+  readDispatchedRun,
   readLatestRun,
+  readRun,
   shortenSha,
+  waitForRun,
 } from './workflow-runs.mjs';
 
 const SHA = '58ff9ea0c3f4e1b2a9d8c7b6a5f4e3d2c1b0a9f8';
@@ -89,6 +95,14 @@ describe('getWorkflowRunsUrl', () => {
     );
   });
 
+  it('filters on no event for a null event', () => {
+    expect(
+      getWorkflowRunsUrl({ repository: 'owner/repo', branch: 'develop', event: null, sha: SHA }),
+    ).toBe(
+      `https://api.github.com/repos/owner/repo/actions/workflows/ci.yml/runs?branch=develop&head_sha=${SHA}&per_page=1`,
+    );
+  });
+
   it('encodes the branch in the query', () => {
     expect(
       getWorkflowRunsUrl({ repository: 'owner/repo', branch: 'feature/a&b', sha: SHA }),
@@ -111,6 +125,101 @@ describe('getWorkflowRunsUrl', () => {
   ])('returns undefined for %o', fields => {
     const params = { repository: 'owner/repo', branch: 'develop', sha: SHA, ...fields };
     expect(getWorkflowRunsUrl(params)).toBeUndefined();
+  });
+});
+
+describe('readRun', () => {
+  it('reads a run of the API', () => {
+    expect(readRun(apiRun())).toEqual(run());
+  });
+
+  it('reads a run that has not finished, without a conclusion', () => {
+    expect(readRun(apiRun({ status: 'queued', conclusion: null }))).toEqual(
+      run({ status: 'queued', conclusion: null }),
+    );
+  });
+
+  it.each([
+    undefined,
+    null,
+    'run',
+    42,
+    [],
+    {},
+    apiRun({ head_sha: undefined }),
+    apiRun({ head_sha: '58ff9ea' }),
+    apiRun({ status: undefined }),
+    apiRun({ conclusion: undefined }),
+    apiRun({ html_url: null }),
+  ])('returns undefined for %o', value => {
+    expect(readRun(value)).toBeUndefined();
+  });
+});
+
+describe('describeRunOutcome', () => {
+  it('says that a completed run passed', () => {
+    expect(describeRunOutcome(run())).toEqual({
+      isSuccess: true,
+      outcome: `passed on 58ff9ea: ${RUN_URL}`,
+    });
+  });
+
+  it.each(['queued', 'in_progress', 'waiting'])('says that a %s run is still running', status => {
+    expect(describeRunOutcome(run({ status, conclusion: null }))).toEqual({
+      isSuccess: false,
+      outcome: `is still running on 58ff9ea (${status}): ${RUN_URL}`,
+    });
+  });
+
+  it.each(['failure', 'cancelled', 'timed_out', 'skipped', 'action_required'])(
+    'says that a run ended with %s did not pass',
+    conclusion => {
+      expect(describeRunOutcome(run({ conclusion }))).toEqual({
+        isSuccess: false,
+        outcome: `did not pass on 58ff9ea (${conclusion}): ${RUN_URL}`,
+      });
+    },
+  );
+
+  it('names a missing conclusion', () => {
+    expect(describeRunOutcome(run({ conclusion: null })).outcome).toBe(
+      `did not pass on 58ff9ea (no conclusion): ${RUN_URL}`,
+    );
+  });
+
+  it.each([undefined, null])('says that a missing run (%o) could not be read', missingRun => {
+    expect(describeRunOutcome(missingRun)).toEqual({
+      isSuccess: false,
+      outcome: 'could not be read.',
+    });
+  });
+});
+
+describe('readDispatchedRun', () => {
+  const RUN_API_URL = 'https://api.github.com/repos/AIssoufi/issoufi.fr/actions/runs/123';
+
+  it('reads the run that the dispatch started', () => {
+    expect(
+      readDispatchedRun({ workflow_run_id: 123, run_url: RUN_API_URL, html_url: RUN_URL }),
+    ).toEqual({ id: 123, url: RUN_URL });
+  });
+
+  it.each([
+    undefined,
+    null,
+    '',
+    {},
+    { workflow_run_id: 123 },
+    { html_url: RUN_URL },
+    { workflow_run_id: 0, html_url: RUN_URL },
+    { workflow_run_id: -1, html_url: RUN_URL },
+    { workflow_run_id: 1.5, html_url: RUN_URL },
+    { workflow_run_id: Number.NaN, html_url: RUN_URL },
+    { workflow_run_id: '123', html_url: RUN_URL },
+    { workflow_run_id: 123, html_url: '' },
+    { workflow_run_id: 123, html_url: 42 },
+  ])('returns undefined for %o', response => {
+    expect(readDispatchedRun(response)).toBeUndefined();
   });
 });
 
@@ -233,6 +342,7 @@ describe('fetchLatestRun', () => {
     expect(fetch).toHaveBeenCalledWith(
       `https://api.github.com/repos/AIssoufi/issoufi.fr/actions/workflows/ci.yml/runs?branch=develop&event=push&head_sha=${SHA}&per_page=1`,
       {
+        method: 'GET',
         headers: {
           Accept: 'application/vnd.github+json',
           'X-GitHub-Api-Version': '2022-11-28',
@@ -290,5 +400,149 @@ describe('fetchLatestRun', () => {
     await expect(fetchLatestRun({ branch: 'develop', sha: SHA })).rejects.toThrow(
       'Cannot list the workflow runs of "" on "develop"',
     );
+  });
+});
+
+describe('the API calls on runs', () => {
+  const RUNS_API_URL = 'https://api.github.com/repos/AIssoufi/issoufi.fr/actions';
+
+  /** Answers the requests in turn with the given JSON bodies, then repeats the last one. */
+  const stubFetch = (...bodies) => {
+    const fetch = vi.fn(async () => {
+      const body = bodies.length > 1 ? bodies.shift() : bodies[0];
+      return new Response(JSON.stringify(body), { status: 200 });
+    });
+    vi.stubGlobal('fetch', fetch);
+    return fetch;
+  };
+
+  beforeEach(() => {
+    vi.stubEnv('GITHUB_API_URL', 'https://api.github.com');
+    vi.stubEnv('GITHUB_REPOSITORY', 'AIssoufi/issoufi.fr');
+    vi.stubEnv('GITHUB_TOKEN', 'token');
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+    vi.unstubAllEnvs();
+    vi.unstubAllGlobals();
+  });
+
+  describe('fetchRun', () => {
+    it('reads a run by its identifier', async () => {
+      const fetch = stubFetch(apiRun({ status: 'in_progress', conclusion: null }));
+      await expect(fetchRun({ runId: 123 })).resolves.toEqual(
+        run({ status: 'in_progress', conclusion: null }),
+      );
+      expect(fetch.mock.calls[0][0]).toBe(`${RUNS_API_URL}/runs/123`);
+    });
+
+    it('resolves to undefined for an answer that is not a run', async () => {
+      stubFetch({ message: 'odd' });
+      await expect(fetchRun({ runId: 123 })).resolves.toBeUndefined();
+    });
+
+    it.each([undefined, 0, -1, 1.5, Number.NaN, '123'])(
+      'throws without asking the API for the run %o',
+      async runId => {
+        const fetch = stubFetch(apiRun());
+        await expect(fetchRun({ runId })).rejects.toThrow('Invalid workflow run');
+        expect(fetch).not.toHaveBeenCalled();
+      },
+    );
+  });
+
+  describe('dispatchWorkflow', () => {
+    it('starts a workflow on a branch and reads the run it started', async () => {
+      const fetch = stubFetch({ workflow_run_id: 123, html_url: RUN_URL });
+      await expect(dispatchWorkflow({ workflow: 'ci.yml', ref: 'develop' })).resolves.toEqual({
+        id: 123,
+        url: RUN_URL,
+      });
+      const [url, init] = fetch.mock.calls[0];
+      expect(url).toBe(`${RUNS_API_URL}/workflows/ci.yml/dispatches`);
+      expect(init.method).toBe('POST');
+      expect(JSON.parse(init.body)).toEqual({ ref: 'develop', return_run_details: true });
+    });
+
+    it('throws when GitHub does not say which run it started', async () => {
+      vi.stubGlobal(
+        'fetch',
+        vi.fn(async () => new Response(null, { status: 204 })),
+      );
+      await expect(dispatchWorkflow({ workflow: 'release.yml', ref: 'develop' })).rejects.toThrow(
+        'GitHub started release.yml on develop without saying which run',
+      );
+    });
+
+    it.each([
+      [{ workflow: 'ci.yml', ref: '' }, '"ci.yml" on ""'],
+      [{ workflow: '', ref: 'develop' }, '"" on "develop"'],
+      [{ ref: 'develop' }, '"" on "develop"'],
+      [{ workflow: 'ci.yml' }, '"ci.yml" on ""'],
+      [{ workflow: 42, ref: 'develop' }, '"42" on "develop"'],
+    ])('throws without asking the API for %o', async (params, details) => {
+      const fetch = stubFetch({});
+      await expect(dispatchWorkflow(params)).rejects.toThrow(
+        `Cannot start the workflow ${details}`,
+      );
+      expect(fetch).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('waitForRun', () => {
+    it('reads the run until it is completed', async () => {
+      const fetch = stubFetch(
+        apiRun({ status: 'queued', conclusion: null }),
+        apiRun({ status: 'in_progress', conclusion: null }),
+        apiRun({ conclusion: 'failure' }),
+      );
+      await expect(waitForRun({ runId: 123, delayMs: 0 })).resolves.toEqual(
+        run({ conclusion: 'failure' }),
+      );
+      expect(fetch).toHaveBeenCalledTimes(3);
+    });
+
+    it('gives the run as last read when it is still going after every attempt', async () => {
+      const fetch = stubFetch(apiRun({ status: 'in_progress', conclusion: null }));
+      await expect(waitForRun({ runId: 123, attempts: 2, delayMs: 0 })).resolves.toEqual(
+        run({ status: 'in_progress', conclusion: null }),
+      );
+      expect(fetch).toHaveBeenCalledTimes(2);
+    });
+
+    it('resolves to undefined when the run can never be read', async () => {
+      stubFetch({});
+      await expect(waitForRun({ runId: 123, attempts: 3, delayMs: 0 })).resolves.toBeUndefined();
+    });
+
+    it('reads the run once for a single attempt, and never for none', async () => {
+      const fetch = stubFetch(apiRun({ status: 'in_progress', conclusion: null }));
+      await waitForRun({ runId: 123, attempts: 1, delayMs: 0 });
+      expect(fetch).toHaveBeenCalledTimes(1);
+      await expect(waitForRun({ runId: 123, attempts: 0, delayMs: 0 })).resolves.toBeUndefined();
+      expect(fetch).toHaveBeenCalledTimes(1);
+    });
+
+    it('waits between two reads', async () => {
+      vi.useFakeTimers();
+      const fetch = stubFetch(apiRun({ status: 'queued', conclusion: null }), apiRun());
+      const promise = waitForRun({ runId: 123 });
+      await vi.advanceTimersByTimeAsync(29_999);
+      expect(fetch).toHaveBeenCalledTimes(1);
+      await vi.advanceTimersByTimeAsync(1);
+      await expect(promise).resolves.toEqual(run());
+      expect(fetch).toHaveBeenCalledTimes(2);
+    });
+
+    it('throws when a read fails', async () => {
+      vi.stubGlobal(
+        'fetch',
+        vi.fn(async () => new Response('{}', { status: 500 })),
+      );
+      await expect(waitForRun({ runId: 123, delayMs: 0 })).rejects.toThrow(
+        'The GitHub API answered 500',
+      );
+    });
   });
 });
