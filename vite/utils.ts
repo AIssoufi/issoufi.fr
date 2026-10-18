@@ -119,7 +119,8 @@ interface GetPageChunkFileParams {
  * lazily on the first visit of the page.
  *
  * @returns The path of the chunk in the build, or `undefined` when the page has no chunk of its
- * own, as the home page, which is in the main chunk, or when the bundle or the folder is missing.
+ * own, as the home page, which is in the main chunk, when the bundle is missing, or when the
+ * folder is missing or blank.
  *
  * @example
  * getPageChunkFile({ bundle, folder: 'Projects' }); // 'assets/Projects-1a2b3c.js'
@@ -128,7 +129,7 @@ interface GetPageChunkFileParams {
 export const getPageChunkFile = ({ bundle, folder }: GetPageChunkFileParams = {}):
   | string
   | undefined => {
-  const hasFolder = typeof folder === 'string' && folder !== '';
+  const hasFolder = typeof folder === 'string' && folder.trim() !== '';
   const hasBundle = typeof bundle === 'object' && bundle !== null;
   const canSearch = hasFolder && hasBundle;
   if (!canSearch) return undefined;
