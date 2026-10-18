@@ -164,7 +164,9 @@ export const REDIRECT_STATUSES = [301, 302, 303, 307, 308];
  * Address of the production site, normalized as `URL` writes it: the site that the smoke test
  * checks when it gets no URL, and that {@link REDIRECTED_SITE_URLS} must redirect to. The app
  * builds its canonical URLs from its own `SITE_URL` (`src/utils/pages.ts`), written without the
- * trailing slash: keep both on the same address.
+ * trailing slash, and `public/robots.txt` declares its sitemap at the same address: the
+ * `production address` tests of `scripts/ci/utils/pages.spec.js` fail when one of the three
+ * changes alone.
  */
 export const SITE_URL = 'https://issoufi.fr/';
 
