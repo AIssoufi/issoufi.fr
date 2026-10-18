@@ -45,12 +45,12 @@ pnpm build     # Type-check, then build to dist/
 pnpm build:standalone   # Type-check, then build the site that opens from the disk to dist-standalone/ (see Releases)
 pnpm size      # Check the size of dist/ (run it after pnpm build)
 pnpm preview   # Serve the production build locally
-pnpm smoke-test https://issoufi.fr   # Check that a deployed site serves the pages of dist/
+pnpm smoke-test https://issoufi.fr   # Check that a deployed site serves the pages, robots.txt and sitemap.xml of dist/
 ```
 
 `pnpm size` fails when the scripts and style sheets that the home page loads before it renders (those that `dist/index.html` references with `<script src>`, `modulepreload` or `stylesheet`) exceed 150 kB gzip, or when those of the whole build, every chunk included, exceed 210 kB gzip. It also fails when `dist/index.html` references none, and warns about any other file of the build over 500 kB, such as an image or the CV. These limits are in `scripts/ci/constants.mjs`.
 
-`pnpm smoke-test <site URL>` requests every page of `dist/` on the site, those of its language folders included (`en/projects.html` at `/en/projects`), plus an unknown path in each folder that has a `404.html` (`/smoke-test-page-that-does-not-exist` and `/en/smoke-test-page-that-does-not-exist`), and fails unless each answers with the expected status (200, or 404 for the unknown paths) and the title and canonical URL of the build. The English pages and the English not found page have titles of their own, so a server that sent the French file for an English URL fails. It retries for about 20 seconds while a new deployment spreads, and fails at once when `dist/` is missing or holds no HTML page.
+`pnpm smoke-test <site URL>` requests every page of `dist/` on the site, those of its language folders included (`en/projects.html` at `/en/projects`), plus an unknown path in each folder that has a `404.html` (`/smoke-test-page-that-does-not-exist` and `/en/smoke-test-page-that-does-not-exist`), and fails unless each answers with the expected status (200, or 404 for the unknown paths) and the title and canonical URL of the build. It also requests `/robots.txt` and `/sitemap.xml` (`SERVED_AS_BUILT_FILES` in `scripts/ci/constants.mjs`), and fails unless each answers with a 200 and the exact content of the build. The English pages and the English not found page have titles of their own, so a server that sent the French file for an English URL fails. It retries for about 20 seconds while a new deployment spreads, and fails at once when `dist/` is missing or holds no HTML page.
 
 ### Link preview image
 

@@ -90,6 +90,13 @@ export const HOME_PAGE_FILE = 'index.html';
  */
 export const NOT_FOUND_PAGE_FILE = '404.html';
 
+/**
+ * Files of the build, other than its pages, that a deployed site must serve unchanged at its root,
+ * where search engines look for them: `robots.txt`, and the `sitemap.xml` that it declares. The
+ * smoke test compares each one with the build.
+ */
+export const SERVED_AS_BUILT_FILES = ['robots.txt', 'sitemap.xml'];
+
 /** Title tag of an HTML page. Its first group captures the title. */
 export const TITLE_TAG_PATTERN = /<title>([^<]*)<\/title>/i;
 

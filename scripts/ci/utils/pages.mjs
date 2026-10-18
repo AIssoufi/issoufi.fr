@@ -10,15 +10,16 @@ import {
   MISSING_PAGE_ROUTE,
   NOT_FOUND_PAGE_FILE,
   PATH_SEPARATOR,
+  SERVED_AS_BUILT_FILES,
   TITLE_TAG_PATTERN,
   WINDOWS_PATH_SEPARATOR_PATTERN,
 } from '../constants.mjs';
 import { toList } from './lists.mjs';
 
 /**
- * A page of the build to request on the deployed site.
+ * A page or another file of the build to request on the deployed site.
  * @typedef {object} PageCheck
- * @property {string} file - HTML file of the build, e.g. `projects.html`.
+ * @property {string} file - File of the build, e.g. `projects.html` or `sitemap.xml`.
  * @property {string} route - Path to request, e.g. `/projects`.
  * @property {number} status - HTTP status the site must answer with.
  */
@@ -126,6 +127,30 @@ export const getPageChecks = fileNames =>
     });
 
 /**
+ * Lists the files of the build, other than its pages, that the deployed site must serve unchanged
+ * at its root ({@link SERVED_AS_BUILT_FILES}), such as `sitemap.xml` at `/sitemap.xml`.
+ * @param {string[]} [fileNames] - Paths of the files of the build, relative to its folder, as
+ * `readdirSync` lists them with `recursive`. Any value that is not an array counts as none.
+ * @returns {PageCheck[]} One check per such file at the root of the build, with a 200 status, in
+ * the order of {@link SERVED_AS_BUILT_FILES}. A file the build does not have, or has only in a
+ * folder (`en/robots.txt`), gets none.
+ * @example
+ * getFileChecks(['index.html', 'robots.txt', 'sitemap.xml']);
+ * // [
+ * //   { file: 'robots.txt', route: '/robots.txt', status: 200 },
+ * //   { file: 'sitemap.xml', route: '/sitemap.xml', status: 200 },
+ * // ]
+ */
+export const getFileChecks = fileNames => {
+  const buildFiles = toList(fileNames);
+  return SERVED_AS_BUILT_FILES.filter(file => buildFiles.includes(file)).map(file => ({
+    file,
+    route: `${PATH_SEPARATOR}${file}`,
+    status: HTTP_OK,
+  }));
+};
+
+/**
  * Title and canonical URL of an HTML page, read by {@link readPageHead}.
  * @typedef {object} PageHead
  * @property {string} title - Text of the title tag, trimmed. Empty when the page has none.
@@ -146,6 +171,27 @@ export const readPageHead = html => {
   const canonicalTag = text.match(CANONICAL_LINK_TAG_PATTERN)?.[0] ?? '';
   const canonical = canonicalTag.match(HREF_ATTRIBUTE_PATTERN)?.[1] ?? '';
   return { title, canonical };
+};
+
+/**
+ * Parameters of {@link compareStatus}.
+ * @typedef {object} CompareStatusParams
+ * @property {PageCheck} check - Route that was requested and the status it must answer with.
+ * @property {number} [status] - Status the site answered with. Missing or not an integer, it is
+ * reported as unknown.
+ */
+
+/**
+ * Compares the status the site answered a route with to the one expected.
+ * @param {CompareStatusParams} params
+ * @returns {string[]} A problem naming both statuses when they differ, none otherwise.
+ */
+const compareStatus = ({ check, status }) => {
+  const hasExpectedStatus = status === check.status;
+  if (hasExpectedStatus) return [];
+
+  const servedStatus = Number.isInteger(status) ? status : 'unknown';
+  return [`${check.route}: status ${servedStatus} instead of ${check.status}`];
 };
 
 /**
@@ -180,13 +226,8 @@ export const comparePage = ({ page, status, servedHtml, builtHtml }) => {
 
   const served = readPageHead(servedHtml);
   const built = readPageHead(builtHtml);
-  const problems = [];
+  const problems = compareStatus({ check: page, status });
 
-  const hasExpectedStatus = status === page.status;
-  if (!hasExpectedStatus) {
-    const servedStatus = Number.isInteger(status) ? status : 'unknown';
-    problems.push(`${page.route}: status ${servedStatus} instead of ${page.status}`);
-  }
   // Without a title in the build, an empty served title would pass the comparison
   if (!built.title) problems.push(`${page.route}: ${page.file} has no title in the build`);
   if (served.title !== built.title) {
@@ -200,13 +241,61 @@ export const comparePage = ({ page, status, servedHtml, builtHtml }) => {
 };
 
 /**
+ * Parameters of {@link compareFile}.
+ * @typedef {object} CompareFileParams
+ * @property {PageCheck} [file] - File to check, from {@link getFileChecks}, and its expected
+ * status. A missing or malformed check (see {@link isPageCheck}) is reported as a problem.
+ * @property {number} [status] - Status the site answered with. Missing or not an integer, it is
+ * reported as unknown.
+ * @property {string} [servedText] - Content the site answered with. Missing or not a string, it
+ * counts as empty.
+ * @property {string} [builtText] - Content of the file in the build. Missing or not a string, it
+ * counts as empty.
+ */
+
+/**
+ * Compares a file that the deployed site served, such as `sitemap.xml`, with the file of the
+ * build: same status as expected, and the same content, character for character.
+ * @param {CompareFileParams} params
+ * @returns {string[]} The problems found, empty when the file is served as built, and a single
+ * problem when the file check is missing or malformed.
+ * @example
+ * compareFile({
+ *   file: { file: 'robots.txt', route: '/robots.txt', status: 200 },
+ *   status: 200,
+ *   servedText: 'User-agent: *\n',
+ *   builtText: 'User-agent: *\nSitemap: https://issoufi.fr/sitemap.xml\n',
+ * }); // ['/robots.txt: content differs from robots.txt of the build']
+ */
+export const compareFile = ({ file, status, servedText, builtText }) => {
+  if (!isPageCheck(file)) {
+    return ['A file check without a file, a route or an integer status cannot be compared'];
+  }
+
+  const served = typeof servedText === 'string' ? servedText : '';
+  const built = typeof builtText === 'string' ? builtText : '';
+  const problems = compareStatus({ check: file, status });
+
+  // Without content in the build, an empty served file would pass the comparison
+  const isEmptyInBuild = built === '';
+  if (isEmptyInBuild) {
+    problems.push(`${file.route}: ${file.file} is empty in the build`);
+  } else if (served !== built) {
+    problems.push(`${file.route}: content differs from ${file.file} of the build`);
+  }
+
+  return problems;
+};
+
+/**
  * Parameters of {@link renderSmokeTestReport}.
  * @typedef {object} RenderSmokeTestReportParams
  * @property {string} [siteUrl] - Site that was checked, e.g. `https://issoufi.fr`. Missing or not
  * a string, it is left empty.
- * @property {PageCheck[]} [pages] - Pages requested on the site, from {@link getPageChecks}.
- * Any value that is not an array counts as none.
- * @property {string[]} [problems] - Problems found on those pages, from {@link comparePage}.
+ * @property {PageCheck[]} [pages] - Pages and files requested on the site, from
+ * {@link getPageChecks} and {@link getFileChecks}. Any value that is not an array counts as none.
+ * @property {string[]} [problems] - Problems found on those pages and files, from
+ * {@link comparePage} and {@link compareFile}.
  * Any value that is not an array counts as none.
  */
 
