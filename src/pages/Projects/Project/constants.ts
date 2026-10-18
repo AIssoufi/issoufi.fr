@@ -11,11 +11,14 @@ export const ROW_CARD_COUNT = 3;
 export const WHOLE_CARD_TOLERANCE_PX = 1;
 /** Duration of the like button's pop animation; matches the CSS animation. */
 export const LIKE_ANIMATION_MS = 450;
+/**
+ * `localStorage` key holding the ids of the projects that the visitor liked, as a JSON list
+ * (`[1,5]`), shared by every section of the page, in every language.
+ */
+export const LIKED_PROJECTS_STORAGE_KEY = 'likedProjects';
 /** Largest tilt of a card when the pointer is at one of its edges. */
 export const CARD_MAX_TILT_DEG = 6;
 /** Distance of the 3D viewpoint used for the card tilt; smaller values exaggerate it. */
 export const CARD_PERSPECTIVE_PX = 800;
 /** How much a hovered card rises. */
 export const CARD_HOVER_LIFT_PX = 4;
-/** Like state of a card that is missing from the initial data. */
-export const NO_LIKE = { count: 0, liked: false } as const;
