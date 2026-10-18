@@ -2,6 +2,8 @@ import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router';
 
+import { declaredStyle } from '../../../styleTestUtils';
+import { DESKTOP_MEDIA_QUERY } from '../constants';
 import NavMenu from './NavMenu';
 
 const items = [
@@ -53,6 +55,39 @@ describe('NavMenu', () => {
     await userEvent.click(screen.getByText('Projets'));
 
     expect(onClick).toHaveBeenCalledTimes(1);
+  });
+
+  describe('GitHub icon', () => {
+    const getGitHubLink = () =>
+      screen.getByRole('link', { name: 'Profil GitHub d’ADAM Issoufi', hidden: true });
+
+    it('follows the CV button in the mobile menu', () => {
+      renderAt('/', { items, mobileMenuIsOpen: true });
+
+      const cvLink = screen.getByText('CV').closest('a');
+      expect(cvLink.nextElementSibling).toBe(getGitHubLink());
+      expect(getGitHubLink()).toBeVisible();
+    });
+
+    it('closes the mobile menu when it is clicked', async () => {
+      const onClick = vi.fn(event => event?.preventDefault());
+      renderAt('/', { items, onClick, mobileMenuIsOpen: true });
+
+      await userEvent.click(getGitHubLink());
+
+      expect(onClick).toHaveBeenCalledOnce();
+    });
+
+    it('is hidden on desktop, where the header shows it under the language toggle', () => {
+      renderAt('/', { items });
+
+      const display = declaredStyle({
+        element: getGitHubLink(),
+        property: 'display',
+        media: DESKTOP_MEDIA_QUERY,
+      });
+      expect(display).toBe('none');
+    });
   });
 
   it('gives the navigation its id, so a button can name it as the menu it controls', () => {

@@ -6,9 +6,10 @@ export const ProjectsPage = styled(Page)`
   padding-left: 0;
   padding-right: 0;
 
+  /* Room for the controls floating on the right edge, as Page leaves */
   @media (min-width: ${th('screens.tablet')}) {
     padding-left: ${th.space('page')};
-    padding-right: ${th.space('page')};
+    padding-right: ${th.space('floating-controls-room')};
   }
 `;
 

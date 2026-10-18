@@ -11,15 +11,27 @@ import { useInertOutside } from './hooks/useInertOutside';
 import { useMediaQuery } from './hooks/useMediaQuery';
 import LangToggle from './LangToggle';
 import NavMenu from './NavMenu';
+import { formatVersion } from './utils';
 
-import { Actions, Container, Logo, Menu } from './Header.styled';
+import {
+  Actions,
+  Brand,
+  BuildVersion,
+  Container,
+  FloatingControls,
+  FloatingGitHubLink,
+  Logo,
+  Menu,
+} from './Header.styled';
 
 /**
- * Site header: the "AI" logo linking home, the language toggle, the navigation and, on mobile,
- * the burger button that opens it. Its links lead to the pages in the language of the current
- * URL. Owns the open state of the mobile menu, and closes it after each navigation and when the
- * screen grows to the desktop layout, as when a tablet is rotated. Must be rendered inside a
- * router.
+ * Site header: the "AI" logo linking home, followed by the version of the build in small letters
+ * (`build v1.0.0`, see {@link formatVersion}), the language toggle, the navigation and, on mobile,
+ * the burger button that opens it. From tablet up, the language toggle floats on the right edge of
+ * the screen, with the GitHub icon centered under it; on mobile, the menu holds that icon. Its
+ * links lead to the pages in the language of the current URL. Owns the open state of the mobile
+ * menu, and closes it after each navigation and when the screen grows to the desktop layout, as
+ * when a tablet is rotated. Must be rendered inside a router.
  *
  * The burger button comes before the links in the page, so once a keyboard user opens the menu,
  * the next `Tab` reaches its first link. While open, the mobile menu acts as a modal dialog: the
@@ -28,12 +40,14 @@ import { Actions, Container, Logo, Menu } from './Header.styled';
  * rather than leaving it on a hidden link. None of this applies to the desktop layout, where the
  * links are a bar of the page.
  */
-const Header = ({ testId }: HeaderProps) => {
+const Header = ({ testId, version = __APP_VERSION__ }: HeaderProps) => {
   const [mobileMenuIsOpen, setMobileMenuIsOpen] = useState(false);
   const navMenuId = useId();
   const menuRef = useRef<HTMLDivElement>(null);
   const burgerRef = useRef<HTMLButtonElement>(null);
   const { t } = useTranslation();
+  const versionText = formatVersion(version);
+  const showsVersion = versionText !== '';
   const language = useUrlLanguage();
 
   const closeMobileMenuOnDesktop = (isDesktopLayout: boolean) => {
@@ -66,11 +80,19 @@ const Header = ({ testId }: HeaderProps) => {
 
   return (
     <Container data-testid={testId}>
-      <Logo>
-        <LocalizedLink to="/">AI</LocalizedLink>
-      </Logo>
+      <Brand>
+        <Logo>
+          <LocalizedLink to="/">AI</LocalizedLink>
+        </Logo>
+        {showsVersion && (
+          <BuildVersion>{t('header.buildVersion', { version: versionText })}</BuildVersion>
+        )}
+      </Brand>
       <Actions>
-        <LangToggle />
+        <FloatingControls>
+          <LangToggle />
+          <FloatingGitHubLink />
+        </FloatingControls>
         <Menu
           ref={menuRef}
           $isSticky={mobileMenuIsOpen}
@@ -100,4 +122,10 @@ export default Header;
 interface HeaderProps {
   /** `data-testid` set on the header element, for tests. */
   testId?: string;
+  /**
+   * Version of the site shown after the logo, as `package.json` writes it, e.g. `1.0.0`. Not shown
+   * when empty. Defaults to the version of the build, which Vite reads from `package.json`.
+   * @default __APP_VERSION__
+   */
+  version?: string;
 }

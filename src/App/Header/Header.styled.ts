@@ -1,5 +1,7 @@
 import styled, { css, th } from '@xstyled/styled-components';
 
+import GitHubLink from './GitHubLink';
+
 export const Container = styled.header`
   display: flex;
   flex-direction: row;
@@ -26,6 +28,13 @@ export const Container = styled.header`
   }
 `;
 
+export const Brand = styled.div`
+  display: flex;
+  flex-direction: row;
+  align-items: baseline;
+  gap: ${th.space(8)};
+`;
+
 export const Logo = styled.div`
   font-family: ${th.font('display')};
   font-size: ${th.fontSize(34)};
@@ -37,6 +46,42 @@ export const Logo = styled.div`
   :hover {
     transform: scale(1.08);
     color: ${th.color('accent')};
+  }
+`;
+
+export const BuildVersion = styled.span`
+  font-size: ${th.fontSize(11)};
+  font-weight: ${th.fontWeight('medium')};
+  letter-spacing: ${th.letterSpacing(4)};
+  color: ${th.color('foreground-a65')};
+  white-space: nowrap;
+`;
+
+/* Holds the language toggle in the row of the header on mobile, and floats it on the right edge of
+   the screen from tablet up, centered vertically */
+export const FloatingControls = styled.div`
+  position: relative;
+
+  @media (min-width: ${th('screens.tablet')}) {
+    position: fixed;
+    right: ${th.space(20)};
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: ${th.zIndex('overlay')};
+  }
+`;
+
+/* Hidden on mobile, where the mobile menu holds the GitHub icon. From tablet up, centered under
+   the language toggle and out of the flow, so the toggle stays centered on the screen */
+export const FloatingGitHubLink = styled(GitHubLink)`
+  display: none;
+
+  @media (min-width: ${th('screens.tablet')}) {
+    display: flex;
+    position: absolute;
+    top: calc(100% + ${th.space(16)});
+    left: 50%;
+    transform: translateX(-50%);
   }
 `;
 

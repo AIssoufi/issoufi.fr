@@ -161,6 +161,18 @@ describe('Projects layout on mobile', () => {
     );
   });
 
+  it('leaves room on the right for the controls floating on the right edge from the tablet width', () => {
+    render(<Projects />);
+
+    const page = screen.getByRole('main');
+    expect(declaredStyle({ element: page, property: 'padding-left', media: TABLET_MEDIA })).toBe(
+      theme.space.page,
+    );
+    expect(declaredStyle({ element: page, property: 'padding-right', media: TABLET_MEDIA })).toBe(
+      theme.space['floating-controls-room'],
+    );
+  });
+
   it('keeps the row of cards without padding, so that it scrolls to the screen edges', () => {
     render(<Projects />);
 

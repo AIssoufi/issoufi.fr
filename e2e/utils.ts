@@ -199,3 +199,96 @@ export const groupCardsIntoRows = ({
   }
   return rows;
 };
+
+/** Box of an element on the screen, in CSS pixels, as `boundingBox()` of Playwright returns it. */
+export interface ScreenBox {
+  /** Distance from the left edge of the screen to the left edge of the box. */
+  x: number;
+  /** Distance from the top edge of the screen to the top edge of the box. */
+  y: number;
+  /** Width of the box. */
+  width: number;
+  /** Height of the box. */
+  height: number;
+}
+
+/** Tells whether a value is a box whose position and size are finite numbers. */
+const isScreenBox = (value: unknown): value is ScreenBox => {
+  if (typeof value !== 'object' || value === null) return false;
+
+  const { x, y, width, height } = value as Partial<ScreenBox>;
+  return [x, y, width, height].every(Number.isFinite);
+};
+
+/** Finds the horizontal center of a box, or `NaN` when it is not a box of finite numbers. */
+const getBoxCenterX = (box: unknown): number =>
+  isScreenBox(box) ? box.x + box.width / 2 : Number.NaN;
+
+/** Parameters of {@link getBoxCenterDistanceX}. */
+interface GetBoxCenterDistanceXParams {
+  /** Box of the measured element, such as the GitHub icon. */
+  box?: ScreenBox | null;
+  /** Box of the element it should be centered on, such as the language toggle. */
+  referenceBox?: ScreenBox | null;
+}
+
+/**
+ * Measures how far apart the horizontal centers of two boxes are, such as those that Playwright's
+ * `boundingBox()` returns.
+ *
+ * @returns The distance in CSS pixels, never negative, or `NaN` when either box is missing or
+ * holds a value that is not a finite number, so that any comparison with it fails.
+ *
+ * @example
+ * getBoxCenterDistanceX({
+ *   box: { x: 1381, y: 460, width: 33, height: 32 },
+ *   referenceBox: { x: 1374, y: 361, width: 46, height: 78 },
+ * }); // 0.5
+ */
+export const getBoxCenterDistanceX = ({ box, referenceBox }: GetBoxCenterDistanceXParams = {}) =>
+  Math.abs(getBoxCenterX(box) - getBoxCenterX(referenceBox));
+
+/**
+ * Finds the bottom edge of a box, such as one that Playwright's `boundingBox()` returns.
+ *
+ * @param box - Box of an element on the screen.
+ * @returns Its distance from the top of the screen in CSS pixels, or `NaN` when the box is
+ * missing or holds a value that is not a finite number, so that any comparison with it fails.
+ *
+ * @example
+ * getBoxBottom({ x: 1374, y: 361, width: 46, height: 78 }); // 439
+ */
+export const getBoxBottom = (box?: ScreenBox | null): number =>
+  isScreenBox(box) ? box.y + box.height : Number.NaN;
+
+/** Parameters of {@link doBoxesOverlapHorizontally}. */
+interface DoBoxesOverlapHorizontallyParams {
+  /** One of the boxes, such as the box of a line of text of the page. */
+  box?: ScreenBox | null;
+  /** The other box, such as the language toggle floating on the right edge of the screen. */
+  otherBox?: ScreenBox | null;
+}
+
+/**
+ * Tells whether two boxes share some width, whatever their heights: a box of the page that shares
+ * some width with an element fixed on the screen passes under it while the page scrolls. Boxes
+ * that only touch by an edge do not overlap.
+ *
+ * @returns `false` when either box is missing, holds a value that is not a finite number, or has
+ * no width: such a box covers nothing.
+ *
+ * @example
+ * doBoxesOverlapHorizontally({
+ *   box: { x: 1289, y: 517, width: 127, height: 32 },
+ *   otherBox: { x: 1374, y: 411, width: 46, height: 78 },
+ * }); // true
+ */
+export const doBoxesOverlapHorizontally = ({
+  box,
+  otherBox,
+}: DoBoxesOverlapHorizontallyParams = {}): boolean => {
+  const hasWidth = (value: unknown): value is ScreenBox => isScreenBox(value) && value.width > 0;
+  if (!hasWidth(box) || !hasWidth(otherBox)) return false;
+
+  return box.x < otherBox.x + otherBox.width && otherBox.x < box.x + box.width;
+};

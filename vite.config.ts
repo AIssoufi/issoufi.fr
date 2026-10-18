@@ -2,6 +2,7 @@ import react from '@vitejs/plugin-react';
 import { defineConfig, loadEnv, type Plugin } from 'vite';
 import svgr from 'vite-plugin-svgr';
 
+import packageJson from './package.json';
 import { DEFAULT_LANGUAGE } from './src/i18n/constants';
 import { getYearsOfExperience } from './src/utils/career';
 import { addModulePreload, renderNotFoundHtml, renderPageHtml } from './src/utils/pageHtml';
@@ -107,6 +108,9 @@ export default defineConfig(({ mode }) => {
   return {
     base: '/',
     plugins: [react(), svgr(), pageMeta()],
+    // The version that release-please writes in package.json, shown after the logo of the header
+    // (src/App/Header) and typed in src/vite-env.d.ts; the tests read it too
+    define: { __APP_VERSION__: JSON.stringify(packageJson.version) },
     build: {
       rollupOptions: {
         // The chunk of each lazily loaded page is named after its folder, not after its index file

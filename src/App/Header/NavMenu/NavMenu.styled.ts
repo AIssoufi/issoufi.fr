@@ -2,6 +2,7 @@ import styled, { css, keyframes, th } from '@xstyled/styled-components';
 
 import List from '../../../components/List';
 import { theme } from '../../../theme';
+import GitHubLink from '../GitHubLink';
 
 // Keyframes have no theme context, so they read the theme object rather than the th helpers
 const fadeSlideIn = keyframes`
@@ -183,5 +184,17 @@ export const CtaButton = styled.a`
       background-color: ${th.color('foreground')};
       border-color: ${th.color('foreground')};
     }
+  }
+`;
+
+/* Shown in the mobile menu only: on desktop, the header shows the GitHub icon under the language
+   toggle */
+export const MenuGitHubLink = styled(GitHubLink)`
+  margin-top: ${th.space(28)};
+  animation: ${fadeSlideIn} ${th.duration(300)} ${th.timingFunction('standard')} ${th.duration(300)}
+    both;
+
+  @media (min-width: ${th('screens.tablet')}) {
+    display: none;
   }
 `;

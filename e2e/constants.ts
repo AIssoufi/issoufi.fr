@@ -73,3 +73,29 @@ export const PROJECT_CARD_SCREEN_WIDTHS_PX = [375, 800, 1280, 1440, 1720, 2400] 
  * that should match. Half a pixel lets through subpixel rounding, but not a card 1 px wider.
  */
 export const MAX_CARD_OFFSET_PX = 0.5;
+
+/**
+ * Screen widths, in pixels, at which the language toggle floats on the right edge of the screen,
+ * with the GitHub icon under it: the tablet breakpoint (800), two laptops (1280 and 1440), then a
+ * screen wider than the app container (1920).
+ */
+export const FLOATING_CONTROLS_SCREEN_WIDTHS_PX = [800, 1280, 1440, 1920] as const;
+
+/**
+ * Screen widths, in pixels, below the tablet breakpoint, at which the mobile menu holds the GitHub
+ * icon.
+ */
+export const MOBILE_SCREEN_WIDTHS_PX = [320, 375, 414] as const;
+
+/**
+ * Route of a page longer than the screen, scrolled to check what stays fixed. Typed by `PAGES`
+ * (`src/utils/pages.ts`), so the type-check fails when the route changes there.
+ */
+export const LONG_PAGE_ROUTE: Page['path'] = '/experiences';
+
+/**
+ * Largest distance, in pixels, allowed between the horizontal center of the GitHub icon and the
+ * center of the control it is centered under. Half a pixel lets through subpixel rounding, but not
+ * a 1 px shift.
+ */
+export const MAX_ICON_OFFSET_PX = 0.5;

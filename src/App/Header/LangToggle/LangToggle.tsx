@@ -14,10 +14,10 @@ import { Btn, Indicator, Wrapper } from './LangToggle.styled';
  * and back, keeping the query string and the fragment, with an indicator sliding under the
  * language of the URL. The texts follow the new URL (see `UrlLanguage` in `src/App`). Below the
  * `tablet` breakpoint it sits horizontally in its parent's flow, the header row, so it never
- * covers the page; from `tablet` up it floats vertically on the right edge of the screen. The
- * chosen language is also stored, so the root URL opens in it on the next visit (see
- * `src/i18n/storage.ts`); the language still changes, without being remembered, when the browser
- * blocks the storage. Must be rendered inside a router.
+ * covers the page; from `tablet` up it is vertical, and the header floats it on the right edge of
+ * the screen. The chosen language is also stored, so the root URL opens in it on the next visit
+ * (see `src/i18n/storage.ts`); the language still changes, without being remembered, when the
+ * browser blocks the storage. Must be rendered inside a router.
  *
  * Screen readers announce a group labelled in the active language, and each button with its
  * language's own name, pronounced in that language, and its pressed state.

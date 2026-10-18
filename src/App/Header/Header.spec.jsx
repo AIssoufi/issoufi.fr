@@ -1,10 +1,14 @@
-import { act, render, screen } from '@testing-library/react';
+import { act, render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import lottie from 'lottie-web/build/player/lottie_light';
 import { BrowserRouter as Router } from 'react-router';
 
+import packageJson from '../../../package.json';
 import i18n from '../../i18n';
+import { declaredStyle, serializeCssValue } from '../../styleTestUtils';
+import { theme } from '../../theme';
 import { waitForBurgerIcon } from '../testUtils';
+import { DESKTOP_MEDIA_QUERY } from './constants';
 import Header from './Header';
 
 /**
@@ -12,11 +16,14 @@ import Header from './Header';
  * for the burger icon animation, drawn once lottie-web is loaded, so that this update never lands
  * outside `act` after the test.
  */
-const renderHeader = async () => {
+const renderHeader = async (props = {}) => {
   vi.spyOn(lottie, 'loadAnimation');
   render(
     <Router>
-      <Header testId="header" />
+      <Header
+        testId="header"
+        {...props}
+      />
       <main>
         <a href="/page">Page link</a>
       </main>
@@ -65,8 +72,28 @@ const showDesktopNavigation = () => {
   getNavigation().style.display = 'flex';
 };
 
-/** The last link of the menu, which downloads the CV. */
+/** The link of the menu that downloads the CV. */
 const getCvLink = () => screen.getByRole('link', { name: 'CV' });
+
+/** Name of the GitHub links: the one floating under the language toggle and the one of the menu. */
+const GITHUB_LINK_NAME = 'Profil GitHub d’ADAM Issoufi';
+
+/** The GitHub link of the open mobile menu, the last link of the menu. */
+const getMenuGitHubLink = () => screen.getByRole('link', { name: GITHUB_LINK_NAME });
+
+/** The element holding the language toggle and the GitHub icon, floating from tablet up. */
+const getFloatingControls = () => screen.getByRole('group', { name: 'Langue' }).parentElement;
+
+/**
+ * The GitHub link floating under the language toggle from tablet up. Hidden on mobile, it has no
+ * accessible name there, so it is found in its parent rather than by its name.
+ */
+const getFloatingGitHubLink = () =>
+  within(getFloatingControls()).getByRole('link', { hidden: true });
+
+/** Value that the header declares for a property on an element on the desktop layout. */
+const desktopStyle = ({ element, property }) =>
+  declaredStyle({ element, property, media: DESKTOP_MEDIA_QUERY });
 
 /** The link of the page under the header, covered by the open mobile menu. */
 const getPageLink = () => screen.getByRole('link', { name: 'Page link' });
@@ -92,6 +119,70 @@ describe('Header', () => {
   it('renders the logo', async () => {
     await renderHeader();
     expect(screen.getByText('AI')).toBeInTheDocument();
+  });
+
+  describe('version', () => {
+    it('shows the version of the build after the logo', async () => {
+      await renderHeader();
+
+      const version = screen.getByText(`build v${packageJson.version}`);
+      expect(version.previousElementSibling).toContainElement(
+        screen.getByRole('link', { name: 'AI' }),
+      );
+    });
+
+    it.each([
+      ['2.0.0', 'build v2.0.0'],
+      ['v2.0.0', 'build v2.0.0'],
+    ])('shows the version %j as %j', async (version, text) => {
+      await renderHeader({ version });
+      expect(screen.getByText(text)).toBeInTheDocument();
+    });
+
+    it.each(['', '  ', 'v', null, 2])('shows no version when it is %j', async version => {
+      await renderHeader({ version });
+      expect(screen.queryByText(/build/)).not.toBeInTheDocument();
+    });
+
+    it('shows it in small letters, lighter than the logo', async () => {
+      await renderHeader();
+
+      const versionStyle = getComputedStyle(screen.getByText(`build v${packageJson.version}`));
+      expect(versionStyle.fontSize).toBe(theme.fontSizes[11]);
+      expect(versionStyle.color).toBe(theme.colors['foreground-a65']);
+    });
+  });
+
+  describe('GitHub icon', () => {
+    it('floats the language toggle on the right edge from tablet up, with the GitHub icon', async () => {
+      await renderHeader();
+
+      const floatingControls = getFloatingControls();
+      expect(getFloatingGitHubLink()).toHaveAttribute('aria-label', GITHUB_LINK_NAME);
+      expect(desktopStyle({ element: floatingControls, property: 'position' })).toBe('fixed');
+      expect(desktopStyle({ element: floatingControls, property: 'right' })).toBe(theme.space[20]);
+      expect(desktopStyle({ element: floatingControls, property: 'top' })).toBe('50%');
+    });
+
+    it('centers the GitHub icon under the language toggle from tablet up', async () => {
+      await renderHeader();
+
+      const element = getFloatingGitHubLink();
+      expect(desktopStyle({ element, property: 'position' })).toBe('absolute');
+      expect(desktopStyle({ element, property: 'top' })).toBe(
+        serializeCssValue({ property: 'top', value: `calc(100% + ${theme.space[16]})` }),
+      );
+      expect(desktopStyle({ element, property: 'left' })).toBe('50%');
+      expect(desktopStyle({ element, property: 'transform' })).toBe('translateX(-50%)');
+    });
+
+    it('hides the floating GitHub icon on mobile, where the menu holds it', async () => {
+      // jsdom applies no media query, so these are the narrow-screen styles
+      await renderHeader();
+
+      expect(getComputedStyle(getFloatingGitHubLink()).display).toBe('none');
+      expect(screen.queryByRole('link', { name: GITHUB_LINK_NAME })).not.toBeInTheDocument();
+    });
   });
 
   it('renders the language toggle', async () => {
@@ -177,6 +268,17 @@ describe('Header', () => {
       expect(getBurgerButton()).toHaveAttribute('aria-expanded', 'false');
       expect(getNavigation()).not.toBeVisible();
       expect(getComputedStyle(getMenu()).position).not.toBe('fixed');
+    });
+
+    it('shows the GitHub icon after the CV button once open', async () => {
+      await renderHeader();
+
+      await userEvent.click(getBurgerButton());
+
+      expect(getNavigation()).toContainElement(getMenuGitHubLink());
+      expect(getCvLink().compareDocumentPosition(getMenuGitHubLink())).toBe(
+        Node.DOCUMENT_POSITION_FOLLOWING,
+      );
     });
 
     it('opens over the page with the burger button', async () => {
@@ -293,7 +395,7 @@ describe('Header', () => {
       await renderHeader();
       await userEvent.click(getBurgerButton());
 
-      for (const name of ['Accueil', 'Projets', 'Expériences', 'CV']) {
+      for (const name of ['Accueil', 'Projets', 'Expériences', 'CV', GITHUB_LINK_NAME]) {
         await userEvent.tab();
         expect(screen.getByRole('link', { name })).toHaveFocus();
       }
@@ -302,7 +404,7 @@ describe('Header', () => {
     it('keeps Tab in the menu after its last link, away from the page behind', async () => {
       await renderHeader();
       await userEvent.click(getBurgerButton());
-      act(() => getCvLink().focus());
+      act(() => getMenuGitHubLink().focus());
 
       await userEvent.tab();
 

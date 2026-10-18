@@ -56,6 +56,12 @@ export const en = {
     open: 'Open menu',
     close: 'Close menu',
   },
+  header: {
+    buildVersion: 'build {{version}}',
+  },
+  githubLink: {
+    label: "ADAM Issoufi's GitHub profile",
+  },
   home: {
     title1: 'Full-stack JavaScript Developer',
     title2Pre: 'passionate about ',
