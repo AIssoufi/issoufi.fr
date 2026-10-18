@@ -80,8 +80,10 @@ export const GlobalStyle = createGlobalStyle`
   }
 
   /* With reduced motion, every animation plays once and jumps to its end, at once, and every
-     transition is instant: content that slides in shows right away, and nothing loops. Important,
-     so that it also wins over the styles of the components and the inline styles of the hooks */
+     transition is instant and starts at once: content that slides in shows right away, a change in
+     several steps, such as the burger icon turning into a cross, shows whole, and nothing loops.
+     Important, so that it also wins over the styles of the components and the inline styles of the
+     hooks */
   @media ${REDUCED_MOTION_QUERY} {
     *,
     *::before,
@@ -90,6 +92,7 @@ export const GlobalStyle = createGlobalStyle`
       animation-delay: 0s !important;
       animation-iteration-count: 1 !important;
       transition-duration: ${th.duration('instant')} !important;
+      transition-delay: 0s !important;
     }
   }
 `;

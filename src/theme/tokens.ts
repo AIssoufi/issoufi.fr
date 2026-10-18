@@ -98,9 +98,11 @@ export const fluidSpacing = {
 export const sizes = {
   1: '1px',
   2: '2px',
+  3: '3px',
   12: '12px',
   15: '15px',
   16: '16px',
+  30: '30px',
   32: '32px',
   36: '36px',
   44: '44px',
