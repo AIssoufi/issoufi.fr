@@ -121,6 +121,7 @@ describe('CompanyEntry', () => {
     it.each([
       ['without dates', {}, ''],
       ['with a start only', { startKey: 'exp.wibilong.start' }, 'sept. 2019'],
+      ['with an end only', { endKey: 'exp.wibilong.end' }, 'juin 2021'],
       [
         'with a date key without translation',
         { startKey: 'exp.unknown', endKey: 'exp.wibilong.end' },

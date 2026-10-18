@@ -137,11 +137,11 @@ describe('Experiences', () => {
       render(<Experiences />);
 
       const levels = screen.getAllByRole('heading').map(getHeadingLevel);
-      const isOneLevelTooDeep = (level, index) => {
+      const skipsALevel = (level, index) => {
         const isFirstHeading = index === 0;
         return !isFirstHeading && level > levels[index - 1] + 1;
       };
-      const skippedLevels = levels.filter(isOneLevelTooDeep);
+      const skippedLevels = levels.filter(skipsALevel);
       expect(levels[0]).toBe(1);
       expect(skippedLevels).toEqual([]);
       expect(new Set(levels)).toEqual(new Set([1, 2, 3, 4]));

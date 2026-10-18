@@ -63,7 +63,8 @@ interface PeriodProps {
  */
 const Period = ({ start, end, variant }: PeriodProps) => {
   const { t } = useTranslation();
-  const parts = PERIOD_PARTS[isPeriodVariant(variant) ? variant : DEFAULT_PERIOD_VARIANT];
+  const periodVariant = isPeriodVariant(variant) ? variant : DEFAULT_PERIOD_VARIANT;
+  const parts = PERIOD_PARTS[periodVariant];
   const hasStart = Boolean(start);
   const hasEnd = Boolean(end);
   const hasBothDates = hasStart && hasEnd;

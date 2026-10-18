@@ -1,4 +1,5 @@
 import Period from '../Period';
+import { DEFAULT_PERIOD_VARIANT } from '../Period/constants';
 import { Column, RoleColumn } from './TimelinePeriod.styled';
 
 /** Props of {@link TimelinePeriod}. Every part is optional and is not rendered when missing. */
@@ -26,10 +27,10 @@ interface TimelinePeriodProps {
  * <TimelinePeriod start="Sept. 2019" end="Juin 2021" />
  * <TimelinePeriod variant="role" start="juin 2021" end="Aujourd'hui" />
  */
-const TimelinePeriod = ({ start, end, variant = 'job' }: TimelinePeriodProps) => {
+const TimelinePeriod = ({ start, end, variant = DEFAULT_PERIOD_VARIANT }: TimelinePeriodProps) => {
   const isRole = variant === 'role';
   const PeriodColumn = isRole ? RoleColumn : Column;
-  const periodVariant = isRole ? 'role' : 'job';
+  const periodVariant = isRole ? 'role' : DEFAULT_PERIOD_VARIANT;
 
   return (
     <PeriodColumn data-timeline-dot="after">

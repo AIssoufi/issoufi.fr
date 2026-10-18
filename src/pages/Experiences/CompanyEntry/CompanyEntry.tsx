@@ -22,8 +22,8 @@ const NO_ROLES: RoleData[] = [];
  * list, named by a `h2` that only screen readers read, since each card already writes the
  * company. With several roles, it is an {@link ExperienceGroup} that writes the company once and
  * each role with its own period. With a single one, it is an {@link Experience} card after the
- * period of its role, from the same dates as the card. Either way, the element that draws its dot on the timeline is marked
- * `data-timeline-dot`.
+ * period of its role, from the same dates as the card. Either way, the element that draws its
+ * dot on the timeline is marked `data-timeline-dot`.
  *
  * @example
  * <Timeline data-timeline-line="before">
