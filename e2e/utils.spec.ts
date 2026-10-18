@@ -1,6 +1,12 @@
 import { PAGES } from '../src/utils/pages';
-import { MAX_DOT_OFFSET_PX, NOT_FOUND_ROUTE } from './constants';
-import { getCenterDistanceX, getCheckedRoutes, getQuadCenterX } from './utils';
+import { MAX_CARD_OFFSET_PX, MAX_DOT_OFFSET_PX, NOT_FOUND_ROUTE } from './constants';
+import {
+  countWholeCards,
+  getCenterDistanceX,
+  getCheckedRoutes,
+  getQuadCenterX,
+  groupCardsIntoRows,
+} from './utils';
 
 describe('getCheckedRoutes', () => {
   it('opens every page of PAGES, then the not found page', () => {
@@ -137,5 +143,179 @@ describe('getCenterDistanceX', () => {
       expect(distance).toBeNaN();
       expect(distance <= MAX_DOT_OFFSET_PX).toBe(false);
     });
+  });
+});
+
+/** Width and height of the cards of the tests, those of a project card on a phone. */
+const CARD_SIZE = { width: 260, height: 302 };
+/** Horizontal distance from the left edge of a card to the left edge of the next one. */
+const CARD_STEP_PX = 270;
+/** Visible box of a list 375 px wide, the width of a phone. */
+const PHONE_LIST = { left: 0, top: 100, width: 375, height: 312 };
+
+/** Box of a card placed at the given position, with the size of {@link CARD_SIZE}. */
+const cardAt = ({ left, top = PHONE_LIST.top }: { left: number; top?: number }) => ({
+  left,
+  top,
+  ...CARD_SIZE,
+});
+
+/** The three cards of a row on a phone: the first one whole, the others scrolled out of view. */
+const PHONE_ROW = [29, 29 + CARD_STEP_PX, 29 + 2 * CARD_STEP_PX].map(left => cardAt({ left }));
+
+describe('countWholeCards', () => {
+  it('counts only the cards of the row that the list shows whole', () => {
+    expect(countWholeCards({ cards: PHONE_ROW, container: PHONE_LIST })).toBe(1);
+  });
+
+  it('counts every card of a row that fits in the list', () => {
+    const wideList = { ...PHONE_LIST, width: 3 * CARD_STEP_PX + 29 };
+
+    expect(countWholeCards({ cards: PHONE_ROW, container: wideList })).toBe(3);
+  });
+
+  it('counts a card cut on the left of the list as not whole', () => {
+    const cards = [cardAt({ left: -10 }), cardAt({ left: 50 })];
+
+    expect(countWholeCards({ cards, container: PHONE_LIST })).toBe(1);
+  });
+
+  it('ignores how far the cards are from the list vertically', () => {
+    const lowerCard = cardAt({ left: 29, top: 5000 });
+
+    expect(countWholeCards({ cards: [lowerCard], container: PHONE_LIST })).toBe(1);
+  });
+
+  describe('boundaries', () => {
+    const listRight = PHONE_LIST.left + PHONE_LIST.width;
+    const cardEndingAt = (right: number) => cardAt({ left: right - CARD_SIZE.width });
+
+    it.each([
+      ['on the right edge of the list', listRight, 1],
+      ['within the tolerance past it', listRight + MAX_CARD_OFFSET_PX, 1],
+      ['just past the tolerance', listRight + MAX_CARD_OFFSET_PX + 0.01, 0],
+    ])('tells whether a card ending %s is whole', (_position, right, expectedCount) => {
+      expect(countWholeCards({ cards: [cardEndingAt(right)], container: PHONE_LIST })).toBe(
+        expectedCount,
+      );
+    });
+
+    it.each([
+      ['on the left edge of the list', 0, 1],
+      ['within the tolerance before it', -MAX_CARD_OFFSET_PX, 1],
+      ['just before the tolerance', -MAX_CARD_OFFSET_PX - 0.01, 0],
+    ])('tells whether a card starting %s is whole', (_position, left, expectedCount) => {
+      expect(countWholeCards({ cards: [cardAt({ left })], container: PHONE_LIST })).toBe(
+        expectedCount,
+      );
+    });
+
+    it('applies the tolerance it is given', () => {
+      const cards = [cardEndingAt(listRight + 2)];
+
+      expect(countWholeCards({ cards, container: PHONE_LIST, tolerancePx: 2 })).toBe(1);
+      expect(countWholeCards({ cards, container: PHONE_LIST, tolerancePx: 0 })).toBe(0);
+    });
+  });
+
+  describe('edge cases', () => {
+    it.each([
+      ['no parameters', undefined],
+      ['no cards', { container: PHONE_LIST }],
+      ['cards that are not a list', { cards: 'cards', container: PHONE_LIST }],
+      ['an empty list of cards', { cards: [], container: PHONE_LIST }],
+      ['no container', { cards: PHONE_ROW }],
+      ['a container without a size', { cards: PHONE_ROW, container: { left: 0, top: 0 } }],
+      ['a container at NaN', { cards: PHONE_ROW, container: { ...PHONE_LIST, left: NaN } }],
+    ])('returns 0 for %s', (_case, params) => {
+      expect(countWholeCards(params as never)).toBe(0);
+    });
+
+    it.each([undefined, null, 42, {}, { ...cardAt({ left: 29 }), width: Infinity }])(
+      'does not count the entry %j, which is not a box',
+      entry => {
+        const cards = [entry as never, cardAt({ left: 29 })];
+
+        expect(countWholeCards({ cards, container: PHONE_LIST })).toBe(1);
+      },
+    );
+  });
+});
+
+describe('groupCardsIntoRows', () => {
+  /** Vertical distance from the top of a row of cards to the top of the next one. */
+  const ROW_STEP_PX = 317;
+  /** Cards of three columns wrapped onto two rows, as "Show all" lays out five projects. */
+  const firstRow = [24, 294, 564].map(left => cardAt({ left }));
+  const secondRow = [24, 294].map(left => cardAt({ left, top: PHONE_LIST.top + ROW_STEP_PX }));
+
+  it('groups the cards of each row, from top to bottom', () => {
+    expect(groupCardsIntoRows({ cards: [...firstRow, ...secondRow] })).toEqual([
+      firstRow,
+      secondRow,
+    ]);
+  });
+
+  it('puts each card in a row of its own when the cards are stacked', () => {
+    const stackedCards = [0, 1, 2].map(row =>
+      cardAt({ left: 24, top: PHONE_LIST.top + row * ROW_STEP_PX }),
+    );
+
+    expect(groupCardsIntoRows({ cards: stackedCards })).toEqual(stackedCards.map(card => [card]));
+  });
+
+  it('keeps a single row of cards together', () => {
+    expect(groupCardsIntoRows({ cards: PHONE_ROW })).toEqual([PHONE_ROW]);
+  });
+
+  describe('boundaries', () => {
+    it.each([
+      ['at the same top', 0, 1],
+      ['within the tolerance', MAX_CARD_OFFSET_PX, 1],
+      ['just past the tolerance', MAX_CARD_OFFSET_PX + 0.01, 2],
+      ['just past the tolerance, above', -MAX_CARD_OFFSET_PX - 0.01, 2],
+    ])('tells whether a card %s is in the same row', (_position, topOffsetPx, expectedRowCount) => {
+      const cards = [
+        cardAt({ left: 24 }),
+        cardAt({ left: 294, top: PHONE_LIST.top + topOffsetPx }),
+      ];
+
+      expect(groupCardsIntoRows({ cards })).toHaveLength(expectedRowCount);
+    });
+
+    it('compares each card with the first card of its row, so a row cannot drift', () => {
+      const cards = [0, 0.4, 0.8].map((topOffsetPx, column) =>
+        cardAt({ left: 24 + column * CARD_STEP_PX, top: PHONE_LIST.top + topOffsetPx }),
+      );
+
+      expect(groupCardsIntoRows({ cards }).map(row => row.length)).toEqual([2, 1]);
+    });
+
+    it('applies the tolerance it is given', () => {
+      const cards = [cardAt({ left: 24 }), cardAt({ left: 294, top: PHONE_LIST.top + 2 })];
+
+      expect(groupCardsIntoRows({ cards, tolerancePx: 2 })).toHaveLength(1);
+      expect(groupCardsIntoRows({ cards, tolerancePx: 0 })).toHaveLength(2);
+    });
+  });
+
+  describe('edge cases', () => {
+    it.each([
+      ['no parameters', undefined],
+      ['no cards', {}],
+      ['cards that are not a list', { cards: { length: 2 } }],
+      ['an empty list of cards', { cards: [] }],
+    ])('returns no rows for %s', (_case, params) => {
+      expect(groupCardsIntoRows(params as never)).toEqual([]);
+    });
+
+    it.each([undefined, null, 'card', {}, { ...cardAt({ left: 24 }), top: NaN }])(
+      'skips the entry %j, which is not a box',
+      entry => {
+        const cards = [entry as never, ...firstRow];
+
+        expect(groupCardsIntoRows({ cards })).toEqual([firstRow]);
+      },
+    );
   });
 });

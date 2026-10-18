@@ -1,4 +1,4 @@
-import { NOT_FOUND_ROUTE, QUAD_COORDINATE_COUNT } from './constants';
+import { MAX_CARD_OFFSET_PX, NOT_FOUND_ROUTE, QUAD_COORDINATE_COUNT } from './constants';
 
 /** A page of the site, of which only the route matters here, such as an entry of `PAGES`. */
 interface RoutedPage {
@@ -76,3 +76,106 @@ interface GetCenterDistanceXParams {
  */
 export const getCenterDistanceX = ({ quad, referenceQuad }: GetCenterDistanceXParams = {}) =>
   Math.abs(getQuadCenterX(quad) - getQuadCenterX(referenceQuad));
+
+/** Box of a card on the screen, or of the list that holds the cards, in CSS pixels. */
+export interface CardBox {
+  /** Distance from the left edge of the viewport to the left edge of the box. */
+  left: number;
+  /** Distance from the top edge of the viewport to the top edge of the box. */
+  top: number;
+  /** Width of the box. */
+  width: number;
+  /** Height of the box. */
+  height: number;
+}
+
+/** Tells whether a value is a box whose position and size are finite numbers. */
+const isCardBox = (value: unknown): value is CardBox => {
+  const box = value as Partial<CardBox> | null | undefined;
+  const sides = [box?.left, box?.top, box?.width, box?.height];
+  return sides.every(Number.isFinite);
+};
+
+/** Parameters of {@link countWholeCards}. */
+interface CountWholeCardsParams {
+  /** Boxes of the cards of a row, in any order. */
+  cards?: readonly CardBox[] | null;
+  /** Visible box of the list that holds the row, which scrolls the cards it cannot show. */
+  container?: CardBox | null;
+  /** How far a card may overflow the container, for subpixel rounding. */
+  tolerancePx?: number;
+}
+
+/**
+ * Counts the cards of a row that the screen shows whole, without scrolling the row: those whose
+ * left and right edges both lie inside the container. Used as the number of columns that the
+ * cards fit in.
+ *
+ * @returns `0` when the cards are not an array or the container is not a box. Entries that are
+ * not boxes are not counted.
+ *
+ * @example
+ * countWholeCards({
+ *   cards: [
+ *     { left: 5, top: 0, width: 260, height: 300 },
+ *     { left: 275, top: 0, width: 260, height: 300 },
+ *   ],
+ *   container: { left: 0, top: 0, width: 375, height: 310 },
+ * }); // 1
+ */
+export const countWholeCards = ({
+  cards,
+  container,
+  tolerancePx = MAX_CARD_OFFSET_PX,
+}: CountWholeCardsParams = {}): number => {
+  const canCount = Array.isArray(cards) && isCardBox(container);
+  if (!canCount) return 0;
+
+  const containerRight = container.left + container.width;
+  const isWhole = (card: CardBox) => {
+    const startsInside = card.left >= container.left - tolerancePx;
+    const endsInside = card.left + card.width <= containerRight + tolerancePx;
+    return startsInside && endsInside;
+  };
+  return cards.filter(isCardBox).filter(isWhole).length;
+};
+
+/** Parameters of {@link groupCardsIntoRows}. */
+interface GroupCardsIntoRowsParams {
+  /** Boxes of the cards, in the order of the page, as a wrapping row lays them out. */
+  cards?: readonly CardBox[] | null;
+  /** How far apart the tops of two cards of the same row may be, for subpixel rounding. */
+  tolerancePx?: number;
+}
+
+/**
+ * Groups cards into the rows they are laid out on: a card starts a new row when its top is
+ * further than `tolerancePx` from the top of the first card of the current row.
+ *
+ * @returns The rows, from top to bottom, each with its cards in the order of the page; none when
+ * the cards are not an array. Entries that are not boxes are skipped.
+ *
+ * @example
+ * groupCardsIntoRows({
+ *   cards: [
+ *     { left: 24, top: 100, width: 260, height: 300 },
+ *     { left: 24, top: 415, width: 260, height: 300 },
+ *   ],
+ * }); // [[first card], [second card]]
+ */
+export const groupCardsIntoRows = ({
+  cards,
+  tolerancePx = MAX_CARD_OFFSET_PX,
+}: GroupCardsIntoRowsParams = {}): CardBox[][] => {
+  if (!Array.isArray(cards)) return [];
+
+  const rows: CardBox[][] = [];
+  for (const card of cards.filter(isCardBox)) {
+    const currentRow = rows.at(-1);
+    const isInCurrentRow =
+      currentRow !== undefined && Math.abs(card.top - currentRow[0].top) <= tolerancePx;
+    if (isInCurrentRow) currentRow.push(card);
+    else rows.push([card]);
+  }
+  return rows;
+};
