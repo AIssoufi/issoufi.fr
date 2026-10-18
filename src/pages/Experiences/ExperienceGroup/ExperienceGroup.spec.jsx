@@ -73,6 +73,20 @@ describe('ExperienceGroup', () => {
     },
   );
 
+  it('names the pseudo-element of the dots of the group and its roles for the browser test of the timeline', () => {
+    const { container } = render(
+      <ExperienceGroup entityName="Sewan Groupe">
+        <ExperienceGroup.Role jobName="Lead Frontend Engineer" />
+        <ExperienceGroup.Role jobName="Senior Frontend Engineer" />
+      </ExperienceGroup>,
+    );
+
+    expect(container.firstChild).toHaveAttribute('data-timeline-dot', 'before');
+    const roles = screen.getAllByRole('listitem');
+    expect(roles).toHaveLength(2);
+    roles.forEach(role => expect(role).toHaveAttribute('data-timeline-dot', 'before'));
+  });
+
   it('renders a role without any props', () => {
     expect(() => render(<ExperienceGroup.Role />)).not.toThrow();
   });

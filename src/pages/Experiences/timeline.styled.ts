@@ -14,7 +14,10 @@ export const mobileLineCenter = css`calc(${mobileLineLeft} + ${lineWidth} / 2)`;
    dots. Both TimelineContent (a single job) and GroupArticle (a group of roles) indent by it. */
 export const mobileContentIndent = th.space(22);
 
-/* Glowing dot marking an entry on the timeline line. Each caller places it. */
+/* Glowing dot marking an entry on the timeline line. Each caller places it.
+   Every element whose pseudo-element draws a dot names it in its data-timeline-dot attribute
+   (before or after), as Timeline does for its line in data-timeline-line, so that
+   e2e/timeline.e2e.ts measures them: keep the attribute in step with the pseudo-element. */
 export const timelineDot = css`
   content: '';
   position: absolute;

@@ -46,7 +46,7 @@ const TimelinePeriod = ({ start, end, variant = 'job' }: TimelinePeriodProps) =>
   const hasBothDates = hasStart && hasEnd;
 
   return (
-    <parts.Column>
+    <parts.Column data-timeline-dot="after">
       {hasStart && <parts.Start>{start}</parts.Start>}
       {hasBothDates && <parts.Separator>↓</parts.Separator>}
       {hasEnd && <parts.End>{end}</parts.End>}
