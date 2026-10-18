@@ -1,0 +1,23 @@
+import { existsSync, statSync } from 'node:fs';
+import { join, sep } from 'node:path';
+
+/** Folder whose files are served at the root of the site. */
+const PUBLIC_DIR = 'public';
+
+/**
+ * Whether an absolute URL such as `/chess.webp` names a file of `public/`, not a folder. Used by
+ * the page tests to check that every image they reference is served.
+ *
+ * @param {unknown} url - URL of the image, as written in the code or the data.
+ * @returns {boolean} `false` for a relative URL, a missing file, a folder, a path leaving
+ * `public/` or a value that is not a string.
+ */
+export const isPublicFile = url => {
+  const isAbsoluteUrl = typeof url === 'string' && url.startsWith('/');
+  if (!isAbsoluteUrl) return false;
+
+  const path = join(PUBLIC_DIR, url);
+  // join() resolves `..`, which could leave public/
+  const isInsidePublicDir = path.startsWith(`${PUBLIC_DIR}${sep}`);
+  return isInsidePublicDir && existsSync(path) && statSync(path).isFile();
+};

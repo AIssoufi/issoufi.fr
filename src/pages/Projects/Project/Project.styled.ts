@@ -124,25 +124,24 @@ export const ProjectGrid = styled.main<{ $displayAll: boolean }>`
   justify-content: space-between;
   align-items: flex-start;
   max-width: 100vw;
-  white-space: nowrap;
   overflow-x: auto;
 
   ${props =>
     props.$displayAll &&
-    `
-    display: grid;
-    grid-template-columns: repeat(1, minmax(min-content, 1fr));
-    grid-auto-flow: row;
-    row-gap: ${th.space(5)};
+    css`
+      display: grid;
+      grid-template-columns: repeat(1, minmax(min-content, 1fr));
+      grid-auto-flow: row;
+      row-gap: ${th.space(5)};
 
-    @media (min-width: ${th('screens.tablet')}) {
-      grid-template-columns: repeat(2, minmax(min-content, 1fr));
-    }
+      @media (min-width: ${th('screens.tablet')}) {
+        grid-template-columns: repeat(2, minmax(min-content, 1fr));
+      }
 
-    @media (min-width: ${th('screens.wide')}) {
-      grid-template-columns: repeat(3, minmax(min-content, 1fr));
-    }
-  `}
+      @media (min-width: ${th('screens.wide')}) {
+        grid-template-columns: repeat(3, minmax(min-content, 1fr));
+      }
+    `}
 `;
 
 export const ProjectItem = styled.div<{ $displayAll?: boolean }>`

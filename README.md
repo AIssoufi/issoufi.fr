@@ -59,7 +59,7 @@ pnpm test:watch      # Watch mode
 pnpm test:coverage   # Single run with coverage, HTML report in coverage/index.html
 ```
 
-Tests are `*.spec.jsx` (components), `*.spec.ts` (helpers and hooks) and `*.spec.js` (CI helpers) files next to the code they test. Every component has one. `pnpm test:coverage` fails when the coverage of `src/`, of the Vite config helpers (`vite/`) and of the CI helpers (`scripts/ci/utils/`) drops below the thresholds of `vite.config.ts` (`COVERAGE_THRESHOLDS_PERCENT`).
+Tests are `*.spec.jsx` (components), `*.spec.ts` (helpers and hooks) and `*.spec.js` (CI helpers and the test helpers of `src/pages/testUtils.js`) files next to the code they test. Every component has one. `pnpm test:coverage` fails when the coverage of `src/`, of the Vite config helpers (`vite/`) and of the CI helpers (`scripts/ci/utils/`) drops below the thresholds of `vite.config.ts` (`COVERAGE_THRESHOLDS_PERCENT`).
 
 ### Checks
 
@@ -98,7 +98,7 @@ The site is hosted on [Cloudflare Pages](https://pages.cloudflare.com/), in the 
 | Package manager        | pnpm, detected from `pnpm-lock.yaml`                           |
 | Environment variables  | `PNPM_VERSION=10.34.7` (same major version as the CI, pnpm 10) |
 
-- **One HTML file per page**: at build time, a Vite plugin (`vite.config.ts`) fills the `%PAGE_*%` placeholders of `index.html` and emits `projects.html` and `experiences.html` from the same template. Each page gets its own title, description and canonical URL, taken from the `meta` translations of `src/i18n/fr.ts`, so link previews and search engines get them without running JavaScript. Cloudflare Pages serves these files at `/projects` and `/experiences`. A new route needs an entry in `PAGES` (`src/utils/pages.ts`).
+- **One HTML file per page**: at build time, a Vite plugin (`vite.config.ts`) fills the `%PAGE_*%` placeholders of `index.html` and emits `projects.html` and `experiences.html` from the same template. Each page gets its own title, description and canonical URL, taken from the `meta` translations of `src/i18n/fr.ts`, so link previews and search engines get them without running JavaScript. Every page shares the same link preview image, `public/og-image.png` (1200×630, under 300 kB, checked by `src/utils/pages.spec.ts`), composed from the home hero: update it when the hero changes. Cloudflare Pages serves these files at `/projects` and `/experiences`. A new route needs an entry in `PAGES` (`src/utils/pages.ts`).
 - **Not found pages**: the plugin also emits `404.html`, with the "page not found" title and a `noindex` tag. Cloudflare Pages serves it with a real `404` status for any path that matches no file. The URL is kept, with no redirect, and the app shows its NotFound page. Because `404.html` exists, Cloudflare's single-page-app fallback is off, which is why every route needs its own HTML file.
 - **Code splitting**: the home page is in the main chunk, and every other page (`Projects`, `Experiences`, `NotFound`) is loaded with `React.lazy` on its first visit, from its own chunk named after its folder (`vite.config.ts`). The header stays on screen while a page loads. The burger icon loads the light build of `lottie-web` (SVG only) after the first render, so the animation never delays a page. Each deployment replaces the chunks of the previous one: a page opened before a deployment reloads once when it cannot load a chunk any more (`useReloadOnStaleChunk`, `src/App/hooks`), at most once a minute so a missing chunk never causes a loop. Import a lazily loaded page from its folder only, never through a shared barrel, which would put it back in the main chunk.
 - **Years of experience**: the number in the generated HTML files is computed at build time from `CAREER_START_DATE` (`src/utils/career.ts`), so it only changes with a new build. The workflow `.github/workflows/rebuild.yml` runs the CI on `main` on the first day of every month, which rebuilds and redeploys production, so the number is right from June 1st, the career anniversary. GitHub disables scheduled workflows after 60 days without activity on the repository: if that happens, re-enable it from the Actions tab. The app itself computes the number at runtime.
@@ -127,7 +127,7 @@ The version follows the commits: `fix` bumps the patch version, `feat` the minor
 │   ├── workflows/        # ci.yml (checks, build, deployment, smoke test), release.yml, rebuild.yml
 │   └── dependabot.yml    # Weekly dependency updates against develop
 ├── .husky/               # Git hooks: lint-staged before a commit, commitlint on its message
-├── public/               # Images, CV, favicon, manifest and robots.txt, copied as is to dist/
+├── public/               # Images, link preview image, CV, favicon, manifest and robots.txt, copied as is to dist/
 ├── scripts/
 │   ├── ci/               # CI scripts: bundle size, coverage summary, smoke test
 │   │   ├── utils/        # Their helpers, one file per topic, each with its spec
@@ -146,7 +146,8 @@ The version follows the commits: `fix` bumps the patch version, `feat` the minor
 │   │   ├── Projects/     # Personal and freelance projects, data in .data/*.json
 │   │   ├── Experiences/  # Work experience timeline
 │   │   ├── NotFound/     # 404 page, shown at the requested URL
-│   │   └── Forbidden/    # 403 page, not routed yet
+│   │   ├── Forbidden/    # 403 page, not routed yet
+│   │   └── testUtils.js  # Helpers shared by the page tests, e.g. isPublicFile
 │   ├── theme/            # Design tokens (tokens.ts, theme.ts) and global styles
 │   ├── utils/            # Career dates and page metadata helpers
 │   └── index.tsx         # Entry point
