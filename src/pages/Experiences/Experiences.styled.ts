@@ -80,9 +80,7 @@ export const TimelineContent = styled.div`
 `;
 
 export const BulletList = styled(List)`
-  list-style: none;
-  margin: ${th.space(8)} 0 0;
-  padding: 0;
+  margin-top: ${th.space(8)};
   display: flex;
   flex-direction: column;
   gap: ${th.space(5)};

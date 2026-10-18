@@ -1,7 +1,7 @@
 import { css, th } from '@xstyled/styled-components';
 
 /* Width of the timeline line, which Timeline (Experiences.styled.ts) draws. */
-export const lineWidth = '2px';
+export const lineWidth = th.size(2);
 
 /* Left edge of the mobile line, from the left edge of the timeline. */
 export const mobileLineLeft = th.space(5);
@@ -21,8 +21,8 @@ export const mobileContentIndent = th.space(22);
 export const timelineDot = css`
   content: '';
   position: absolute;
-  width: 16px;
-  height: 16px;
+  width: ${th.size(16)};
+  height: ${th.size(16)};
   border-radius: ${th.radius('circle')};
   background: ${th.color('accent-a85')};
   border: ${th.borderWidth('thick')} solid ${th.color('foreground-a80')};
@@ -51,7 +51,7 @@ export const companyBlock = css`
 `;
 
 /* Width of the period column of a timeline row on desktop. The line runs along its right edge. */
-export const periodColumnWidth = '90px';
+export const periodColumnWidth = th.size(90);
 
 /* Desktop layout of a timeline row: the period column, then the content. */
 export const timelineRow = css`
@@ -73,7 +73,7 @@ export const card = css`
   transition-duration: ${th.duration('base')};
 
   &:hover {
-    transform: translateY(-2px);
+    transform: translateY(${th.space(-2)});
     box-shadow: ${th.shadow('cardHover')};
   }
 `;
