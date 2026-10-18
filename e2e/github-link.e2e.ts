@@ -2,20 +2,20 @@ import { expect, test } from '@playwright/test';
 
 import { fr } from '../src/i18n/fr';
 import {
-  FLOATING_TOGGLE_SCREEN_WIDTHS_PX,
+  FLOATING_CONTROLS_SCREEN_WIDTHS_PX,
   LONG_PAGE_ROUTE,
   MAX_ICON_OFFSET_PX,
   MOBILE_SCREEN_WIDTHS_PX,
   SCREEN_HEIGHT_PX,
 } from './constants';
-import { getBoxCenterDistanceX } from './utils';
+import { getBoxBottom, getBoxCenterDistanceX } from './utils';
 
 /** Scrolls the page to its end. Runs in the browser. */
 const scrollToEnd = () => window.scrollTo(0, document.documentElement.scrollHeight);
 
 // jsdom computes no layout, so only a real browser sees the GitHub icon off the center of the
 // control it sits under. The app opens in French, the default language.
-for (const width of FLOATING_TOGGLE_SCREEN_WIDTHS_PX) {
+for (const width of FLOATING_CONTROLS_SCREEN_WIDTHS_PX) {
   test.describe(`on a ${width} px wide screen`, () => {
     test.use({ viewport: { width, height: SCREEN_HEIGHT_PX } });
 
@@ -35,7 +35,7 @@ for (const width of FLOATING_TOGGLE_SCREEN_WIDTHS_PX) {
         'distance in px from the center of the GitHub icon to the center of the language toggle',
       ).toBeLessThanOrEqual(MAX_ICON_OFFSET_PX);
       expect(gitHubBox?.y, 'top of the GitHub icon, under the language toggle').toBeGreaterThan(
-        (toggleBox?.y ?? Number.NaN) + (toggleBox?.height ?? Number.NaN),
+        getBoxBottom(toggleBox),
       );
 
       await page.evaluate(scrollToEnd);
@@ -76,7 +76,7 @@ for (const width of MOBILE_SCREEN_WIDTHS_PX) {
         'distance in px from the center of the GitHub icon to the center of the CV button',
       ).toBeLessThanOrEqual(MAX_ICON_OFFSET_PX);
       expect(gitHubBox?.y, 'top of the GitHub icon, under the CV button').toBeGreaterThan(
-        (cvBox?.y ?? Number.NaN) + (cvBox?.height ?? Number.NaN),
+        getBoxBottom(cvBox),
       );
     });
   });

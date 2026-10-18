@@ -77,6 +77,7 @@ export const spacing = {
   36: '36px',
   48: '48px',
   56: '56px',
+  80: '80px',
 } as const;
 
 /** Spacing that follows the font size of the element; keys are hundredths of an em. */

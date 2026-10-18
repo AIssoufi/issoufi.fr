@@ -76,10 +76,10 @@ export const MAX_CARD_OFFSET_PX = 0.5;
 
 /**
  * Screen widths, in pixels, at which the language toggle floats on the right edge of the screen,
- * with the GitHub icon under it: the tablet breakpoint (800), a laptop (1440), then a screen wider
- * than the app container (1920).
+ * with the GitHub icon under it: the tablet breakpoint (800), two laptops (1280 and 1440), then a
+ * screen wider than the app container (1920).
  */
-export const FLOATING_TOGGLE_SCREEN_WIDTHS_PX = [800, 1440, 1920] as const;
+export const FLOATING_CONTROLS_SCREEN_WIDTHS_PX = [800, 1280, 1440, 1920] as const;
 
 /**
  * Screen widths, in pixels, below the tablet breakpoint, at which the mobile menu holds the GitHub

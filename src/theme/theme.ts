@@ -78,6 +78,12 @@ export const theme = {
     ...spacing,
     /** Horizontal padding of every page and of the header. */
     page: spacing[24],
+    /**
+     * Right padding of every page from the tablet breakpoint, which leaves the language toggle and
+     * the GitHub icon floating on the right edge of the screen over no content: they stand 20 px
+     * from the edge and are 46 px wide, so 80 px leaves a gap of 14 px.
+     */
+    'floating-controls-room': spacing[80],
     /** Gap between an icon and its label, relative to the font size. */
     'icon-gap': relativeSpacing[70],
   },

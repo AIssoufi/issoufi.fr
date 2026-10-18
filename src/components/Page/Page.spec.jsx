@@ -2,7 +2,11 @@ import { render, screen } from '@testing-library/react';
 import styled from '@xstyled/styled-components';
 
 import { declaredStyle } from '../../styleTestUtils';
+import { theme } from '../../theme';
 import Page from './Page';
+
+/** Media query of the desktop layout, from the tablet breakpoint. */
+const TABLET_MEDIA = `(min-width: ${theme.screens.tablet})`;
 
 const getMain = () => screen.getByRole('main');
 
@@ -32,6 +36,15 @@ describe('Page', () => {
   it.each([undefined, ''])('draws no background image when it is %j', backgroundImage => {
     render(<Page backgroundImage={backgroundImage} />);
     expect(getBackgroundImage(getMain())).toBe('none');
+  });
+
+  it('leaves room on the right for the controls floating on the right edge from tablet up', () => {
+    render(<Page />);
+
+    expect(declaredStyle({ element: getMain(), property: 'padding-right' })).toBe(theme.space.page);
+    expect(
+      declaredStyle({ element: getMain(), property: 'padding-right', media: TABLET_MEDIA }),
+    ).toBe(theme.space['floating-controls-room']);
   });
 
   it('keeps the class name it receives', () => {

@@ -2,6 +2,8 @@ import { PAGES } from '../src/utils/pages';
 import { MAX_CARD_OFFSET_PX, MAX_DOT_OFFSET_PX, NOT_FOUND_ROUTE } from './constants';
 import {
   countWholeCards,
+  doBoxesOverlapHorizontally,
+  getBoxBottom,
   getBoxCenterDistanceX,
   getCenterDistanceX,
   getCheckedRoutes,
@@ -435,6 +437,72 @@ describe('getBoxCenterDistanceX', () => {
 
     it('returns NaN without boxes', () => {
       expect(getBoxCenterDistanceX()).toBeNaN();
+    });
+  });
+});
+
+describe('getBoxBottom', () => {
+  it.each([
+    [{ x: 1374, y: 361, width: 46, height: 78 }, 439],
+    [{ x: 0, y: -20, width: 10, height: 20 }, 0],
+    [{ x: 0, y: 12.5, width: 10, height: 0 }, 12.5],
+  ])('finds the bottom of %j', (box, expected) => {
+    expect(getBoxBottom(box)).toBe(expected);
+  });
+
+  describe('edge cases', () => {
+    it.each([
+      undefined,
+      null,
+      {},
+      'box',
+      { x: 0, y: Number.NaN, width: 10, height: 10 },
+      { x: 0, y: 0, width: 10, height: Number.POSITIVE_INFINITY },
+      { x: 0, y: '10', width: 10, height: 10 },
+    ])('returns NaN for the box %j', box => {
+      expect(getBoxBottom(box as never)).toBeNaN();
+    });
+  });
+});
+
+describe('doBoxesOverlapHorizontally', () => {
+  const toggle = { x: 1374, y: 411, width: 46, height: 78 };
+
+  it.each([
+    ['a button whose right end is under it', { x: 1289, y: 517, width: 127, height: 32 }],
+    ['a line of text far above it, across its width', { x: 24, y: -900, width: 1392, height: 18 }],
+    ['an icon inside its width', { x: 1380, y: 900, width: 33, height: 32 }],
+  ])('finds that %s overlaps it', (_name, box) => {
+    expect(doBoxesOverlapHorizontally({ box, otherBox: toggle })).toBe(true);
+    expect(doBoxesOverlapHorizontally({ box: toggle, otherBox: box })).toBe(true);
+  });
+
+  it.each([
+    ['a box ending 14 px before it', { x: 24, y: 411, width: 1336, height: 78 }],
+    ['a box touching its left edge', { x: 1300, y: 411, width: 74, height: 78 }],
+    ['a box right of it', { x: 1420, y: 411, width: 20, height: 78 }],
+  ])('finds that %s does not overlap it', (_name, box) => {
+    expect(doBoxesOverlapHorizontally({ box, otherBox: toggle })).toBe(false);
+    expect(doBoxesOverlapHorizontally({ box: toggle, otherBox: box })).toBe(false);
+  });
+
+  describe('edge cases', () => {
+    it.each([
+      undefined,
+      null,
+      {},
+      'box',
+      { x: 1380, y: 0, width: 0, height: 32 },
+      { x: 1380, y: 0, width: -10, height: 32 },
+      { x: Number.NaN, y: 0, width: 32, height: 32 },
+      { x: '1380', y: 0, width: 32, height: 32 },
+    ])('finds that the box %j covers nothing', box => {
+      expect(doBoxesOverlapHorizontally({ box: box as never, otherBox: toggle })).toBe(false);
+      expect(doBoxesOverlapHorizontally({ box: toggle, otherBox: box as never })).toBe(false);
+    });
+
+    it('finds no overlap without boxes', () => {
+      expect(doBoxesOverlapHorizontally()).toBe(false);
     });
   });
 });

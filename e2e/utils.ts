@@ -247,3 +247,48 @@ interface GetBoxCenterDistanceXParams {
  */
 export const getBoxCenterDistanceX = ({ box, referenceBox }: GetBoxCenterDistanceXParams = {}) =>
   Math.abs(getBoxCenterX(box) - getBoxCenterX(referenceBox));
+
+/**
+ * Finds the bottom edge of a box, such as one that Playwright's `boundingBox()` returns.
+ *
+ * @param box - Box of an element on the screen.
+ * @returns Its distance from the top of the screen in CSS pixels, or `NaN` when the box is
+ * missing or holds a value that is not a finite number, so that any comparison with it fails.
+ *
+ * @example
+ * getBoxBottom({ x: 1374, y: 361, width: 46, height: 78 }); // 439
+ */
+export const getBoxBottom = (box?: ScreenBox | null): number =>
+  isScreenBox(box) ? box.y + box.height : Number.NaN;
+
+/** Parameters of {@link doBoxesOverlapHorizontally}. */
+interface DoBoxesOverlapHorizontallyParams {
+  /** One of the boxes, such as the box of a line of text of the page. */
+  box?: ScreenBox | null;
+  /** The other box, such as the language toggle floating on the right edge of the screen. */
+  otherBox?: ScreenBox | null;
+}
+
+/**
+ * Tells whether two boxes share some width, whatever their heights: a box of the page that does
+ * passes under an element fixed on the screen at some point while the page scrolls. Boxes that
+ * only touch by an edge do not overlap.
+ *
+ * @returns `false` when either box is missing, holds a value that is not a finite number, or has
+ * no width: such a box covers nothing.
+ *
+ * @example
+ * doBoxesOverlapHorizontally({
+ *   box: { x: 1289, y: 517, width: 127, height: 32 },
+ *   otherBox: { x: 1374, y: 411, width: 46, height: 78 },
+ * }); // true
+ */
+export const doBoxesOverlapHorizontally = ({
+  box,
+  otherBox,
+}: DoBoxesOverlapHorizontallyParams = {}): boolean => {
+  const hasWidth = (value: unknown): value is ScreenBox => isScreenBox(value) && value.width > 0;
+  if (!hasWidth(box) || !hasWidth(otherBox)) return false;
+
+  return box.x < otherBox.x + otherBox.width && otherBox.x < box.x + box.width;
+};

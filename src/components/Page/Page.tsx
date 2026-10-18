@@ -17,9 +17,11 @@ interface PageProps {
 
 /**
  * Layout shared by every page, rendered as its `<main>` landmark: it fills the main area of the
- * app grid, with the page gutters, over a fixed background image and a dark overlay. Pages
- * extend it with `styled(Page)` in their own style file. A page has a single `<main>`, so the
- * content inside it never renders another one.
+ * app grid, with the page gutters, over a fixed background image and a dark overlay. From the
+ * tablet breakpoint, its right gutter is wider, so the language toggle and the GitHub icon that
+ * float on the right edge of the screen cover none of its content. Pages extend it with
+ * `styled(Page)` in their own style file. A page has a single `<main>`, so the content inside it
+ * never renders another one.
  *
  * @example
  * const ProjectsPage = styled(Page)`
