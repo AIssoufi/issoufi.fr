@@ -36,7 +36,10 @@ import { getCardTilt, getNextPageStart, getPreviousPageStart } from './utils';
 
 /** Props of {@link Project}. */
 interface ProjectProps {
-  /** Section heading, already translated. */
+  /**
+   * Section heading, already translated. Also names the group of the section controls, which has
+   * no name without it.
+   */
   title?: string;
   /** Cards to show, three per page, or all at once after "Show all". @default [] */
   projects?: ProjectItemData[];
