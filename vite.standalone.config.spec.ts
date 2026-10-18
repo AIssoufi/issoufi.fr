@@ -4,6 +4,9 @@ import { build, normalizePath, type Plugin, type Rollup } from 'vite';
 
 import {
   HASH_ROUTER_MODULE,
+  OPTIONAL_ESCAPE_PATTERN,
+  QUOTE_PATTERN,
+  REGEXP_SPECIAL_CHARACTERS,
   STANDALONE_PAGE_FILE_NAME,
   STANDALONE_README_FILE_NAME,
 } from './vite/standalone/constants';
@@ -26,6 +29,24 @@ const INLINE_SCRIPT_CODE_PATTERN = /(<script[^>]*>)[\s\S]*?(<\/script>)/g;
 
 /** HTML of a page without the code of its inline scripts, which may name tags in strings. */
 const stripInlineScripts = (html: string) => html.replace(INLINE_SCRIPT_CODE_PATTERN, '$1$2');
+
+/** Parameters of {@link hasAbsoluteUrl}. */
+interface HasAbsoluteUrlParams {
+  /** HTML of a page of the build. */
+  html: string;
+  /** Name of a file of `public/`, e.g. `home.webp`. */
+  fileName: string;
+}
+
+/**
+ * Tells whether a page names a file of `public/` with an absolute URL, between any quotes, escaped
+ * or not, as `toRelativePublicUrls` finds them.
+ */
+const hasAbsoluteUrl = ({ html, fileName }: HasAbsoluteUrlParams) => {
+  const name = fileName.replace(REGEXP_SPECIAL_CHARACTERS, '\\$&');
+  const url = `${QUOTE_PATTERN}/${name}${OPTIONAL_ESCAPE_PATTERN}${QUOTE_PATTERN}`;
+  return new RegExp(url).test(html);
+};
 
 /** File of the build: a chunk of scripts or an asset, such as an HTML page. */
 type OutputFile = Rollup.OutputChunk | Rollup.OutputAsset;
@@ -100,7 +121,7 @@ describe('standalone build', () => {
   it('refers to the files of public/ with URLs relative to the page', () => {
     const html = getSource(STANDALONE_PAGE_FILE_NAME);
     const fileNames = listFileNames(resolve('public'));
-    const absoluteUrls = fileNames.filter(name => html.includes(`"/${name}"`));
+    const absoluteUrls = fileNames.filter(fileName => hasAbsoluteUrl({ html, fileName }));
 
     expect(fileNames.length).toBeGreaterThan(0);
     expect(absoluteUrls).toEqual([]);
