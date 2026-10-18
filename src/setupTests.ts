@@ -10,6 +10,8 @@ vi.mock('lottie-web/build/player/lottie_light', () => ({
       destroy: vi.fn(),
       setSpeed: vi.fn(),
       setDirection: vi.fn(),
+      goToAndStop: vi.fn(),
+      totalFrames: 60,
     }),
   },
 }));
