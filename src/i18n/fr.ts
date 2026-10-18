@@ -28,6 +28,7 @@ export const fr = {
       description: 'Cette page n’existe pas.',
     },
     ogImageAlt: 'ADAM Issoufi, développeur full-stack JavaScript passionné par l’UX et l’UI Design',
+    noScript: 'Activez JavaScript pour afficher ce site.',
   },
   errors: {
     backHome: 'Retour à l’accueil',

@@ -1,7 +1,9 @@
 import { useId, useRef, useState } from 'react';
-import { Link } from 'react-router';
 import { useTranslation } from 'react-i18next';
 
+import LocalizedLink from '../../components/LocalizedLink';
+import { useUrlLanguage } from '../../hooks/useUrlLanguage';
+import { localizePath } from '../../i18n/utils';
 import BurgerMenu from './BurgerMenu';
 import { DESKTOP_MEDIA_QUERY } from './constants';
 import { useEscapeKey } from './hooks/useEscapeKey';
@@ -26,9 +28,10 @@ import {
  * Site header: the "AI" logo linking home, followed by the version of the build in small letters
  * (`build v1.0.0`, see {@link formatVersion}), the language toggle, the navigation and, on mobile,
  * the burger button that opens it. From tablet up, the language toggle floats on the right edge of
- * the screen, with the GitHub icon centered under it; on mobile, the menu holds that icon. Owns the open state of the mobile menu, and closes it after
- * each navigation and when the screen grows to the desktop layout, as when a tablet is rotated.
- * Must be rendered inside a router.
+ * the screen, with the GitHub icon centered under it; on mobile, the menu holds that icon. Its
+ * links lead to the pages in the language of the current URL. Owns the open state of the mobile
+ * menu, and closes it after each navigation and when the screen grows to the desktop layout, as
+ * when a tablet is rotated. Must be rendered inside a router.
  *
  * The burger button comes before the links in the page, so once a keyboard user opens the menu,
  * the next `Tab` reaches its first link. While open, the mobile menu acts as a modal dialog: the
@@ -45,6 +48,7 @@ const Header = ({ testId, version = __APP_VERSION__ }: HeaderProps) => {
   const { t } = useTranslation();
   const versionText = formatVersion(version);
   const showsVersion = versionText !== '';
+  const language = useUrlLanguage();
 
   const closeMobileMenuOnDesktop = (isDesktopLayout: boolean) => {
     if (isDesktopLayout) setMobileMenuIsOpen(false);
@@ -69,16 +73,16 @@ const Header = ({ testId, version = __APP_VERSION__ }: HeaderProps) => {
   useEscapeKey({ isActive: isMenuCoveringPage, onEscape: closeMobileMenu });
 
   const items = [
-    { name: t('nav.home'), url: '/', end: true },
-    { name: t('nav.projects'), url: '/projects' },
-    { name: t('nav.experience'), url: '/experiences' },
+    { name: t('nav.home'), url: localizePath({ path: '/', language }), end: true },
+    { name: t('nav.projects'), url: localizePath({ path: '/projects', language }) },
+    { name: t('nav.experience'), url: localizePath({ path: '/experiences', language }) },
   ];
 
   return (
     <Container data-testid={testId}>
       <Brand>
         <Logo>
-          <Link to="/">AI</Link>
+          <LocalizedLink to="/">AI</LocalizedLink>
         </Logo>
         {showsVersion && (
           <BuildVersion>{t('header.buildVersion', { version: versionText })}</BuildVersion>

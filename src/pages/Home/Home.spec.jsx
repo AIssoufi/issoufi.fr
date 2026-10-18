@@ -7,9 +7,9 @@ import { isPublicFile } from '../testUtils';
 import { BACKGROUND_IMAGE_URL } from './constants';
 import { Home } from './Home';
 
-const renderHome = () =>
+const renderHome = (path = '/') =>
   render(
-    <MemoryRouter>
+    <MemoryRouter initialEntries={[path]}>
       <Home />
     </MemoryRouter>,
   );
@@ -51,6 +51,14 @@ describe('Home', () => {
       'href',
       '/experiences',
     );
+  });
+
+  it('links to the English pages on the English home page', () => {
+    renderHome('/en/');
+    const [projectsLink, experiencesLink] = screen.getAllByRole('link');
+
+    expect(projectsLink).toHaveAttribute('href', '/en/projects');
+    expect(experiencesLink).toHaveAttribute('href', '/en/experiences');
   });
 
   it('fits the buttons to narrow screens instead of widening the page', () => {

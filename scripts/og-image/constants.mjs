@@ -11,7 +11,7 @@ export const OG_IMAGE_HEIGHT_PX = 630;
 
 /**
  * Largest size of the image, in bytes: WhatsApp drops larger link preview images. The test of
- * `src/utils/pages.spec.ts` checks the same limit.
+ * `src/utils/pageHtml.spec.ts` checks the same limit.
  */
 export const OG_IMAGE_MAX_BYTES = 300_000;
 

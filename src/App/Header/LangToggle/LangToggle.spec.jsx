@@ -1,8 +1,10 @@
 import { act, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { MemoryRouter, useLocation } from 'react-router';
 
 import i18n from '../../../i18n';
 import { LANGUAGE_STORAGE_KEY } from '../../../i18n/constants';
+import UrlLanguage from '../../UrlLanguage';
 import LangToggle from './LangToggle';
 
 /** The indicator is the first child of the toggle, before the language buttons. */
@@ -10,6 +12,29 @@ const getIndicator = () => screen.getByRole('group').firstElementChild;
 
 const getFrenchButton = () => screen.getByRole('button', { name: 'Français' });
 const getEnglishButton = () => screen.getByRole('button', { name: 'English' });
+
+/** Shows the current URL and the key of its history entry, which changes with each navigation. */
+const LocationDisplay = () => {
+  const { pathname, search, hash, key } = useLocation();
+  return (
+    <output
+      data-testid="location"
+      data-key={key}
+    >{`${pathname}${search}${hash}`}</output>
+  );
+};
+
+const getLocation = () => screen.getByTestId('location');
+
+/** Renders the toggle at a URL, with the texts following its language as in the app. */
+const renderAt = (path = '/') =>
+  render(
+    <MemoryRouter initialEntries={[path]}>
+      <UrlLanguage />
+      <LangToggle />
+      <LocationDisplay />
+    </MemoryRouter>,
+  );
 
 describe('LangToggle', () => {
   afterEach(async () => {
@@ -19,23 +44,53 @@ describe('LangToggle', () => {
   });
 
   it('renders FR and EN buttons without any props', () => {
-    render(<LangToggle />);
+    renderAt();
     expect(screen.getByText('FR')).toBeInTheDocument();
     expect(screen.getByText('EN')).toBeInTheDocument();
   });
 
-  it('switches to English, then back to French', async () => {
-    render(<LangToggle />);
+  it('goes to the same page in English, then back in French, keeping the query and fragment', async () => {
+    renderAt('/projects?tri=date#perso');
 
     await userEvent.click(getEnglishButton());
+    expect(getLocation()).toHaveTextContent('/en/projects?tri=date#perso');
     expect(i18n.language).toBe('en');
 
     await userEvent.click(getFrenchButton());
+    expect(getLocation()).toHaveTextContent('/projects?tri=date#perso');
     expect(i18n.language).toBe('fr');
   });
 
-  it('remembers the chosen language for the next visit', async () => {
-    render(<LangToggle />);
+  it('goes from the home page to the English home page, then back to the root', async () => {
+    renderAt('/');
+
+    await userEvent.click(getEnglishButton());
+    expect(getLocation()).toHaveTextContent(/^\/en\/$/);
+
+    await userEvent.click(getFrenchButton());
+    expect(getLocation()).toHaveTextContent(/^\/$/);
+  });
+
+  it('keeps an unknown path in the other language, for its not found page', async () => {
+    renderAt('/en/page-inconnue');
+
+    await userEvent.click(getFrenchButton());
+
+    expect(getLocation()).toHaveTextContent('/page-inconnue');
+  });
+
+  it('stays on the page when its language is chosen again', async () => {
+    renderAt('/en/projects');
+    const key = getLocation().dataset.key;
+
+    await userEvent.click(getEnglishButton());
+
+    expect(getLocation()).toHaveTextContent('/en/projects');
+    expect(getLocation().dataset.key).toBe(key);
+  });
+
+  it('remembers the chosen language for the root URL of the next visit', async () => {
+    renderAt('/projects');
     expect(localStorage.getItem(LANGUAGE_STORAGE_KEY)).toBeNull();
 
     await userEvent.click(getEnglishButton());
@@ -49,16 +104,17 @@ describe('LangToggle', () => {
     vi.spyOn(window, 'localStorage', 'get').mockImplementation(() => {
       throw new DOMException('The operation is insecure.', 'SecurityError');
     });
-    render(<LangToggle />);
+    renderAt('/projects');
 
     await userEvent.click(getEnglishButton());
 
+    expect(getLocation()).toHaveTextContent('/en/projects');
     expect(i18n.language).toBe('en');
     expect(getEnglishButton()).toHaveAttribute('aria-pressed', 'true');
   });
 
-  it('slides the indicator under the active language', async () => {
-    render(<LangToggle />);
+  it('slides the indicator under the language of the URL', async () => {
+    renderAt('/projects');
     expect(getComputedStyle(getIndicator()).transform).toContain('calc(0 *');
 
     await userEvent.click(getEnglishButton());
@@ -66,17 +122,15 @@ describe('LangToggle', () => {
     expect(getComputedStyle(getIndicator()).transform).toContain('calc(1 *');
   });
 
-  it('keeps the indicator under the first language when the language is not supported', async () => {
-    render(<LangToggle />);
+  it('starts with the indicator under English at an English URL', () => {
+    renderAt('/en/experiences');
 
-    await act(() => i18n.changeLanguage('de'));
-
-    expect(getComputedStyle(getIndicator()).transform).toContain('calc(0 *');
+    expect(getComputedStyle(getIndicator()).transform).toContain('calc(1 *');
   });
 
   it('stays in the page flow below the tablet breakpoint, so it covers no content', () => {
     // jsdom applies no media query, so these are the narrow-screen styles
-    render(<LangToggle />);
+    renderAt();
 
     const wrapperStyle = getComputedStyle(screen.getByRole('group'));
     expect(wrapperStyle.position).toBe('relative');
@@ -85,31 +139,29 @@ describe('LangToggle', () => {
 
   describe('accessibility', () => {
     it('names each button after its language, in that language', () => {
-      render(<LangToggle />);
+      renderAt();
 
       expect(getFrenchButton()).toHaveAttribute('lang', 'fr');
       expect(getEnglishButton()).toHaveAttribute('lang', 'en');
     });
 
     it('makes both buttons plain buttons, so they never submit a form', () => {
-      render(<LangToggle />);
+      renderAt();
 
       expect(getFrenchButton()).toHaveAttribute('type', 'button');
       expect(getEnglishButton()).toHaveAttribute('type', 'button');
     });
 
-    it('labels the group in French and presses the French button when French is active', () => {
-      render(<LangToggle />);
+    it('labels the group in French and presses the French button at a French URL', () => {
+      renderAt('/projects');
 
       expect(screen.getByRole('group', { name: 'Langue' })).toContainElement(getFrenchButton());
       expect(getFrenchButton()).toHaveAttribute('aria-pressed', 'true');
       expect(getEnglishButton()).toHaveAttribute('aria-pressed', 'false');
     });
 
-    it('labels the group in English and presses the English button when English is active', async () => {
-      render(<LangToggle />);
-
-      await userEvent.click(getEnglishButton());
+    it('labels the group in English and presses the English button at an English URL', () => {
+      renderAt('/en/projects');
 
       expect(screen.getByRole('group', { name: 'Language' })).toContainElement(getEnglishButton());
       expect(getFrenchButton()).toHaveAttribute('aria-pressed', 'false');
@@ -117,22 +169,12 @@ describe('LangToggle', () => {
     });
 
     it('keeps the button names when the language changes', async () => {
-      render(<LangToggle />);
+      renderAt();
 
       await userEvent.click(getEnglishButton());
 
       expect(getFrenchButton()).toBeInTheDocument();
       expect(getEnglishButton()).toBeInTheDocument();
-    });
-
-    it('presses no button and labels the group in French when the language is not supported', async () => {
-      render(<LangToggle />);
-
-      await act(() => i18n.changeLanguage('de'));
-
-      expect(screen.getByRole('group', { name: 'Langue' })).toBeInTheDocument();
-      expect(getFrenchButton()).toHaveAttribute('aria-pressed', 'false');
-      expect(getEnglishButton()).toHaveAttribute('aria-pressed', 'false');
     });
   });
 });
