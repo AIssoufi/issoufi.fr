@@ -1,9 +1,21 @@
+import { localizePath } from '../src/i18n/utils';
 import { MAX_CARD_OFFSET_PX, NOT_FOUND_ROUTE, QUAD_COORDINATE_COUNT } from './constants';
 
 /** A page of the site, of which only the route matters here, such as an entry of `PAGES`. */
 interface RoutedPage {
-  /** Route of the page, e.g. `/projects`. */
+  /** Route of the page in the default language, e.g. `/projects`. */
   path?: unknown;
+}
+
+/** Parameters of {@link getCheckedRoutes}. */
+interface GetCheckedRoutesParams {
+  /** Pages of the site. Any value that is not an array counts as none. */
+  pages?: readonly RoutedPage[] | null;
+  /**
+   * Language of the routes, one of `LANGUAGES` (`src/i18n/constants.ts`). Any other value counts
+   * as the default language, whose routes have no prefix.
+   */
+  language?: unknown;
 }
 
 /** Tells whether a value is a route of the site: a string that starts with `/`. */
@@ -11,22 +23,23 @@ const isRoute = (value: unknown): value is string =>
   typeof value === 'string' && value.startsWith('/');
 
 /**
- * Lists the routes the browser tests open: the route of every page, in order, then
- * {@link NOT_FOUND_ROUTE} for the not found page. Given `PAGES` (`src/utils/pages.ts`), it
+ * Lists the routes the browser tests open in a language: the route of every page, in order, then
+ * {@link NOT_FOUND_ROUTE} for the not found page, each behind the prefix of the language (see
+ * `localizePath`), so the page opens in that language. Given `PAGES` (`src/utils/pages.ts`), it
  * covers a new page without any change to the tests.
  *
- * @param pages - Pages of the site. Any value that is not an array counts as none.
  * @returns Each route once, the not found route last. Entries that are not pages, and pages
  * whose path is not a string starting with `/`, are skipped.
  *
  * @example
- * getCheckedRoutes([{ path: '/' }, { path: '/projects' }]);
- * // ['/', '/projects', '/browser-test-page-that-does-not-exist']
+ * getCheckedRoutes({ pages: [{ path: '/' }, { path: '/projects' }], language: 'en' });
+ * // ['/en/', '/en/projects', '/en/browser-test-page-that-does-not-exist']
  */
-export const getCheckedRoutes = (pages?: readonly RoutedPage[] | null): string[] => {
+export const getCheckedRoutes = ({ pages, language }: GetCheckedRoutesParams = {}): string[] => {
   const pageList = Array.isArray(pages) ? pages : [];
   const pageRoutes = pageList.map(page => page?.path).filter(isRoute);
-  return [...new Set([...pageRoutes, NOT_FOUND_ROUTE])];
+  const routes = [...pageRoutes, NOT_FOUND_ROUTE].map(path => localizePath({ path, language }));
+  return [...new Set(routes)];
 };
 
 /** Tells whether a coordinate of a quad is an x, which comes first in each of its corners. */

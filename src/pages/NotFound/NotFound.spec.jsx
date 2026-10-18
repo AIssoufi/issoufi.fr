@@ -20,6 +20,15 @@ describe('NotFound', () => {
     expect(screen.getByRole('link', { name: 'Retour à l’accueil' })).toHaveAttribute('href', '/');
   });
 
+  it('links back to the English home page from an English URL', () => {
+    renderAt('/en/skills');
+
+    expect(screen.getByRole('link', { name: 'Retour à l’accueil' })).toHaveAttribute(
+      'href',
+      '/en/',
+    );
+  });
+
   it('has a single main landmark and a single level 1 heading', () => {
     renderAt('/skills');
 

@@ -2,14 +2,17 @@ import react from '@vitejs/plugin-react';
 import { defineConfig, loadEnv, type Plugin } from 'vite';
 import svgr from 'vite-plugin-svgr';
 
+import { DEFAULT_LANGUAGE } from './src/i18n/constants';
 import { getYearsOfExperience } from './src/utils/career';
 import {
   addModulePreload,
-  NOT_FOUND_FILE_NAME,
+  getNotFoundFiles,
+  getPageFiles,
   NOT_FOUND_FOLDER,
   PAGES,
   renderNotFoundHtml,
   renderPageHtml,
+  type PageFile,
 } from './src/utils/pages';
 import { ALL_ENV_VARIABLES_PREFIX, ASSETS_DIR } from './vite/constants';
 import { getChunkName, getPageChunkFile, getServerPorts } from './vite/utils';
@@ -22,12 +25,21 @@ interface PreloadPageChunkParams {
   folder: string;
 }
 
+/** Home page of the default language: `index.html` itself, which Vite writes from the template. */
+const [HOME_PAGE] = PAGES;
+
+/** Tells whether a page file is `index.html`, which Vite writes, rather than one to emit. */
+const isTemplateFile = ({ page, language }: PageFile) =>
+  page === HOME_PAGE && language === DEFAULT_LANGUAGE;
+
 /**
- * Vite plugin that fills the metadata of `index.html` for the home page, then emits one HTML
- * file per other page and a `404.html` from the same template. It runs after Vite's own HTML
- * plugin (`enforce: 'post'`), so the template already contains the hashed asset tags. Each
- * emitted page also preloads the chunk of the page it shows, so a direct visit downloads it at
- * the same time as the main chunk; the home page is in the main chunk and needs none.
+ * Vite plugin that fills the metadata of `index.html` for the home page of the default language,
+ * then emits from the same template the HTML file of every other page in every language
+ * (`projects.html`, `en/index.html`, `en/projects.html`…) and a not found page per language
+ * (`404.html`, `en/404.html`). It runs after Vite's own HTML plugin (`enforce: 'post'`), so the
+ * template already contains the hashed asset tags. Each emitted page also preloads the chunk of
+ * the page it shows, so a direct visit downloads it at the same time as the main chunk; the home
+ * page is in the main chunk and needs none.
  */
 const pageMeta = (): Plugin => {
   let template = '';
@@ -41,7 +53,12 @@ const pageMeta = (): Plugin => {
     },
     transformIndexHtml: html => {
       template = html;
-      return renderPageHtml({ template: html, page: PAGES[0], years: getYearsOfExperience() });
+      return renderPageHtml({
+        template: html,
+        page: HOME_PAGE,
+        language: DEFAULT_LANGUAGE,
+        years: getYearsOfExperience(),
+      });
     },
     generateBundle(_options, bundle) {
       if (!template) this.error('index.html was not transformed before generateBundle');
@@ -52,20 +69,26 @@ const pageMeta = (): Plugin => {
         return chunkFile ? addModulePreload({ html, href: `${base}${chunkFile}` }) : html;
       };
 
-      PAGES.slice(1).forEach(page => {
-        const html = renderPageHtml({ template, page, years: getYearsOfExperience() });
+      const years = getYearsOfExperience();
+
+      getPageFiles()
+        .filter(file => !isTemplateFile(file))
+        .forEach(({ page, language, fileName }) => {
+          const html = renderPageHtml({ template, page, language, years });
+          this.emitFile({
+            type: 'asset',
+            fileName,
+            source: preloadPageChunk({ html, folder: page.folder }),
+          });
+        });
+
+      getNotFoundFiles().forEach(({ language, fileName }) => {
+        const html = renderNotFoundHtml({ template, language, years });
         this.emitFile({
           type: 'asset',
-          fileName: page.fileName,
-          source: preloadPageChunk({ html, folder: page.folder }),
+          fileName,
+          source: preloadPageChunk({ html, folder: NOT_FOUND_FOLDER }),
         });
-      });
-
-      const notFoundHtml = renderNotFoundHtml({ template, years: getYearsOfExperience() });
-      this.emitFile({
-        type: 'asset',
-        fileName: NOT_FOUND_FILE_NAME,
-        source: preloadPageChunk({ html: notFoundHtml, folder: NOT_FOUND_FOLDER }),
       });
     },
   };

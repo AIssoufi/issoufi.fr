@@ -9,12 +9,28 @@ import {
 } from './utils';
 
 describe('getCheckedRoutes', () => {
-  it('opens every page of PAGES, then the not found page', () => {
-    expect(getCheckedRoutes(PAGES)).toEqual([...PAGES.map(({ path }) => path), NOT_FOUND_ROUTE]);
+  it('opens every page of PAGES, then the not found page, in the default language', () => {
+    expect(getCheckedRoutes({ pages: PAGES })).toEqual([
+      ...PAGES.map(({ path }) => path),
+      NOT_FOUND_ROUTE,
+    ]);
+    expect(getCheckedRoutes({ pages: PAGES, language: 'fr' })).toEqual([
+      ...PAGES.map(({ path }) => path),
+      NOT_FOUND_ROUTE,
+    ]);
+  });
+
+  it('opens every page of PAGES, then the not found page, at their English routes', () => {
+    expect(getCheckedRoutes({ pages: PAGES, language: 'en' })).toEqual([
+      '/en/',
+      '/en/projects',
+      '/en/experiences',
+      `/en${NOT_FOUND_ROUTE}`,
+    ]);
   });
 
   it('opens a new page without any change to the tests', () => {
-    expect(getCheckedRoutes([{ path: '/' }, { path: '/skills' }])).toEqual([
+    expect(getCheckedRoutes({ pages: [{ path: '/' }, { path: '/skills' }] })).toEqual([
       '/',
       '/skills',
       NOT_FOUND_ROUTE,
@@ -22,7 +38,7 @@ describe('getCheckedRoutes', () => {
   });
 
   it('keeps the order of the pages', () => {
-    expect(getCheckedRoutes([{ path: '/projects' }, { path: '/' }])).toEqual([
+    expect(getCheckedRoutes({ pages: [{ path: '/projects' }, { path: '/' }] })).toEqual([
       '/projects',
       '/',
       NOT_FOUND_ROUTE,
@@ -33,33 +49,61 @@ describe('getCheckedRoutes', () => {
     it.each([undefined, null, [], 'index.html', 42, { path: '/' }])(
       'opens only the not found page for the pages %j',
       pages => {
-        expect(getCheckedRoutes(pages as never)).toEqual([NOT_FOUND_ROUTE]);
+        expect(getCheckedRoutes({ pages: pages as never })).toEqual([NOT_FOUND_ROUTE]);
+      },
+    );
+
+    it('opens only the not found page without any parameter', () => {
+      expect(getCheckedRoutes()).toEqual([NOT_FOUND_ROUTE]);
+    });
+
+    it.each(['de', 'EN', '', null, undefined, 42])(
+      'opens the routes of the default language for the language %j',
+      language => {
+        expect(getCheckedRoutes({ pages: [{ path: '/projects' }], language })).toEqual([
+          '/projects',
+          NOT_FOUND_ROUTE,
+        ]);
       },
     );
 
     it('opens each route once, a page at the not found route included', () => {
-      expect(getCheckedRoutes([{ path: '/' }, { path: '/' }, { path: NOT_FOUND_ROUTE }])).toEqual([
-        '/',
-        NOT_FOUND_ROUTE,
-      ]);
+      expect(
+        getCheckedRoutes({ pages: [{ path: '/' }, { path: '/' }, { path: NOT_FOUND_ROUTE }] }),
+      ).toEqual(['/', NOT_FOUND_ROUTE]);
+    });
+
+    it('opens an English route given to it once, in English', () => {
+      expect(
+        getCheckedRoutes({
+          pages: [{ path: '/en/projects' }, { path: '/projects' }],
+          language: 'en',
+        }),
+      ).toEqual(['/en/projects', `/en${NOT_FOUND_ROUTE}`]);
     });
 
     it.each([undefined, null, '', 'projects', 'https://issoufi.fr/', 42, ['/'], {}])(
       'skips a page whose path %j is not a route',
       path => {
-        expect(getCheckedRoutes([{ path }, { path: '/' }])).toEqual(['/', NOT_FOUND_ROUTE]);
+        expect(getCheckedRoutes({ pages: [{ path }, { path: '/' }] })).toEqual([
+          '/',
+          NOT_FOUND_ROUTE,
+        ]);
       },
     );
 
     it.each([undefined, null, '/projects', 42, true])(
       'skips the entry %j, which is not a page',
       entry => {
-        expect(getCheckedRoutes([entry as never, { path: '/' }])).toEqual(['/', NOT_FOUND_ROUTE]);
+        expect(getCheckedRoutes({ pages: [entry as never, { path: '/' }] })).toEqual([
+          '/',
+          NOT_FOUND_ROUTE,
+        ]);
       },
     );
 
     it('skips a page without a path', () => {
-      expect(getCheckedRoutes([{}, { path: '/' }])).toEqual(['/', NOT_FOUND_ROUTE]);
+      expect(getCheckedRoutes({ pages: [{}, { path: '/' }] })).toEqual(['/', NOT_FOUND_ROUTE]);
     });
   });
 });

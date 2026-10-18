@@ -1,12 +1,17 @@
 import { readFileSync, statSync } from 'node:fs';
 
+import { en } from '../i18n/en';
 import { fr } from '../i18n/fr';
 import {
   NOT_FOUND_FOLDER,
   PAGES,
   SITE_URL,
   addModulePreload,
+  getLanguageFileName,
+  getNotFoundFiles,
   getPage,
+  getPageFiles,
+  getPageUrl,
   renderNotFoundHtml,
   renderPageHtml,
 } from './pages';
@@ -73,9 +78,75 @@ describe('getPage', () => {
     expect(getPage('/projects/')).toBe(projects);
   });
 
+  it('finds the page of an English path', () => {
+    expect(getPage('/en/')).toBe(home);
+    expect(getPage('/en')).toBe(home);
+    expect(getPage('/en/projects')).toBe(projects);
+    expect(getPage('/en/experiences/')).toBe(experiences);
+  });
+
   it('returns undefined for unknown paths', () => {
     expect(getPage('/skills')).toBeUndefined();
     expect(getPage('/projects/inconnu')).toBeUndefined();
+    expect(getPage('/en/skills')).toBeUndefined();
+    expect(getPage('/fr/projects')).toBeUndefined();
+  });
+});
+
+describe('getLanguageFileName', () => {
+  it('keeps the files of the default language at the root of the build', () => {
+    expect(getLanguageFileName({ fileName: 'index.html', language: 'fr' })).toBe('index.html');
+    expect(getLanguageFileName({ fileName: '404.html', language: 'fr' })).toBe('404.html');
+  });
+
+  it('puts the files of another language in the folder of its prefix', () => {
+    expect(getLanguageFileName({ fileName: 'index.html', language: 'en' })).toBe('en/index.html');
+    expect(getLanguageFileName({ fileName: 'projects.html', language: 'en' })).toBe(
+      'en/projects.html',
+    );
+  });
+
+  it('keeps a file of an unknown language at the root, as the default language', () => {
+    expect(getLanguageFileName({ fileName: 'index.html', language: 'de' as never })).toBe(
+      'index.html',
+    );
+  });
+});
+
+describe('getPageFiles', () => {
+  it('lists every page in every language, language by language', () => {
+    expect(getPageFiles().map(({ language, fileName }) => [language, fileName])).toEqual([
+      ['fr', 'index.html'],
+      ['fr', 'projects.html'],
+      ['fr', 'experiences.html'],
+      ['en', 'en/index.html'],
+      ['en', 'en/projects.html'],
+      ['en', 'en/experiences.html'],
+    ]);
+  });
+
+  it('gives each file the page it shows', () => {
+    expect(getPageFiles().map(({ page }) => page)).toEqual([...PAGES, ...PAGES]);
+  });
+});
+
+describe('getNotFoundFiles', () => {
+  it('lists a not found page per language, in the folder of its prefix', () => {
+    expect(getNotFoundFiles()).toEqual([
+      { language: 'fr', fileName: '404.html' },
+      { language: 'en', fileName: 'en/404.html' },
+    ]);
+  });
+});
+
+describe('getPageUrl', () => {
+  it.each([
+    ['/', 'fr', 'https://issoufi.fr/'],
+    ['/projects', 'fr', 'https://issoufi.fr/projects'],
+    ['/', 'en', 'https://issoufi.fr/en/'],
+    ['/experiences', 'en', 'https://issoufi.fr/en/experiences'],
+  ] as const)('gives %s in %s the URL %s', (path, language, url) => {
+    expect(getPageUrl({ path, language })).toBe(url);
   });
 });
 
@@ -111,15 +182,106 @@ describe('renderPageHtml', () => {
     );
   });
 
-  it('fills every placeholder of index.html for every page', () => {
+  it('fills every placeholder of index.html for every page in every language', () => {
     const html = readFileSync('index.html', 'utf-8');
 
+    expect(html.match(/%PAGE_LANGUAGE%/g)).toHaveLength(1);
+    expect(html.match(/%PAGE_LOCALE%/g)).toHaveLength(1);
     expect(html.match(/%PAGE_TITLE%/g)).toHaveLength(3);
     expect(html.match(/%PAGE_DESCRIPTION%/g)).toHaveLength(3);
     expect(html.match(/%PAGE_URL%/g)).toHaveLength(2);
     expect(html.match(/%PAGE_IMAGE_ALT%/g)).toHaveLength(1);
-    PAGES.forEach(page =>
-      expect(renderPageHtml({ template: html, page, years: 8 })).not.toMatch(/%PAGE_\w+%/),
+    getPageFiles().forEach(({ page, language }) =>
+      expect(renderPageHtml({ template: html, page, language, years: 8 })).not.toMatch(
+        /%PAGE_\w+%/,
+      ),
+    );
+  });
+
+  it('leaves an unknown placeholder as it is', () => {
+    expect(renderPageHtml({ template: '%PAGE_AUTHOR% %PAGE_TITLE%', page: home, years: 8 })).toBe(
+      '%PAGE_AUTHOR% ADAM Issoufi - Développeur full-stack JavaScript',
+    );
+  });
+});
+
+describe('renderPageHtml in English', () => {
+  const html = readFileSync('index.html', 'utf-8');
+  const page = renderPageHtml({ template: html, page: projects, language: 'en', years: 8 });
+
+  it('fills the English metadata, language and locale', () => {
+    expect(page).toContain('<html lang="en">');
+    expect(page).toContain('<title>Projects - ADAM Issoufi</title>');
+    expect(getMetaContent({ html: page, property: 'og:title' })).toBe('Projects - ADAM Issoufi');
+    expect(getMetaContent({ html: page, property: 'og:locale' })).toBe('en_US');
+    expect(getMetaContent({ html: page, property: 'og:image:alt' })).toBe(en.meta.ogImageAlt);
+  });
+
+  it('gives the English URL as the canonical URL and og:url', () => {
+    expect(page).toMatch(/rel="canonical"\s+href="https:\/\/issoufi\.fr\/en\/projects"/);
+    expect(getMetaContent({ html: page, property: 'og:url' })).toBe(
+      'https://issoufi.fr/en/projects',
+    );
+  });
+
+  it('fills the years of experience in the English description', () => {
+    expect(
+      renderPageHtml({ template: '%PAGE_DESCRIPTION%', page: home, language: 'en', years: 9 }),
+    ).toBe('Full-stack JavaScript developer with 9 years of experience, specializing in React.');
+  });
+});
+
+describe('links between the translations of a page', () => {
+  const html = readFileSync('index.html', 'utf-8');
+
+  /** Lists the `hreflang` and URL of each alternate link of a page. */
+  const getAlternates = (page: string) =>
+    [...page.matchAll(/<link rel="alternate" hreflang="([^"]*)" href="([^"]*)" \/>/g)].map(
+      ([, hreflang, href]) => [hreflang, href],
+    );
+
+  it.each(['fr', 'en'] as const)('links the %s home page to every home page', language => {
+    const page = renderPageHtml({ template: html, page: home, language, years: 8 });
+
+    expect(getAlternates(page)).toEqual([
+      ['fr', 'https://issoufi.fr/'],
+      ['en', 'https://issoufi.fr/en/'],
+      ['x-default', 'https://issoufi.fr/'],
+    ]);
+  });
+
+  it.each(['fr', 'en'] as const)('links the %s experiences page to its translations', language => {
+    const page = renderPageHtml({ template: html, page: experiences, language, years: 8 });
+
+    expect(getAlternates(page)).toEqual([
+      ['fr', 'https://issoufi.fr/experiences'],
+      ['en', 'https://issoufi.fr/en/experiences'],
+      ['x-default', 'https://issoufi.fr/experiences'],
+    ]);
+  });
+
+  it('names the locale of the other languages for link previews', () => {
+    const frenchPage = renderPageHtml({ template: html, page: home, language: 'fr', years: 8 });
+    const englishPage = renderPageHtml({ template: html, page: home, language: 'en', years: 8 });
+
+    expect(frenchPage).toContain('<meta property="og:locale:alternate" content="en_US" />');
+    expect(frenchPage).not.toContain('content="fr_FR" />');
+    expect(englishPage).toContain('<meta property="og:locale:alternate" content="fr_FR" />');
+  });
+
+  it('puts the links in the head, indented as its other tags', () => {
+    const page = renderPageHtml({ template: html, page: projects, years: 8 });
+
+    expect(page).toContain(
+      '\n    <link rel="alternate" hreflang="fr" href="https://issoufi.fr/projects" />' +
+        '\n    <link rel="alternate" hreflang="en" href="https://issoufi.fr/en/projects" />',
+    );
+    expect(page.indexOf('hreflang="x-default"')).toBeLessThan(page.indexOf('</head>'));
+  });
+
+  it('adds no link to a template without a head', () => {
+    expect(renderPageHtml({ template: '<p>%PAGE_TITLE%</p>', page: home, years: 8 })).toBe(
+      '<p>ADAM Issoufi - Développeur full-stack JavaScript</p>',
     );
   });
 });
@@ -157,16 +319,25 @@ describe('Open Graph image of index.html', () => {
     );
   });
 
-  it('is kept, with its description, in every generated page', () => {
+  it('is kept, with its description in the language of the page, in every generated page', () => {
+    const translations = { fr, en };
     const generatedPages = [
-      ...PAGES.map(page => renderPageHtml({ template: html, page, years: 8 })),
-      renderNotFoundHtml({ template: html, years: 8 }),
+      ...getPageFiles().map(({ page, language }) => ({
+        language,
+        page: renderPageHtml({ template: html, page, language, years: 8 }),
+      })),
+      ...getNotFoundFiles().map(({ language }) => ({
+        language,
+        page: renderNotFoundHtml({ template: html, language, years: 8 }),
+      })),
     ];
 
-    generatedPages.forEach(page => {
+    generatedPages.forEach(({ language, page }) => {
       expect(getMetaContent({ html: page, property: 'og:image' })).toBe(imageUrl);
       expect(getMetaContent({ html: page, property: 'og:image:type' })).toBe('image/jpeg');
-      expect(getMetaContent({ html: page, property: 'og:image:alt' })).toBe(fr.meta.ogImageAlt);
+      expect(getMetaContent({ html: page, property: 'og:image:alt' })).toBe(
+        translations[language].meta.ogImageAlt,
+      );
     });
   });
 });
@@ -189,6 +360,22 @@ describe('renderNotFoundHtml', () => {
     expect(page).not.toContain('rel="canonical"');
     expect(page).not.toContain('og:url');
     expect(page.indexOf('noindex')).toBeLessThan(page.indexOf('</head>'));
+  });
+
+  it('uses the English title, description and language for the English not found page', () => {
+    const page = renderNotFoundHtml({ template: html, language: 'en', years: 8 });
+
+    expect(page).toContain('<html lang="en">');
+    expect(page).toContain('<title>Page not found - ADAM Issoufi</title>');
+    expect(page).toContain('content="This page does not exist."');
+    expect(getMetaContent({ html: page, property: 'og:locale' })).toBe('en_US');
+  });
+
+  it('links to no translation, as it has no address of its own', () => {
+    expect(renderNotFoundHtml({ template: html, years: 8 })).not.toContain('rel="alternate"');
+    expect(renderNotFoundHtml({ template: html, language: 'en', years: 8 })).not.toContain(
+      'hreflang',
+    );
   });
 
   it('keeps the rest of the template, such as the app script', () => {

@@ -124,6 +124,42 @@ describe('Header', () => {
     expect(screen.getByText('Expériences').closest('a')).toHaveAttribute('href', '/experiences');
   });
 
+  describe('at an English URL', () => {
+    beforeEach(async () => {
+      window.history.pushState({}, '', '/en/projects');
+      await act(() => i18n.changeLanguage('en'));
+    });
+
+    afterEach(async () => {
+      window.history.pushState({}, '', '/');
+      await act(() => i18n.changeLanguage('fr'));
+    });
+
+    it('links the logo and the navigation to the English pages', async () => {
+      await renderHeader();
+
+      expect(screen.getByText('AI').closest('a')).toHaveAttribute('href', '/en/');
+      expect(screen.getByText('Home').closest('a')).toHaveAttribute('href', '/en/');
+      expect(screen.getByText('Projects').closest('a')).toHaveAttribute('href', '/en/projects');
+      expect(screen.getByText('Experience').closest('a')).toHaveAttribute(
+        'href',
+        '/en/experiences',
+      );
+    });
+
+    it('marks the English page of the URL as the current one, and not the home page', async () => {
+      await renderHeader();
+
+      expect(screen.getByText('Projects').closest('a')).toHaveClass('active');
+      expect(screen.getByText('Home').closest('a')).not.toHaveClass('active');
+    });
+  });
+
+  it('links the logo to the home page', async () => {
+    await renderHeader();
+    expect(screen.getByText('AI').closest('a')).toHaveAttribute('href', '/');
+  });
+
   it('renders CV link pointing to the PDF', async () => {
     await renderHeader();
     expect(screen.getByText('CV').closest('a')).toHaveAttribute('href', '/CV - Adam Issoufi.pdf');
