@@ -47,7 +47,7 @@ pnpm preview   # Serve the production build locally
 pnpm smoke-test https://issoufi.fr   # Check that a deployed site serves the pages of dist/
 ```
 
-`pnpm size` fails when the scripts and style sheets of the build exceed 250 kB gzip, and warns about images over 500 kB. Both limits are in `scripts/ci/constants.mjs`.
+`pnpm size` fails when the scripts and style sheets of the build, every chunk included, exceed 210 kB gzip, and warns about images over 500 kB. Both limits are in `scripts/ci/constants.mjs`.
 
 `pnpm smoke-test <site URL>` requests every page of `dist/` on the site, plus an unknown path, and fails unless each answers with the expected status (200, or 404 for the unknown path) and the title and canonical URL of the build. It retries for about 20 seconds while a new deployment spreads, and fails at once when `dist/` is missing or holds no HTML page.
 
@@ -101,6 +101,7 @@ The site is hosted on [Cloudflare Pages](https://pages.cloudflare.com/), in the 
 - **One HTML file per page**: at build time, a Vite plugin (`vite.config.ts`) fills the `%PAGE_*%` placeholders of `index.html` and emits `projects.html` and `experiences.html` from the same template. Each page gets its own title, description and canonical URL, taken from the `meta` translations of `src/i18n/fr.ts`, so link previews and search engines get them without running JavaScript. Every page shares the same link preview image, `public/og-image.png` (1200×630, under 300 kB, checked by `src/utils/pages.spec.ts`), composed from the home hero: update it when the hero changes. Cloudflare Pages serves these files at `/projects` and `/experiences`. A new route needs an entry in `PAGES` (`src/utils/pages.ts`).
 - **Language**: the generated pages are in French, the language of a first visit. The FR / EN toggle stores the visitor's choice in `localStorage` (`language` key, `src/i18n/storage.ts`), and the app reads it before its first render, so a reload or a later visit opens in that language, with the title, `lang` attribute and description to match. When the browser blocks the storage, the site opens in French, and a language chosen with the toggle only lasts until the next reload.
 - **Not found pages**: the plugin also emits `404.html`, with the "page not found" title and a `noindex` tag. Cloudflare Pages serves it with a real `404` status for any path that matches no file. The URL is kept, with no redirect, and the app shows its NotFound page. Because `404.html` exists, Cloudflare's single-page-app fallback is off, which is why every route needs its own HTML file.
+- **Code splitting**: the home page is in the main chunk, and every other page (`Projects`, `Experiences`, `NotFound`) is loaded with `React.lazy` on its first visit, from its own chunk named after its folder (`vite.config.ts`). The header stays on screen while a page loads. The burger icon loads the light build of `lottie-web` (SVG only) after the first render, so the animation never delays a page. Each deployment replaces the chunks of the previous one: a page opened before a deployment reloads once when it cannot load a chunk any more (`useReloadOnStaleChunk`, `src/App/hooks`), at most once a minute so a missing chunk never causes a loop. Import a lazily loaded page from its folder only, never through a shared barrel, which would put it back in the main chunk.
 - **Years of experience**: the number in the generated HTML files is computed at build time from `CAREER_START_DATE` (`src/utils/career.ts`), so it only changes with a new build. The workflow `.github/workflows/rebuild.yml` runs the CI on `main` on the first day of every month, which rebuilds and redeploys production, so the number is right from June 1st, the career anniversary. GitHub disables scheduled workflows after 60 days without activity on the repository: if that happens, re-enable it from the Actions tab. The app itself computes the number at runtime.
 - **Continuous integration**: the GitHub Actions workflow `.github/workflows/ci.yml` checks the formatting, lints, type-checks, tests and builds every push to `main` and `develop` and every pull request. The test job measures the coverage, adds its total to the job summary and keeps the HTML report as the `coverage` artifact for 14 days. The build job runs `pnpm size`, which adds the size of each script to the job summary and annotates the images to compress. The scripts behind these summaries live in `scripts/ci/`. On pull requests, it also checks the commit messages with commitlint (except Dependabot's) and runs GitHub's dependency review, which fails when a change brings in a dependency with a known vulnerability. The jobs that need the dependencies (format, lint, type-check, test, commit messages and build) install pnpm, Node.js and the dependencies with the composite action `.github/actions/setup`, which reads the versions from `package.json` and `.nvmrc` and caches the pnpm store. The other jobs (dependency review, credentials check, deployment and smoke test) do without. When everything passes, it deploys the build (see above).
 - **Dependency updates**: Dependabot (`.github/dependabot.yml`) opens weekly pull requests against `develop`: one for all minor and patch npm updates, one per major version, and one for the GitHub Actions. A release is only proposed once it is 7 days old, and pnpm applies the same rule to every install (`minimumReleaseAge` in `pnpm-workspace.yaml`), so a version published days ago never reaches the lockfile. Security updates target the default branch, `develop`, too.
@@ -134,8 +135,9 @@ The version follows the commits: `fix` bumps the patch version, `feat` the minor
 │   │   └── constants.mjs # Budgets, file patterns and smoke test settings
 │   └── tsconfig.json     # Type-checks the scripts, run by pnpm typecheck
 ├── src/
-│   ├── App/              # Root component, router and layout
+│   ├── App/              # Root component, router, layout and the lazy loading of the pages
 │   │   ├── DocumentMeta/ # <html lang>, title and description per route and language
+│   │   ├── hooks/        # useReloadOnStaleChunk: reloads once when a deployment removed a chunk
 │   │   └── Header/       # Logo, navigation, burger menu and LangToggle/ (FR / EN switch)
 │   ├── components/       # Components shared across pages
 │   │   ├── Page/         # Layout section that every page extends with styled(Page)
@@ -151,7 +153,7 @@ The version follows the commits: `fix` bumps the patch version, `feat` the minor
 │   ├── theme/            # Design tokens (tokens.ts, theme.ts) and global styles
 │   ├── utils/            # Career dates and page metadata helpers
 │   └── index.tsx         # Entry point
-├── vite/                 # Helpers of vite.config.ts: dev and preview ports
+├── vite/                 # Helpers of vite.config.ts: dev and preview ports, chunk names
 ├── index.html            # HTML template of every page, filled at build time by vite.config.ts
 └── vite.config.ts        # Vite, the plugin that writes one HTML file per page, Vitest and coverage
 ```
