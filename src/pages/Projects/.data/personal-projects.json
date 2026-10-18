@@ -2,7 +2,7 @@
   "projects": [
     {
       "id": 1,
-      "name": "Jeu d'echec",
+      "name": "Jeu d’échecs",
       "type": "Application web",
       "imageUrl": "/chess.webp",
       "url": "https://aissoufi.github.io/chess/",

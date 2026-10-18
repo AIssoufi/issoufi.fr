@@ -25,7 +25,7 @@ describe('App', () => {
       render(<App />);
 
       expect(await screen.findByText('404')).toBeInTheDocument();
-      expect(screen.getByText(`La page ${path} n'existe pas.`)).toBeInTheDocument();
+      expect(screen.getByText(`La page ${path} n’existe pas.`)).toBeInTheDocument();
       expect(window.location.pathname).toBe(path);
     },
   );

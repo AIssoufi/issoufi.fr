@@ -48,7 +48,7 @@ describe('renderPageHtml', () => {
   it('fills the home page metadata with the years of experience', () => {
     expect(renderPageHtml({ template, page: home, years: 8 })).toBe(
       '<title>ADAM Issoufi - Développeur full-stack JavaScript</title>' +
-        '<meta content="Développeur full-stack JavaScript avec 8 ans d\'expérience, spécialisé React.">' +
+        '<meta content="Développeur full-stack JavaScript avec 8 ans d’expérience, spécialisé React.">' +
         '<link href="https://issoufi.fr/">',
     );
   });
@@ -56,7 +56,7 @@ describe('renderPageHtml', () => {
   it('fills the metadata and URL of the other pages', () => {
     expect(renderPageHtml({ template, page: projects, years: 8 })).toBe(
       '<title>Projets - ADAM Issoufi</title>' +
-        '<meta content="Projets personnels et freelance d\'ADAM Issoufi, développeur full-stack JavaScript.">' +
+        '<meta content="Projets personnels et freelance d’ADAM Issoufi, développeur full-stack JavaScript.">' +
         '<link href="https://issoufi.fr/projects">',
     );
     expect(renderPageHtml({ template, page: experiences, years: 8 })).toContain(
@@ -126,7 +126,7 @@ describe('renderNotFoundHtml', () => {
     const page = renderNotFoundHtml({ template: html, years: 8 });
 
     expect(page).toContain('<title>Page introuvable - ADAM Issoufi</title>');
-    expect(page).toContain('content="Cette page n\'existe pas."');
+    expect(page).toContain('content="Cette page n’existe pas."');
     expect(page).not.toMatch(/%PAGE_\w+%/);
   });
 
@@ -164,7 +164,7 @@ describe('renderPageHtml edge cases', () => {
     const page = renderPageHtml({ template: '%PAGE_DESCRIPTION%', page: PAGES[1], years: 8 });
 
     expect(page).toBe(
-      "Projets personnels et freelance d'ADAM Issoufi, développeur full-stack JavaScript.",
+      'Projets personnels et freelance d’ADAM Issoufi, développeur full-stack JavaScript.',
     );
   });
 
