@@ -1,5 +1,5 @@
 import { Link } from 'react-router';
-import styled, { th } from '@xstyled/styled-components';
+import styled, { css, th } from '@xstyled/styled-components';
 
 export const Container = styled.section`
   display: flex;
@@ -40,7 +40,8 @@ export const Message = styled.p`
   line-height: ${th.lineHeight(150)};
 `;
 
-export const HomeLink = styled(Link)`
+/* Outlined pill shared by the home link and the action button, so both look the same. */
+const pillAction = css`
   margin-top: ${th.space(16)};
   padding: ${th.space(12)} ${th.space(28)};
   border: ${th.borderWidth('thin')} solid ${th.color('foreground-a40')};
@@ -55,5 +56,20 @@ export const HomeLink = styled(Link)`
   &:hover {
     border-color: ${th.color('accent')};
     color: ${th.color('accent')};
+  }
+`;
+
+export const HomeLink = styled(Link)`
+  ${pillAction}
+`;
+
+export const ActionButton = styled.button`
+  ${pillAction}
+  background-color: transparent;
+  font-family: inherit;
+
+  &:hover {
+    /* Stays still like the home link, unlike the other buttons of the site */
+    transform: none;
   }
 `;
