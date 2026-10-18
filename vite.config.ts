@@ -4,8 +4,8 @@ import svgr from 'vite-plugin-svgr';
 
 import { getYearsOfExperience } from './src/utils/career';
 import { NOT_FOUND_FILE_NAME, PAGES, renderNotFoundHtml, renderPageHtml } from './src/utils/pages';
-import { ALL_ENV_VARIABLES_PREFIX } from './vite/constants';
-import { getServerPorts } from './vite/utils';
+import { ALL_ENV_VARIABLES_PREFIX, ASSETS_DIR } from './vite/constants';
+import { getChunkName, getServerPorts } from './vite/utils';
 
 /**
  * Vite plugin that fills the metadata of `index.html` for the home page, then emits one HTML
@@ -64,6 +64,12 @@ export default defineConfig(({ mode }) => {
   return {
     base: '/',
     plugins: [react(), svgr(), pageMeta()],
+    build: {
+      rollupOptions: {
+        // The chunk of each lazily loaded page is named after its folder, not after its index file
+        output: { chunkFileNames: chunk => `${ASSETS_DIR}/${getChunkName(chunk)}-[hash].js` },
+      },
+    },
     // A taken port stops the server instead of moving it to the next free port, so a test never
     // reaches the server of another worktree by mistake
     server: {

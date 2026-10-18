@@ -1,4 +1,12 @@
-import { DEFAULT_DEV_PORT, MAX_PORT, MIN_PORT, PORT_PATTERN } from './constants';
+import {
+  DEFAULT_DEV_PORT,
+  FALLBACK_CHUNK_NAME,
+  INDEX_CHUNK_NAME,
+  MAX_PORT,
+  MIN_PORT,
+  PATH_SEPARATOR_PATTERN,
+  PORT_PATTERN,
+} from './constants';
 
 /** Environment variables, as Vite's `loadEnv` returns them. */
 type Env = Record<string, string | undefined>;
@@ -50,4 +58,37 @@ export const parsePort = (value: unknown): number | undefined => {
 export const getServerPorts = (env: Env = {}): ServerPorts => {
   const port = parsePort(env?.PORT);
   return { dev: port ?? DEFAULT_DEV_PORT, preview: port };
+};
+
+/** Chunk of the build, as Rollup passes it to `output.chunkFileNames`: the fields that name it. */
+interface ChunkNameInfo {
+  /** Name Rollup gives the chunk: the file name of its main module, without the extension. */
+  name?: string;
+  /** Path of the main module of the chunk, `null` for a chunk of modules shared by others. */
+  facadeModuleId?: string | null;
+}
+
+/**
+ * Names a chunk of the build after the folder of its main module when that module is an `index`
+ * file, so the chunk of a page loaded on its first visit, `src/pages/Projects/index.ts`, reads
+ * `Projects` rather than `index` in the build and in the size report of the CI.
+ *
+ * @param chunk - Chunk to name. Defaults to none.
+ * @returns The folder of the `index` module, the name Rollup gave otherwise, and
+ * {@link FALLBACK_CHUNK_NAME} when the chunk has no name.
+ *
+ * @example
+ * getChunkName({ name: 'index', facadeModuleId: '/app/src/pages/Projects/index.ts' }); // 'Projects'
+ * getChunkName({ name: 'lottie_light', facadeModuleId: '/app/node_modules/lottie_light.js' }); // 'lottie_light'
+ */
+export const getChunkName = ({ name, facadeModuleId }: ChunkNameInfo = {}): string => {
+  const hasName = typeof name === 'string' && name !== '';
+  if (!hasName) return FALLBACK_CHUNK_NAME;
+
+  const isIndexChunk = name === INDEX_CHUNK_NAME && typeof facadeModuleId === 'string';
+  if (!isIndexChunk) return name;
+
+  const folders = facadeModuleId.split(PATH_SEPARATOR_PATTERN).slice(0, -1);
+  const parentFolder = folders[folders.length - 1];
+  return parentFolder || name;
 };
