@@ -28,7 +28,7 @@ describe('waitForBurgerIcon', () => {
   it('rejects when the animation is never drawn', async () => {
     configure({ asyncUtilTimeout: SHORT_TIMEOUT_MS });
 
-    await expect(waitForBurgerIcon()).rejects.toThrow();
+    await expect(waitForBurgerIcon()).rejects.toThrow(/to be called at least once/);
   });
 
   it('rejects when lottie.loadAnimation is not spied on', async () => {
@@ -36,6 +36,6 @@ describe('waitForBurgerIcon', () => {
     configure({ asyncUtilTimeout: SHORT_TIMEOUT_MS });
     lottie.loadAnimation({});
 
-    await expect(waitForBurgerIcon()).rejects.toThrow();
+    await expect(waitForBurgerIcon()).rejects.toThrow(/is not a spy/);
   });
 });

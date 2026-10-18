@@ -188,6 +188,7 @@ The version follows the commits: `fix` bumps the patch version, `feat` the minor
 │   ├── utils/            # Career dates and page metadata helpers
 │   ├── index.tsx         # Entry point
 │   ├── setupTests.ts     # Test setup: theme around every render, no canvas, fails on console.error
+│   ├── testErrors.ts     # describeLoggedErrors: the failure message of a test that logs an error
 │   └── testUtils.tsx     # withTheme: the theme and global styles wrapper of the tests
 ├── vite/                 # Helpers of vite.config.ts and playwright.config.ts: dev and preview ports, chunk names, page chunks
 ├── index.html            # HTML template of every page, filled at build time by vite.config.ts

@@ -3,7 +3,7 @@ import type { RenderOptions } from '@testing-library/react';
 import type { ReactNode } from 'react';
 import { afterEach, vi } from 'vitest';
 import './i18n/index';
-import { describeLoggedErrors } from './testUtils';
+import { describeLoggedErrors } from './testErrors';
 
 // jsdom ignores the inert attribute: like a browser, refuse the focus to an element inside an
 // inert subtree, so that keyboard tests see the focus stay out of it. The specs that run in the
