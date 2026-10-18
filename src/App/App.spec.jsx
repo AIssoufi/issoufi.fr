@@ -1,5 +1,6 @@
-import { cleanup, render, screen } from '@testing-library/react';
+import { cleanup, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import lottie from 'lottie-web/build/player/lottie_light';
 
 import { LANGUAGE_STORAGE_KEY } from '../i18n/constants';
 import App from './App';
@@ -13,8 +14,25 @@ const reloadI18n = async () => {
 const description = () =>
   document.querySelector('meta[name="description"]').getAttribute('content');
 
+/**
+ * Waits for the burger icon animation of the header, drawn once lottie-web is loaded, so that
+ * this update never lands outside `act` after the test.
+ */
+const waitForBurgerIcon = () => waitFor(() => expect(lottie.loadAnimation).toHaveBeenCalled());
+
+/** Renders the app, or the given version of it, then waits for the burger icon animation. */
+const renderApp = async (app = <App />) => {
+  render(app);
+  await waitForBurgerIcon();
+};
+
 describe('App', () => {
+  beforeEach(() => {
+    vi.spyOn(lottie, 'loadAnimation');
+  });
+
   afterEach(() => {
+    vi.restoreAllMocks();
     window.history.pushState({}, '', '/');
   });
 
@@ -22,7 +40,7 @@ describe('App', () => {
     'shows the not found page at %s without redirecting',
     async path => {
       window.history.pushState({}, '', path);
-      render(<App />);
+      await renderApp();
 
       expect(await screen.findByText('404')).toBeInTheDocument();
       expect(screen.getByText(`La page ${path} n’existe pas.`)).toBeInTheDocument();
@@ -32,7 +50,7 @@ describe('App', () => {
 
   it('does not render the not found page for known routes', async () => {
     window.history.pushState({}, '', '/experiences');
-    render(<App />);
+    await renderApp();
 
     expect(await screen.findByRole('heading', { name: 'Expériences' })).toBeInTheDocument();
     expect(screen.queryByText('404')).not.toBeInTheDocument();
@@ -43,20 +61,21 @@ describe('App', () => {
     ['/experiences', 'Expériences'],
   ])('loads the page at %s on a direct visit', async (path, heading) => {
     window.history.pushState({}, '', path);
-    render(<App />);
+    await renderApp();
 
     expect(await screen.findByRole('heading', { name: heading })).toBeInTheDocument();
   });
 
-  it('renders the home page at once, without waiting for a chunk', () => {
+  it('renders the home page at once, without waiting for a chunk', async () => {
     render(<App />);
 
     expect(screen.getByRole('link', { name: 'Voir mes projets' })).toBeInTheDocument();
+    await waitForBurgerIcon();
   });
 
   it('loads the other pages on navigation', async () => {
     const user = userEvent.setup();
-    render(<App />);
+    await renderApp();
 
     await user.click(screen.getByRole('link', { name: 'Voir mes projets' }));
 
@@ -64,9 +83,9 @@ describe('App', () => {
     expect(window.location.pathname).toBe('/projects');
   });
 
-  it('lets the page column shrink to the screen width', () => {
+  it('lets the page column shrink to the screen width', async () => {
     // A plain 1fr column grows to its widest content and makes narrow screens scroll sideways
-    render(<App />);
+    await renderApp();
 
     expect(getComputedStyle(screen.getByTestId('app')).gridTemplateColumns).toBe('minmax(0, 1fr)');
   });
@@ -74,7 +93,7 @@ describe('App', () => {
   describe('focus after a navigation', () => {
     it('leaves the focus alone on the first load', async () => {
       window.history.pushState({}, '', '/projects');
-      render(<App />);
+      await renderApp();
 
       expect(await screen.findByRole('heading', { name: 'Projets personnels' })).not.toHaveFocus();
       expect(document.body).toHaveFocus();
@@ -82,7 +101,7 @@ describe('App', () => {
 
     it('moves the focus to the new page after a link of the mobile menu is chosen with the keyboard', async () => {
       const user = userEvent.setup();
-      render(<App />);
+      await renderApp();
       screen.getByRole('button', { name: 'Ouvrir le menu' }).focus();
 
       await user.keyboard('{Enter}');
@@ -100,7 +119,7 @@ describe('App', () => {
 
     it('moves the focus to the new page after a link of the page is chosen with the keyboard', async () => {
       const user = userEvent.setup();
-      render(<App />);
+      await renderApp();
       screen.getByRole('link', { name: 'Expériences professionnelles' }).focus();
 
       await user.keyboard('{Enter}');
@@ -110,7 +129,7 @@ describe('App', () => {
 
     it('draws no focus ring around the heading, which is not a control', async () => {
       const user = userEvent.setup();
-      render(<App />);
+      await renderApp();
       screen.getByRole('link', { name: 'Voir mes projets' }).focus();
 
       await user.keyboard('{Enter}');
@@ -164,7 +183,7 @@ describe('App', () => {
         }),
       });
       window.history.pushState({}, '', '/experiences');
-      render(<AppWithFailingPage />);
+      await renderApp(<AppWithFailingPage />);
 
       expect(
         await screen.findByRole('heading', { name: 'Une erreur est survenue' }),
@@ -191,7 +210,7 @@ describe('App', () => {
         },
       });
       window.history.pushState({}, '', '/projects');
-      render(<AppWithFailingPage />);
+      await renderApp(<AppWithFailingPage />);
 
       expect(
         await screen.findByRole('heading', { name: 'Une erreur est survenue' }),
@@ -215,6 +234,8 @@ describe('App', () => {
     });
 
     afterEach(async () => {
+      // Unmounts first, so that the language reset below updates no mounted page
+      cleanup();
       vi.restoreAllMocks();
       localStorage.clear();
       await reloadI18n();
@@ -222,7 +243,7 @@ describe('App', () => {
 
     it('opens in French on a first visit', async () => {
       await reloadI18n();
-      render(<App />);
+      await renderApp();
 
       expect(screen.getByRole('heading', { name: 'Projets personnels' })).toBeInTheDocument();
       expect(document.documentElement.lang).toBe('fr');
@@ -233,7 +254,7 @@ describe('App', () => {
       localStorage.setItem(LANGUAGE_STORAGE_KEY, 'en');
 
       await reloadI18n();
-      render(<App />);
+      await renderApp();
 
       expect(screen.getByRole('heading', { name: 'Personal projects' })).toBeInTheDocument();
       expect(screen.getByRole('button', { name: 'English' })).toHaveAttribute(
@@ -254,7 +275,7 @@ describe('App', () => {
       });
 
       await reloadI18n();
-      render(<App />);
+      await renderApp();
 
       expect(screen.getByRole('heading', { name: 'Projets personnels' })).toBeInTheDocument();
       expect(document.documentElement.lang).toBe('fr');
