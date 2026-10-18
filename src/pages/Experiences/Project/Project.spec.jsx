@@ -32,4 +32,23 @@ describe('Project', () => {
     expect(screen.queryByRole('button')).not.toBeInTheDocument();
     expect(screen.getByText('Espace licencié de la FFBaD')).toBeVisible();
   });
+
+  it.each([
+    ['a title only', { title: 'MyFFBaD' }],
+    ['a state only', { state: 'En production' }],
+  ])('renders the header with %s', (_, props) => {
+    const { container } = render(<Project {...props} />);
+
+    expect(container.querySelector('header')).toBeInTheDocument();
+  });
+
+  it.each([
+    ['no title and no state', {}],
+    ['an empty title and state', { title: '', state: '' }],
+  ])('leaves out the header with %s', (_, props) => {
+    const { container } = render(<Project {...props}>Espace licencié de la FFBaD</Project>);
+
+    expect(container.querySelector('header')).not.toBeInTheDocument();
+    expect(screen.getByText('Espace licencié de la FFBaD')).toBeInTheDocument();
+  });
 });
