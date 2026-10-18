@@ -6,6 +6,8 @@ const NORMAL_SPACE_BEFORE_PUNCTUATION = / [:;?!]/;
 const NARROW_SPACE_BEFORE_COLON = /\u202f:/;
 /** A semicolon, question or exclamation mark after a full-width no-break space, not a narrow one. */
 const FULL_SPACE_BEFORE_SHORT_PUNCTUATION = /\u00a0[;?!]/;
+/** A straight apostrophe, instead of the typographic one (\u2019). */
+const STRAIGHT_APOSTROPHE = /'/;
 
 /** Parameters of {@link getEntries}. */
 interface GetEntriesParams {
@@ -33,7 +35,12 @@ const getKeysMatching = (pattern: RegExp) =>
 
 describe('fr', () => {
   it('finds every nested translation', () => {
-    expect(getEntries({ value: fr })).toContainEqual(['home.title2Pre', "passionné par l'"]);
+    expect(getEntries({ value: fr })).toContainEqual(['home.title2Pre', 'passionné par l’']);
+  });
+
+  it('uses typographic apostrophes only', () => {
+    expect(getKeysMatching(STRAIGHT_APOSTROPHE)).toEqual([]);
+    expect(fr.errors.backHome).toBe('Retour à l’accueil');
   });
 
   it('keeps colons, semicolons, question and exclamation marks on the line of their word', () => {

@@ -1,4 +1,5 @@
 import i18n from '../../../i18n';
+import { fr } from '../../../i18n/fr';
 import { computeDuration, formatDuration, parseMonthYear } from './duration';
 
 describe('computeDuration', () => {
@@ -65,15 +66,21 @@ describe('computeDuration', () => {
       vi.useRealTimers();
     });
 
-    it.each(["Aujourd'hui", 'auj.', 'auj', 'Present', 'pres.', 'today', '  Present '])(
-      'counts up to now for %j',
-      endDate => {
-        expect(computeDuration({ startDate: 'juin 2025', endDate })).toEqual({
-          years: 1,
-          months: 4,
-        });
-      },
-    );
+    it.each([
+      "Aujourd'hui",
+      'Aujourd’hui',
+      'auj.',
+      'auj',
+      'Present',
+      'pres.',
+      'today',
+      '  Present ',
+    ])('counts up to now for %j', endDate => {
+      expect(computeDuration({ startDate: 'juin 2025', endDate })).toEqual({
+        years: 1,
+        months: 4,
+      });
+    });
   });
 });
 
@@ -168,6 +175,11 @@ describe('parseMonthYear', () => {
     expect(parseMonthYear('Present')).toEqual(new Date(2026, 9, 17));
 
     vi.useRealTimers();
+  });
+
+  it('recognizes the end date of the current jobs in the French copy', () => {
+    expect(parseMonthYear(fr.exp.sewanLead.end)).not.toBeNull();
+    expect(parseMonthYear(fr.exp.sewanSenior.end)).not.toBeNull();
   });
 
   it.each([undefined, '', '   ', 'foo 2021', 'juin', '2021', 'juin 2021 bis', 'juin 20x1'])(

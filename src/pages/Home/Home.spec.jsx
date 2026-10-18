@@ -33,7 +33,7 @@ describe('Home', () => {
     renderHome();
 
     expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent(
-      "passionné par l'UX et l'UI Design",
+      'passionné par l’UX et l’UI Design',
     );
     expect(screen.getByText('UX')).toBeInTheDocument();
     expect(screen.getByText('UI')).toBeInTheDocument();
