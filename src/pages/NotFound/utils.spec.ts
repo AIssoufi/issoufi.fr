@@ -135,6 +135,14 @@ describe('getDisplayedPath', () => {
     expect(getDisplayedPath(encodedPath)).toBe(
       `/${'é'.repeat(MAX_DISPLAYED_PATH_LENGTH_CHARS - 1)}`,
     );
+    expect(getDisplayedPath(`${encodedPath}%C3%A9`)).toBe(
+      `/${'é'.repeat(MAX_DISPLAYED_PATH_LENGTH_CHARS - 2)}${ELLIPSIS}`,
+    );
+  });
+
+  it('counts an invisible character as its escapes, which the cut may split', () => {
+    const start = `/${'a'.repeat(MAX_DISPLAYED_PATH_LENGTH_CHARS - 5)}`;
+    expect(getDisplayedPath(`${start}%E2%80%8B`)).toBe(`${start}%E2${ELLIPSIS}`);
   });
 
   it.each([undefined, null, 404])('returns an empty string for %j', path => {

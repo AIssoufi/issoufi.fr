@@ -30,9 +30,10 @@ export const decodePath = (path?: string | null): string => {
 };
 
 /**
- * Percent-encodes the control and format characters of a text ({@link INVISIBLE_CHARACTER_PATTERN}),
- * such as a zero width space or a right-to-left override, so that they show as escapes instead of
- * hiding or reordering the rest of the text. The joiner inside an emoji sequence is encoded too.
+ * Percent-encodes the control and format characters of a text
+ * ({@link INVISIBLE_CHARACTER_PATTERN}), such as a zero width space or a right-to-left override, so
+ * that they show as escapes instead of hiding or reordering the rest of the text. The joiner inside
+ * an emoji sequence is encoded too.
  *
  * @param text - Text to encode, such as a decoded path.
  * @returns The text with each of these characters replaced by its UTF-8 escapes (`%E2%80%8B`), and
@@ -63,7 +64,8 @@ interface TruncateTextParams {
  * Cuts a text longer than a number of characters, and ends it with {@link ELLIPSIS}.
  *
  * @returns The text as given when it fits, otherwise its start followed by the ellipsis, in
- * `maxLength` characters; an empty string for a `maxLength` below 1 or a text that is not a string.
+ * `maxLength` characters; an empty string for a `maxLength` from 0 to below 1, or for a text that
+ * is not a string.
  *
  * @example
  * truncateText({ text: '/projets/2024', maxLength: 8 }); // '/projet…'
@@ -86,7 +88,8 @@ export const truncateText = ({ text, maxLength }: TruncateTextParams = {}): stri
 /**
  * Turns the path of the current location into the text that the not found page names: decoded
  * ({@link decodePath}), with its control and format characters left encoded
- * ({@link encodeInvisibleCharacters}), and cut to {@link MAX_DISPLAYED_PATH_LENGTH_CHARS}.
+ * ({@link encodeInvisibleCharacters}), and cut to {@link MAX_DISPLAYED_PATH_LENGTH_CHARS}. The cut
+ * counts the escapes as they show, and may fall inside one, which then shows in part.
  *
  * @param path - Path of the current location, as the URL encodes it.
  * @returns The path to show, and an empty string when it is not a string.
