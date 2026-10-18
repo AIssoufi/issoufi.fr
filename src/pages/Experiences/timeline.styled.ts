@@ -21,7 +21,7 @@ export const companyBlock = css`
 
   &::before {
     ${timelineDot}
-    left: -1px; /* centered on the line at left: 5px (5 - 6 = -1) */
+    left: -2px; /* centered on the 2px line at left: 5px, whose middle is at 6px (6 - 8 = -2) */
     top: ${th.space(18)};
   }
 
