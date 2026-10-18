@@ -1,19 +1,17 @@
-import styled, { keyframes, th } from '@xstyled/styled-components';
+import styled, { css, keyframes, th } from '@xstyled/styled-components';
 
-import { Page } from '../../App/App.styled';
+import Page from '../../components/Page';
+import { theme } from '../../theme';
+import { CURSOR_GLOW_RADIUS_PX } from './constants';
 
+// Keyframes have no theme context, so they read the theme object rather than the th helpers
 const float = keyframes`
   0%, 100% { transform: translateY(0px); }
-  50%       { transform: translateY(-10px); }
-`;
-
-const textFlow = keyframes`
-  0%   { background-position: 200% center; }
-  100% { background-position: -200% center; }
+  50%       { transform: translateY(-${theme.space[10]}); }
 `;
 
 const fadeUp = keyframes`
-  from { opacity: 0; transform: translateY(20px); }
+  from { opacity: 0; transform: translateY(${theme.space[20]}); }
   to   { opacity: 1; transform: translateY(0); }
 `;
 
@@ -28,8 +26,8 @@ export const CursorGlow = styled.div`
   position: fixed;
   top: 0;
   left: 0;
-  width: 40px;
-  height: 40px;
+  width: ${CURSOR_GLOW_RADIUS_PX * 2}px;
+  height: ${CURSOR_GLOW_RADIUS_PX * 2}px;
   border-radius: ${th.radius('circle')};
   border: ${th.borderWidth('thin')} solid ${th.color('accent-a65')};
   background: radial-gradient(circle, ${th.color('accent-a10')} 0%, transparent 70%);
@@ -47,9 +45,9 @@ export const Content = styled.div`
   will-change: transform;
 `;
 
-export const Main = styled.main`
+export const Intro = styled.div`
   text-align: center;
-  max-width: 640px;
+  max-width: ${th.size(640)};
   animation: ${float} ${th.duration(7000)} ${th.timingFunction('inOut')} infinite;
   animation-delay: ${th.duration(500)};
 `;
@@ -64,33 +62,6 @@ export const Title = styled.h1`
 
   @media (min-width: ${th('screens.tablet')}) {
     font-size: ${th.fontSize(22)};
-  }
-`;
-
-export const StrongWord = styled.span<{ $delay: string; $reverse: boolean }>`
-  display: inline-block;
-  will-change: transform;
-  font-size: ${th.fontSize(28)};
-  font-weight: ${th.fontWeight('bold')};
-  letter-spacing: ${th.letterSpacing('tight')};
-  background: linear-gradient(
-    90deg,
-    ${th.color('foreground')} 0%,
-    ${th.color('foreground')} 30%,
-    ${th.color('accent-soft')} 50%,
-    ${th.color('foreground')} 70%,
-    ${th.color('foreground')} 100%
-  );
-  background-size: 300% auto;
-  background-clip: text;
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  animation: ${textFlow} ${th.duration(5000)} ${th.timingFunction('linear')} infinite;
-  animation-delay: ${({ $delay }) => $delay};
-  animation-direction: ${({ $reverse }) => ($reverse ? 'reverse' : 'normal')};
-
-  @media (min-width: ${th('screens.tablet')}) {
-    font-size: ${th.fontSize(42)};
   }
 `;
 
@@ -110,10 +81,15 @@ export const Subtitle = styled.p`
 export const ButtonContainer = styled.div`
   display: flex;
   flex-direction: column;
-  align-items: center;
+  /* Mobile: both buttons take the width of the widest one */
+  align-items: stretch;
   padding-top: ${th.space(56)};
   gap: ${th.space(14)};
   animation: ${fadeUp} ${th.duration(900)} ${th.timingFunction('standard')} ${th.duration(400)} both;
+
+  @media (min-width: ${th('screens.tablet')}) {
+    align-items: center;
+  }
 `;
 
 export const MagneticWrapper = styled.div`
@@ -123,8 +99,11 @@ export const MagneticWrapper = styled.div`
 
 export const Btn = styled.a<{ $callToAction?: boolean }>`
   display: flex;
+  flex-grow: 1;
   align-items: center;
   justify-content: center;
+  /* Mobile: a label too long for the screen wraps, centered, instead of widening the page */
+  text-align: center;
   font-size: ${th.fontSize(14)};
   font-weight: ${th.fontWeight('medium')};
   letter-spacing: ${th.letterSpacing(5)};
@@ -132,13 +111,18 @@ export const Btn = styled.a<{ $callToAction?: boolean }>`
   border-radius: ${th.radius('pill')};
   border: ${th.borderWidth('thin')} solid
     ${props => (props.$callToAction ? th.color('accent') : th.color('foreground-a40'))};
-  width: max-content;
-  min-width: 240px;
-  padding: ${th.space(13)} ${th.space(32)};
+  padding: ${th.space(13)} ${th.space(20)};
   background-color: ${props => (props.$callToAction ? th.color('accent') : 'transparent')};
   color: ${th.color('foreground')};
   transition-property: background-color, color, border-color, box-shadow;
   transition-duration: ${th.duration('base')};
+
+  @media (min-width: ${th('screens.tablet')}) {
+    width: max-content;
+    /* 240px for the label, plus the side paddings and the borders, which border-box includes */
+    min-width: calc(${th.size(240)} + 2 * ${th.space(32)} + 2 * ${th.borderWidth('thin')});
+    padding: ${th.space(13)} ${th.space(32)};
+  }
 
   &:hover {
     color: ${th.color('foreground')};
@@ -148,11 +132,11 @@ export const Btn = styled.a<{ $callToAction?: boolean }>`
 
   ${props =>
     !props.$callToAction &&
-    `
-    &:hover {
-      background-color: ${th.color('foreground')};
-      color: ${th.color('background')};
-      border-color: ${th.color('foreground')};
-    }
-  `}
+    css`
+      &:hover {
+        background-color: ${th.color('foreground')};
+        color: ${th.color('background')};
+        border-color: ${th.color('foreground')};
+      }
+    `}
 `;

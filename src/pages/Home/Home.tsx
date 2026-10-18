@@ -1,9 +1,10 @@
 import { useRef } from 'react';
-import { Link } from 'react-router-dom';
+import { Link } from 'react-router';
 import { useTranslation } from 'react-i18next';
 
 import { ParticleField } from './ParticleField';
 import { SplitWords } from './SplitWords';
+import { BACKGROUND_IMAGE_URL } from './constants';
 import { useCursorFollower } from './hooks/useCursorFollower';
 import { useMagneticHover } from './hooks/useMagneticHover';
 import { useParallax } from './hooks/useParallax';
@@ -13,13 +14,11 @@ import {
   Content,
   CursorGlow,
   HomePage,
+  Intro,
   MagneticWrapper,
-  Main,
   Subtitle,
   Title,
 } from './Home.styled';
-
-const BACKGROUND_IMAGE_URL = '/home.jpeg';
 
 /**
  * Home page: the animated job title and subtitle, with links to the projects and experiences
@@ -41,11 +40,11 @@ export const Home = () => {
   const jobTitleWordCount = jobTitle.split(' ').length;
 
   return (
-    <HomePage $backgroundImage={BACKGROUND_IMAGE_URL}>
+    <HomePage backgroundImage={BACKGROUND_IMAGE_URL}>
       <ParticleField />
       <CursorGlow ref={cursorRef} />
       <Content ref={contentRef}>
-        <Main>
+        <Intro>
           <Title>
             <SplitWords startIndex={0}>{jobTitle}</SplitWords>
             <br />
@@ -56,7 +55,7 @@ export const Home = () => {
             {t('home.title2Post')}
           </Title>
           <Subtitle>{t('home.subtitle')}</Subtitle>
-        </Main>
+        </Intro>
         <ButtonContainer>
           <MagneticWrapper {...magneticHover}>
             <Btn

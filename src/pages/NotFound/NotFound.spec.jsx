@@ -1,5 +1,5 @@
 import { render, screen } from '@testing-library/react';
-import { MemoryRouter } from 'react-router-dom';
+import { MemoryRouter } from 'react-router';
 
 import { NotFound } from './NotFound';
 
@@ -16,8 +16,15 @@ describe('NotFound', () => {
 
     expect(screen.getByText('404')).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: 'Page introuvable' })).toBeInTheDocument();
-    expect(screen.getByText("La page /skills n'existe pas.")).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: "Retour à l'accueil" })).toHaveAttribute('href', '/');
+    expect(screen.getByText('La page /skills n’existe pas.')).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Retour à l’accueil' })).toHaveAttribute('href', '/');
+  });
+
+  it('has a single main landmark and a single level 1 heading', () => {
+    renderAt('/skills');
+
+    expect(screen.getAllByRole('main')).toHaveLength(1);
+    expect(screen.getAllByRole('heading', { level: 1 })).toHaveLength(1);
   });
 
   it('accepts a custom title and message', () => {

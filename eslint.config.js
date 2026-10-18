@@ -6,7 +6,7 @@ import globals from 'globals';
 import tseslint from 'typescript-eslint';
 
 export default defineConfig([
-  globalIgnores(['dist', 'coverage']),
+  globalIgnores(['dist', 'coverage', 'test-results', 'playwright-report']),
   {
     files: ['**/*.{ts,tsx}'],
     extends: [
@@ -40,7 +40,37 @@ export default defineConfig([
                 'Import styled, css, keyframes, th and the other styled-components APIs from @xstyled/styled-components.',
             },
           ],
+          patterns: [
+            {
+              // A component's style file (Name.styled), anywhere but in the importing folder.
+              // Shared style modules (timeline.styled) at the root of a parent stay allowed.
+              regex: String.raw`^(?!\./[^/]*$)(.*/)?[A-Z][^/]*\.styled$`,
+              caseSensitive: true,
+              message:
+                'Only a component imports its own styles: move what several components share to the root of their parent, or to src/components/ when pages share it.',
+            },
+          ],
         },
+      ],
+    },
+  },
+  {
+    // The global style removes the bullets of every ul, and Safari then exposes it as a list only
+    // with role="list", which List sets
+    files: ['src/**/*.{ts,tsx}'],
+    ignores: ['src/components/List/List.tsx'],
+    rules: {
+      'no-restricted-syntax': [
+        'error',
+        ...[
+          "MemberExpression[object.name='styled'][property.name='ul']",
+          "CallExpression[callee.name='styled'][arguments.0.value='ul']",
+          "JSXOpeningElement[name.name='ul']",
+        ].map(selector => ({
+          selector,
+          message:
+            'Render lists with List (src/components/List), or extend it with styled(List): Safari only exposes a ul without bullets as a list with role="list", which List sets.',
+        })),
       ],
     },
   },

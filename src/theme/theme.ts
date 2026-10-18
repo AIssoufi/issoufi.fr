@@ -1,60 +1,75 @@
 import {
   alphaVariants,
   blurs,
+  breakpoints,
   durations,
+  easings,
+  fontFamilies,
   fontSizes,
+  fontWeights,
   letterSpacings,
   lineHeights,
+  measures,
   palette,
+  radii,
+  relativeSpacing,
   rgb,
+  shadowShapes,
+  sizes,
   spacing,
+  zIndices,
 } from './tokens';
+
+/** White translucent fills, borders and glows. */
+const foregroundAlphas = alphaVariants({
+  name: 'foreground',
+  rgb: rgb.white,
+  opacities: [4, 5, 6, 8, 9, 10, 15, 18, 20, 25, 35, 40, 50, 55, 65, 70, 72, 80, 85] as const,
+});
+
+/** Semantic colors, named by role; the borders and shadows of the theme read them too. */
+const colors = {
+  /** Text and icons on the dark background. */
+  foreground: palette.white,
+  'foreground-secondary': palette.gray200,
+  'foreground-muted': palette.gray400,
+  /** Low-contrast text such as technology chips. */
+  'foreground-subtle': palette.lavenderGray60,
+  ...foregroundAlphas,
+  background: palette.black,
+  /** Translucent card and panel fill. */
+  surface: foregroundAlphas['foreground-a6'],
+  /** Brand plum: active states, highlights, glows. */
+  accent: palette.plum,
+  ...alphaVariants({
+    name: 'accent',
+    rgb: rgb.plum,
+    opacities: [10, 15, 20, 25, 30, 35, 40, 55, 60, 65, 70, 85, 90] as const,
+  }),
+  /** Light pink companion of the accent: gradients, timeline dots, soft glows. */
+  'accent-soft': palette.pink,
+  ...alphaVariants({ name: 'accent-soft', rgb: rgb.pink, opacities: [65, 85, 95] as const }),
+  /** Black translucent layers: shadows, scrims, button backgrounds over images. */
+  ...alphaVariants({
+    name: 'shade',
+    rgb: rgb.black,
+    opacities: [0, 30, 35, 40, 45, 50, 55, 80] as const,
+  }),
+  /** Positive status, e.g. the "in production" badge. */
+  success: palette.mint85,
+  ...alphaVariants({ name: 'success', rgb: rgb.green, opacities: [10, 20] as const }),
+  /** Background of the full-screen mobile menu. */
+  'overlay-mobile-menu': palette.deepViolet92,
+} as const;
 
 /**
  * Semantic design tokens of the site, following the xstyled theme conventions (`colors`,
  * `space`, `fontSizes`, `radii`, `shadows`…). Styled-components read them with the `th` helpers
- * of `@xstyled/styled-components`, e.g. `th.color('accent')` or `th.space(16)`. Values come from
- * the primitive scales of `tokens.ts`; names describe roles.
+ * of `@xstyled/styled-components`, e.g. `th.color('accent')` or `th.space(16)`. Every value comes
+ * from the primitive scales of `tokens.ts`, which `theme.spec.jsx` checks; names describe roles.
  */
 export const theme = {
-  colors: {
-    /** Text and icons on the dark background. */
-    foreground: palette.white,
-    'foreground-secondary': palette.gray200,
-    'foreground-muted': palette.gray400,
-    /** Low-contrast text such as technology chips. */
-    'foreground-subtle': palette.lavenderGray60,
-    /** White translucent fills, borders and glows. */
-    ...alphaVariants({
-      name: 'foreground',
-      rgb: rgb.white,
-      opacities: [4, 5, 6, 8, 9, 10, 15, 18, 20, 25, 35, 40, 50, 55, 65, 70, 72, 80, 85] as const,
-    }),
-    background: palette.black,
-    /** Translucent card and panel fill. */
-    surface: `rgba(${rgb.white}, 0.06)`,
-    /** Brand plum: active states, highlights, glows. */
-    accent: palette.plum,
-    ...alphaVariants({
-      name: 'accent',
-      rgb: rgb.plum,
-      opacities: [10, 15, 20, 25, 30, 35, 40, 55, 60, 65, 70, 85, 90] as const,
-    }),
-    /** Light pink companion of the accent: gradients, timeline dots, soft glows. */
-    'accent-soft': palette.pink,
-    ...alphaVariants({ name: 'accent-soft', rgb: rgb.pink, opacities: [65, 85, 95] as const }),
-    /** Black translucent layers: shadows, scrims, button backgrounds over images. */
-    ...alphaVariants({
-      name: 'shade',
-      rgb: rgb.black,
-      opacities: [0, 30, 35, 40, 45, 50, 55, 80, 85] as const,
-    }),
-    /** Positive status, e.g. the "in production" badge. */
-    success: palette.mint85,
-    ...alphaVariants({ name: 'success', rgb: rgb.green, opacities: [10, 20] as const }),
-    /** Background of the full-screen mobile menu. */
-    'overlay-mobile-menu': palette.deepViolet92,
-  },
+  colors,
   /** RGB channels of some colors, for canvas drawings with a computed opacity. */
   colorChannels: {
     accent: rgb.plum,
@@ -64,83 +79,88 @@ export const theme = {
     /** Horizontal padding of every page and of the header. */
     page: spacing[24],
     /** Gap between an icon and its label, relative to the font size. */
-    'icon-gap': '0.7em',
+    'icon-gap': relativeSpacing[70],
   },
   sizes: {
+    ...sizes,
     /** Largest width of the app container. */
-    container: '1440px',
+    container: sizes[1440],
+    /** Side of the burger icon of the mobile menu, kept while its animation loads. */
+    'burger-icon': sizes[50],
+    /** Largest width of the text of a status message, short enough to read at a glance. */
+    message: measures[40],
   },
   fonts: {
-    body: "'Montserrat', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif",
-    display: "'Saira Stencil One', cursive",
-    code: "source-code-pro, Menlo, Monaco, Consolas, 'Courier New', monospace",
+    body: fontFamilies.montserrat,
+    display: fontFamilies.sairaStencilOne,
+    code: fontFamilies.sourceCodePro,
   },
   fontSizes,
-  fontWeights: { light: 300, regular: 400, medium: 500, semibold: 600, bold: 700, extrabold: 800 },
+  fontWeights,
   letterSpacings,
   lineHeights,
   radii: {
-    0: '0',
-    1: '1px',
-    2: '2px',
-    sm: '8px',
-    md: '12px',
-    20: '20px',
-    24: '24px',
-    30: '30px',
+    0: radii[0],
+    1: radii[1],
+    2: radii[2],
+    sm: radii[8],
+    md: radii[12],
+    20: radii[20],
+    24: radii[24],
+    30: radii[30],
     /** Fully rounded ends for buttons and badges. */
-    pill: '60px',
-    circle: '50%',
+    pill: radii[60],
+    circle: radii.half,
   },
-  borderWidths: { thin: '1px', thick: '2px' },
+  borderWidths: { thin: sizes[1], thick: sizes[2] },
   borders: {
     /** Hairline border of cards and panels. */
-    card: `1px solid rgba(${rgb.white}, 0.1)`,
+    card: `${sizes[1]} solid ${colors['foreground-a10']}`,
   },
   shadows: {
-    card: `0 4px 24px rgba(${rgb.black}, 0.3)`,
-    cardHover: `0 8px 32px rgba(${rgb.black}, 0.4)`,
-    accentGlow: `0 0 10px rgba(${rgb.plum}, 0.55)`,
-    accentGlowFaint: `0 0 10px rgba(${rgb.plum}, 0.25)`,
-    accentGlowWide: `0 0 16px rgba(${rgb.plum}, 0.3)`,
-    accentGlowStrong: `0 0 28px rgba(${rgb.plum}, 0.65)`,
-    accentHalo: `0 4px 28px rgba(${rgb.plum}, 0.2)`,
-    lightGlow: `0 0 16px rgba(${rgb.white}, 0.15)`,
+    card: `${shadowShapes['4-24']} ${colors['shade-a30']}`,
+    cardHover: `${shadowShapes['8-32']} ${colors['shade-a40']}`,
+    accentGlow: `${shadowShapes['0-10']} ${colors['accent-a55']}`,
+    accentGlowFaint: `${shadowShapes['0-10']} ${colors['accent-a25']}`,
+    accentGlowWide: `${shadowShapes['0-16']} ${colors['accent-a30']}`,
+    accentGlowStrong: `${shadowShapes['0-28']} ${colors['accent-a65']}`,
+    accentHalo: `${shadowShapes['4-28']} ${colors['accent-a20']}`,
+    lightGlow: `${shadowShapes['0-16']} ${colors['foreground-a15']}`,
   },
   /** Background blurs for frosted-glass panels. Not an xstyled namespace: use `th('blurs.8')`. */
   blurs,
   durations: { ...durations, base: durations[250] },
   timingFunctions: {
-    standard: 'ease',
-    linear: 'linear',
-    inOut: 'ease-in-out',
+    standard: easings.ease,
+    linear: easings.linear,
+    inOut: easings.easeInOut,
     /** Overshooting ease for playful pops. */
-    spring: 'cubic-bezier(0.34, 1.56, 0.64, 1)',
+    spring: easings.easeOutBack,
     /** Fast start, long gentle stop, for elements coming back to rest. */
-    out: 'cubic-bezier(0.23, 1, 0.32, 1)',
+    out: easings.easeOutQuint,
   },
   zIndices: {
     /** Background photo of a page. */
-    pageBackground: -2,
+    pageBackground: zIndices[-2],
     /** Darkening layer over the page background, and decorations behind their parent. */
-    behind: -1,
-    base: 0,
+    behind: zIndices[-1],
+    base: zIndices[0],
     /** Local stacking inside a component. */
-    raised: 1,
-    raisedMore: 2,
-    raisedMost: 3,
+    raised: zIndices[1],
+    raisedMore: zIndices[2],
+    raisedMost: zIndices[3],
     /** Full-screen mobile menu and floating language toggle. */
-    overlay: 9,
+    overlay: zIndices[9],
     /** Header and burger icon, above the mobile menu. */
-    header: 11,
+    header: zIndices[11],
     /** Cursor glow, above everything. */
-    cursor: 9999,
+    cursor: zIndices[9999],
   },
   /** Breakpoints, in `em` so they follow the browser's font size. */
   screens: {
     /** From this width, the desktop layout is used. */
-    tablet: '50em',
+    tablet: breakpoints[50],
     /** Wide screens. */
-    wide: '100em',
+    wide: breakpoints[100],
   },
 } as const;

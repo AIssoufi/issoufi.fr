@@ -1,7 +1,16 @@
 import { createGlobalStyle, th } from '@xstyled/styled-components';
 
-/** Base styles of the document (body, links, buttons, lists, icons), built from the tokens. */
+/**
+ * Base styles of the document (box sizing, body, links, buttons, lists, icons), built from the
+ * tokens. Every element is sized with `border-box`, so a width includes its padding and border.
+ */
 export const GlobalStyle = createGlobalStyle`
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
+  }
+
   body {
     margin: 0;
     font-family: ${th.font('body')};
@@ -17,6 +26,8 @@ export const GlobalStyle = createGlobalStyle`
     font-family: ${th.font('code')};
   }
 
+  /* Without bullets, Safari no longer exposes a ul as a list: render lists with List
+     (src/components/List), which gives them back their role */
   ul {
     margin: 0;
     padding: 0;
@@ -56,5 +67,12 @@ export const GlobalStyle = createGlobalStyle`
     stroke: ${th.color('foreground')};
     transition-property: stroke;
     transition-duration: ${th.duration('base')};
+  }
+
+  /* The heading of a page takes the focus after a navigation, but cannot be activated: a focus
+     ring would make it look like a control. Keep the selector in line with PAGE_HEADING_SELECTOR
+     and SCRIPT_ONLY_TAB_INDEX (src/App/PageHeadingFocus/constants.ts); App.spec.jsx checks it */
+  h1[tabindex='-1']:focus {
+    outline: none;
   }
 `;

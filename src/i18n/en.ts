@@ -1,4 +1,9 @@
-/** English translations. Must keep exactly the same keys as the French ones in `fr.ts`. */
+import type { Translations } from './types';
+
+/**
+ * English translations. Typed with {@link Translations}, so they must keep exactly the keys of the
+ * French ones in `fr.ts`: `tsc` names a key missing from either file.
+ */
 export const en = {
   meta: {
     home: {
@@ -20,6 +25,7 @@ export const en = {
       title: 'Page not found - ADAM Issoufi',
       description: 'This page does not exist.',
     },
+    ogImageAlt: 'ADAM Issoufi, full-stack JavaScript developer with a passion for UX and UI Design',
   },
   errors: {
     backHome: 'Back to home',
@@ -31,11 +37,23 @@ export const en = {
       title: 'Access denied',
       message: 'You do not have permission to access this page.',
     },
+    unexpected: {
+      title: 'Something went wrong',
+      message: 'This page could not be displayed. Reload it to try again.',
+      reload: 'Reload the page',
+    },
   },
   nav: {
     home: 'Home',
     projects: 'Projects',
     experience: 'Experience',
+  },
+  langToggle: {
+    label: 'Language',
+  },
+  burgerMenu: {
+    open: 'Open menu',
+    close: 'Close menu',
   },
   home: {
     title1: 'Full-stack JavaScript Developer',
@@ -47,14 +65,25 @@ export const en = {
     secondary: 'Professional experience',
   },
   projects: {
+    pageTitle: 'Projects',
     personal: 'Personal projects',
     freelance: 'Freelance projects',
     showLess: 'Show less',
     showAll: 'Show all ({{count}})',
+    previousPage: 'Previous page',
+    nextPage: 'Next page',
+    like: 'Like {{name}}',
   },
   exp: {
     pageTitle: 'Experience',
     today: 'Present',
+    duration: {
+      years_one: '{{count}} year',
+      years_other: '{{count}} years',
+      months_one: '{{count}} month',
+      months_other: '{{count}} months',
+      lessThanAMonth: '< 1 month',
+    },
     periods: {
       sewanStart: 'June 2021',
       sewanEnd: 'pres.',
@@ -154,8 +183,8 @@ export const en = {
         'Complete design and development of an event website with reservation system and online payment.',
       proj1B1: 'Screen architecture and mockups',
       proj1B2:
-        'React development with ticketing integration (Fasticket) and card payment (WeezeEvent)',
+        'React development with ticketing integration (Fasticket) and card payment (Weezevent)',
       proj1B3: 'Maintenance of existing AngularJS websites',
     },
   },
-} as const;
+} as const satisfies Translations;

@@ -1,0 +1,8 @@
+# Worktrunk project config (https://worktrunk.dev). Prepares each new worktree before anything
+# else runs in it; both commands run at the same time.
+[pre-start]
+# A new worktree has no dependencies yet
+install = "pnpm install --frozen-lockfile"
+# Gives the worktree its own port for pnpm dev and pnpm preview, stable for its branch
+# (10000-19999), so several worktrees can serve the app at the same time
+port = "echo PORT={{ branch | hash_port }} > .env.local"

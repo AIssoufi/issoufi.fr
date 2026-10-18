@@ -79,6 +79,71 @@ export const spacing = {
   56: '56px',
 } as const;
 
+/** Spacing that follows the font size of the element; keys are hundredths of an em. */
+export const relativeSpacing = {
+  70: '0.7em',
+} as const;
+
+/** Widths and heights of elements, from hairlines to the app container; keys are pixel values. */
+export const sizes = {
+  1: '1px',
+  2: '2px',
+  12: '12px',
+  15: '15px',
+  16: '16px',
+  32: '32px',
+  36: '36px',
+  50: '50px',
+  54: '54px',
+  72: '72px',
+  90: '90px',
+  222: '222px',
+  240: '240px',
+  260: '260px',
+  640: '640px',
+  1440: '1440px',
+} as const;
+
+/** Line lengths of text blocks; keys are numbers of characters. */
+export const measures = {
+  40: '40ch',
+} as const;
+
+/** Corner radii; keys are pixel values, except `half`, which rounds a square into a circle. */
+export const radii = {
+  0: '0',
+  1: '1px',
+  2: '2px',
+  8: '8px',
+  12: '12px',
+  20: '20px',
+  24: '24px',
+  30: '30px',
+  60: '60px',
+  half: '50%',
+} as const;
+
+/**
+ * Offsets and blur radii of box shadows, without their color; keys are `<vertical offset>-<blur
+ * radius>` in pixels, and the horizontal offset is always zero.
+ */
+export const shadowShapes = {
+  '0-10': '0 0 10px',
+  '0-16': '0 0 16px',
+  '0-28': '0 0 28px',
+  '4-24': '0 4px 24px',
+  '4-28': '0 4px 28px',
+  '8-32': '0 8px 32px',
+} as const;
+
+/** Font stacks, named after their first font; the next ones are fallbacks. */
+export const fontFamilies = {
+  montserrat:
+    "'Montserrat', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif",
+  sairaStencilOne: "'Saira Stencil One', cursive",
+  sourceCodePro: "source-code-pro, Menlo, Monaco, Consolas, 'Courier New', monospace",
+} as const;
+
 /** Font sizes; keys are pixel values. */
 export const fontSizes = {
   10: '10px',
@@ -99,6 +164,16 @@ export const fontSizes = {
   42: '42px',
   72: '72px',
   120: '120px',
+} as const;
+
+/** Font weights, named after their usual names in fonts (`semibold` is 600). */
+export const fontWeights = {
+  light: 300,
+  regular: 400,
+  medium: 500,
+  semibold: 600,
+  bold: 700,
+  extrabold: 800,
 } as const;
 
 /** Letter spacings; keys are hundredths of an em (`tight` is negative). */
@@ -142,6 +217,20 @@ export const durations = {
   7000: '7s',
 } as const;
 
+/**
+ * Easing curves: the CSS keywords, and cubic Bézier curves named after the Robert Penner easing
+ * they draw.
+ */
+export const easings = {
+  ease: 'ease',
+  linear: 'linear',
+  easeInOut: 'ease-in-out',
+  /** Overshoots its end, then settles back. */
+  easeOutBack: 'cubic-bezier(0.34, 1.56, 0.64, 1)',
+  /** Starts fast, then slows down over most of its duration. */
+  easeOutQuint: 'cubic-bezier(0.23, 1, 0.32, 1)',
+} as const;
+
 /** Background blurs; keys are pixel radii. */
 export const blurs = {
   8: 'blur(8px)',
@@ -149,4 +238,23 @@ export const blurs = {
   12: 'blur(12px)',
   14: 'blur(14px)',
   20: 'blur(20px)',
+} as const;
+
+/** Stacking orders; keys are the values. */
+export const zIndices = {
+  '-2': -2,
+  '-1': -1,
+  0: 0,
+  1: 1,
+  2: 2,
+  3: 3,
+  9: 9,
+  11: 11,
+  9999: 9999,
+} as const;
+
+/** Viewport widths where the layout changes; keys are em values, which follow the font size. */
+export const breakpoints = {
+  50: '50em',
+  100: '100em',
 } as const;

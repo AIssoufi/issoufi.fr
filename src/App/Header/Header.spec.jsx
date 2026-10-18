@@ -1,52 +1,376 @@
-import { render, screen } from '@testing-library/react';
-import { BrowserRouter as Router } from 'react-router-dom';
+import { act, render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+import lottie from 'lottie-web/build/player/lottie_light';
+import { BrowserRouter as Router } from 'react-router';
 
+import i18n from '../../i18n';
+import { waitForBurgerIcon } from '../testUtils';
 import Header from './Header';
 
-const renderHeader = () =>
+/**
+ * Renders the header above a page holding a link, which the open mobile menu covers, then waits
+ * for the burger icon animation, drawn once lottie-web is loaded, so that this update never lands
+ * outside `act` after the test.
+ */
+const renderHeader = async () => {
+  vi.spyOn(lottie, 'loadAnimation');
   render(
     <Router>
       <Header testId="header" />
+      <main>
+        <a href="/page">Page link</a>
+      </main>
     </Router>,
   );
+  await waitForBurgerIcon();
+};
+
+/**
+ * Replaces `window.matchMedia`, which jsdom lacks, with a screen on the desktop layout or not:
+ * every media query matches on desktop. `setDesktop` switches the layout and notifies the
+ * listeners, as a resize or a rotation would.
+ */
+const stubScreen = ({ isDesktop }) => {
+  const listeners = new Set();
+  const mediaQueryList = {
+    matches: isDesktop,
+    addEventListener: (_type, listener) => listeners.add(listener),
+    removeEventListener: (_type, listener) => listeners.delete(listener),
+  };
+  vi.stubGlobal('matchMedia', () => mediaQueryList);
+
+  const setDesktop = nextIsDesktop => {
+    mediaQueryList.matches = nextIsDesktop;
+    act(() => listeners.forEach(listener => listener()));
+  };
+
+  return { setDesktop };
+};
+
+/** The burger button, whatever its state and language. */
+const getBurgerButton = () => screen.getByRole('button', { name: /menu/i });
+
+/** The navigation, found even while the closed mobile menu hides it. */
+const getNavigation = () => screen.getByRole('navigation', { hidden: true });
+
+/** The element holding the burger button and the navigation, fixed while the menu is open. */
+const getMenu = () => getBurgerButton().parentElement;
+
+/**
+ * Shows the closed navigation as the tablet media query of `NavMenu` does on the desktop layout.
+ * jsdom ignores the media queries of the styles, so the navigation keeps the `display: none` of the
+ * mobile layout, and jsdom does not focus a link that it hides.
+ */
+const showDesktopNavigation = () => {
+  getNavigation().style.display = 'flex';
+};
+
+/** The last link of the menu, which downloads the CV. */
+const getCvLink = () => screen.getByRole('link', { name: 'CV' });
+
+/** The link of the page under the header, covered by the open mobile menu. */
+const getPageLink = () => screen.getByRole('link', { name: 'Page link' });
+
+/** Elements of the page that the open mobile menu covers: the logo, the language toggle, the page. */
+const getCoveredElements = () => [
+  screen.getByRole('link', { name: 'AI' }),
+  screen.getByText('EN'),
+  getPageLink(),
+];
 
 describe('Header', () => {
-  it('renders the header', () => {
-    renderHeader();
+  afterEach(() => {
+    vi.restoreAllMocks();
+    vi.unstubAllGlobals();
+  });
+
+  it('renders the header', async () => {
+    await renderHeader();
     expect(screen.getByTestId('header')).toBeInTheDocument();
   });
 
-  it('renders the logo', () => {
-    renderHeader();
+  it('renders the logo', async () => {
+    await renderHeader();
     expect(screen.getByText('AI')).toBeInTheDocument();
   });
 
-  it('renders all nav items', () => {
-    renderHeader();
+  it('renders the language toggle', async () => {
+    await renderHeader();
+    expect(screen.getByText('FR')).toBeInTheDocument();
+    expect(screen.getByText('EN')).toBeInTheDocument();
+  });
+
+  it('renders all nav items', async () => {
+    await renderHeader();
     expect(screen.getByText('Accueil')).toBeInTheDocument();
     expect(screen.getByText('Projets')).toBeInTheDocument();
     expect(screen.getByText('Expériences')).toBeInTheDocument();
   });
 
-  it('does not render a skills nav item', () => {
-    renderHeader();
+  it('does not render a skills nav item', async () => {
+    await renderHeader();
     expect(screen.queryByText('Compétences')).not.toBeInTheDocument();
   });
 
-  it('renders the CV button', () => {
-    renderHeader();
+  it('renders the CV button', async () => {
+    await renderHeader();
     expect(screen.getByText('CV')).toBeInTheDocument();
   });
 
-  it('renders nav links with correct hrefs', () => {
-    renderHeader();
+  it('renders nav links with correct hrefs', async () => {
+    await renderHeader();
     expect(screen.getByText('Accueil').closest('a')).toHaveAttribute('href', '/');
     expect(screen.getByText('Projets').closest('a')).toHaveAttribute('href', '/projects');
     expect(screen.getByText('Expériences').closest('a')).toHaveAttribute('href', '/experiences');
   });
 
-  it('renders CV link pointing to the PDF', () => {
-    renderHeader();
+  it('renders CV link pointing to the PDF', async () => {
+    await renderHeader();
     expect(screen.getByText('CV').closest('a')).toHaveAttribute('href', '/CV - Adam Issoufi.pdf');
+  });
+
+  describe('mobile menu', () => {
+    afterEach(async () => {
+      await act(() => i18n.changeLanguage('fr'));
+    });
+
+    it('starts closed, with a burger button to open it', async () => {
+      await renderHeader();
+
+      expect(getBurgerButton()).toHaveAccessibleName('Ouvrir le menu');
+      expect(getBurgerButton()).toHaveAttribute('aria-expanded', 'false');
+      expect(getNavigation()).not.toBeVisible();
+      expect(getComputedStyle(getMenu()).position).not.toBe('fixed');
+    });
+
+    it('opens over the page with the burger button', async () => {
+      await renderHeader();
+
+      await userEvent.click(getBurgerButton());
+
+      expect(getBurgerButton()).toHaveAccessibleName('Fermer le menu');
+      expect(getBurgerButton()).toHaveAttribute('aria-expanded', 'true');
+      expect(getNavigation()).toBeVisible();
+      expect(getComputedStyle(getNavigation()).position).toBe('fixed');
+      expect(getComputedStyle(getMenu()).position).toBe('fixed');
+    });
+
+    it('closes with the burger button', async () => {
+      await renderHeader();
+
+      await userEvent.click(getBurgerButton());
+      await userEvent.click(getBurgerButton());
+
+      expect(getBurgerButton()).toHaveAccessibleName('Ouvrir le menu');
+      expect(getBurgerButton()).toHaveAttribute('aria-expanded', 'false');
+      expect(getNavigation()).not.toBeVisible();
+      expect(getComputedStyle(getMenu()).position).not.toBe('fixed');
+    });
+
+    it('closes when one of its links is clicked', async () => {
+      await renderHeader();
+
+      await userEvent.click(getBurgerButton());
+      await userEvent.click(screen.getByRole('link', { name: 'Projets' }));
+
+      expect(getBurgerButton()).toHaveAttribute('aria-expanded', 'false');
+      expect(getNavigation()).not.toBeVisible();
+    });
+
+    it('closes when the screen grows to the desktop layout, and stays closed back on mobile', async () => {
+      const { setDesktop } = stubScreen({ isDesktop: false });
+      await renderHeader();
+      await userEvent.click(getBurgerButton());
+
+      setDesktop(true);
+
+      expect(getBurgerButton()).toHaveAttribute('aria-expanded', 'false');
+      expect(getComputedStyle(getMenu()).position).not.toBe('fixed');
+      expect(getComputedStyle(getNavigation()).position).not.toBe('fixed');
+      getCoveredElements().forEach(element => expect(element.closest('[inert]')).toBeNull());
+
+      setDesktop(false);
+
+      expect(getBurgerButton()).toHaveAttribute('aria-expanded', 'false');
+      expect(getNavigation()).not.toBeVisible();
+    });
+
+    it('stays closed when the screen shrinks to the mobile layout', async () => {
+      const { setDesktop } = stubScreen({ isDesktop: true });
+      await renderHeader();
+
+      setDesktop(false);
+
+      expect(getBurgerButton()).toHaveAttribute('aria-expanded', 'false');
+      expect(getNavigation()).not.toBeVisible();
+    });
+
+    it('links the burger button to the navigation it controls', async () => {
+      await renderHeader();
+
+      expect(getNavigation().id).not.toBe('');
+      expect(getBurgerButton()).toHaveAttribute('aria-controls', getNavigation().id);
+    });
+
+    it('opens with Enter, goes on to its links with Tab, and closes with Space', async () => {
+      await renderHeader();
+      act(() => getBurgerButton().focus());
+
+      await userEvent.keyboard('{Enter}');
+      expect(getBurgerButton()).toHaveAttribute('aria-expanded', 'true');
+
+      await userEvent.tab();
+      expect(screen.getByRole('link', { name: 'Accueil' })).toHaveFocus();
+
+      await userEvent.tab({ shift: true });
+      await userEvent.keyboard(' ');
+      expect(getBurgerButton()).toHaveAttribute('aria-expanded', 'false');
+    });
+
+    it('names the burger button in English', async () => {
+      await act(() => i18n.changeLanguage('en'));
+      await renderHeader();
+
+      expect(getBurgerButton()).toHaveAccessibleName('Open menu');
+
+      await userEvent.click(getBurgerButton());
+
+      expect(getBurgerButton()).toHaveAccessibleName('Close menu');
+      expect(getBurgerButton()).toHaveAttribute('aria-expanded', 'true');
+    });
+  });
+
+  describe('keyboard focus in the open mobile menu', () => {
+    it('makes the rest of the page inert while open, and reachable again once closed', async () => {
+      await renderHeader();
+      getCoveredElements().forEach(element => expect(element.closest('[inert]')).toBeNull());
+
+      await userEvent.click(getBurgerButton());
+      getCoveredElements().forEach(element => expect(element.closest('[inert]')).not.toBeNull());
+      expect(getMenu().closest('[inert]')).toBeNull();
+
+      await userEvent.click(getBurgerButton());
+      getCoveredElements().forEach(element => expect(element.closest('[inert]')).toBeNull());
+    });
+
+    it('goes through the burger and every link with Tab', async () => {
+      await renderHeader();
+      await userEvent.click(getBurgerButton());
+
+      for (const name of ['Accueil', 'Projets', 'Expériences', 'CV']) {
+        await userEvent.tab();
+        expect(screen.getByRole('link', { name })).toHaveFocus();
+      }
+    });
+
+    it('keeps Tab in the menu after its last link, away from the page behind', async () => {
+      await renderHeader();
+      await userEvent.click(getBurgerButton());
+      act(() => getCvLink().focus());
+
+      await userEvent.tab();
+
+      expect(getPageLink()).not.toHaveFocus();
+      expect(getMenu()).toContainElement(document.activeElement);
+    });
+
+    it('keeps Shift+Tab on the burger, away from the language toggle behind', async () => {
+      await renderHeader();
+      await userEvent.click(getBurgerButton());
+
+      await userEvent.tab({ shift: true });
+
+      expect(screen.getByText('EN')).not.toHaveFocus();
+      expect(getBurgerButton()).toHaveFocus();
+    });
+
+    it('gives the focus back to the burger when a link is chosen with Enter', async () => {
+      await renderHeader();
+      await userEvent.click(getBurgerButton());
+      await userEvent.tab();
+      await userEvent.tab();
+      expect(screen.getByRole('link', { name: 'Projets' })).toHaveFocus();
+
+      await userEvent.keyboard('{Enter}');
+
+      expect(getBurgerButton()).toHaveAttribute('aria-expanded', 'false');
+      expect(getBurgerButton()).toHaveFocus();
+      expect(document.body).not.toHaveFocus();
+    });
+
+    it('gives the focus back to the burger when the CV link opens its new tab', async () => {
+      // jsdom cannot open a new tab: the link only closes the menu here
+      const preventNavigation = event => event.preventDefault();
+      window.addEventListener('click', preventNavigation, { capture: true });
+      await renderHeader();
+      await userEvent.click(getBurgerButton());
+      act(() => getCvLink().focus());
+
+      await userEvent.keyboard('{Enter}');
+
+      window.removeEventListener('click', preventNavigation, { capture: true });
+      expect(getBurgerButton()).toHaveAttribute('aria-expanded', 'false');
+      expect(getBurgerButton()).toHaveFocus();
+    });
+
+    it('closes with Escape and gives the focus back to the burger', async () => {
+      await renderHeader();
+      await userEvent.click(getBurgerButton());
+      await userEvent.tab();
+      expect(screen.getByRole('link', { name: 'Accueil' })).toHaveFocus();
+
+      await userEvent.keyboard('{Escape}');
+
+      expect(getBurgerButton()).toHaveAttribute('aria-expanded', 'false');
+      expect(getBurgerButton()).toHaveFocus();
+      expect(getNavigation()).not.toBeVisible();
+      getCoveredElements().forEach(element => expect(element.closest('[inert]')).toBeNull());
+    });
+
+    it('closes with Escape while the burger has the focus', async () => {
+      await renderHeader();
+      await userEvent.click(getBurgerButton());
+
+      await userEvent.keyboard('{Escape}');
+
+      expect(getBurgerButton()).toHaveAttribute('aria-expanded', 'false');
+      expect(getBurgerButton()).toHaveFocus();
+    });
+
+    it('leaves the focus where it is when Escape is pressed while the menu is closed', async () => {
+      await renderHeader();
+      act(() => getPageLink().focus());
+
+      await userEvent.keyboard('{Escape}');
+
+      expect(getPageLink()).toHaveFocus();
+      expect(getBurgerButton()).toHaveAttribute('aria-expanded', 'false');
+    });
+
+    it('leaves the focus on a link chosen on the desktop layout', async () => {
+      stubScreen({ isDesktop: true });
+      await renderHeader();
+      showDesktopNavigation();
+      const projectsLink = screen.getByRole('link', { name: 'Projets' });
+      act(() => projectsLink.focus());
+      expect(projectsLink).toHaveFocus();
+
+      await userEvent.keyboard('{Enter}');
+
+      expect(projectsLink).toHaveFocus();
+    });
+
+    it('changes nothing on the desktop layout, where the menu is a bar of the page', async () => {
+      stubScreen({ isDesktop: true });
+      await renderHeader();
+      // The burger is hidden on desktop, but jsdom still lets a click reach it
+      await userEvent.click(getBurgerButton());
+
+      getCoveredElements().forEach(element => expect(element.closest('[inert]')).toBeNull());
+      act(() => getPageLink().focus());
+      await userEvent.keyboard('{Escape}');
+      expect(getPageLink()).toHaveFocus();
+      expect(getBurgerButton()).toHaveAttribute('aria-expanded', 'true');
+    });
   });
 });

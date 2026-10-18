@@ -1,3 +1,12 @@
+# Only installs versions published at least 7 days ago (in minutes), the same delay as the
+# Dependabot cooldown, which applies this setting when it updates the lockfile
+minimumReleaseAge: 10080
+# pnpm itself is pinned on purpose by the packageManager field of package.json: without this
+# exclusion, a local pnpm refuses to switch to a pinned version younger than 7 days
+minimumReleaseAgeExclude:
+  - pnpm
+  - '@pnpm/*'
+
 allowBuilds:
   esbuild: false
 

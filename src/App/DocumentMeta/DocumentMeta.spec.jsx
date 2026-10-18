@@ -1,5 +1,5 @@
 import { act, render } from '@testing-library/react';
-import { MemoryRouter } from 'react-router-dom';
+import { MemoryRouter } from 'react-router';
 
 import i18n from '../../i18n';
 import DocumentMeta from './DocumentMeta';
@@ -32,7 +32,7 @@ describe('DocumentMeta', () => {
     expect(document.documentElement.lang).toBe('fr');
     expect(document.title).toBe('ADAM Issoufi - Développeur full-stack JavaScript');
     expect(description()).toBe(
-      "Développeur full-stack JavaScript avec 8 ans d'expérience, spécialisé React.",
+      'Développeur full-stack JavaScript avec 8 ans d’expérience, spécialisé React.',
     );
   });
 
@@ -41,7 +41,7 @@ describe('DocumentMeta', () => {
 
     expect(document.title).toBe('Projets - ADAM Issoufi');
     expect(description()).toBe(
-      "Projets personnels et freelance d'ADAM Issoufi, développeur full-stack JavaScript.",
+      'Projets personnels et freelance d’ADAM Issoufi, développeur full-stack JavaScript.',
     );
   });
 
@@ -49,7 +49,7 @@ describe('DocumentMeta', () => {
     renderAt('/skills');
 
     expect(document.title).toBe('Page introuvable - ADAM Issoufi');
-    expect(description()).toBe("Cette page n'existe pas.");
+    expect(description()).toBe('Cette page n’existe pas.');
   });
 
   it('follows the language', async () => {

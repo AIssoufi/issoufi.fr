@@ -1,9 +1,13 @@
 import styled, { css, keyframes, th } from '@xstyled/styled-components';
 
+import List from '../../../components/List';
+import { theme } from '../../../theme';
+
+// Keyframes have no theme context, so they read the theme object rather than the th helpers
 const fadeSlideIn = keyframes`
   from {
     opacity: 0;
-    transform: translateY(-12px);
+    transform: translateY(-${theme.space[12]});
   }
   to {
     opacity: 1;
@@ -41,7 +45,7 @@ export const Nav = styled.nav<{ $mobileMenuIsOpen: boolean }>`
   }
 `;
 
-export const NavList = styled.ul`
+export const NavList = styled(List)`
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -62,8 +66,8 @@ export const NavItem = styled.li`
   animation: ${fadeSlideIn} ${th.duration(300)} ${th.timingFunction('standard')} both;
   border-radius: ${th.radius('md')};
   transition:
-    background 0.2s ease,
-    color 0.2s ease;
+    background ${th.duration(200)} ${th.timingFunction('standard')},
+    color ${th.duration(200)} ${th.timingFunction('standard')};
 
   &:active a {
     color: ${th.color('accent')};
@@ -101,11 +105,11 @@ export const NavItem = styled.li`
     > a::before {
       content: '';
       position: absolute;
-      height: 2px;
+      height: ${th.size(2)};
       background-color: ${th.color('accent')};
-      bottom: 4px;
-      left: 16px;
-      right: 16px;
+      bottom: ${th.space(4)};
+      left: ${th.space(16)};
+      right: ${th.space(16)};
       display: none;
       border-radius: ${th.radius(2)};
     }

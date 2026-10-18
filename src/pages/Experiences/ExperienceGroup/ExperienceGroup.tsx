@@ -1,25 +1,15 @@
 import React from 'react';
+
+import JobSummary from '../JobSummary';
 import Project from '../Project';
 import Technologies from '../Technologies';
-import {
-  EntityLogo,
-  JobDetails,
-  JobDuration,
-  JobSummary,
-  Summary,
-} from '../Experience/Experience.styled';
-import { computeDuration } from '../duration';
+import TimelinePeriod from '../TimelinePeriod';
 
 import {
   GroupArticle,
   RoleContent,
   RoleDetails,
   RoleItem,
-  RoleName,
-  RolePeriodCol,
-  RolePeriodEnd,
-  RolePeriodSep,
-  RolePeriodStart,
   RolesList,
 } from './ExperienceGroup.styled';
 
@@ -44,7 +34,7 @@ interface RoleProps {
   jobName?: string;
   /**
    * Start of the role as a month and a year, e.g. "juin 2021".
-   * The duration is shown only when both dates are valid.
+   * The duration is shown, in the active language, only when both dates are valid.
    */
   startDate?: string;
   /** End of the role in the same format, or "Aujourd'hui" / "Present". */
@@ -54,39 +44,32 @@ interface RoleProps {
 }
 
 /**
- * One role inside an {@link ExperienceGroup}: its period on the left, then the company summary
- * (from the group), the job title, the computed duration and the description.
- * Outside a group, the company summary is omitted.
+ * One role inside an {@link ExperienceGroup}: its period on the left, then its
+ * {@link JobSummary} (company details from the group, job title and computed duration) and the
+ * description. Outside a group, the summary is omitted.
  */
 const Role = ({ jobName, startDate, endDate, children }: RoleProps) => {
   const company = React.useContext(CompanyCtx);
-  const details = [company?.entityName, company?.contractType, company?.city]
-    .filter(Boolean)
-    .join(' · ');
-  const duration = computeDuration({ startDate, endDate });
 
   return (
-    <RoleItem>
-      <RolePeriodCol>
-        <RolePeriodStart>{startDate}</RolePeriodStart>
-        <RolePeriodSep>↓</RolePeriodSep>
-        <RolePeriodEnd>{endDate}</RolePeriodEnd>
-      </RolePeriodCol>
+    <RoleItem data-timeline-dot="before">
+      <TimelinePeriod
+        variant="role"
+        start={startDate}
+        end={endDate}
+      />
       <RoleContent>
         {company && (
-          <Summary>
-            {company.entityLogoUrl && (
-              <EntityLogo
-                src={company.entityLogoUrl}
-                alt={company.entityName ?? ''}
-              />
-            )}
-            <JobSummary>
-              {jobName && <RoleName>{jobName}</RoleName>}
-              {details && <JobDetails>{details}</JobDetails>}
-              {duration && <JobDuration>{duration}</JobDuration>}
-            </JobSummary>
-          </Summary>
+          <JobSummary
+            variant="role"
+            jobName={jobName}
+            entityName={company.entityName}
+            entityLogoUrl={company.entityLogoUrl}
+            contractType={company.contractType}
+            city={company.city}
+            startDate={startDate}
+            endDate={endDate}
+          />
         )}
         <RoleDetails>{children}</RoleDetails>
       </RoleContent>
@@ -126,7 +109,7 @@ const ExperienceGroup = ({
   children,
 }: ExperienceGroupProps) => (
   <CompanyCtx.Provider value={{ entityName, entityLogoUrl, contractType, city }}>
-    <GroupArticle>
+    <GroupArticle data-timeline-dot="before">
       <RolesList>{children}</RolesList>
     </GroupArticle>
   </CompanyCtx.Provider>
