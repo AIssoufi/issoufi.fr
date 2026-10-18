@@ -140,7 +140,7 @@ The version follows the commits: `fix` bumps the patch version, `feat` the minor
 │   │   ├── hooks/        # useReloadOnStaleChunk: reloads once when a deployment removed a chunk
 │   │   └── Header/       # Logo, navigation, burger menu and LangToggle/ (FR / EN switch)
 │   ├── components/       # Components shared across pages
-│   │   └── StatusMessage/ # Code, title, message and home link of error pages
+│   │   └── StatusMessage/ # Code, title, message, action button and home link of error pages
 │   ├── i18n/             # French and English translations, and the storage of the chosen language
 │   ├── pages/
 │   │   ├── Home/         # Landing page: animated title, particle background, hooks/ for effects
