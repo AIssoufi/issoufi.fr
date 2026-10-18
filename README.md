@@ -292,9 +292,10 @@ The job runs only when release-please has just created a release (its `release_c
 │   │   └── testUtils.js  # Helpers shared by the page tests, e.g. isPublicFile
 │   ├── theme/            # Design tokens (primitives in tokens.ts, roles in theme.ts), global styles and the web fonts (FONT_FACES, renderFontFaces)
 │   │   └── testUtils.js  # Raw-value guards that the theme spec runs on the style files and theme.ts
-│   ├── utils/            # Career dates, the pages of the site (pages.ts), their generated HTML (pageHtml.ts) and the sitemap (sitemap.ts)
+│   ├── utils/            # Career dates, the pages of the site and their background photos (pages.ts), their generated HTML (pageHtml.ts), the sitemap (sitemap.ts) and string checks (strings.ts)
 │   ├── cssRuleGuard.ts   # logDroppedCssRules: fails a test whose component inserts a CSS rule that browsers drop
 │   ├── index.tsx         # Entry point
+│   ├── preloadBackgroundPhoto.ts # Preloads the background photo of the current page, in the version of the screen, before the app is evaluated
 │   ├── mediaQueryTestUtils.ts # stubMatchMedia: matchMedia, which jsdom lacks, for the specs of media queries
 │   ├── setupTests.ts     # Test setup: theme around every render, no canvas, fails on console.error
 │   ├── styleTestUtils.js # listStyleRules, declaredStyle, serializeCssValue: the declared styles, read through the CSSOM

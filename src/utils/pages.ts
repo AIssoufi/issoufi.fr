@@ -315,12 +315,7 @@ export const NOT_FOUND_FOLDER = 'NotFound';
  * shows: mountains lost in the clouds, for a visitor who lost their way. The home page shows it
  * too, but each may change its own.
  */
-export const STATUS_PAGE_BACKGROUND_PHOTO: BackgroundPhoto = {
-  url: '/home.webp',
-  portraitUrl: '/home-portrait.webp',
-  placeholderUrl:
-    'data:image/webp;base64,UklGRjQBAABXRUJQVlA4ICgBAADQBQCdASogABYAPtFUo0uoJKMhsAgBABoJZgCuHYxinDlETSrB7m5u+XMQWvVkyNMrAXtNg/agAPZ3HlmiXGvwqAAVccCdh4MXckPyw/kUwofEYv4G7P/uIAT2EWfKf/0moY3cmoYMwqQ4ZIoN+1vWA8Suu8c/PAoxPt2W39bXUDvn55tGeoFBuzZZ9AuBSV576MVGAkeCKLiB80/A3VR7AH+/sPZwsD+ojfzQAqJA9LzmLz/rhND6vQ6YRu9lC2SfQ6fw19Wv5Qpm33ov8uEV6D8uTPfhFgYFKr7RfVxfbYWVJFw19L849RVdY72GxdGGI0egefwh/CbO9JT81lAUDiau2ZTkqiXbS2/nqtPN/fE+gBhx76aju08GpagxBmaS2GBwEkAAAA==',
-};
+export const STATUS_PAGE_BACKGROUND_PHOTO: BackgroundPhoto = HOME_PAGE.backgroundPhoto;
 
 /** Not found page of one language, emitted at build time. */
 export interface NotFoundFile {

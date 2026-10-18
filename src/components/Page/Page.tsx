@@ -8,9 +8,10 @@ import { getBackgroundImages } from './utils';
 interface PageProps {
   /**
    * Photo covering the screen behind the page, under a dark overlay: the `backgroundPhoto` of the
-   * entry of the page in `PAGES` (`src/utils/pages.ts`), which its HTML file preloads. Narrow
-   * portrait screens show its portrait version, the others the whole photo; a version without a URL
-   * shows the other one. Only the overlay is drawn when it is missing.
+   * entry of the page in `PAGES` (`src/utils/pages.ts`), which the app preloads as soon as it
+   * starts (`src/preloadBackgroundPhoto.ts`). Narrow portrait screens show its portrait version,
+   * the others the whole photo, each over its placeholder until it is downloaded; a version without
+   * a URL shows the other one. Only the overlay is drawn when it is missing.
    */
   backgroundPhoto?: Partial<BackgroundPhoto>;
   /** Content of the page. */

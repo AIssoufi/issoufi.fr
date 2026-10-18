@@ -31,8 +31,8 @@ const [home, projects, experiences] = PAGES;
 const PORTRAIT_PHOTO_MAX_BYTES = 40_000;
 
 /**
- * Heaviest whole background photo, which wide screens preload with the scripts and fonts of the
- * page: the projects and experiences photos weighed 148 and 179 kB before they were re-encoded.
+ * Heaviest whole background photo, which wide screens download once the app starts: the projects
+ * and experiences photos weighed 148 and 179 kB before they were re-encoded.
  */
 const WHOLE_PHOTO_MAX_BYTES = 110_000;
 

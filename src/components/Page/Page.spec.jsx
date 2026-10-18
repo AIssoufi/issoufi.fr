@@ -20,13 +20,19 @@ const PHOTO = {
 
 /**
  * Reads the `background-image` declared for the main element's `::before` layer, outside any media
- * query or inside the given one, since jsdom computes no style for pseudo-elements.
+ * query, since jsdom computes no style for pseudo-elements.
  */
-const getBackgroundImage = (main, media = '') =>
-  declaredStyle({ element: main, property: 'background-image', pseudo: '::before', media });
+const getBackgroundImage = main =>
+  declaredStyle({ element: main, property: 'background-image', pseudo: '::before' });
 
 /** Reads the `background-image` that narrow portrait screens show behind the main element. */
-const getPortraitBackgroundImage = main => getBackgroundImage(main, PORTRAIT_PHOTO_MEDIA_QUERY);
+const getPortraitBackgroundImage = main =>
+  declaredStyle({
+    element: main,
+    property: 'background-image',
+    pseudo: '::before',
+    media: PORTRAIT_PHOTO_MEDIA_QUERY,
+  });
 
 describe('Page', () => {
   it('renders its content in the main landmark of the page', () => {

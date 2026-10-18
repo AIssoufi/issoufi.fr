@@ -26,7 +26,7 @@ export const Main = styled.main<{ $backgroundImage: string; $portraitBackgroundI
     background-position: center;
     background-size: cover;
 
-    /* The same media query as the links that preload the photo, so no screen downloads both */
+    /* The same media query as the preload of the app, so no screen downloads both versions */
     @media ${PORTRAIT_PHOTO_MEDIA_QUERY} {
       background-image: ${props => props.$portraitBackgroundImage};
     }
