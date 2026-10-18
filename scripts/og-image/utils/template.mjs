@@ -6,9 +6,9 @@ import {
   SHIMMER_OFF_WORD_POSITION,
   SHIMMER_POSITIONS,
 } from '../constants.mjs';
-import { escapeHtml } from './html.mjs';
+import { escapeHtml } from '../../utils/html.mjs';
 
-/** @typedef {import('./texts.mjs').OgImageTexts} OgImageTexts */
+/** @typedef {import('../../utils/home-texts.mjs').HomeTexts} HomeTexts */
 
 /**
  * Design tokens of `src/theme/theme.ts` read by the image.
@@ -154,7 +154,7 @@ export const renderOgImageStyles = theme => {
  * @property {string} language - Code of the language of the texts, e.g. `en`, written in the
  * `lang` of the page so the browser applies its typography rules. A value that is not a string
  * leaves the language unknown (`lang=""`).
- * @property {OgImageTexts} texts - Texts of the image, from `getOgImageTexts`.
+ * @property {HomeTexts} texts - Texts of the image, from `getHomeTexts`.
  * @property {string} styles - Style sheet of the page, from {@link renderOgImageStyles}.
  * @property {string} backgroundImageUrl - Background photo of the home page, as a data URL,
  * since the page is not served from the project.

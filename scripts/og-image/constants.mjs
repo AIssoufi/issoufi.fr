@@ -19,9 +19,6 @@ export const OG_IMAGE_MAX_BYTES = 300_000;
  */
 export const OG_IMAGE_JPEG_QUALITY = 90;
 
-/** Font size at which the page checks that each font it uses has loaded. */
-export const FONT_CHECK_SIZE_PX = 16;
-
 /**
  * Fonts of the theme that the page of the image uses, with their weights: the body font for the
  * texts, in regular, medium and bold, and the display font for the logo.
@@ -31,24 +28,9 @@ export const FONTS_IN_USE = [
   { font: 'display', weights: ['regular'] },
 ];
 
-/** Folder whose files the site serves at its root, relative to the project root. */
-export const PUBLIC_DIR = 'public';
-
 /**
- * Media type of each extension of the files that the page can load as a data URL: the images,
- * and the font files of the site.
- */
-export const DATA_URL_MEDIA_TYPES = {
-  '.avif': 'image/avif',
-  '.jpeg': 'image/jpeg',
-  '.jpg': 'image/jpeg',
-  '.png': 'image/png',
-  '.webp': 'image/webp',
-  '.woff2': 'font/woff2',
-};
-
-/**
- * Modules of the site read by the script through Vite, which compiles their TypeScript: the
+ * Modules of the site read by the script through Vite (`loadSiteModules`), which compiles their
+ * TypeScript, with the translations of `TRANSLATION_MODULES` (`scripts/utils/constants.mjs`): the
  * design tokens, the `@font-face` rules of the web fonts, the background photo and the particle
  * field of the home page, and the domain of the site and the path of the image of each language.
  * Paths are relative to the project root.
@@ -61,25 +43,6 @@ export const SOURCE_MODULES = {
   particleUtils: '/src/pages/Home/ParticleField/utils.ts',
   pages: '/src/utils/pages.ts',
 };
-
-/**
- * Translations of each language, read through Vite like {@link SOURCE_MODULES}: each module
- * exports them under the code of its language (`fr` in `fr.ts`). The script draws an image for
- * every language of `OG_IMAGE_PATHS` (`src/utils/pages.ts`), from the texts of its home page.
- */
-export const TRANSLATION_MODULES = {
-  fr: '/src/i18n/fr.ts',
-  en: '/src/i18n/en.ts',
-};
-
-/** Logo of the header (`src/App/Header/Header.tsx`), drawn at the top left. */
-export const LOGO_TEXT = 'AI';
-
-/** Design skills in bold in the line under the job title, as on the home page (`Home.tsx`). */
-export const DESIGN_SKILLS = ['UX', 'UI'];
-
-/** Text between the author's name and the job title in the title of the home page. */
-export const PAGE_TITLE_SEPARATOR = ' - ';
 
 /**
  * Seed of the particles, so they stay in place from one generation to the next. Change it to

@@ -1,5 +1,5 @@
 import { getLinkStrength } from '../../../src/pages/Home/ParticleField/utils';
-import { hasUnresolvedValue } from './html.mjs';
+import { hasUnresolvedValue } from '../../utils/html.mjs';
 import { findDotLinks, renderParticlesSvg } from './particles.mjs';
 
 const near = { x: 0, y: 0, size: 1 };

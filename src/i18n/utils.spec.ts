@@ -1,3 +1,5 @@
+import i18n from 'i18next';
+
 import {
   getLanguagePrefix,
   getPathLanguage,
@@ -5,6 +7,7 @@ import {
   isLanguage,
   localizePath,
   removeLanguagePrefix,
+  translateKey,
 } from './utils';
 
 /** Values that are not a path, for which the helpers fall back to the root path. */
@@ -171,4 +174,57 @@ describe('getStartPath', () => {
   it('opens the root without any parameter', () => {
     expect(getStartPath()).toBe('/');
   });
+});
+
+describe('translateKey', () => {
+  /** Translation function of a fresh i18next instance, in English with French as fallback. */
+  const createT = async () => {
+    const instance = i18n.createInstance();
+    await instance.init({
+      resources: {
+        fr: { translation: { exp: { sewan: { name: 'Sewan Groupe', contract: 'CDI' } } } },
+        en: { translation: { exp: { sewan: { contract: 'Permanent' } } } },
+      },
+      lng: 'en',
+      fallbackLng: 'fr',
+      showSupportNotice: false,
+    });
+    return instance.t;
+  };
+
+  it('translates a key in the language of t', async () => {
+    expect(translateKey({ t: await createT(), key: 'exp.sewan.contract' })).toBe('Permanent');
+  });
+
+  it('shows the French text when the language lacks it', async () => {
+    expect(translateKey({ t: await createT(), key: 'exp.sewan.name' })).toBe('Sewan Groupe');
+  });
+
+  it.each(['exp.sewan.city', 'exp.unknown.name', 'sewan.name', 'exp.sewan.name.first'])(
+    'gives an empty text for the key %s, which no translation has, rather than the key itself',
+    async key => {
+      expect(translateKey({ t: await createT(), key })).toBe('');
+    },
+  );
+
+  it.each(['exp', 'exp.sewan'])(
+    'gives an empty text for the key %s, a group of texts rather than a text',
+    async key => {
+      expect(translateKey({ t: await createT(), key })).toBe('');
+    },
+  );
+
+  it.each([undefined, null, '', '   ', 42, true, {}, ['exp.sewan.name']])(
+    'gives an empty text for %j, which is not a key',
+    async key => {
+      expect(translateKey({ t: await createT(), key })).toBe('');
+    },
+  );
+
+  it.each(['constructor', 'exp.constructor', 'exp.sewan.toString', '__proto__.name'])(
+    'gives an empty text for %s, a property inherited by every object',
+    async key => {
+      expect(translateKey({ t: await createT(), key })).toBe('');
+    },
+  );
 });

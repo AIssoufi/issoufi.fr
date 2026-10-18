@@ -1,0 +1,189 @@
+// @vitest-environment node
+import { findPdfProblems, readPdf } from './pdf.mjs';
+
+/**
+ * Writes a small PDF file, one page per entry, each with its text in Helvetica and, when it has a
+ * URL, a link.
+ */
+const buildPdf = pages => {
+  const firstPageId = 4;
+  const objectsPerPage = 3;
+  const pageIds = pages.map((_page, index) => firstPageId + index * objectsPerPage);
+  const objects = [
+    '<< /Type /Catalog /Pages 2 0 R >>',
+    `<< /Type /Pages /Kids [${pageIds.map(id => `${id} 0 R`).join(' ')}] /Count ${pages.length} >>`,
+    '<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>',
+    ...pages.flatMap(({ text, url }, index) => {
+      const pageId = pageIds[index];
+      const stream = `BT /F1 12 Tf 20 100 Td (${text}) Tj ET`;
+      const annotations = url ? `/Annots [${pageId + 2} 0 R]` : '';
+      return [
+        `<< /Type /Page /Parent 2 0 R /MediaBox [0 0 300 200] /Contents ${pageId + 1} 0 R /Resources << /Font << /F1 3 0 R >> >> ${annotations} >>`,
+        `<< /Length ${stream.length} >>\nstream\n${stream}\nendstream`,
+        `<< /Type /Annot /Subtype /Link /Rect [20 90 200 120] /A << /S /URI /URI (${url}) >> >>`,
+      ];
+    }),
+  ];
+
+  let pdf = '%PDF-1.4\n';
+  const offsets = objects.map((body, index) => {
+    const offset = pdf.length;
+    pdf += `${index + 1} 0 obj\n${body}\nendobj\n`;
+    return offset;
+  });
+  const xrefOffset = pdf.length;
+  const entries = offsets.map(offset => `${String(offset).padStart(10, '0')} 00000 n \n`);
+  pdf += `xref\n0 ${objects.length + 1}\n0000000000 65535 f \n${entries.join('')}`;
+  pdf += `trailer\n<< /Size ${objects.length + 1} /Root 1 0 R >>\nstartxref\n${xrefOffset}\n%%EOF\n`;
+  return new TextEncoder().encode(pdf);
+};
+
+describe('readPdf', () => {
+  it('reads the text, the links and the fonts of each page', async () => {
+    const pdf = await readPdf(
+      buildPdf([
+        { text: 'ADAM Issoufi', url: 'mailto:adam@example.com' },
+        { text: 'Experiences', url: 'https://issoufi.fr/' },
+      ]),
+    );
+
+    expect(pdf).toEqual({
+      pageCount: 2,
+      text: 'ADAM Issoufi Experiences',
+      links: ['mailto:adam@example.com', 'https://issoufi.fr/'],
+      fonts: [{ name: 'Helvetica', type: 'Type1' }],
+    });
+  });
+
+  it('finds no link on a page without one', async () => {
+    const pdf = await readPdf(buildPdf([{ text: 'CV' }]));
+
+    expect(pdf.links).toEqual([]);
+  });
+
+  it('leaves the data it reads untouched', async () => {
+    const data = buildPdf([{ text: 'CV' }]);
+    const copy = data.slice();
+
+    await readPdf(data);
+
+    expect(data).toEqual(copy);
+  });
+
+  it('fails on data that is not a PDF', async () => {
+    await expect(readPdf(new TextEncoder().encode('not a PDF'))).rejects.toThrow();
+  });
+});
+
+describe('findPdfProblems', () => {
+  /** A right CV: one page, its texts and links, in Montserrat. */
+  const PDF = {
+    pageCount: 1,
+    text: 'ADAM Issoufi Développeur full- stack JavaScript EXPÉRIENCES Mail',
+    links: ['mailto:adam@example.com'],
+    fonts: [
+      { name: 'AAAAAA+Montserrat-Regular', type: 'CIDFontType2' },
+      { name: 'BAAAAA+Montserrat-Bold', type: 'CIDFontType2' },
+    ],
+  };
+
+  /** Parameters of a right CV. */
+  const PARAMS = {
+    pdf: PDF,
+    byteCount: 100_000,
+    maxBytes: 500_000,
+    maxPages: 2,
+    texts: ['ADAM Issoufi', 'Développeur full-stack JavaScript', 'Expériences'],
+    links: ['mailto:adam@example.com'],
+    fontFamily: 'Montserrat',
+  };
+
+  it('finds none in a right CV', () => {
+    expect(findPdfProblems(PARAMS)).toEqual([]);
+  });
+
+  it('finds a text whatever the spaces, the line breaks and the case of the PDF', () => {
+    const pdf = { ...PDF, text: 'ADAM Issoufi\nDéveloppeur  full-\nstack JavaScript expériences' };
+
+    expect(findPdfProblems({ ...PARAMS, pdf })).toEqual([]);
+  });
+
+  it('finds a text that the PDF writes with a ligature', () => {
+    const pdf = { ...PDF, text: 'ﬁchier' };
+
+    expect(findPdfProblems({ ...PARAMS, pdf, texts: ['fichier'] })).toEqual([]);
+  });
+
+  it('reports a CV over the size limit, but not at it', () => {
+    expect(findPdfProblems({ ...PARAMS, byteCount: 500_000 })).toEqual([]);
+    expect(findPdfProblems({ ...PARAMS, byteCount: 500_001 })).toEqual([
+      'it weighs 500001 bytes, over 500000',
+    ]);
+  });
+
+  it.each([0, 3])('reports a CV of %i pages', pageCount => {
+    expect(findPdfProblems({ ...PARAMS, pdf: { ...PDF, pageCount } })).toEqual([
+      `it has ${pageCount} pages, out of 1 to 2`,
+    ]);
+  });
+
+  it('accepts a CV of as many pages as allowed', () => {
+    expect(findPdfProblems({ ...PARAMS, pdf: { ...PDF, pageCount: 2 } })).toEqual([]);
+  });
+
+  it('reports a Type 3 font, whose text Preview cannot select', () => {
+    const fonts = [{ name: 'AAAAAA+Montserrat-Regular', type: 'Type3' }];
+
+    expect(findPdfProblems({ ...PARAMS, pdf: { ...PDF, fonts } })).toEqual([
+      'the font AAAAAA+Montserrat-Regular is a Type 3 font, whose text Preview cannot select',
+    ]);
+  });
+
+  it('reports a font of another family, in which the browser drew missing characters', () => {
+    const fonts = [...PDF.fonts, { name: 'CAAAAA+LucidaGrande', type: 'CIDFontType2' }];
+
+    expect(findPdfProblems({ ...PARAMS, pdf: { ...PDF, fonts } })).toEqual([
+      'the font CAAAAA+LucidaGrande is not Montserrat, the font of the site',
+    ]);
+  });
+
+  it('accepts the font of the site with a family name of several words, and without subset', () => {
+    const fonts = [{ name: 'SairaStencilOne-Regular', type: 'TrueType' }];
+
+    expect(
+      findPdfProblems({ ...PARAMS, pdf: { ...PDF, fonts }, fontFamily: 'Saira Stencil One' }),
+    ).toEqual([]);
+  });
+
+  it('reports a PDF without font, which holds no text', () => {
+    expect(findPdfProblems({ ...PARAMS, pdf: { ...PDF, fonts: [] } })).toContain(
+      'it has no font, so no text',
+    );
+  });
+
+  it('reports each missing text, quoting the start of a long one', () => {
+    const longText =
+      'Conception et évolution d’API de composants React robustes, documentées sous Storybook';
+
+    expect(findPdfProblems({ ...PARAMS, texts: ['Sewan Groupe', longText] })).toEqual([
+      'the text "Sewan Groupe" is missing',
+      'the text "Conception et évolution d’API de composants React robustes, …" is missing',
+    ]);
+  });
+
+  it('reports each missing link', () => {
+    expect(findPdfProblems({ ...PARAMS, links: ['https://github.com/AIssoufi'] })).toEqual([
+      'the link https://github.com/AIssoufi is missing',
+    ]);
+  });
+
+  it('finds every problem at once', () => {
+    const pdf = { ...PDF, pageCount: 3, links: [] };
+
+    expect(findPdfProblems({ ...PARAMS, pdf, byteCount: 600_000 })).toEqual([
+      'it weighs 600000 bytes, over 500000',
+      'it has 3 pages, out of 1 to 2',
+      'the link mailto:adam@example.com is missing',
+    ]);
+  });
+});

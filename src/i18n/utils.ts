@@ -1,4 +1,6 @@
-import { DEFAULT_LANGUAGE, LANGUAGES, PATH_SEPARATOR, ROOT_PATH } from './constants';
+import type { TFunction } from 'i18next';
+
+import { DEFAULT_LANGUAGE, KEY_SEPARATOR, LANGUAGES, PATH_SEPARATOR, ROOT_PATH } from './constants';
 import type { Language } from './types';
 
 /**
@@ -147,4 +149,47 @@ export const getStartPath = ({ pathname, storedLanguage }: GetStartPathParams = 
   if (!isRootWithStoredLanguage) return path;
 
   return localizePath({ path: ROOT_PATH, language: storedLanguage });
+};
+
+/**
+ * Tells whether a part of a translation key names a property that every object inherits, such as
+ * `constructor`, for which i18next would return a function rather than a text.
+ */
+const isInheritedProperty = (part: string): boolean => part in Object.prototype;
+
+/**
+ * Tells whether a value read from JSON data can be a translation key: a filled string, none of
+ * whose parts is a property inherited by every object.
+ */
+const isTranslationKey = (key: unknown): key is string =>
+  typeof key === 'string' &&
+  key.trim() !== '' &&
+  !key.split(KEY_SEPARATOR).some(isInheritedProperty);
+
+/** Parameters of {@link translateKey}. */
+interface TranslateKeyParams {
+  /** Translation function of the language to show. */
+  t: TFunction;
+  /** Translation key, e.g. `exp.sewan.name`, as written in JSON data, so of any type. */
+  key?: unknown;
+}
+
+/**
+ * Translates a key read from JSON data, such as the data of the Experiences page. A text missing
+ * in the language of `t` falls back to French, as every translation does.
+ *
+ * @returns The text, or `''` when the key is missing, blank, not a string, names a property
+ * inherited by every object (`constructor`), is in no translation, or names a group of texts
+ * rather than a text: never the key itself, which i18next shows for a missing text.
+ *
+ * @example
+ * translateKey({ t, key: 'exp.sewan.name' }); // 'Sewan Groupe'
+ * translateKey({ t, key: 'exp.sewan' }); // '', a group of texts
+ */
+export const translateKey = ({ t, key }: TranslateKeyParams): string => {
+  if (!isTranslationKey(key)) return '';
+
+  // An object is returned as it is rather than as an error message, so that it can be left out
+  const text: unknown = t(key, { defaultValue: '', returnObjects: true });
+  return typeof text === 'string' ? text : '';
 };

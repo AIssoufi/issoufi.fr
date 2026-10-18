@@ -1,9 +1,13 @@
 import { expect, test } from '@playwright/test';
 
+import { LANGUAGES } from '../src/i18n/constants';
+import { en } from '../src/i18n/en';
 import { fr } from '../src/i18n/fr';
+import type { Language, Translations } from '../src/i18n/types';
+import { localizePath } from '../src/i18n/utils';
 import { waitForEndingAnimations } from './animations';
 import {
-  CV_FILE_NAME,
+  CV_FILE_NAMES,
   FLOATING_CONTROLS_SCREEN_WIDTHS_PX,
   LONG_PAGE_ROUTE,
   MAX_ICON_OFFSET_PX,
@@ -11,6 +15,9 @@ import {
   SCREEN_HEIGHT_PX,
 } from './constants';
 import { getBoxBottom, getBoxCenterDistanceX } from './utils';
+
+/** Translations of each language, to find the CV button by its name. */
+const TRANSLATIONS = { fr, en } satisfies Record<Language, Translations>;
 
 /** Scrolls the page to its end. Runs in the browser. */
 const scrollToEnd = () => window.scrollTo(0, document.documentElement.scrollHeight);
@@ -63,16 +70,22 @@ for (const width of FLOATING_CONTROLS_SCREEN_WIDTHS_PX) {
       );
     });
 
-    test('the floating CV button downloads the CV', async ({ page }) => {
-      await page.goto(LONG_PAGE_ROUTE);
+    for (const language of LANGUAGES) {
+      test(`the floating CV button of the ${language} pages downloads the CV written in ${language}`, async ({
+        page,
+      }) => {
+        await page.goto(localizePath({ path: LONG_PAGE_ROUTE, language }));
 
-      const downloadEvent = page.waitForEvent('download');
-      await page.getByRole('link', { name: fr.cvLink.label }).click();
-      const download = await downloadEvent;
+        const downloadEvent = page.waitForEvent('download');
+        await page.getByRole('link', { name: TRANSLATIONS[language].cvLink.label }).click();
+        const download = await downloadEvent;
 
-      expect(download.suggestedFilename(), 'name of the downloaded file').toBe(CV_FILE_NAME);
-      expect(await download.failure(), 'error of the download').toBeNull();
-    });
+        expect(download.suggestedFilename(), 'name of the downloaded file').toBe(
+          CV_FILE_NAMES[language],
+        );
+        expect(await download.failure(), 'error of the download').toBeNull();
+      });
+    }
   });
 }
 

@@ -30,3 +30,9 @@ export const PATH_SEPARATOR = '/';
 
 /** Path of the home page of the default language, the root of the site. */
 export const ROOT_PATH = '/';
+
+/**
+ * Separator of the parts of a translation key, e.g. `exp.sewan.name`: the default `keySeparator`
+ * of i18next.
+ */
+export const KEY_SEPARATOR = '.';
