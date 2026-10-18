@@ -1,5 +1,11 @@
-import { DEFAULT_DEV_PORT, DEFAULT_PREVIEW_PORT, MAX_PORT, MIN_PORT } from './constants';
-import { getServerPorts, parsePort } from './utils';
+import {
+  DEFAULT_DEV_PORT,
+  DEFAULT_PREVIEW_PORT,
+  FALLBACK_CHUNK_NAME,
+  MAX_PORT,
+  MIN_PORT,
+} from './constants';
+import { getChunkName, getServerPorts, parsePort } from './utils';
 
 describe('parsePort', () => {
   it.each([
@@ -93,5 +99,40 @@ describe('getServerPorts', () => {
         expect(getServerPorts({ PORT })).toEqual(defaultPorts);
       },
     );
+  });
+});
+
+describe('getChunkName', () => {
+  it.each([
+    ['/app/src/pages/Projects/index.ts', 'Projects'],
+    ['/app/src/pages/NotFound/index.tsx', 'NotFound'],
+    ['C:\\app\\src\\pages\\Experiences\\index.ts', 'Experiences'],
+  ])('names the chunk of %s after its folder', (facadeModuleId, expected) => {
+    expect(getChunkName({ name: 'index', facadeModuleId })).toBe(expected);
+  });
+
+  it('keeps the name of a chunk whose module is not an index file', () => {
+    const facadeModuleId = '/app/node_modules/lottie-web/build/player/lottie_light.js';
+
+    expect(getChunkName({ name: 'lottie_light', facadeModuleId })).toBe('lottie_light');
+  });
+
+  describe('edge cases', () => {
+    it.each([
+      ['a shared chunk without a main module', null],
+      ['a chunk without a module path', undefined],
+      ['an index file without a folder', 'index.ts'],
+      ['an index file at the root of the disk', '/index.ts'],
+    ])('keeps the index name for %s', (_, facadeModuleId) => {
+      expect(getChunkName({ name: 'index', facadeModuleId })).toBe('index');
+    });
+
+    it.each([
+      ['no chunk', undefined],
+      ['no name', { facadeModuleId: '/app/src/pages/Projects/index.ts' }],
+      ['an empty name', { name: '' }],
+    ])('falls back to a generic name for %s', (_, chunk) => {
+      expect(getChunkName(chunk)).toBe(FALLBACK_CHUNK_NAME);
+    });
   });
 });

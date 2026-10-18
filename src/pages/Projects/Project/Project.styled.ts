@@ -15,6 +15,9 @@ const countBump = keyframes`
   100% { transform: translateY(0); opacity: 1; }
 `;
 
+// Space around each card, which the "Show all" grid takes off its padding to line the cards up
+const cardMargin = th.space(5);
+
 export const Section = styled.section`
   height: max-content;
   width: 100%;
@@ -133,9 +136,13 @@ export const ProjectGrid = styled.main<{ $displayAll: boolean }>`
       grid-template-columns: repeat(1, minmax(min-content, 1fr));
       grid-auto-flow: row;
       row-gap: ${th.space(5)};
+      padding-left: calc(${th.space('page')} - ${cardMargin});
+      padding-right: calc(${th.space('page')} - ${cardMargin});
 
       @media (min-width: ${th('screens.tablet')}) {
         grid-template-columns: repeat(2, minmax(min-content, 1fr));
+        padding-left: 0;
+        padding-right: 0;
       }
 
       @media (min-width: ${th('screens.wide')}) {
@@ -147,7 +154,7 @@ export const ProjectGrid = styled.main<{ $displayAll: boolean }>`
 export const ProjectItem = styled.div<{ $displayAll?: boolean }>`
   display: flex;
   flex-direction: column;
-  margin: ${th.space(5)};
+  margin: ${cardMargin};
   flex: 0 0 calc(33.333% - 10px);
   min-width: 260px;
   transition:

@@ -4,8 +4,8 @@ import svgr from 'vite-plugin-svgr';
 
 import { getYearsOfExperience } from './src/utils/career';
 import { NOT_FOUND_FILE_NAME, PAGES, renderNotFoundHtml, renderPageHtml } from './src/utils/pages';
-import { ALL_ENV_VARIABLES_PREFIX } from './vite/constants';
-import { getServerPorts } from './vite/utils';
+import { ALL_ENV_VARIABLES_PREFIX, ASSETS_DIR } from './vite/constants';
+import { getChunkName, getServerPorts } from './vite/utils';
 
 /**
  * Vite plugin that fills the metadata of `index.html` for the home page, then emits one HTML
@@ -43,14 +43,14 @@ const pageMeta = (): Plugin => {
 };
 
 /**
- * Minimum test coverage, in percent, below which `pnpm test:coverage` fails. Set under the
- * coverage of October 2026, Vite and CI helpers included, as measured by Vitest 4 (97.2% of
- * lines, 96.8% of statements, 95.2% of branches, 93.7% of functions), so a change that drops
- * tests fails the CI. Vitest 4 maps the V8 coverage onto the syntax tree and counts only the
- * executable code, so its figures differ from those of Vitest 3 for the same tests. Raise them
- * when the coverage goes up.
+ * Minimum test coverage, in percent, below which `pnpm test:coverage` fails. Set two to three
+ * points under the coverage of October 2026, Vite and CI helpers included, as measured by
+ * Vitest 4 (99.6% of lines, 99.4% of statements, 98.8% of branches, 98.3% of functions), so a
+ * change that drops tests fails the CI while a few untested lines of a new change do not.
+ * Vitest 4 maps the V8 coverage onto the syntax tree and counts only the executable code, so its
+ * figures differ from those of Vitest 3 for the same tests. Raise them when the coverage goes up.
  */
-const COVERAGE_THRESHOLDS_PERCENT = { lines: 95, statements: 95, branches: 95, functions: 85 };
+const COVERAGE_THRESHOLDS_PERCENT = { lines: 97, statements: 97, branches: 96, functions: 96 };
 
 /**
  * Vite and Vitest configuration: React with SVG components, the page metadata plugin, the dev
@@ -64,6 +64,12 @@ export default defineConfig(({ mode }) => {
   return {
     base: '/',
     plugins: [react(), svgr(), pageMeta()],
+    build: {
+      rollupOptions: {
+        // The chunk of each lazily loaded page is named after its folder, not after its index file
+        output: { chunkFileNames: chunk => `${ASSETS_DIR}/${getChunkName(chunk)}-[hash].js` },
+      },
+    },
     // A taken port stops the server instead of moving it to the next free port, so a test never
     // reaches the server of another worktree by mistake
     server: {

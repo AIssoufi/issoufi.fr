@@ -1,9 +1,10 @@
-import Lottie, { type AnimationItem } from 'lottie-web';
-import { useEffect, useRef } from 'react';
+import type { AnimationItem } from 'lottie-web';
+import { useEffect, useEffectEvent, useRef } from 'react';
 
 import burgerMenuData from './burger-menu.json';
 import { Container } from './BurgerMenu.styled';
 import { CLOSE_ANIMATION, OPEN_ANIMATION } from './constants';
+import { useLottieAnimation } from './hooks/useLottieAnimation';
 
 /** Props of {@link BurgerMenu}. */
 interface BurgerMenuProps {
@@ -17,44 +18,39 @@ interface BurgerMenuProps {
 
 /**
  * Animated burger icon that opens and closes the mobile menu. Plays a Lottie animation forward
- * on open and backward on close; the animation is created on mount and destroyed on unmount.
+ * on open and backward on close; the animation is drawn once lottie-web is loaded, after the
+ * first render, and destroyed on unmount. The icon keeps its size meanwhile, and shows the cross
+ * at once when the menu was opened before the animation was drawn.
  * The parent owns the open state and passes it back through `isOpen`.
  */
 const BurgerMenu = ({ isOpen = false, onOpen, onClose }: BurgerMenuProps) => {
   const menuBurgerEl = useRef<HTMLDivElement>(null);
-  const lottieRef = useRef<AnimationItem | null>(null);
+  const lottieInstance = useLottieAnimation({
+    containerRef: menuBurgerEl,
+    animationData: burgerMenuData,
+  });
+
+  // An effect event reads the latest open state but does not run again when it changes: a toggle
+  // plays the animation, and only the first draw jumps straight to the cross
+  const showCrossIfOpen = useEffectEvent((animation: AnimationItem) => {
+    const lastFrame = animation.totalFrames - 1;
+    if (isOpen) animation.goToAndStop(lastFrame, true);
+  });
 
   useEffect(() => {
-    const container = menuBurgerEl.current;
-    if (!container) return;
-
-    const lottieInstance = Lottie.loadAnimation({
-      container,
-      renderer: 'svg',
-      loop: false,
-      autoplay: false,
-      animationData: burgerMenuData,
-    });
-
-    lottieRef.current = lottieInstance;
-
-    return () => {
-      lottieInstance.destroy();
-    };
-  }, []);
+    if (lottieInstance) showCrossIfOpen(lottieInstance);
+  }, [lottieInstance]);
 
   useEffect(() => {
-    const lottieInstance = lottieRef.current;
     if (!lottieInstance) return;
     if (!isOpen) {
       lottieInstance.setSpeed(CLOSE_ANIMATION.speedMultiplier);
       lottieInstance.setDirection(CLOSE_ANIMATION.direction);
       lottieInstance.play();
     }
-  }, [isOpen]);
+  }, [isOpen, lottieInstance]);
 
   const handleBurgerMenuClick = () => {
-    const lottieInstance = lottieRef.current;
     if (isOpen) {
       onClose?.();
       lottieInstance?.setSpeed(CLOSE_ANIMATION.speedMultiplier);
