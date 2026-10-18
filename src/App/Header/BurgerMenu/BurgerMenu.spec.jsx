@@ -98,11 +98,15 @@ describe('BurgerMenu', () => {
   it('plays the animation instead of jumping to the cross when the menu opens', async () => {
     const animation = { ...animationMock(), totalFrames: 30 };
     vi.spyOn(lottie, 'loadAnimation').mockReturnValue(animation);
-    const { rerender } = render(<BurgerMenu />);
+    const { container, rerender } = render(<BurgerMenu />);
     await waitFor(() => expect(lottie.loadAnimation).toHaveBeenCalled());
+    animation.play.mockClear();
 
+    fireEvent.click(container.firstChild);
     rerender(<BurgerMenu isOpen />);
 
+    expect(animation.setDirection).toHaveBeenLastCalledWith(OPEN_ANIMATION.direction);
+    expect(animation.play).toHaveBeenCalledTimes(1);
     expect(animation.goToAndStop).not.toHaveBeenCalled();
   });
 });

@@ -89,7 +89,7 @@ describe('useLottieAnimation', () => {
     expect(result.current).toBeNull();
   });
 
-  it('keeps the ref empty, without throwing, when the animation cannot be drawn', async () => {
+  it('returns null, without throwing, when the animation cannot be drawn', async () => {
     vi.mocked(lottie.loadAnimation).mockImplementation(() => {
       throw new Error('Invalid animation data');
     });
@@ -117,6 +117,7 @@ describe('useLottieAnimation', () => {
     rerender({ containerRef: second });
 
     expect(animation.destroy).toHaveBeenCalledTimes(1);
+    expect(result.current).toBeNull();
     await waitFor(() =>
       expect(lottie.loadAnimation).toHaveBeenLastCalledWith(
         expect.objectContaining({ container: second.current }),
