@@ -102,17 +102,23 @@ export const getPageFiles = (): PageFile[] =>
   );
 
 /**
+ * Home page, the first entry of {@link PAGES}. In the default language, its HTML file is
+ * `index.html` itself, which Vite writes from the template.
+ */
+export const [HOME_PAGE] = PAGES;
+
+/**
  * Tells whether a page file is the home page of the default language, `index.html`, which Vite
  * writes itself from the template, rather than a file the build emits.
  *
  * @param file - Page file of {@link getPageFiles}.
  *
  * @example
- * isTemplatePageFile({ page: PAGES[0], language: 'fr', fileName: 'index.html' }); // true
- * isTemplatePageFile({ page: PAGES[0], language: 'en', fileName: 'en/index.html' }); // false
+ * isTemplatePageFile({ page: HOME_PAGE, language: 'fr', fileName: 'index.html' }); // true
+ * isTemplatePageFile({ page: HOME_PAGE, language: 'en', fileName: 'en/index.html' }); // false
  */
 export const isTemplatePageFile = ({ page, language }: PageFile): boolean =>
-  page === PAGES[0] && language === DEFAULT_LANGUAGE;
+  page === HOME_PAGE && language === DEFAULT_LANGUAGE;
 
 /** Parameters of {@link getPageUrl}. */
 interface GetPageUrlParams {

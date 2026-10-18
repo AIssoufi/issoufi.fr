@@ -8,9 +8,9 @@ import { addModulePreload, renderNotFoundHtml, renderPageHtml } from './src/util
 import {
   getNotFoundFiles,
   getPageFiles,
+  HOME_PAGE,
   isTemplatePageFile,
   NOT_FOUND_FOLDER,
-  PAGES,
 } from './src/utils/pages';
 import { ALL_ENV_VARIABLES_PREFIX, ASSETS_DIR } from './vite/constants';
 import { getChunkName, getPageChunkFile, getServerPorts } from './vite/utils';
@@ -22,9 +22,6 @@ interface PreloadPageChunkParams {
   /** Folder in `src/pages` of the page that the HTML shows. */
   folder: string;
 }
-
-/** Home page of the default language: `index.html` itself, which Vite writes from the template. */
-const [HOME_PAGE] = PAGES;
 
 /**
  * Vite plugin that fills the metadata of `index.html` for the home page of the default language,

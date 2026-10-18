@@ -8,7 +8,10 @@ import { getPageUrl, type Page } from './pages';
 const escapeHtml = (value: string) =>
   value.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 
-/** `meta` translations of each language: the titles and descriptions of the pages. */
+/**
+ * `meta` translations of each language: the titles and descriptions of the pages, and the texts
+ * shared by every page.
+ */
 const META_TRANSLATIONS: Record<Language, Translations['meta']> = { fr: fr.meta, en: en.meta };
 
 /**
