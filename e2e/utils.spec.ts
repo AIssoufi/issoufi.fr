@@ -1,9 +1,11 @@
 import { PAGES } from '../src/utils/pages';
 import { MAX_CARD_OFFSET_PX, MAX_DOT_OFFSET_PX, NOT_FOUND_ROUTE } from './constants';
 import {
+  countOccurrences,
   countWholeCards,
   doBoxesOverlapHorizontally,
   filterWholeCards,
+  findSkippedHeadingLevels,
   getBoxBottom,
   getBoxCenterDistanceX,
   getBoxCenterDistanceY,
@@ -830,5 +832,91 @@ describe('getScreenCenter', () => {
     ])('returns null for the size %j', viewport => {
       expect(getScreenCenter(viewport as never)).toBeNull();
     });
+  });
+});
+
+describe('findSkippedHeadingLevels', () => {
+  it('finds no skip in headings that go down one level at a time, and back up', () => {
+    expect(findSkippedHeadingLevels([1, 2, 3, 4, 3, 4, 4, 2, 3, 2, 3, 4])).toEqual([]);
+  });
+
+  it('finds a heading two levels deeper than the one before it', () => {
+    expect(findSkippedHeadingLevels([1, 3, 3, 2, 3, 4, 2])).toEqual([{ index: 1, level: 3 }]);
+  });
+
+  it('compares each heading with the one right before it, not with the deepest one', () => {
+    expect(findSkippedHeadingLevels([1, 2, 3, 2, 4])).toEqual([{ index: 4, level: 4 }]);
+  });
+
+  it('compares a heading with the one before it even when that one skipped a level', () => {
+    expect(findSkippedHeadingLevels([1, 3, 4, 6])).toEqual([
+      { index: 1, level: 3 },
+      { index: 3, level: 6 },
+    ]);
+  });
+
+  it.each([
+    ['a h1', [1], []],
+    ['a h2', [2], [{ index: 0, level: 2 }]],
+    ['a h6', [6], [{ index: 0, level: 6 }]],
+  ])('accepts only a h1 as the first heading, given %s', (_case, levels, expected) => {
+    expect(findSkippedHeadingLevels(levels)).toEqual(expected);
+  });
+
+  it('lets a heading go back up to any level', () => {
+    expect(findSkippedHeadingLevels([1, 2, 3, 4, 5, 6, 1, 2])).toEqual([]);
+  });
+
+  it.each([0, 7, -1, 2.5, Number.NaN, '2', null, undefined])(
+    'counts the level %j, which no heading has, as a skip, and goes on from the last valid one',
+    level => {
+      expect(findSkippedHeadingLevels([1, level, 2])).toEqual([{ index: 1, level }]);
+    },
+  );
+
+  it.each([[[]], [undefined], [null], ['1, 2, 3'], [{ 0: 1 }]])(
+    'finds no skip in %j, which holds no heading',
+    levels => {
+      expect(findSkippedHeadingLevels(levels as never)).toEqual([]);
+    },
+  );
+});
+
+describe('countOccurrences', () => {
+  it('counts every occurrence of a text', () => {
+    expect(
+      countOccurrences({ text: 'août 2021 à Aujourd’hui · août 2021', searched: 'août 2021' }),
+    ).toBe(2);
+  });
+
+  it('counts a single occurrence, at the start, the middle or the end', () => {
+    expect(countOccurrences({ text: 'mai 2017 à août 2017', searched: 'mai 2017' })).toBe(1);
+    expect(countOccurrences({ text: 'Stage mai 2017 à août 2017 3 mois', searched: 'à' })).toBe(1);
+    expect(countOccurrences({ text: 'mai 2017 à août 2017', searched: 'août 2017' })).toBe(1);
+  });
+
+  it('counts no occurrence of an absent text, or of one that differs in case', () => {
+    expect(countOccurrences({ text: 'août 2021 ↓ Aujourd’hui', searched: 'août 2021 à' })).toBe(0);
+    expect(countOccurrences({ text: 'Aujourd’hui', searched: 'aujourd’hui' })).toBe(0);
+  });
+
+  it('counts occurrences that would overlap only once', () => {
+    expect(countOccurrences({ text: 'aaa', searched: 'aa' })).toBe(1);
+  });
+
+  it.each([
+    ['an empty searched text', { text: 'août 2021', searched: '' }],
+    ['an empty text', { text: '', searched: 'août 2021' }],
+    ['no searched text', { text: 'août 2021' }],
+    ['no text', { searched: 'août 2021' }],
+    ['a text that is not a string', { text: 2021, searched: '2021' }],
+    ['a searched text that is not a string', { text: 'août 2021', searched: 2021 }],
+    ['null values', { text: null, searched: null }],
+  ])('counts 0 with %s', (_case, params) => {
+    expect(countOccurrences(params)).toBe(0);
+  });
+
+  it('counts 0 without parameters', () => {
+    expect(countOccurrences()).toBe(0);
   });
 });

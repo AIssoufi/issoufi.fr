@@ -1,5 +1,6 @@
 import styled, { th } from '@xstyled/styled-components';
 
+import List from '../../components/List';
 import Page from '../../components/Page';
 
 import { lineWidth, mobileLineLeft, periodColumnWidth } from './timeline.styled';
@@ -25,9 +26,9 @@ export const PageTitle = styled.h1`
   }
 `;
 
-/* ── Timeline grid ─────────────────────────────────────────── */
+/* ── Timeline grid: the list of the companies ──────────────── */
 
-export const Timeline = styled.div`
+export const Timeline = styled(List)`
   position: relative;
 
   /* vertical line — mobile */

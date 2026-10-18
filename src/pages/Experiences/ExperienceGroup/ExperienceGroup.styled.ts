@@ -9,9 +9,9 @@ import {
   timelineRow,
 } from '../timeline.styled';
 
-/* ── Group wrapper — participates directly in Timeline ─────── */
+/* ── Group item — an item of the Timeline list ─────────────── */
 
-export const GroupArticle = styled.section`
+export const GroupItem = styled.li`
   ${companyBlock}
   padding-left: ${mobileContentIndent};
 
@@ -63,7 +63,7 @@ export const RoleItem = styled.li`
 
 /* ── Role content — the card ────────────────────────────────── */
 
-export const RoleContent = styled.div`
+export const RoleContent = styled.article`
   min-width: 0;
   ${card}
   padding: ${th.space(14)} ${th.space(16)};

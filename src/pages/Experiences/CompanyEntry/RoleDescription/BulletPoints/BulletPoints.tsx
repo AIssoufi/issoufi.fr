@@ -13,7 +13,8 @@ const NO_TEXT_KEYS: string[] = [];
 
 /**
  * List of the bullet points of a role or a project, in the active language, each one after a
- * "›". A key without translation is left out, and the list too when none is left.
+ * "›" that screen readers do not read. A key without translation is left out, and the list too
+ * when none is left.
  *
  * @example
  * <BulletPoints textKeys={['exp.wibilong.b1', 'exp.wibilong.b2']} />
