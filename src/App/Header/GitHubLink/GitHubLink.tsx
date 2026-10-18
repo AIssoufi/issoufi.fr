@@ -15,7 +15,8 @@ interface GitHubLinkProps {
 /**
  * Official GitHub icon, alone and without a frame, linking to the GitHub profile of the site owner
  * in a new tab. Light grey, it turns to the accent color of the buttons on hover. The header shows
- * it under the language toggle on desktop, and the mobile menu under the CV button.
+ * it under the CV button and the language toggle on desktop, and the mobile menu under the CV
+ * button.
  *
  * Screen readers announce it by its translated name, since the icon has no text.
  *

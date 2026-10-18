@@ -25,6 +25,38 @@ describe('NavMenu', () => {
     expect(screen.getByText('CV').closest('a')).toHaveAttribute('href', '/CV - Adam Issoufi.pdf');
   });
 
+  describe('CV button', () => {
+    const getCvLink = () => screen.getByRole('link', { name: 'Télécharger le CV', hidden: true });
+
+    it('follows the links in the open mobile menu, with its download icon', () => {
+      renderAt('/', { items, mobileMenuIsOpen: true });
+
+      expect(getCvLink()).toBeVisible();
+      expect(getCvLink().previousElementSibling).toContainElement(screen.getByText('Projets'));
+      expect(getCvLink().querySelector('svg')).toHaveAttribute('aria-hidden', 'true');
+    });
+
+    it('closes the mobile menu when it is clicked', async () => {
+      const onClick = vi.fn(event => event?.preventDefault());
+      renderAt('/', { items, onClick, mobileMenuIsOpen: true });
+
+      await userEvent.click(getCvLink());
+
+      expect(onClick).toHaveBeenCalledOnce();
+    });
+
+    it('is hidden on desktop, where the header floats it under the language toggle', () => {
+      renderAt('/', { items });
+
+      const display = declaredStyle({
+        element: getCvLink(),
+        property: 'display',
+        media: DESKTOP_MEDIA_QUERY,
+      });
+      expect(display).toBe('none');
+    });
+  });
+
   it('renders the links and highlights the active one', () => {
     renderAt('/projects', { items });
 
@@ -78,7 +110,7 @@ describe('NavMenu', () => {
       expect(onClick).toHaveBeenCalledOnce();
     });
 
-    it('is hidden on desktop, where the header shows it under the language toggle', () => {
+    it('is hidden on desktop, where the header floats it under the CV button', () => {
       renderAt('/', { items });
 
       const display = declaredStyle({

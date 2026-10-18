@@ -99,3 +99,9 @@ export const LONG_PAGE_ROUTE: Page['path'] = '/experiences';
  * a 1 px shift.
  */
 export const MAX_ICON_OFFSET_PX = 0.5;
+
+/**
+ * Name of the file that the CV button downloads, the end of its URL (`CV_URL`,
+ * `src/App/Header/CvLink/constants.ts`).
+ */
+export const CV_FILE_NAME = 'CV - Adam Issoufi.pdf';

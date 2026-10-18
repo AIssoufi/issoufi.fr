@@ -6,6 +6,7 @@ import { useUrlLanguage } from '../../hooks/useUrlLanguage';
 import { localizePath } from '../../i18n/utils';
 import BurgerMenu from './BurgerMenu';
 import { DESKTOP_MEDIA_QUERY } from './constants';
+import GitHubLink from './GitHubLink';
 import { useEscapeKey } from './hooks/useEscapeKey';
 import { useInertOutside } from './hooks/useInertOutside';
 import { useMediaQuery } from './hooks/useMediaQuery';
@@ -19,7 +20,8 @@ import {
   BuildVersion,
   Container,
   FloatingControls,
-  FloatingGitHubLink,
+  FloatingCvLink,
+  FloatingLinks,
   Logo,
   Menu,
 } from './Header.styled';
@@ -28,10 +30,11 @@ import {
  * Site header: the "AI" logo linking home, followed by the version of the build in small letters
  * (`build v1.0.0`, see {@link formatVersion}), the language toggle, the navigation and, on mobile,
  * the burger button that opens it. From tablet up, the language toggle floats on the right edge of
- * the screen, with the GitHub icon centered under it; on mobile, the menu holds that icon. Its
- * links lead to the pages in the language of the current URL. Owns the open state of the mobile
- * menu, and closes it after each navigation and when the screen grows to the desktop layout, as
- * when a tablet is rotated. Must be rendered inside a router.
+ * the screen, with a round CV button then the GitHub icon centered under it; on mobile, the menu
+ * holds the CV button and that icon. Its links lead to the pages in the language of the current
+ * URL. Owns the open state of the mobile menu, and closes it after each navigation and when the
+ * screen grows to the desktop layout, as when a tablet is rotated. Must be rendered inside a
+ * router.
  *
  * The burger button comes before the links in the page, so once a keyboard user opens the menu,
  * the next `Tab` reaches its first link. While open, the mobile menu acts as a modal dialog: the
@@ -91,7 +94,10 @@ const Header = ({ testId, version = __APP_VERSION__ }: HeaderProps) => {
       <Actions>
         <FloatingControls>
           <LangToggle />
-          <FloatingGitHubLink />
+          <FloatingLinks>
+            <FloatingCvLink />
+            <GitHubLink />
+          </FloatingLinks>
         </FloatingControls>
         <Menu
           ref={menuRef}

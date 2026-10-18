@@ -2,6 +2,7 @@ import styled, { css, keyframes, th } from '@xstyled/styled-components';
 
 import List from '../../../components/List';
 import { theme } from '../../../theme';
+import CvLink from '../CvLink';
 import GitHubLink from '../GitHubLink';
 
 // Keyframes have no theme context, so they read the theme object rather than the th helpers
@@ -126,22 +127,18 @@ export const NavItem = styled.li`
   }
 `;
 
-export const CtaButton = styled.a`
+/* The pill of the mobile menu, hidden on desktop, where the header floats a round CV button
+   between the language toggle and the GitHub icon */
+export const MenuCvLink = styled(CvLink)`
   border-radius: ${th.radius('pill')};
   width: max-content;
-  transform: scale(1);
-  transition-property: color, border-color, transform, background-color, box-shadow;
+  height: max-content;
+  transition-property: border-color, background-color;
   transition-duration: ${th.duration('base')};
   margin-top: ${th.space(28)};
   padding: ${th.space(14)} ${th.space(36)};
-  color: ${th.color('foreground')};
   background-color: transparent;
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  justify-content: center;
   border: ${th.borderWidth('thin')} solid ${th.color('foreground-a50')};
-  height: max-content;
   font-size: ${th.fontSize(18)};
   letter-spacing: ${th.letterSpacing(6)};
   animation: ${fadeSlideIn} ${th.duration(300)} ${th.timingFunction('standard')} ${th.duration(200)}
@@ -152,43 +149,13 @@ export const CtaButton = styled.a`
     border-color: ${th.color('accent-a60')};
   }
 
-  .icon {
-    margin-right: ${th.space('icon-gap')};
-  }
-
-  .text {
-    text-transform: uppercase;
-  }
-
   @media (min-width: ${th('screens.tablet')}) {
-    margin-top: 0;
-    margin-left: ${th.space(8)};
-    padding: ${th.space(8)} ${th.space(22)};
-    font-size: ${th.fontSize(14)};
-    letter-spacing: ${th.letterSpacing(4)};
-    animation: none;
-
-    &:hover {
-      transform: scale(1.06);
-      color: ${th.color('accent')};
-      background-color: ${th.color('foreground')};
-      border-color: ${th.color('foreground')};
-      box-shadow: ${th.shadow('accentGlowWide')};
-    }
-
-    &:hover .icon {
-      stroke: ${th.color('accent')};
-    }
-
-    &:active {
-      background-color: ${th.color('foreground')};
-      border-color: ${th.color('foreground')};
-    }
+    display: none;
   }
 `;
 
-/* Shown in the mobile menu only: on desktop, the header shows the GitHub icon under the language
-   toggle */
+/* Shown in the mobile menu only: on desktop, the header floats the GitHub icon under the CV
+   button */
 export const MenuGitHubLink = styled(GitHubLink)`
   margin-top: ${th.space(28)};
   animation: ${fadeSlideIn} ${th.duration(300)} ${th.timingFunction('standard')} ${th.duration(300)}
