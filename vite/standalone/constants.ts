@@ -39,3 +39,18 @@ export const REGEXP_SPECIAL_CHARACTERS = /[.*+?^${}()|[\]\\]/g;
 
 /** Trailing slashes of a folder path. */
 export const TRAILING_SLASHES_PATTERN = /\/+$/;
+
+/**
+ * Sequences of a script's code that would end its inline `<script>` tag early, or switch the HTML
+ * parser to another state: a closing script tag and the start of an HTML comment, in any case.
+ */
+export const INLINE_SCRIPT_BREAKER_PATTERN = /<(\/script|!--)/gi;
+
+/**
+ * Marker that Vite writes in place of the files to preload with each dynamic import, quoted or
+ * not, and fills in when it renders a chunk.
+ */
+export const PRELOAD_MARKER_PATTERN = /"?__VITE_PRELOAD__"?/g;
+
+/** JavaScript for "no file to preload", which Vite's preload helper accepts in place of a list. */
+export const NO_PRELOAD = 'void 0';

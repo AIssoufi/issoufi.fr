@@ -22,7 +22,7 @@ const APP_MODULE = normalizePath(resolve('src/App/App.tsx'));
 const EXTERNAL_SCRIPT_PATTERN = /<script[^>]*\ssrc=|<link[^>]*rel="modulepreload"/;
 
 /**
- * Code of an inline script, up to its closing tag: `vite-plugin-singlefile` escapes any closing tag
+ * Code of an inline script, up to its closing tag: `inlineScript` escapes any closing tag
  * written in the code, so the first one ends the script.
  */
 const INLINE_SCRIPT_CODE_PATTERN = /(<script[^>]*>)[\s\S]*?(<\/script>)/g;
@@ -102,6 +102,8 @@ describe('standalone build', () => {
       output.map(file => file.fileName).filter(fileName => /\.(js|css)$/.test(fileName)),
     ).toEqual([]);
     expect(html).toMatch(/<script type="module"[^>]*>\S/);
+    // A marker left by Vite would make each lazy page throw when it loads
+    expect(html).not.toContain('__VITE_PRELOAD__');
     expect(stripInlineScripts(html)).not.toMatch(EXTERNAL_SCRIPT_PATTERN);
   });
 
