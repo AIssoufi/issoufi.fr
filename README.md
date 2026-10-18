@@ -155,7 +155,7 @@ The version follows the commits: `fix` bumps the patch version, `feat` the minor
 
 The production build cannot open from the disk: its URLs are absolute (`/assets/…`), which point to the root of the disk under `file://`, `BrowserRouter` would read the path of the file as the route and show the not found page everywhere, and browsers refuse to load module scripts, such as the chunks of the lazily loaded pages, from `file://`. `pnpm build:standalone` therefore builds it again with `vite.standalone.config.ts`, which takes the config of `vite.config.ts` as it is and adds four plugins:
 
-- `vite-plugin-singlefile` inlines the whole app, the pages loaded lazily and `lottie-web` included, in `index.html` (about 620 kB, 193 kB gzip; zipped with the files of `public/`, 2.3 MB, mostly the CV), with a relative base;
+- `vite-plugin-singlefile` inlines the whole app, the pages loaded lazily and `lottie-web` included, in `index.html`, with a relative base: the CV makes up most of the archive;
 - `standalone-hash-router` resolves the imports of `react-router` from `src/` to `vite/standalone/react-router.ts`, whose `BrowserRouter` is the `HashRouter`, so the routes read the hash of the URL (`index.html#/projects`);
 - `standalone-relative-public-urls` turns the URLs of the files of `public/` that the code writes as strings (`'/home.webp'`, the `imageUrl` of the projects, the CV) into URLs relative to the page (`'./home.webp'`), since Vite copies these files next to `index.html`. Write such a URL as one whole string, never built from parts (`'/' + name`), or the standalone build will not find the file;
 - `standalone-page` removes the other pages (`projects.html`, `experiences.html`, `404.html`), which only a web server needs, and adds the `README.txt`.
