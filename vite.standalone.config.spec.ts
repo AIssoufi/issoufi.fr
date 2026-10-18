@@ -4,6 +4,7 @@ import { build, normalizePath, type Plugin, type Rollup } from 'vite';
 
 import { isGoogleHost } from './e2e/utils';
 import { FONT_FACES } from './src/theme/constants';
+import { HEADERS_FILE_NAME } from './vite/constants';
 import {
   HASH_ROUTER_MODULE,
   OPTIONAL_ESCAPE_PATTERN,
@@ -165,6 +166,10 @@ describe('standalone build', () => {
 
     expect(hosts.length).toBeGreaterThan(0);
     expect(hosts.filter(isGoogleHost)).toEqual([]);
+  });
+
+  it(`leaves out the ${HEADERS_FILE_NAME} of Cloudflare Pages, which no server reads from the disk`, () => {
+    expect(output.map(file => file.fileName)).not.toContain(HEADERS_FILE_NAME);
   });
 
   it('tells how to open it in a README.txt', () => {

@@ -1,3 +1,5 @@
+import type { HeaderRule } from './types';
+
 /** Port of the dev server when no `PORT` is set, as in the main checkout. */
 export const DEFAULT_DEV_PORT = 3000;
 
@@ -21,9 +23,52 @@ export const ALL_ENV_VARIABLES_PREFIX = '';
 
 /**
  * Folder of the hashed scripts in the build: Vite's default `build.assetsDir`. `pnpm size` only
- * counts the scripts of this folder (`ASSETS_SUBDIR` in `scripts/ci/constants.mjs`): keep both equal.
+ * counts the scripts of this folder (`ASSETS_SUBDIR` in `scripts/ci/constants.mjs`): keep both
+ * equal. Browsers keep its files a year ({@link HEADER_RULES}), so each one needs a hash of its
+ * content in its name, and `public/` no folder of this name, whose files Vite would copy into it
+ * as they are: `vite.config.spec.ts` checks both.
  */
 export const ASSETS_DIR = 'assets';
+
+/**
+ * File of the build that sets the HTTP headers that Cloudflare Pages adds to the files it serves,
+ * by path. Cloudflare Pages reads it and does not serve it.
+ * @see https://developers.cloudflare.com/pages/configuration/headers/
+ */
+export const HEADERS_FILE_NAME = '_headers';
+
+/**
+ * How long a browser keeps a file of {@link ASSETS_DIR} without asking the server again: a year of
+ * 365 days, the usual lifetime of a file that never changes.
+ */
+export const HASHED_ASSET_MAX_AGE_SECONDS = 31_536_000;
+
+/**
+ * Rules of {@link HEADERS_FILE_NAME}. The files of {@link ASSETS_DIR} have a hash of their content
+ * in their name, so a new content gets a new URL: browsers keep them a year without revalidating
+ * them (`immutable`). Every other file keeps the default policy of Cloudflare Pages, which
+ * revalidates it: the HTML pages, `robots.txt` and `sitemap.xml`, whose URL never changes, and the
+ * files copied from `public/`, whose name stays the same when their content changes, the web fonts
+ * of `public/fonts/` included, since other scripts read them there.
+ */
+export const HEADER_RULES: readonly HeaderRule[] = [
+  {
+    path: `/${ASSETS_DIR}/*`,
+    headers: { 'Cache-Control': `public, max-age=${HASHED_ASSET_MAX_AGE_SECONDS}, immutable` },
+  },
+];
+
+/** Path pattern of a rule of {@link HEADERS_FILE_NAME}: a path that starts with `/`, no space. */
+export const HEADER_PATH_PATTERN = /^\/\S*$/;
+
+/** Name of an HTTP header: a token of RFC 9110, such as `Cache-Control`. */
+export const HEADER_NAME_PATTERN = /^[\w!#$%&'*+.^`|~-]+$/;
+
+/** A line break, which would end a line of {@link HEADERS_FILE_NAME} early. */
+export const LINE_BREAK_PATTERN = /[\r\n]/;
+
+/** Indent of each header under the path of its rule, in {@link HEADERS_FILE_NAME}. */
+export const HEADER_INDENT = '  ';
 
 /** Name that Rollup gives to the chunk of an `index` module, after its file name. */
 export const INDEX_CHUNK_NAME = 'index';

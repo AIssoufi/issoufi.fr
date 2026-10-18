@@ -15,7 +15,7 @@ import {
 import {
   inlineScript,
   isEntryChunk,
-  isServerOnlyPage,
+  isServerOnlyFile,
   removePreloadMarkers,
 } from './vite/standalone/utils/bundle';
 import {
@@ -106,13 +106,15 @@ const embeddedFonts = (): Plugin => {
 
 /**
  * Vite plugin that makes `index.html` the only page of the build, and a page that needs no other
- * file to run. It removes the pages that only a web server needs (`projects.html`, `404.html`…,
- * see {@link isServerOnlyPage}), puts the code of the app in the script tag of `index.html`, since
- * browsers refuse to load module scripts from `file://` (see {@link inlineScript}), without the
- * preload markers of its inlined dynamic imports (see {@link removePreloadMarkers}), and adds the
- * `README.txt` that tells a visitor how to open it. It runs after the `page-meta` plugin of
- * `vite.config.ts`, which emits those pages (both use `enforce: 'post'`, in the order of the
- * plugins). The build has a single chunk, its dynamic imports inlined (`inlineDynamicImports`).
+ * file to run. It removes the files that only a web server needs (`projects.html`, `404.html`…,
+ * `_headers`, see {@link isServerOnlyFile}), puts the code of the app in the script tag of
+ * `index.html`, since browsers refuse to load module scripts from `file://` (see
+ * {@link inlineScript}), without the preload markers of its inlined dynamic imports (see
+ * {@link removePreloadMarkers}), and adds the `README.txt` that tells a visitor how to open it. It
+ * runs after the `page-meta` and `http-headers` plugins of `vite.config.ts`, which emit those
+ * files: the first one also uses `enforce: 'post'`, in the order of the plugins, and the second
+ * one runs before the `post` plugins. The build has a single chunk, its dynamic imports inlined
+ * (`inlineDynamicImports`).
  */
 const standalonePage = (): Plugin => {
   let readmeSource = '';
@@ -125,7 +127,7 @@ const standalonePage = (): Plugin => {
     },
     generateBundle(_options, bundle) {
       Object.keys(bundle)
-        .filter(isServerOnlyPage)
+        .filter(isServerOnlyFile)
         .forEach(fileName => delete bundle[fileName]);
 
       const page = bundle[STANDALONE_PAGE_FILE_NAME];

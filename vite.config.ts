@@ -14,8 +14,14 @@ import {
   NOT_FOUND_FOLDER,
 } from './src/utils/pages';
 import { renderSitemap, SITEMAP_FILE_NAME } from './src/utils/sitemap';
-import { ALL_ENV_VARIABLES_PREFIX, ASSETS_DIR } from './vite/constants';
-import { getChunkName, getFontFaceTags, getPageChunkFile, getServerPorts } from './vite/utils';
+import { ALL_ENV_VARIABLES_PREFIX, ASSETS_DIR, HEADERS_FILE_NAME } from './vite/constants';
+import {
+  getChunkName,
+  getFontFaceTags,
+  getPageChunkFile,
+  getServerPorts,
+  renderHeaderRules,
+} from './vite/utils';
 
 /**
  * Vite plugin that adds the web fonts of the site to the head of `index.html`, in development as
@@ -111,6 +117,19 @@ const sitemap = (): Plugin => ({
 });
 
 /**
+ * Vite plugin that emits `_headers` at the root of the build, the HTTP headers that Cloudflare
+ * Pages adds to the files it serves, by path (see {@link renderHeaderRules}): browsers keep the
+ * hashed files of `assets/` a year, and revalidate every other file, as Cloudflare Pages does by
+ * default.
+ */
+const httpHeaders = (): Plugin => ({
+  name: 'http-headers',
+  generateBundle() {
+    this.emitFile({ type: 'asset', fileName: HEADERS_FILE_NAME, source: renderHeaderRules() });
+  },
+});
+
+/**
  * Minimum test coverage, in percent, below which `pnpm test:coverage` fails. Set two to three
  * points under the coverage of October 2026, Vite and CI helpers included, as measured by
  * Vitest 4 (99.6% of lines, 99.4% of statements, 98.8% of branches, 98.3% of functions), so a
@@ -121,8 +140,8 @@ const sitemap = (): Plugin => ({
 const COVERAGE_THRESHOLDS_PERCENT = { lines: 97, statements: 97, branches: 96, functions: 96 };
 
 /**
- * Vite and Vitest configuration: React with SVG components, the web fonts, page metadata and
- * sitemap plugins, the dev and preview servers on the port of the worktree (see
+ * Vite and Vitest configuration: React with SVG components, the web fonts, page metadata, sitemap
+ * and HTTP headers plugins, the dev and preview servers on the port of the worktree (see
  * {@link getServerPorts}), which fail when it is taken, and the tests in jsdom with coverage.
  * @see https://vitejs.dev/config/
  */
@@ -131,7 +150,7 @@ export default defineConfig(({ mode }) => {
 
   return {
     base: '/',
-    plugins: [react(), svgr(), fontFaces(), pageMeta(), sitemap()],
+    plugins: [react(), svgr(), fontFaces(), pageMeta(), sitemap(), httpHeaders()],
     // The version that release-please writes in package.json, shown after the logo of the header
     // (src/App/Header) and typed in src/vite-env.d.ts; the tests read it too
     define: { __APP_VERSION__: JSON.stringify(packageJson.version) },
