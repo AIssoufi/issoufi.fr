@@ -1,6 +1,7 @@
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import lottie from 'lottie-web/build/player/lottie_light';
+import { createRef } from 'react';
 
 import i18n from '../../../i18n';
 import BurgerMenu from './BurgerMenu';
@@ -170,6 +171,16 @@ describe('BurgerMenu', () => {
 
       rerender(<BurgerMenu menuId="" />);
       expect(screen.getByRole('button')).not.toHaveAttribute('aria-controls');
+    });
+
+    it('gives its button to the ref, so the parent can focus it', () => {
+      const ref = createRef();
+      render(<BurgerMenu ref={ref} />);
+
+      act(() => ref.current.focus());
+
+      expect(ref.current).toBe(screen.getByRole('button'));
+      expect(screen.getByRole('button')).toHaveFocus();
     });
 
     it('is reached with Tab', async () => {

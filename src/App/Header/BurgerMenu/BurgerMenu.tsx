@@ -1,5 +1,5 @@
 import type { AnimationItem } from 'lottie-web';
-import { useEffect, useEffectEvent, useRef } from 'react';
+import { type Ref, useEffect, useEffectEvent, useImperativeHandle, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import burgerMenuData from './burger-menu.json';
@@ -20,6 +20,8 @@ interface BurgerMenuProps {
   onOpen?: () => void;
   /** Called when the button is pressed (click, `Enter` or `Space`) while the menu is open. */
   onClose?: () => void;
+  /** Receives the button element, so the parent can give it the focus back. */
+  ref?: Ref<HTMLButtonElement>;
 }
 
 /**
@@ -33,9 +35,11 @@ interface BurgerMenuProps {
  * readers announce it with a translated name that follows the state ("Ouvrir le menu" / "Open
  * menu", then "Fermer le menu" / "Close menu"), its expanded state and the menu it controls.
  */
-const BurgerMenu = ({ isOpen = false, menuId, onOpen, onClose }: BurgerMenuProps) => {
+const BurgerMenu = ({ isOpen = false, menuId, onOpen, onClose, ref }: BurgerMenuProps) => {
   const { t } = useTranslation();
   const menuBurgerEl = useRef<HTMLButtonElement>(null);
+  // The handle is set once the button is mounted
+  useImperativeHandle(ref, () => menuBurgerEl.current!, []);
   const lottieInstance = useLottieAnimation({
     containerRef: menuBurgerEl,
     animationData: burgerMenuData,
