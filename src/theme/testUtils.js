@@ -1,3 +1,5 @@
+import ts from 'typescript';
+
 /**
  * Units of the lengths that must come from a token: absolute ones and those relative to a font.
  * Percentages and viewport units are proportions of the parent or of the screen, so they may stay
@@ -139,4 +141,116 @@ export const findRawValues = source => {
       .sort((first, second) => first.column - second.column)
       .map(({ line, kind, value }) => ({ line, kind, value })),
   );
+};
+
+/** Module of the primitives, the only values that the semantic theme may read. */
+const PRIMITIVES_MODULE = './tokens';
+
+/**
+ * Local names of what a source imports from a module: `values`, its default and named imports,
+ * renamed or not, and `namespaces`, the names of its namespace imports (`import * as tokens`).
+ */
+const importsOf = ({ file, module }) => {
+  const clauses = file.statements
+    .filter(
+      statement => ts.isImportDeclaration(statement) && statement.moduleSpecifier.text === module,
+    )
+    .flatMap(({ importClause }) => (importClause ? [importClause] : []));
+  const namedImports = ({ namedBindings }) =>
+    namedBindings && ts.isNamedImports(namedBindings) ? namedBindings.elements : [];
+  const namespaceImports = ({ namedBindings }) =>
+    namedBindings && ts.isNamespaceImport(namedBindings) ? [namedBindings] : [];
+
+  return {
+    values: clauses.flatMap(clause => [
+      ...(clause.name ? [clause.name.text] : []),
+      ...namedImports(clause).map(({ name }) => name.text),
+    ]),
+    namespaces: clauses.flatMap(clause => namespaceImports(clause).map(({ name }) => name.text)),
+  };
+};
+
+/**
+ * Whether a node calls a function imported from the primitives module: `alphaVariants(…)`, or
+ * `tokens.alphaVariants(…)` through a namespace import. A method of a primitive, such as
+ * `palette.white.replace(…)`, is not one.
+ */
+const isBuilderCall = ({ node, builders }) => {
+  if (!ts.isCallExpression(node)) return false;
+  const callee = node.expression;
+  if (ts.isIdentifier(callee)) return builders.values.includes(callee.text);
+  const isNamespaceMember =
+    ts.isPropertyAccessExpression(callee) && ts.isIdentifier(callee.expression);
+  return isNamespaceMember && builders.namespaces.includes(callee.expression.text);
+};
+
+/** Whether a node is a number, a string or a template literal without interpolation. */
+const isLiteral = node =>
+  ts.isNumericLiteral(node) || ts.isStringLiteral(node) || ts.isNoSubstitutionTemplateLiteral(node);
+
+/** Whether a node is a negative or explicitly positive number, such as `-2`. */
+const isSignedNumber = node => ts.isPrefixUnaryExpression(node) && isLiteral(node.operand);
+
+/** Whether a node is a value written by hand: a literal, or a number with its sign. */
+const isWrittenValue = node => isLiteral(node) || isSignedNumber(node);
+
+/**
+ * Values written by hand in the source of the semantic theme, where every token should point to a
+ * primitive of `tokens.ts`: each number, string or template literal given as a value, and the
+ * raw values that {@link findRawValues} finds in the text of a template literal that reads
+ * tokens (`${sizes[1]} solid #fff`). Used by the theme spec on `theme.ts`.
+ *
+ * It allows the keys of objects and of element accesses (`spacing[24]`,
+ * `colors['accent-a55']`), the modules of imports and exports, types such as `as const`,
+ * comments, and the arguments of a function imported from `tokens.ts`, such as the name and the
+ * opacities given to `alphaVariants`, which builds tokens from a primitive. The arguments of a
+ * method of a primitive, such as `palette.white.replace('#fff', '#000')`, are checked. It does not
+ * check where an identifier comes from.
+ *
+ * @param {unknown} source - TypeScript source of a theme file.
+ * @returns {{ line: number, kind: string, value: string }[]} Each raw value with its line,
+ * counted from 1, in the order of the source: `literal` for a literal, with its quotes, or the
+ * kind given by {@link findRawValues}; empty when `source` is not a string.
+ *
+ * @example
+ * findRawThemeValues("export const theme = { radii: { sm: '8px', md: radii[12] } };");
+ * // [{ line: 1, kind: 'literal', value: "'8px'" }]
+ */
+export const findRawThemeValues = source => {
+  if (typeof source !== 'string') return [];
+  const file = ts.createSourceFile('theme.ts', source, ts.ScriptTarget.Latest, true);
+  const builders = importsOf({ file, module: PRIMITIVES_MODULE });
+  const lineOf = node => file.getLineAndCharacterOfPosition(node.getStart(file)).line + 1;
+  const rawValues = [];
+
+  const checkTemplateText = part =>
+    findRawValues(part.getText(file)).forEach(({ line, kind, value }) =>
+      rawValues.push({ line: lineOf(part) + line - 1, kind, value }),
+    );
+
+  const visit = node => {
+    const isModuleReference = ts.isImportDeclaration(node) || ts.isExportDeclaration(node);
+    const isAllowedNode =
+      isModuleReference || isBuilderCall({ node, builders }) || ts.isTypeNode(node);
+    if (isAllowedNode) return;
+
+    if (isWrittenValue(node)) {
+      rawValues.push({ line: lineOf(node), kind: 'literal', value: node.getText(file) });
+    } else if (ts.isPropertyAssignment(node)) {
+      visit(node.initializer);
+    } else if (ts.isElementAccessExpression(node)) {
+      visit(node.expression);
+    } else if (ts.isTemplateExpression(node)) {
+      checkTemplateText(node.head);
+      node.templateSpans.forEach(span => {
+        visit(span.expression);
+        checkTemplateText(span.literal);
+      });
+    } else {
+      ts.forEachChild(node, visit);
+    }
+  };
+
+  visit(file);
+  return rawValues;
 };
