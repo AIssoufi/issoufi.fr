@@ -173,42 +173,63 @@ describe('Projects', () => {
   });
 });
 
+/** Layouts of the cards of a section: the row, then every card after "Show all". */
+const CARD_LAYOUTS = [
+  ['the row', { isShowingAll: false }],
+  ['the "Show all" rows', { isShowingAll: true }],
+];
+
+/** Shows every card of the first section when `isShowingAll` is true, the row otherwise. */
+const showCardLayout = async ({ isShowingAll }) => {
+  if (!isShowingAll) return;
+
+  const [showAllButton] = screen.getAllByText(/^Tout afficher/);
+  await userEvent.click(showAllButton);
+};
+
 describe('Projects layout on mobile', () => {
-  it('lines the cards of the "Show all" rows up with the section title below the tablet width', async () => {
-    render(<Projects />);
+  it.each(CARD_LAYOUTS)(
+    'lines the cards of %s up with the section title below the tablet width',
+    async (_layout, layout) => {
+      render(<Projects />);
+      await showCardLayout(layout);
 
-    const [showAllButton] = screen.getAllByText(/^Tout afficher/);
-    await userEvent.click(showAllButton);
+      const grid = firstThumbnail().closest('ul');
+      const card = firstThumbnail().closest('li');
+      const header = screen.getByText('Projets personnels').closest('header');
+      const cardMargin = declaredStyle({ element: card, property: 'margin' });
+      const gridPadding = serializeCssValue({
+        property: 'padding-left',
+        value: `calc(${theme.space.page} - ${cardMargin})`,
+      });
 
-    const grid = firstThumbnail().closest('ul');
-    const card = firstThumbnail().closest('li');
-    const header = screen.getByText('Projets personnels').closest('header');
-    const cardMargin = declaredStyle({ element: card, property: 'margin' });
-    const gridPadding = serializeCssValue({
-      property: 'padding-left',
-      value: `calc(${theme.space.page} - ${cardMargin})`,
-    });
+      expect(cardMargin).toBe(theme.space['project-card-margin']);
+      expect(declaredStyle({ element: header, property: 'padding-left' })).toBe(theme.space.page);
+      expect(declaredStyle({ element: grid, property: 'padding-left' })).toBe(gridPadding);
+      expect(declaredStyle({ element: grid, property: 'padding-right' })).toBe(gridPadding);
+      // Padded by the list, not by its first and last cards, which would be wider than the others
+      for (const property of ['padding-left', 'padding-right']) {
+        expect(declaredStyle({ element: card, property, pseudo: ':first-child' })).toBe('');
+        expect(declaredStyle({ element: card, property, pseudo: ':last-child' })).toBe('');
+      }
+    },
+  );
 
-    expect(cardMargin).toBe(theme.space[5]);
-    expect(declaredStyle({ element: header, property: 'padding-left' })).toBe(theme.space.page);
-    expect(declaredStyle({ element: grid, property: 'padding-left' })).toBe(gridPadding);
-    expect(declaredStyle({ element: grid, property: 'padding-right' })).toBe(gridPadding);
-  });
+  it.each(CARD_LAYOUTS)(
+    'removes the padding of %s from the tablet width',
+    async (_layout, layout) => {
+      render(<Projects />);
+      await showCardLayout(layout);
 
-  it('removes the padding of the "Show all" rows from the tablet width', async () => {
-    render(<Projects />);
-
-    const [showAllButton] = screen.getAllByText(/^Tout afficher/);
-    await userEvent.click(showAllButton);
-
-    const grid = firstThumbnail().closest('ul');
-    expect(declaredStyle({ element: grid, property: 'padding-left', media: TABLET_MEDIA })).toBe(
-      '0px',
-    );
-    expect(declaredStyle({ element: grid, property: 'padding-right', media: TABLET_MEDIA })).toBe(
-      '0px',
-    );
-  });
+      const grid = firstThumbnail().closest('ul');
+      expect(declaredStyle({ element: grid, property: 'padding-left', media: TABLET_MEDIA })).toBe(
+        '0px',
+      );
+      expect(declaredStyle({ element: grid, property: 'padding-right', media: TABLET_MEDIA })).toBe(
+        '0px',
+      );
+    },
+  );
 
   it('leaves room on the right for the controls floating on the right edge from the tablet width', () => {
     render(<Projects />);
@@ -222,12 +243,15 @@ describe('Projects layout on mobile', () => {
     );
   });
 
-  it('keeps the row of cards without padding, so that it scrolls to the screen edges', () => {
+  it('lets the row of cards span the screen, so that it scrolls to the screen edges', () => {
     render(<Projects />);
 
+    // The padding of the list is inside the box it scrolls, unlike a padding of the page
+    const page = screen.getByRole('main');
     const grid = firstThumbnail().closest('ul');
+    expect(declaredStyle({ element: page, property: 'padding-left' })).toBe('0px');
+    expect(declaredStyle({ element: page, property: 'padding-right' })).toBe('0px');
     expect(declaredStyle({ element: grid, property: 'display' })).toBe('flex');
-    expect(declaredStyle({ element: grid, property: 'padding-left' })).toBe('');
-    expect(declaredStyle({ element: grid, property: 'padding-right' })).toBe('');
+    expect(declaredStyle({ element: grid, property: 'overflow-x' })).toBe('auto');
   });
 });

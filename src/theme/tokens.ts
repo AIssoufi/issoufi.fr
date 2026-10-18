@@ -102,7 +102,6 @@ export const sizes = {
   94: '94px',
   222: '222px',
   240: '240px',
-  260: '260px',
   640: '640px',
   1440: '1440px',
 } as const;
@@ -262,6 +261,8 @@ export const zIndices = {
  */
 export const breakpoints = {
   31.25: '31.25em',
+  37.5: '37.5em',
   50: '50em',
+  57.125: '57.125em',
   100: '100em',
 } as const;

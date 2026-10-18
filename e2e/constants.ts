@@ -1,3 +1,4 @@
+import type { Language } from '../src/i18n/types';
 import { theme } from '../src/theme/theme';
 import type { Page } from '../src/utils/pages';
 
@@ -63,11 +64,15 @@ export const PROJECTS_ROUTE: Page['path'] = '/projects';
 
 /**
  * Screen widths, in pixels, at which the browser test of the project cards compares the row of
- * each section with its "Show all" rows: a phone (375), the tablet breakpoint, where the desktop
- * layout starts while the row still scrolls (800), two laptop widths (1280 and 1440), then past
- * the `wide` breakpoint (1600), with the page content at its largest width (1720 and 2400).
+ * each section with its "Show all" rows, and moves the row with its arrows: the narrowest phones
+ * still in use (320), two common phone widths (375 and 414), with one column of cards, a tablet in
+ * portrait (768), with two, the tablet breakpoint, where the desktop layout starts with two
+ * columns still (800), two laptop widths (1280 and 1440), with three, then past the `wide`
+ * breakpoint (1600), with the page content at its largest width (1720 and 2400).
  */
-export const PROJECT_CARD_SCREEN_WIDTHS_PX = [375, 800, 1280, 1440, 1720, 2400] as const;
+export const PROJECT_CARD_SCREEN_WIDTHS_PX = [
+  320, 375, 414, 768, 800, 1280, 1440, 1720, 2400,
+] as const;
 
 /**
  * Largest difference, in pixels, allowed between the sizes or the positions of two project cards
@@ -102,10 +107,13 @@ export const LONG_PAGE_ROUTE: Page['path'] = '/experiences';
 export const MAX_ICON_OFFSET_PX = 0.5;
 
 /**
- * Name of the file that the CV button downloads, the end of its URL (`CV_URL`,
+ * Name of the file that the CV button downloads in each language, the end of its URL (`CV_URLS`,
  * `src/App/Header/CvLink/constants.ts`).
  */
-export const CV_FILE_NAME = 'CV - Adam Issoufi.pdf';
+export const CV_FILE_NAMES = {
+  fr: 'CV - Adam Issoufi.pdf',
+  en: 'CV - Adam Issoufi (EN).pdf',
+} as const satisfies Record<Language, string>;
 
 /**
  * Largest distance, in pixels, allowed between the center of a tooltip and the center of the

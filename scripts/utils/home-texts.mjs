@@ -1,5 +1,5 @@
 // @ts-check
-import { DESIGN_SKILLS, LOGO_TEXT, PAGE_TITLE_SEPARATOR } from '../constants.mjs';
+import { DESIGN_SKILLS, LOGO_TEXT, PAGE_TITLE_SEPARATOR } from './constants.mjs';
 
 /**
  * A piece of the line about design, under the job title.
@@ -9,14 +9,14 @@ import { DESIGN_SKILLS, LOGO_TEXT, PAGE_TITLE_SEPARATOR } from '../constants.mjs
  */
 
 /**
- * Texts written on the image.
- * @typedef {object} OgImageTexts
- * @property {string} logo - Logo of the header, top left.
- * @property {string} name - Name of the site's author, above the job title.
- * @property {string} jobTitle - Job title, the largest text.
+ * Texts of the home page, which the link preview image and the CV write.
+ * @typedef {object} HomeTexts
+ * @property {string} logo - Logo of the header.
+ * @property {string} name - Name of the site's author, which the job title follows.
+ * @property {string} jobTitle - Job title, the largest text of the home page.
  * @property {TextSegment[]} passion - Line about UX and UI design, under the job title.
  * @property {string} subtitle - Line under it.
- * @property {string} site - Domain of the site, in the button at the bottom.
+ * @property {string} site - Domain of the site.
  */
 
 /**
@@ -61,25 +61,25 @@ const getSiteDomain = siteUrl =>
   URL.canParse(toText(siteUrl)) ? new URL(toText(siteUrl)).host : '';
 
 /**
- * Parameters of {@link getOgImageTexts}.
- * @typedef {object} GetOgImageTextsParams
- * @property {any} translations - Translations of the language of the image, e.g. `fr` of
+ * Parameters of {@link getHomeTexts}.
+ * @typedef {object} GetHomeTextsParams
+ * @property {any} translations - Translations of one language, e.g. `fr` of
  * `src/i18n/fr.ts` or `en` of `src/i18n/en.ts`.
  * @property {unknown} siteUrl - Origin of the site, `SITE_URL` of `src/utils/pages.ts`.
  */
 
 /**
- * Gathers the texts of the image from the translations of the home page in one language, so the
- * image says what the home page says in that language.
- * @param {GetOgImageTextsParams} params
- * @returns {OgImageTexts} The texts, empty where a translation is missing.
+ * Gathers the texts of the home page from the translations of one language, so that a page
+ * rendered by a script says what the home page says in that language.
+ * @param {GetHomeTextsParams} params
+ * @returns {HomeTexts} The texts, empty where a translation is missing.
  * @example
- * getOgImageTexts({ translations: fr, siteUrl: SITE_URL }).subtitle;
+ * getHomeTexts({ translations: fr, siteUrl: SITE_URL }).subtitle;
  * // 'Je vous aide à développer vos applications web'
- * getOgImageTexts({ translations: en, siteUrl: SITE_URL }).subtitle;
+ * getHomeTexts({ translations: en, siteUrl: SITE_URL }).subtitle;
  * // 'I help you build web applications'
  */
-export const getOgImageTexts = ({ translations, siteUrl }) => {
+export const getHomeTexts = ({ translations, siteUrl }) => {
   const home = translations?.home;
   const jobTitle = toText(home?.title1);
   const [firstSkill, secondSkill] = DESIGN_SKILLS;
@@ -101,16 +101,16 @@ export const getOgImageTexts = ({ translations, siteUrl }) => {
 };
 
 /**
- * Tells whether a text would leave a hole in the image: empty or made of spaces only.
+ * Tells whether a text would leave a hole in a page: empty or made of spaces only.
  * @param {string} text - Text to check.
  * @returns {boolean} True for `''` and `'  '`.
  */
 const isBlank = text => text.trim() === '';
 
 /**
- * Lists the texts of the image that are empty or blank, so the script stops instead of writing
- * an image with a hole.
- * @param {OgImageTexts} texts - Texts from {@link getOgImageTexts}.
+ * Lists the texts of the home page that are empty or blank, so a script stops instead of writing
+ * a page with a hole.
+ * @param {HomeTexts} texts - Texts from {@link getHomeTexts}.
  * @returns {string[]} The names of the empty texts, e.g. `['subtitle']`, and `passion` when a
  * piece of that line is empty. Empty when every text is there.
  */

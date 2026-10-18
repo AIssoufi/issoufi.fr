@@ -117,10 +117,10 @@ const isCardBox = (value: unknown): value is CardBox => {
   return sides.every(Number.isFinite);
 };
 
-/** Parameters of {@link countWholeCards}. */
-interface CountWholeCardsParams {
-  /** Boxes of the cards of a row, in any order. */
-  cards?: readonly CardBox[] | null;
+/** Parameters of {@link filterWholeCards} and {@link countWholeCards}. */
+interface WholeCardsParams<Card extends CardBox> {
+  /** Boxes of the cards of a row, in any order, with any other field they carry. */
+  cards?: readonly Card[] | null;
   /** Visible box of the list that holds the row, which scrolls the cards it cannot show. */
   container?: CardBox | null;
   /**
@@ -131,9 +131,42 @@ interface CountWholeCardsParams {
 }
 
 /**
- * Counts the cards of a row that the screen shows whole, without scrolling the row: those whose
- * left and right edges both lie inside the container. Used as the number of columns that the
- * cards fit in.
+ * Keeps the cards of a row that the screen shows whole, without scrolling the row: those whose
+ * left and right edges both lie inside the container.
+ *
+ * @returns The whole cards, in the order given; none when the cards are not an array or the
+ * container is not a box. Entries that are not boxes are left out.
+ *
+ * @example
+ * filterWholeCards({
+ *   cards: [
+ *     { left: 24, top: 0, width: 327, height: 300, src: '/chess.webp' },
+ *     { left: 361, top: 0, width: 327, height: 300, src: '/calculator.webp' },
+ *   ],
+ *   container: { left: 0, top: 0, width: 375, height: 310 },
+ * }); // [the card of /chess.webp]
+ */
+export const filterWholeCards = <Card extends CardBox>({
+  cards,
+  container,
+  tolerancePx = MAX_CARD_OFFSET_PX,
+}: WholeCardsParams<Card> = {}): Card[] => {
+  const canFilter = Array.isArray(cards) && isCardBox(container);
+  if (!canFilter) return [];
+
+  const containerRight = container.left + container.width;
+  const isWhole = (card: CardBox) => {
+    const startsInside = card.left >= container.left - tolerancePx;
+    const endsInside = card.left + card.width <= containerRight + tolerancePx;
+    return startsInside && endsInside;
+  };
+  return cards.filter(card => isCardBox(card) && isWhole(card));
+};
+
+/**
+ * Counts the cards of a row that the screen shows whole, as {@link filterWholeCards} keeps them.
+ * Used as the number of columns that the cards fit in, and as the number of cards that the arrows
+ * move the row by.
  *
  * @returns `0` when the cards are not an array or the container is not a box. Entries that are
  * not boxes are not counted.
@@ -150,19 +183,9 @@ interface CountWholeCardsParams {
 export const countWholeCards = ({
   cards,
   container,
-  tolerancePx = MAX_CARD_OFFSET_PX,
-}: CountWholeCardsParams = {}): number => {
-  const canCount = Array.isArray(cards) && isCardBox(container);
-  if (!canCount) return 0;
-
-  const containerRight = container.left + container.width;
-  const isWhole = (card: CardBox) => {
-    const startsInside = card.left >= container.left - tolerancePx;
-    const endsInside = card.left + card.width <= containerRight + tolerancePx;
-    return startsInside && endsInside;
-  };
-  return cards.filter(isCardBox).filter(isWhole).length;
-};
+  tolerancePx,
+}: WholeCardsParams<CardBox> = {}): number =>
+  filterWholeCards({ cards, container, tolerancePx }).length;
 
 /** Parameters of {@link groupCardsIntoRows}. */
 interface GroupCardsIntoRowsParams {
