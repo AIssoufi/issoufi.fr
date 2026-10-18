@@ -106,6 +106,9 @@ describe('SplitWords', () => {
       const { container } = render(<SplitWords>Full-stack Developer</SplitWords>);
       fireEvent.mouseMove(window, PUSHING_POINTER);
       vi.advanceTimersByTime(FRAME_MS);
+      getWords(container).forEach(word =>
+        expect(word.style.transform).toMatch(PUSHED_LEFT_TRANSFORM),
+      );
 
       setMatches(true);
       vi.advanceTimersByTime(FRAME_MS * 10);
@@ -126,6 +129,9 @@ describe('SplitWords', () => {
       rerender(<SplitWords>Full-stack JavaScript</SplitWords>);
       fireEvent.mouseMove(window, PUSHING_POINTER);
       vi.advanceTimersByTime(FRAME_MS);
+      getWords(container).forEach(word =>
+        expect(word.style.transform).toMatch(PUSHED_LEFT_TRANSFORM),
+      );
 
       expect(() => setMatches(true)).not.toThrow();
 

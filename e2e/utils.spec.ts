@@ -858,6 +858,8 @@ describe('getButtonAimPoints', () => {
     ['null', null],
     ['a box without width', { x: 0, y: 0, width: 0, height: 46 }],
     ['a box without height', { x: 0, y: 0, width: 300, height: 0 }],
+    ['a box of negative width', { x: 0, y: 0, width: -300, height: 46 }],
+    ['a box of negative height', { x: 0, y: 0, width: 300, height: -46 }],
     ['a box of NaN', { x: Number.NaN, y: 0, width: 300, height: 46 }],
     ['a box of strings', { x: '0', y: '0', width: '300', height: '46' }],
   ])('aims at no point of %s', (_case, box) => {

@@ -72,27 +72,26 @@ describe('Home', () => {
     const subtitle = screen.getByText('Je vous aide à développer vos applications web');
     const buttons = screen.getByRole('link', { name: 'Voir mes projets' }).parentElement
       .parentElement;
-    const token = ({ property, value }) => serializeCssValue({ property, value });
     const fontSize = element => declaredStyle({ element, property: 'font-size' });
     const shortScreenStyle = ({ element, property }) =>
       declaredStyle({ element, property, media: SHORT_SCREEN_MEDIA_QUERY });
 
     expect(fontSize(screen.getByText('UX'))).toBe(
-      token({ property: 'font-size', value: theme.fontSizes['hero-title'] }),
+      serializeCssValue({ property: 'font-size', value: theme.fontSizes['hero-title'] }),
     );
     expect(fontSize(title)).toBe(
-      token({ property: 'font-size', value: theme.fontSizes['hero-text'] }),
+      serializeCssValue({ property: 'font-size', value: theme.fontSizes['hero-text'] }),
     );
     expect(fontSize(subtitle)).toBe(
-      token({ property: 'font-size', value: theme.fontSizes['hero-subtitle'] }),
+      serializeCssValue({ property: 'font-size', value: theme.fontSizes['hero-subtitle'] }),
     );
     // The largest width of the intro is in ems of the title words
     expect(fontSize(intro)).toBe(fontSize(screen.getByText('UX')));
     expect(declaredStyle({ element: intro, property: 'max-width' })).toBe(
-      token({ property: 'max-width', value: theme.sizes['hero-intro'] }),
+      serializeCssValue({ property: 'max-width', value: theme.sizes['hero-intro'] }),
     );
     expect(declaredStyle({ element: buttons, property: 'padding-top' })).toBe(
-      token({ property: 'padding-top', value: theme.space['hero-actions'] }),
+      serializeCssValue({ property: 'padding-top', value: theme.space['hero-actions'] }),
     );
     expect(shortScreenStyle({ element: title, property: 'margin-bottom' })).toBe(theme.space[4]);
     expect(shortScreenStyle({ element: buttons, property: 'gap' })).toBe(theme.space[8]);

@@ -15,6 +15,12 @@ import { getButtonAimPoints, getScreenBox, isBoxInside } from './utils';
 /** Number of buttons of the home page, the links under its title. */
 const HERO_BUTTON_COUNT = 2;
 
+/**
+ * Height above the center of a word where the pointer rests to push it, as a share of the height
+ * of the word: well within reach, but not on its center, under which no word is pushed.
+ */
+const WORD_AIM_HEIGHT_RATIO = 0.25;
+
 /** Parameters of {@link openHomePage}. */
 interface OpenHomePageParams {
   /** Browser page of the test. */
@@ -86,6 +92,8 @@ for (const language of LANGUAGES) {
         const words = page.getByRole('heading', { level: 1 }).locator('span');
         const buttons = page.locator(PAGE_SELECTOR).getByRole('link');
         await expect(buttons).toHaveCount(HERO_BUTTON_COUNT);
+        // Without any word, the largest shift would be -Infinity, and the check would pass
+        expect(await words.count(), 'words of the title').toBeGreaterThan(0);
 
         for (const button of await buttons.all()) {
           // Moved by the mouse rather than hovered, which would refuse the corners of the pill
@@ -109,8 +117,10 @@ for (const language of LANGUAGES) {
         const word = await words.first().boundingBox();
         if (!word) throw new Error('The first word of the title has no box');
 
-        // Over the word, a quarter of its height above its center, well within reach
-        await page.mouse.move(word.x + word.width / 2, word.y + word.height / 4);
+        await page.mouse.move(
+          word.x + word.width / 2,
+          word.y + word.height / 2 - word.height * WORD_AIM_HEIGHT_RATIO,
+        );
         await page.waitForTimeout(POINTER_REST_MS);
 
         expect(Math.max(...(await words.evaluateAll(listWordShifts)))).toBeGreaterThan(
