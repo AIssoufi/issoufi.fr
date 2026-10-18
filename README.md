@@ -165,7 +165,7 @@ The version follows the commits: `fix` bumps the patch version, `feat` the minor
 │   ├── theme/            # Design tokens (tokens.ts, theme.ts) and global styles
 │   ├── utils/            # Career dates and page metadata helpers
 │   └── index.tsx         # Entry point
-├── vite/                 # Helpers of vite.config.ts: dev and preview ports, chunk names
+├── vite/                 # Helpers of vite.config.ts and playwright.config.ts: dev and preview ports, chunk names
 ├── index.html            # HTML template of every page, filled at build time by vite.config.ts
 ├── playwright.config.ts  # Playwright: Chromium, on pnpm preview at the port of the worktree
 └── vite.config.ts        # Vite, the plugin that writes one HTML file per page, Vitest and coverage

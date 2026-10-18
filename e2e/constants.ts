@@ -1,7 +1,7 @@
 /**
  * Screen widths, in pixels, at which every page must fit without scrolling sideways: the
- * narrowest phones still in use (320), two common phone widths (375 and 414), and a desktop
- * screen as wide as the layout (1440, the `max-width` of the app).
+ * narrowest phones still in use (320), two common phone widths (375 and 414), and a common
+ * desktop width (1440), at which the layout of the app reaches its widest.
  */
 export const SCREEN_WIDTHS_PX = [320, 375, 414, 1440] as const;
 
