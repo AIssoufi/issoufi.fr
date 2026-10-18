@@ -2,11 +2,17 @@ import { act, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
 import i18n from '../../../i18n';
+import { isPublicFile } from '../../../pages/testUtils';
 import { declaredStyle, serializeCssValue } from '../../../styleTestUtils';
 import { theme } from '../../../theme';
+import { CV_URLS } from './constants';
 import CvLink from './CvLink';
 
+/** CV written in French, the default language. */
 const CV_URL = '/CV - Adam Issoufi.pdf';
+
+/** CV written in English. */
+const ENGLISH_CV_URL = '/CV - Adam Issoufi (EN).pdf';
 
 const getLink = () => screen.getByRole('link', { name: 'Télécharger le CV' });
 
@@ -28,6 +34,30 @@ describe('CvLink', () => {
     expect(getLink()).toHaveAttribute('href', CV_URL);
     expect(getLink()).toHaveAttribute('download');
     expect(getLink()).not.toHaveAttribute('target');
+  });
+
+  it.each(Object.entries(CV_URLS))('serves the %s CV from public/', (_language, url) => {
+    expect(isPublicFile(url)).toBe(true);
+  });
+
+  it('downloads the CV written in English once English is active', async () => {
+    render(<CvLink />);
+
+    await act(() => i18n.changeLanguage('en'));
+
+    expect(screen.getByRole('link', { name: 'Download the CV' })).toHaveAttribute(
+      'href',
+      ENGLISH_CV_URL,
+    );
+  });
+
+  it('goes back to the French CV once French is active again', async () => {
+    render(<CvLink />);
+
+    await act(() => i18n.changeLanguage('en'));
+    await act(() => i18n.changeLanguage('fr'));
+
+    expect(getLink()).toHaveAttribute('href', CV_URL);
   });
 
   it('shows a download icon before the text when asked to', () => {
@@ -165,7 +195,7 @@ describe('CvLink', () => {
       await act(() => i18n.changeLanguage('en'));
 
       const link = screen.getByRole('link', { name: 'Download the CV' });
-      expect(link).toHaveAttribute('href', CV_URL);
+      expect(link).toHaveAttribute('href', ENGLISH_CV_URL);
       expect(link).toHaveTextContent(/^CV$/);
     });
   });

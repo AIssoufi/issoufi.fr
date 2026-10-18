@@ -1,0 +1,81 @@
+{
+  "contact": {
+    "email": "issoufi.adam1@gmail.com",
+    "phoneUrl": "tel:+33695758632",
+    "linkedInUrl": "https://www.linkedin.com/in/issoufiadam"
+  },
+  "languages": {
+    "fr": {
+      "phone": "06 95 75 86 32",
+      "location": "Massy (91)",
+      "mobility": "Véhiculé",
+      "skillsTitle": "Compétences",
+      "skills": [
+        "Technologies\u00a0: HTML 5, CSS 3, JavaScript, TypeScript, Node.js, Express.js, React.js, Redux.js, GraphQL, SQL, Docker, Java SE",
+        "Intégration de maquettes",
+        "Développement d’API RESTful",
+        "Tests unitaires",
+        "Méthode agile Scrum",
+        "Maîtrise des concepts de la programmation orientée objet",
+        "Bonne connaissance des patrons de conception (singleton, observer/observable, etc.)",
+        "Capacités d’abstraction et de conception (diagrammes de classes, de cas d’utilisation et de séquence, schémas de base de données)"
+      ],
+      "educationTitle": "Formation",
+      "education": [
+        {
+          "degree": "Master 2 MIAGE, spécialité MBDS",
+          "period": "2016 – 2019",
+          "school": "Université de Nice",
+          "description": "Big data, administration de bases de données, développement d’applications JEE, JavaScript (React.js, Angular, Vue.js et Node.js) et mobiles (Swift et Android)"
+        },
+        {
+          "degree": "DUT Informatique",
+          "period": "2014 – 2016",
+          "school": "IUT de Nice",
+          "description": "Conception, développement logiciel, administration système, etc."
+        },
+        {
+          "degree": "Classe préparatoire",
+          "period": "2013 – 2014",
+          "school": "Polytech Marseille"
+        }
+      ]
+    },
+    "en": {
+      "phone": "+33 6 95 75 86 32",
+      "location": "Massy, France",
+      "mobility": "Own car",
+      "skillsTitle": "Skills",
+      "skills": [
+        "Technologies: HTML 5, CSS 3, JavaScript, TypeScript, Node.js, Express.js, React.js, Redux.js, GraphQL, SQL, Docker, Java SE",
+        "Mockup integration",
+        "RESTful API development",
+        "Unit testing",
+        "Agile Scrum methodology",
+        "Solid grasp of object-oriented programming concepts",
+        "Good knowledge of design patterns (singleton, observer/observable, etc.)",
+        "Abstraction and design skills (class, use case and sequence diagrams, database schemas)"
+      ],
+      "educationTitle": "Education",
+      "education": [
+        {
+          "degree": "Master's degree in Computer Science (MIAGE), MBDS track",
+          "period": "2016 – 2019",
+          "school": "Université de Nice",
+          "description": "Big data, database administration, development of JEE, JavaScript (React.js, Angular, Vue.js and Node.js) and mobile (Swift and Android) applications"
+        },
+        {
+          "degree": "Two-year technical degree in Computer Science (DUT)",
+          "period": "2014 – 2016",
+          "school": "IUT de Nice",
+          "description": "Software design and development, system administration, etc."
+        },
+        {
+          "degree": "Preparatory class for engineering schools",
+          "period": "2013 – 2014",
+          "school": "Polytech Marseille"
+        }
+      ]
+    }
+  }
+}

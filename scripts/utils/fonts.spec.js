@@ -1,5 +1,11 @@
-import { theme } from '../../../src/theme/theme';
+import { theme } from '../../src/theme/theme';
 import { findMissingFonts, getFirstFontFamily, listFontsInUse } from './fonts.mjs';
+
+/** Fonts of a page: the body font in three weights, and the display font of the logo. */
+const FONTS_IN_USE = [
+  { font: 'body', weights: ['regular', 'medium', 'bold'] },
+  { font: 'display', weights: ['regular'] },
+];
 
 describe('getFirstFontFamily', () => {
   it.each([
@@ -24,7 +30,7 @@ describe('getFirstFontFamily', () => {
 
 describe('listFontsInUse', () => {
   it('lists the body font in each weight of the texts, and the display font of the logo', () => {
-    expect(listFontsInUse(theme)).toEqual([
+    expect(listFontsInUse({ theme, fontsInUse: FONTS_IN_USE })).toEqual([
       '400 16px "Montserrat"',
       '500 16px "Montserrat"',
       '700 16px "Montserrat"',
@@ -35,7 +41,7 @@ describe('listFontsInUse', () => {
   it('leaves out a font whose stack is missing from the theme', () => {
     const fonts = { ...theme.fonts, display: undefined };
 
-    expect(listFontsInUse({ ...theme, fonts })).toEqual([
+    expect(listFontsInUse({ theme: { ...theme, fonts }, fontsInUse: FONTS_IN_USE })).toEqual([
       '400 16px "Montserrat"',
       '500 16px "Montserrat"',
       '700 16px "Montserrat"',
@@ -45,11 +51,25 @@ describe('listFontsInUse', () => {
   it.each([undefined, NaN, '700'])('leaves out the bold weight %j, which is not a number', bold => {
     const fontWeights = { ...theme.fontWeights, bold };
 
-    expect(listFontsInUse({ ...theme, fontWeights })).not.toContain('700 16px "Montserrat"');
+    expect(
+      listFontsInUse({ theme: { ...theme, fontWeights }, fontsInUse: FONTS_IN_USE }),
+    ).not.toContain('700 16px "Montserrat"');
+  });
+
+  it('lists nothing for a page that uses no font', () => {
+    expect(listFontsInUse({ theme, fontsInUse: [] })).toEqual([]);
+  });
+
+  it('leaves out a weight whose name the theme does not have', () => {
+    const fontsInUse = [{ font: 'body', weights: ['regular', 'heavy'] }];
+
+    expect(listFontsInUse({ theme, fontsInUse })).toEqual(['400 16px "Montserrat"']);
   });
 
   it('lists nothing for a theme without fonts', () => {
-    expect(listFontsInUse({ ...theme, fonts: {} })).toEqual([]);
+    expect(listFontsInUse({ theme: { ...theme, fonts: {} }, fontsInUse: FONTS_IN_USE })).toEqual(
+      [],
+    );
   });
 });
 
