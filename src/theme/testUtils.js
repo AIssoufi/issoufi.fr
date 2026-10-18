@@ -8,7 +8,10 @@ const TOKEN_LENGTH_UNITS = ['px', 'rem', 'em', 'ch', 'ex', 'lh', 'cm', 'mm', 'in
 /** Units of durations, which come from the `durations` tokens. */
 const DURATION_UNITS = ['ms', 's'];
 
-/** CSS color names that a style file could write instead of a `colors` token. */
+/**
+ * Common CSS color names that a style file could write instead of a `colors` token. Rarer names,
+ * such as `crimson` or `gold`, are not checked.
+ */
 const NAMED_COLORS = [
   'black',
   'white',
@@ -44,12 +47,15 @@ const EASING_KEYWORDS = [
   'step-end',
 ];
 
-/** Properties whose unitless values come from a scale of the theme. */
+/** Properties whose numbers come from a scale of the theme. Keywords such as `bold` are not checked. */
 const SCALED_PROPERTIES = ['z-index', 'font-weight', 'line-height'];
 
-/** Start of a word: not preceded by a letter, a digit, a dot, a dollar sign or a hyphen. */
+/**
+ * Start of a word: not preceded by a letter, a digit, an underscore, a dot, a dollar sign, a hash
+ * or a hyphen, so that `h1`, `blurs.8`, `$index` or the digits of `#123` are not numbers.
+ */
 const WORD_START = '(?<![\\w.$#-])';
-/** End of a word: not followed by a letter, a digit or a hyphen. */
+/** End of a word: not followed by a letter, a digit, an underscore or a hyphen. */
 const WORD_END = '(?![\\w-])';
 /** A number, such as `12`, `-0.5` or `.5`. */
 const NUMBER = '-?(?:\\d+(?:\\.\\d+)?|\\.\\d+)';
@@ -109,7 +115,8 @@ const isZero = number => number !== undefined && Number(number) === 0;
  * It ignores comments, the `th` helpers and their arguments (`th.space(-8)`), and the named
  * constants interpolated with a unit (`${BUTTON_WIDTH_PX}px`). It allows zero with any unit,
  * percentages, viewport units (`100vh`), angles, `fr`, unitless numbers (scale factors,
- * opacities, flex factors) and keywords such as `transparent` or `currentColor`.
+ * opacities, flex factors) and keywords such as `transparent` or `currentColor`. An id selector
+ * whose name is hexadecimal, such as `#fade`, would be reported as a color.
  *
  * @param {unknown} source - Source code of a style file.
  * @returns {{ line: number, kind: string, value: string }[]} Each raw value with its line,
