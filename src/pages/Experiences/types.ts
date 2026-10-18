@@ -61,12 +61,8 @@ export interface ExperienceData {
   /** Absolute URL of the company logo, a file of `public/`. */
   logoUrl?: string;
   /**
-   * Translation key of the start of the period written on the timeline, for a company with a
-   * single role: with several roles, each one shows its own.
+   * Successive roles at the company, most recent first: several make a group on the timeline.
+   * The timeline writes the period of each role from its own dates, a single role included.
    */
-  periodStartKey?: string;
-  /** Translation key of the end of that period. */
-  periodEndKey?: string;
-  /** Successive roles at the company, most recent first: several make a group on the timeline. */
   roles?: RoleData[];
 }

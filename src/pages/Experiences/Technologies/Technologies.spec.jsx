@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { render, screen, within } from '@testing-library/react';
 
 import Technologies from './Technologies';
 
@@ -20,5 +20,17 @@ describe('Technologies', () => {
 
     expect(screen.getByText('React.js')).toBeInTheDocument();
     expect(screen.getByText('TypeScript')).toBeInTheDocument();
+  });
+
+  it('lists the chips in order, in a list with an explicit role, which Safari drops from lists without bullets', () => {
+    render(<Technologies technologies={['React.js', 'TypeScript', 'Vite']} />);
+    const list = screen.getByRole('list');
+
+    expect(list).toHaveAttribute('role', 'list');
+    expect(
+      within(list)
+        .getAllByRole('listitem')
+        .map(({ textContent }) => textContent),
+    ).toEqual(['React.js', 'TypeScript', 'Vite']);
   });
 });

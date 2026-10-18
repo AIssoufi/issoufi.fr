@@ -18,7 +18,7 @@ describe('Project', () => {
       </Project>,
     );
 
-    expect(screen.getByText('MyFFBaD')).toBeInTheDocument();
+    expect(screen.getByRole('heading', { level: 4, name: 'MyFFBaD' })).toBeInTheDocument();
     expect(screen.getByText('Livré dans les délais')).toBeInTheDocument();
     expect(screen.getByText('Espace licencié de la FFBaD')).toBeInTheDocument();
     expect(screen.getByText('React.js')).toBeInTheDocument();
