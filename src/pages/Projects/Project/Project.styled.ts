@@ -1,7 +1,6 @@
 import styled, { css, keyframes, th } from '@xstyled/styled-components';
 
 import List from '../../../components/List';
-import { theme } from '../../../theme';
 import { CARD_PERSPECTIVE_PX } from './constants';
 
 const heartPop = keyframes`
@@ -10,14 +9,6 @@ const heartPop = keyframes`
   50%  { transform: scale(0.8); }
   75%  { transform: scale(1.3); }
   100% { transform: scale(1); }
-`;
-
-// Keyframes have no theme context, so they read the theme object rather than the th helpers
-const countBump = keyframes`
-  0%   { transform: translateY(0); opacity: 1; }
-  40%  { transform: translateY(-${theme.space[6]}); opacity: 0; }
-  41%  { transform: translateY(${theme.space[6]}); opacity: 0; }
-  100% { transform: translateY(0); opacity: 1; }
 `;
 
 // Space around each card, which the list takes off the page gutter to line the cards up with it
@@ -253,11 +244,14 @@ export const LikeButton = styled.button<{ $liked: boolean; $animating: boolean }
   top: ${th.space(10)};
   right: ${th.space(10)};
   z-index: ${th.zIndex('raisedMost')};
+  /* A round button around the heart alone, since it shows no count */
   display: flex;
   align-items: center;
-  gap: ${th.space(6)};
-  padding: ${th.space(5)} ${th.space(11)} ${th.space(5)} ${th.space(8)};
-  border-radius: ${th.radius('pill')};
+  justify-content: center;
+  width: ${th.size(32)};
+  height: ${th.size(32)};
+  padding: 0;
+  border-radius: ${th.radius('circle')};
   border: ${th.borderWidth('thin')} solid
     ${props => (props.$liked ? th.color('accent-a60') : th.color('foreground-a20'))};
   background: ${props => (props.$liked ? th.color('accent-a25') : th.color('shade-a45'))};
@@ -298,20 +292,6 @@ export const LikeButton = styled.button<{ $liked: boolean; $animating: boolean }
   &:active {
     transform: scale(0.93);
   }
-`;
-
-export const LikeCount = styled.span<{ $liked: boolean; $animating: boolean }>`
-  font-size: ${th.fontSize(13)};
-  font-weight: ${th.fontWeight('semibold')};
-  color: ${props => (props.$liked ? th.color('accent') : th.color('foreground-a85'))};
-  transition: color ${th.duration(200)};
-  min-width: ${th.size(12)};
-  text-align: center;
-  ${props =>
-    props.$animating &&
-    css`
-      animation: ${countBump} ${th.duration(350)} ${th.timingFunction('standard')} forwards;
-    `}
 `;
 
 export const ProjectInfo = styled.div`

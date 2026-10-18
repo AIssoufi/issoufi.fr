@@ -1,6 +1,9 @@
 /** One project card, with its texts in the language of the page. */
 export interface ProjectItemData {
-  /** Unique id: the React key and the key of the like state. */
+  /**
+   * Integer that no other project of the site has, in either section: the React key, and the key
+   * of the visitor's like in `localStorage`, so it must stay with its project.
+   */
   id: number;
   /** Project name, already translated, shown as the card title and the thumbnail alt text. */
   name: string;
@@ -15,22 +18,7 @@ export interface ProjectItemData {
   url?: string;
   /** Technologies, shown under the name separated by ` · `. */
   tools: string[];
-  /** Initial number of likes. */
-  likeCount: number;
-  /** Whether the visitor's like is initially set. */
-  isLikedByOwnUser: boolean;
 }
-
-/** Like count and liked flag of one card. */
-export interface Like {
-  /** Number of likes shown on the card. */
-  count: number;
-  /** Whether the visitor has liked the card. */
-  liked: boolean;
-}
-
-/** Like state of each card, by project id. Kept in memory only, never saved. */
-export type LikeState = Record<number, Like>;
 
 /** Measures of the row of cards of a section, in CSS pixels, at its first scroll position. */
 export interface RowMeasures {

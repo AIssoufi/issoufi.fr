@@ -5,45 +5,35 @@
       "nameKey": "studySarl",
       "typeKey": "website",
       "imageUrl": "/study-sarl.webp",
-      "tools": ["HTML 5", "CSS 3", "PHP", "WordPress"],
-      "likeCount": 0,
-      "isLikedByOwnUser": false
+      "tools": ["HTML 5", "CSS 3", "PHP", "WordPress"]
     },
     {
       "id": 6,
       "nameKey": "kaneRivieraTransfert",
       "typeKey": "webApp",
       "imageUrl": "/kane-riviera-transfert.webp",
-      "tools": ["HTML 5", "CSS 3", "React.js", "Redux.js"],
-      "likeCount": 0,
-      "isLikedByOwnUser": false
+      "tools": ["HTML 5", "CSS 3", "React.js", "Redux.js"]
     },
     {
       "id": 7,
       "nameKey": "trouilletDecors",
       "typeKey": "showcaseWebsite",
       "imageUrl": "/trouillet-decors.jpeg",
-      "tools": ["HTML 5", "CSS 3", "WordPress"],
-      "likeCount": 0,
-      "isLikedByOwnUser": false
+      "tools": ["HTML 5", "CSS 3", "WordPress"]
     },
     {
       "id": 8,
       "nameKey": "yyServicies",
       "typeKey": "showcaseWebsite",
       "imageUrl": "/yyservices.jpg",
-      "tools": ["HTML 5", "CSS 3", "WordPress"],
-      "likeCount": 0,
-      "isLikedByOwnUser": false
+      "tools": ["HTML 5", "CSS 3", "WordPress"]
     },
     {
       "id": 9,
       "nameKey": "babyGifts",
       "typeKey": "showcaseWebsite",
       "imageUrl": "/cadeaux-de-naissance.jpeg",
-      "tools": ["HTML 5", "CSS 3", "WordPress"],
-      "likeCount": 0,
-      "isLikedByOwnUser": false
+      "tools": ["HTML 5", "CSS 3", "WordPress"]
     }
   ]
 }
