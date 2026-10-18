@@ -43,8 +43,8 @@ export const RoleItem = styled.li`
     left: calc(${mobileLineCenter} - ${mobileContentIndent});
     transform: translateX(-50%);
     top: ${th.space(14)};
-    width: 8px;
-    height: 8px;
+    width: 12px;
+    height: 12px;
     border-radius: ${th.radius('circle')};
     background: ${th.color('accent-a65')};
     border: ${th.borderWidth('thick')} solid ${th.color('foreground-a50')};

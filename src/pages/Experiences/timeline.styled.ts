@@ -18,8 +18,8 @@ export const mobileContentIndent = th.space(22);
 export const timelineDot = css`
   content: '';
   position: absolute;
-  width: 12px;
-  height: 12px;
+  width: 16px;
+  height: 16px;
   border-radius: ${th.radius('circle')};
   background: ${th.color('accent-a85')};
   border: ${th.borderWidth('thick')} solid ${th.color('foreground-a80')};
