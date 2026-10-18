@@ -347,7 +347,7 @@ describe('production address', () => {
     expect(new URL(APP_SITE_URL).href, PRODUCTION_ADDRESS_MESSAGE).toBe(SITE_URL);
   });
 
-  it(`is the one of the sitemap that ${ROBOTS_FILE} declares`, () => {
+  it(`hosts the sitemap that ${ROBOTS_FILE} declares`, () => {
     const robotsLines = readFileSync(ROBOTS_FILE, 'utf8').split(/\r?\n/);
 
     expect(robotsLines, PRODUCTION_ADDRESS_MESSAGE).toContain(`Sitemap: ${SITEMAP_URL}`);
