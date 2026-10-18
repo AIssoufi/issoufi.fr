@@ -141,6 +141,21 @@ describe('Project', () => {
     expect(screen.queryByRole('heading', { level: 1 })).not.toBeInTheDocument();
   });
 
+  it.each([undefined, null, '', '   ', 42])(
+    'renders no empty heading and leaves the controls unnamed when the title is %j',
+    title => {
+      render(
+        <Project
+          title={title}
+          projects={projects}
+        />,
+      );
+
+      expect(screen.queryByRole('heading')).not.toBeInTheDocument();
+      expect(screen.getByRole('group')).not.toHaveAttribute('aria-labelledby');
+    },
+  );
+
   it('lists the cards, without a main landmark, which only the page renders', async () => {
     render(<Project projects={projects} />);
     const cards = () => within(screen.getByRole('list')).getAllByRole('listitem');
