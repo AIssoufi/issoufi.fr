@@ -82,6 +82,56 @@ describe('App', () => {
     expect(getComputedStyle(screen.getByTestId('app')).gridTemplateColumns).toBe('minmax(0, 1fr)');
   });
 
+  describe('focus after a navigation', () => {
+    it('leaves the focus alone on the first load', async () => {
+      window.history.pushState({}, '', '/projects');
+      render(<App />);
+
+      expect(await screen.findByRole('heading', { name: 'Projets personnels' })).not.toHaveFocus();
+      expect(document.body).toHaveFocus();
+    });
+
+    it('moves the focus to the new page after a link of the mobile menu is chosen with the keyboard', async () => {
+      const user = userEvent.setup();
+      render(<App />);
+      screen.getByRole('button', { name: 'Ouvrir le menu' }).focus();
+
+      await user.keyboard('{Enter}');
+      await user.tab();
+      await user.tab();
+      expect(screen.getByRole('link', { name: 'Projets' })).toHaveFocus();
+      await user.keyboard('{Enter}');
+
+      expect(await screen.findByRole('heading', { name: 'Projets personnels' })).toHaveFocus();
+      expect(screen.getByRole('button', { name: 'Ouvrir le menu' })).toHaveAttribute(
+        'aria-expanded',
+        'false',
+      );
+    });
+
+    it('moves the focus to the new page after a link of the page is chosen with the keyboard', async () => {
+      const user = userEvent.setup();
+      render(<App />);
+      screen.getByRole('link', { name: 'Expériences professionnelles' }).focus();
+
+      await user.keyboard('{Enter}');
+
+      expect(await screen.findByRole('heading', { name: 'Expériences' })).toHaveFocus();
+    });
+
+    it('draws no focus ring around the heading, which is not a control', async () => {
+      const user = userEvent.setup();
+      render(<App />);
+      screen.getByRole('link', { name: 'Voir mes projets' }).focus();
+
+      await user.keyboard('{Enter}');
+
+      const heading = await screen.findByRole('heading', { name: 'Projets personnels' });
+      expect(heading).toHaveFocus();
+      expect(getComputedStyle(heading).outline).toBe('none');
+    });
+  });
+
   describe('when a page fails', () => {
     /** Error of a chunk that cannot be fetched, as the browser reports it. */
     const CHUNK_ERROR = new TypeError(
