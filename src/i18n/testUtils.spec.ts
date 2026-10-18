@@ -73,10 +73,12 @@ describe('getMissingKeys', () => {
   it.each([
     ['a missing reference', undefined],
     ['a null reference', null],
+    ['a text reference', 'Titre'],
+    ['a number reference', 42],
     ['an empty reference', {}],
-  ])('finds no missing key against %s', (_, emptyReference) => {
+  ])('finds no missing key against %s', (_, nonNestedReference) => {
     const translations = { title: 'Title' };
 
-    expect(getMissingKeys({ translations, reference: emptyReference })).toEqual([]);
+    expect(getMissingKeys({ translations, reference: nonNestedReference })).toEqual([]);
   });
 });

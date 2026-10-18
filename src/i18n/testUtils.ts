@@ -45,6 +45,10 @@ interface GetMissingKeysParams {
  * // ['nav.home']
  */
 export const getMissingKeys = ({ translations, reference }: GetMissingKeysParams): string[] => {
+  // A text at the root has no key, so it cannot be missing from translations
+  const isNestedReference = typeof reference === 'object' && reference !== null;
+  if (!isNestedReference) return [];
+
   const translatedKeys = new Set(getEntries({ value: translations }).map(([key]) => key));
 
   return getEntries({ value: reference })
