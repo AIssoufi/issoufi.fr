@@ -1,5 +1,33 @@
-import { NO_LIKE } from './constants';
-import type { Like, LikeState, ProjectItemData } from './types';
+import { NO_LIKE, WHOLE_CARD_TOLERANCE_PX } from './constants';
+import type { Like, LikeState, ProjectItemData, RowMeasures } from './types';
+
+/** Parameters of {@link getLastPageStart}. */
+interface GetLastPageStartParams {
+  /** Total number of cards. */
+  total: number;
+  /** Number of cards per page. */
+  pageSize: number;
+}
+
+/** Tells whether cards can be split into pages: some cards, and a finite page size above zero. */
+const canPage = ({ total, pageSize }: GetLastPageStartParams) =>
+  total > 0 && pageSize > 0 && Number.isFinite(pageSize);
+
+/**
+ * Returns the index of the first card of the last page. Pages start every `pageSize` cards from
+ * the first one, so the last page may hold fewer cards, in the columns of the first page.
+ *
+ * @returns `0` without cards, or with a page size that is not a finite number above zero, as
+ * with a single page.
+ *
+ * @example
+ * getLastPageStart({ total: 5, pageSize: 2 }); // 4
+ */
+export function getLastPageStart({ total, pageSize }: GetLastPageStartParams): number {
+  if (!canPage({ total, pageSize })) return 0;
+
+  return Math.floor((total - 1) / pageSize) * pageSize;
+}
 
 /** Parameters of {@link getNextPageStart}. */
 interface GetNextPageStartParams {
@@ -14,17 +42,21 @@ interface GetNextPageStartParams {
 /**
  * Returns the index of the first card of the next page, staying on the last page once reached,
  * so "next" never shows an empty page.
+ *
+ * @returns `0` without cards, or with a page size that is not a finite number above zero, as
+ * with a single page.
+ *
+ * @example
+ * getNextPageStart({ currentStart: 0, total: 4, pageSize: 1 }); // 1
  */
 export function getNextPageStart({
   currentStart,
   total,
   pageSize,
 }: GetNextPageStartParams): number {
-  const hasCards = total > 0 && pageSize > 0;
-  if (!hasCards) return 0;
+  if (!canPage({ total, pageSize })) return 0;
 
-  const lastPageStart = Math.floor((total - 1) / pageSize) * pageSize;
-  return Math.min(currentStart + pageSize, lastPageStart);
+  return Math.min(currentStart + pageSize, getLastPageStart({ total, pageSize }));
 }
 
 /** Parameters of {@link getPreviousPageStart}. */
@@ -41,6 +73,55 @@ export function getPreviousPageStart({
   pageSize,
 }: GetPreviousPageStartParams): number {
   return Math.max(0, currentStart - pageSize);
+}
+
+/** Parameters of {@link countWholeCards}. */
+interface CountWholeCardsParams extends Partial<RowMeasures> {
+  /**
+   * How far a card may pass the right edge of the row and still count. A negative or invalid
+   * value counts as none.
+   * @default WHOLE_CARD_TOLERANCE_PX
+   */
+  tolerancePx?: number;
+}
+
+/** Tells whether a value is a finite number, which a measured length is. */
+const isLength = (value: unknown): value is number =>
+  typeof value === 'number' && Number.isFinite(value);
+
+/** Tells whether a value is a length greater than zero, which a laid out box has. */
+const isPositiveLength = (value: unknown): value is number => isLength(value) && value > 0;
+
+/**
+ * Counts the cards that a row shows whole before it scrolls: the first one, then each next one, a
+ * pitch further, while it ends inside the row. It counts the cards that fit, whether the row holds
+ * that many or not, so the last page of the row, which may hold fewer, counts as many as the first.
+ *
+ * @returns `null` when the row cannot be measured, since a length is not a number greater than
+ * zero (nothing is laid out, as in jsdom), or the first card starts at a negative or invalid
+ * distance; `0` when even the first card passes the edge of the row.
+ *
+ * @example
+ * // A phone 375 px wide: one card between the page gutters, the next one starts in the right one
+ * countWholeCards({ rowWidth: 375, firstCardStart: 24, cardWidth: 327, cardPitch: 337 }); // 1
+ */
+export function countWholeCards({
+  rowWidth,
+  firstCardStart,
+  cardWidth,
+  cardPitch,
+  tolerancePx = WHOLE_CARD_TOLERANCE_PX,
+}: CountWholeCardsParams = {}): number | null {
+  const isLaidOut =
+    isPositiveLength(rowWidth) && isPositiveLength(cardWidth) && isPositiveLength(cardPitch);
+  const isStartValid = isLength(firstCardStart) && firstCardStart >= 0;
+  if (!isLaidOut || !isStartValid) return null;
+
+  const tolerance = isLength(tolerancePx) ? Math.max(0, tolerancePx) : 0;
+  const spaceAfterFirstCard = rowWidth - firstCardStart - cardWidth + tolerance;
+  if (spaceAfterFirstCard < 0) return 0;
+
+  return Math.floor(spaceAfterFirstCard / cardPitch) + 1;
 }
 
 /** Tilt of a card toward the pointer, computed by {@link getCardTilt}. */

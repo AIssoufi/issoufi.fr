@@ -3,6 +3,7 @@ import { MAX_CARD_OFFSET_PX, MAX_DOT_OFFSET_PX, NOT_FOUND_ROUTE } from './consta
 import {
   countWholeCards,
   doBoxesOverlapHorizontally,
+  filterWholeCards,
   getBoxBottom,
   getBoxCenterDistanceX,
   getBoxCenterDistanceY,
@@ -303,6 +304,37 @@ describe('countWholeCards', () => {
         expect(countWholeCards({ cards, container: PHONE_LIST })).toBe(1);
       },
     );
+  });
+});
+
+describe('filterWholeCards', () => {
+  /** The cards of {@link PHONE_ROW}, each with the screenshot it shows. */
+  const NAMED_ROW = PHONE_ROW.map((card, column) => ({ ...card, src: `/card-${column}.webp` }));
+
+  it('keeps the cards that the list shows whole, with the other fields they carry', () => {
+    expect(filterWholeCards({ cards: NAMED_ROW, container: PHONE_LIST })).toEqual([NAMED_ROW[0]]);
+  });
+
+  it('keeps the whole cards in the order given', () => {
+    const wideList = { ...PHONE_LIST, width: ROW_CARD_LEFT_PX + 3 * CARD_STEP_PX };
+    const reversedRow = [...NAMED_ROW].reverse();
+
+    expect(filterWholeCards({ cards: reversedRow, container: wideList })).toEqual(reversedRow);
+  });
+
+  it.each([
+    ['no parameters', undefined],
+    ['cards that are not a list', { cards: 'cards', container: PHONE_LIST }],
+    ['no container', { cards: NAMED_ROW }],
+    ['a container at NaN', { cards: NAMED_ROW, container: { ...PHONE_LIST, left: NaN } }],
+  ])('keeps no card with %s', (_case, params) => {
+    expect(filterWholeCards(params as never)).toEqual([]);
+  });
+
+  it('leaves out the entries that are not boxes', () => {
+    const cards = [null as never, { src: '/no-box.webp' } as never, NAMED_ROW[0]];
+
+    expect(filterWholeCards({ cards, container: PHONE_LIST })).toEqual([NAMED_ROW[0]]);
   });
 });
 
