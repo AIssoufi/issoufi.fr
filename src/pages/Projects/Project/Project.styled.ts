@@ -159,6 +159,8 @@ export const ProjectItem = styled.div<{ $displayAll?: boolean }>`
   margin: ${cardMargin};
   flex: 0 0 calc(33.333% - 10px);
   min-width: 260px;
+  /* The page gutter of the first and last cards widens them beyond the 260px of the card */
+  box-sizing: content-box;
   transition:
     transform 0.15s ease,
     box-shadow 0.15s ease;
@@ -193,7 +195,7 @@ export const ProjectItem = styled.div<{ $displayAll?: boolean }>`
 `;
 
 export const ImageContainer = styled.header`
-  height: 220px;
+  height: 222px;
   border-radius: ${th.radius('md')};
   overflow: hidden;
   position: relative;
