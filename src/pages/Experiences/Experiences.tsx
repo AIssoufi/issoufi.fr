@@ -3,19 +3,17 @@ import { useTranslation } from 'react-i18next';
 import Experience from './Experience';
 import ExperienceGroup from './ExperienceGroup';
 import { BACKGROUND_IMAGE_URL } from './constants';
-import { BulletItem, BulletList } from './Experiences.styled';
+import TimelinePeriod from './TimelinePeriod';
 
 import {
+  BulletItem,
+  BulletList,
   ExperiencesPage,
   PageHeader,
   PageTitle,
-  PeriodEnd,
-  PeriodSep,
-  PeriodStart,
   Timeline,
   TimelineContent,
   TimelineEntry,
-  TimelinePeriod,
 } from './Experiences.styled';
 
 /**
@@ -111,11 +109,10 @@ export const Experiences = () => {
 
           {/* ── Wibilong ─────────────────────────────────────── */}
           <TimelineEntry>
-            <TimelinePeriod>
-              <PeriodStart>{t('exp.periods.wibilongStart')}</PeriodStart>
-              <PeriodSep>↓</PeriodSep>
-              <PeriodEnd>{t('exp.periods.wibilongEnd')}</PeriodEnd>
-            </TimelinePeriod>
+            <TimelinePeriod
+              start={t('exp.periods.wibilongStart')}
+              end={t('exp.periods.wibilongEnd')}
+            />
             <TimelineContent>
               <Experience
                 jobName={t('exp.wibilong.title')}
@@ -151,11 +148,10 @@ export const Experiences = () => {
 
           {/* ── Supralog ─────────────────────────────────────── */}
           <TimelineEntry>
-            <TimelinePeriod>
-              <PeriodStart>{t('exp.periods.supralogStart')}</PeriodStart>
-              <PeriodSep>↓</PeriodSep>
-              <PeriodEnd>{t('exp.periods.supralogEnd')}</PeriodEnd>
-            </TimelinePeriod>
+            <TimelinePeriod
+              start={t('exp.periods.supralogStart')}
+              end={t('exp.periods.supralogEnd')}
+            />
             <TimelineContent>
               <Experience
                 jobName={t('exp.supralog.title')}
@@ -198,11 +194,10 @@ export const Experiences = () => {
 
           {/* ── Beepeers ─────────────────────────────────────── */}
           <TimelineEntry>
-            <TimelinePeriod>
-              <PeriodStart>{t('exp.periods.beepeersStart')}</PeriodStart>
-              <PeriodSep>↓</PeriodSep>
-              <PeriodEnd>{t('exp.periods.beepeersEnd')}</PeriodEnd>
-            </TimelinePeriod>
+            <TimelinePeriod
+              start={t('exp.periods.beepeersStart')}
+              end={t('exp.periods.beepeersEnd')}
+            />
             <TimelineContent>
               <Experience
                 jobName={t('exp.beepeers.title')}

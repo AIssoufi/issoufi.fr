@@ -1,5 +1,4 @@
-/** Languages offered by the toggle, in display order; the first one is the fallback slot. */
-export const LANGS = ['fr', 'en'] as const;
+import type { Language } from '../../../i18n/types';
 
 /**
  * Name of each language written in that language: the accessible name of its button, read
@@ -8,7 +7,7 @@ export const LANGS = ['fr', 'en'] as const;
 export const LANGUAGE_NAMES = {
   fr: 'Français',
   en: 'English',
-} as const satisfies Record<(typeof LANGS)[number], string>;
+} as const satisfies Record<Language, string>;
 
 /** Width of a language button, and of the indicator sliding under the active one. */
 export const BUTTON_WIDTH_PX = 36;
