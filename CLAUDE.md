@@ -10,7 +10,7 @@ pnpm build        # Type-check + production build (tsc && vite build)
 pnpm size         # After a build: fails over the gzip budget of scripts/ci/constants.mjs
 pnpm smoke-test <url> # After a build: checks that a deployed site serves the pages of dist/
 pnpm preview      # Preview production build on port 4173, or on PORT
-pnpm typecheck    # Type-check only: src/, vite/, e2e/ and the configs, then scripts/ (scripts/tsconfig.json)
+pnpm typecheck    # Type-check only: src/, vite/, e2e/, the configs and vite.config.spec.ts, then scripts/ (scripts/tsconfig.json)
 pnpm lint         # ESLint (eslint.config.js)
 pnpm test         # Run tests once
 pnpm test:watch   # Run tests in watch mode
@@ -28,7 +28,7 @@ Personal portfolio SPA built with React 19 + TypeScript + Vite.
 
 **Entry point**: `src/index.tsx` mounts to the `#welcome` DOM element.
 
-**Routing** (`src/App/App.tsx`): flat BrowserRouter setup with three routes — `/` (Home), `/projects`, `/experiences` — and a `*` catch-all rendering the NotFound page at the requested URL, without redirecting. Home is in the main chunk; the other pages are loaded with `React.lazy` on their first visit, each from its own chunk, so import them from their own folder (`../pages/Projects`), never through a barrel that would put them back in the main chunk. A Forbidden page (403) exists for content the visitor may not access. The routes sit in `RouteErrorBoundary` (`src/App`), below the header: a page that throws or whose chunk fails to load shows a translated error with a reload button, and the next navigation renders the routes again. Each route also needs an entry in `PAGES` (`src/utils/pages.ts`), which drives its metadata and the HTML file generated for it at build time. This is required: the build also emits a `404.html`, which turns off Cloudflare's single-page-app fallback, so a route without its own HTML file would return a 404 on reload.
+**Routing** (`src/App/App.tsx`): flat BrowserRouter setup with three routes — `/` (Home), `/projects`, `/experiences` — and a `*` catch-all rendering the NotFound page at the requested URL, without redirecting. Home is in the main chunk; the other pages are loaded with `React.lazy` on their first visit, each from its own chunk, so import them from their own folder (`../pages/Projects`), never through a barrel that would put them back in the main chunk. A Forbidden page (403) exists for content the visitor may not access. The routes sit in `RouteErrorBoundary` (`src/App`), below the header: a page that throws or whose chunk fails to load shows a translated error with a reload button, and the next navigation renders the routes again. Each route also needs an entry in `PAGES` (`src/utils/pages.ts`), which drives its metadata and the HTML file generated for it at build time. This is required: the build also emits a `404.html`, which turns off Cloudflare's single-page-app fallback, so a route without its own HTML file would return a 404 on reload. The `folder` of the entry names the page folder whose chunk that HTML file preloads (`modulepreload`), so a direct visit downloads it with the main chunk.
 
 **Component conventions**: every component lives in its own folder named after it:
 
@@ -51,7 +51,7 @@ Sub-components get the same structure in their own folder inside their parent's 
 - SVGs are imported as React components via `vite-plugin-svgr`
 - Lottie animations use JSON files co-located with the component
 
-**Tests**: Vitest + Testing Library. Test files are co-located with the code they test: `*.spec.jsx` for components, `*.spec.ts` for helpers and hooks, `*.spec.js` for the CI helpers of `scripts/ci/utils/` and for the JavaScript test helpers. Setup file at `src/setupTests.ts` extends Vitest with `@testing-library/jest-dom`. Components that need routing must be wrapped with `<BrowserRouter>` in tests. The helpers shared by the page tests live in `src/pages/testUtils.js`, in JavaScript like the specs, such as `isPublicFile`, which checks that an image URL names a file of `public/`.
+**Tests**: Vitest + Testing Library. Test files are co-located with the code they test: `*.spec.jsx` for components, `*.spec.ts` for helpers and hooks, `*.spec.js` for the CI helpers of `scripts/ci/utils/` and for the JavaScript test helpers. `vite.config.spec.ts` builds the site in memory with the real config and checks the generated pages, such as the chunk each one preloads. Setup file at `src/setupTests.ts` extends Vitest with `@testing-library/jest-dom`. Components that need routing must be wrapped with `<BrowserRouter>` in tests. The helpers shared by the page tests live in `src/pages/testUtils.js`, in JavaScript like the specs, such as `isPublicFile`, which checks that an image URL names a file of `public/`.
 
 **Browser tests**: jsdom computes no layout, so what needs one is checked in Chromium by the Playwright tests of `e2e/` (`*.e2e.ts`, `playwright.config.ts`), on the production build that `pnpm preview` serves on the port of the worktree. They open every route of `PAGES` and an unknown path, in each language of `LANGUAGES` (stored in `localStorage`), at 320, 375, 414 and 1440 px, and fail when a page is wider than the screen. Install the browser once with `pnpm exec playwright install --only-shell chromium`. Their helpers are tested by Vitest like any other (`e2e/utils.spec.ts`).
 
