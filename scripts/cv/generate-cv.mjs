@@ -15,7 +15,7 @@ import { chromium } from '@playwright/test';
 import { checkFontsLoaded } from '../utils/browser.mjs';
 import { PUBLIC_DIR, TRANSLATION_MODULES } from '../utils/constants.mjs';
 import { getFirstFontFamily, listFontsInUse } from '../utils/fonts.mjs';
-import { hasUnresolvedValue } from '../utils/html.mjs';
+import { hasUnresolvedValue, toDataUrl } from '../utils/html.mjs';
 import { loadSiteModules } from '../utils/site-modules.mjs';
 import {
   CV_FINGERPRINTS_FILE,
@@ -28,7 +28,7 @@ import {
   SOURCE_MODULES,
 } from './constants.mjs';
 import { getCvFingerprint } from './utils/fingerprint.mjs';
-import { renderFontFaces, toFontDataUrl } from './utils/fonts.mjs';
+import { renderFontFaces } from './utils/fonts.mjs';
 import { buildCvContents } from './utils/languages.mjs';
 import { findPdfProblems, readPdf } from './utils/pdf.mjs';
 import { renderCvStyles } from './utils/styles.mjs';
@@ -108,7 +108,7 @@ const fontFaces = renderFontFaces({
   family: fontFamily,
   faces: Object.entries(CV_FONT_FILES).map(([weight, fileName]) => ({
     weight: theme.fontWeights[weight],
-    url: toFontDataUrl(readFileSync(join(CV_FONTS_DIR, fileName))),
+    url: toDataUrl({ content: readFileSync(join(CV_FONTS_DIR, fileName)), fileName }),
   })),
 });
 const fonts = listFontsInUse({ theme, fontsInUse: FONTS_IN_USE });

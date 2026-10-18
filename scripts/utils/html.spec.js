@@ -1,6 +1,4 @@
-import { readFileSync } from 'node:fs';
-
-import { escapeHtml, findFontStylesheetUrl, hasUnresolvedValue } from './html.mjs';
+import { escapeHtml, hasUnresolvedValue, toDataUrl } from './html.mjs';
 
 describe('escapeHtml', () => {
   it.each([
@@ -49,32 +47,31 @@ describe('hasUnresolvedValue', () => {
   });
 });
 
-describe('findFontStylesheetUrl', () => {
-  it('finds the Google Fonts style sheet of index.html', () => {
-    const url = findFontStylesheetUrl(readFileSync('index.html', 'utf-8'));
+describe('toDataUrl', () => {
+  const content = Buffer.from('image');
 
-    expect(url).toMatch(/^https:\/\/fonts\.googleapis\.com\/css2\?family=Montserrat/);
-    expect(url).toContain('&family=Saira+Stencil+One');
+  it.each([
+    ['public/home.webp', 'image/webp'],
+    ['photo.jpg', 'image/jpeg'],
+    ['photo.jpeg', 'image/jpeg'],
+    ['photo.PNG', 'image/png'],
+    ['photo.avif', 'image/avif'],
+    ['/fonts/montserrat-latin.woff2', 'font/woff2'],
+    ['scripts/cv/fonts/Montserrat-Regular.ttf', 'font/ttf'],
+  ])('builds the data URL of %s', (fileName, mediaType) => {
+    expect(toDataUrl({ content, fileName })).toBe(`data:${mediaType};base64,aW1hZ2U=`);
   });
 
-  it('decodes the ampersands escaped in the attribute', () => {
-    const html = '<link href="https://fonts.googleapis.com/css2?family=A&amp;display=swap" />';
-
-    expect(findFontStylesheetUrl(html)).toBe(
-      'https://fonts.googleapis.com/css2?family=A&display=swap',
+  it('builds the data URL of an empty file', () => {
+    expect(toDataUrl({ content: Buffer.alloc(0), fileName: 'empty.webp' })).toBe(
+      'data:image/webp;base64,',
     );
   });
 
-  it.each([
-    ['a page without a style sheet', '<html><head></head></html>'],
-    ['another style sheet', '<link href="/style.css" rel="stylesheet" />'],
-    ['the preconnect link to the font files', '<link href="https://fonts.gstatic.com" />'],
-    ['an empty page', ''],
-  ])('finds none in %s', (_, html) => {
-    expect(findFontStylesheetUrl(html)).toBe('');
-  });
-
-  it.each([undefined, null, 42, {}])('finds none in %j', html => {
-    expect(findFontStylesheetUrl(html)).toBe('');
-  });
+  it.each(['photo.gif', 'photo.svg', 'font.woff', 'font.otf', 'photo', 'webp', ''])(
+    'refuses the unknown file type of %j',
+    fileName => {
+      expect(() => toDataUrl({ content, fileName })).toThrow(`Unknown file type: ${fileName}`);
+    },
+  );
 });

@@ -4,7 +4,7 @@ import { join } from 'node:path';
 
 import { theme } from '../../../src/theme/theme';
 import { CV_FONT_FILES, CV_FONTS_DIR } from '../constants.mjs';
-import { renderFontFaces, toFontDataUrl } from './fonts.mjs';
+import { renderFontFaces } from './fonts.mjs';
 
 /** Position of the number of tables in a TrueType file, in bytes. */
 const TABLE_COUNT_OFFSET = 4;
@@ -24,16 +24,6 @@ const listTableTags = content =>
     const start = TABLE_RECORDS_OFFSET + index * TABLE_RECORD_LENGTH;
     return content.toString('latin1', start, start + TABLE_TAG_LENGTH);
   });
-
-describe('toFontDataUrl', () => {
-  it('writes the file in base64, as a TrueType font', () => {
-    expect(toFontDataUrl(Buffer.from('font'))).toBe('data:font/ttf;base64,Zm9udA==');
-  });
-
-  it('writes an empty file as an empty data URL', () => {
-    expect(toFontDataUrl(Buffer.alloc(0))).toBe('data:font/ttf;base64,');
-  });
-});
 
 describe('renderFontFaces', () => {
   it('writes one rule per weight, in order', () => {

@@ -7,7 +7,8 @@ installation, toutes ses pages et le choix de la langue compris. Il s'ouvre en f
 langue se choisit avec le sélecteur FR / EN. Gardez les fichiers de ce dossier ensemble :
 index.html y lit les images et le CV.
 
-Les polices viennent de Google Fonts : hors connexion, le navigateur affiche les siennes.
+Les polices sont dans index.html : le site s'affiche à l'identique hors connexion, sans rien
+demander à Google. Leurs licences sont dans le dossier fonts.
 
 Le site en ligne : https://issoufi.fr
 
@@ -18,6 +19,7 @@ to install, every page and the language toggle included. It opens in French: cho
 with the FR / EN toggle. Keep the files of this folder together: index.html reads the images and
 the CV from it.
 
-The fonts come from Google Fonts: offline, the browser shows its own instead.
+The fonts are in index.html: the site looks the same offline, and requests nothing from Google.
+Their licenses are in the fonts folder.
 
 The website: https://issoufi.fr

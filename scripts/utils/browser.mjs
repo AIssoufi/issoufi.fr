@@ -36,7 +36,7 @@ const loadFonts = fonts =>
  * or a PDF, so that no text is drawn in a fallback font.
  * @param {CheckFontsLoadedParams} params
  * @returns {Promise<void>} Resolves once every font is loaded.
- * @throws {Error} When a font did not load, as when the network is down.
+ * @throws {Error} When a font did not load, as when its file is missing or is not a font.
  * @example
  * await page.setContent(html, { waitUntil: 'networkidle' });
  * await checkFontsLoaded({ page, fonts: listFontsInUse({ theme, fontsInUse }) });
@@ -45,6 +45,6 @@ export const checkFontsLoaded = async ({ page, fonts }) => {
   const fontChecks = await page.evaluate(loadFonts, fonts);
   const missingFonts = findMissingFonts(/** @type {unknown[]} */ (fontChecks));
   if (missingFonts.length > 0) {
-    throw new Error(`Fonts not loaded, check the network: ${missingFonts.join(', ')}`);
+    throw new Error(`Fonts not loaded, check their files: ${missingFonts.join(', ')}`);
   }
 };

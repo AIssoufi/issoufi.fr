@@ -75,9 +75,6 @@ export const CV_FONT_FILES = {
   bold: 'Montserrat-Bold.ttf',
 };
 
-/** Media type of the font files of {@link CV_FONT_FILES}, in their data URLs. */
-export const FONT_MEDIA_TYPE = 'font/ttf';
-
 /** Format of the font files of {@link CV_FONT_FILES}, in the `src` of their `@font-face` rules. */
 export const FONT_FORMAT = 'truetype';
 

@@ -2,6 +2,7 @@ import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { defineConfig, mergeConfig, normalizePath, type Plugin } from 'vite';
 
+import { FONT_FACES } from './src/theme/constants';
 import productionConfig from './vite.config';
 import {
   APP_DIR,
@@ -17,6 +18,13 @@ import {
   isServerOnlyPage,
   removePreloadMarkers,
 } from './vite/standalone/utils/bundle';
+import {
+  type EmbeddedFont,
+  findMissingFontUrls,
+  readFontDataUrl,
+  removeFontPreloads,
+  toFontDataUrls,
+} from './vite/standalone/utils/fonts';
 import { listFileNames, toRelativePublicUrls } from './vite/standalone/utils/public-files';
 import { isAppRouterImport } from './vite/standalone/utils/router';
 
@@ -60,6 +68,38 @@ const relativePublicUrls = (): Plugin => {
     transform: (code, id) => {
       const isAppModule = id.startsWith(`${appDir}/`);
       return isAppModule ? toRelativePublicUrls({ code, fileNames }) : null;
+    },
+  };
+};
+
+/**
+ * Vite plugin that embeds the web fonts of the site in the page, so that it renders in them
+ * offline, whatever the browser allows from `file://`: in the `<style>` that the `font-faces`
+ * plugin of `vite.config.ts` adds to `index.html`, the URL of each font file of `FONT_FACES`
+ * (`src/theme/constants.ts`) becomes a data URL (see {@link toFontDataUrls}), and the links that
+ * preload them go (see {@link removeFontPreloads}). The build fails when a font file is missing
+ * from `public/`.
+ */
+const embeddedFonts = (): Plugin => {
+  let fonts: EmbeddedFont[] = [];
+
+  return {
+    name: 'standalone-embedded-fonts',
+    configResolved: config => {
+      fonts = FONT_FACES.map(({ url }) => ({
+        url,
+        dataUrl: readFontDataUrl({ publicDir: config.publicDir, url }),
+      }));
+    },
+    buildStart() {
+      const missingUrls = findMissingFontUrls(fonts);
+      if (missingUrls.length > 0)
+        this.error(`Font files missing from public/: ${missingUrls.join(', ')}`);
+    },
+    // After the hooks without an order, the one of the font-faces plugin included
+    transformIndexHtml: {
+      order: 'post',
+      handler: html => removeFontPreloads(toFontDataUrls({ source: html, fonts })),
     },
   };
 };
@@ -117,14 +157,14 @@ const standalonePage = (): Plugin => {
  * Configuration of the standalone build, `pnpm build:standalone`: the production build of
  * `vite.config.ts`, unchanged, plus what lets a visitor open it from the disk with a double click
  * on `index.html`, without a server. The app, its pages loaded lazily included, is one script
- * inlined in `index.html`; the routes read the hash of the URL; the files of `public/` sit next to
- * it, with URLs relative to the page (`base: './'`). The release workflow attaches it to each
- * GitHub release.
+ * inlined in `index.html`, its web fonts included; the routes read the hash of the URL; the files
+ * of `public/` sit next to it, with URLs relative to the page (`base: './'`). The release workflow
+ * attaches it to each GitHub release.
  */
 export default defineConfig(env =>
   mergeConfig(productionConfig(env), {
     base: './',
-    plugins: [hashRouter(), relativePublicUrls(), standalonePage()],
+    plugins: [hashRouter(), relativePublicUrls(), embeddedFonts(), standalonePage()],
     build: {
       outDir: STANDALONE_OUT_DIR,
       // Nothing is left to preload once the whole app is in the page

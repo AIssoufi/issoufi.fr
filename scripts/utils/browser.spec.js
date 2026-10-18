@@ -39,7 +39,7 @@ describe('checkFontsLoaded', () => {
         page: createPage(),
         fonts: ['400 16px "Montserrat"', '700 16px "Montserrat"'],
       }),
-    ).rejects.toThrow('Fonts not loaded, check the network: 700 16px "Montserrat"');
+    ).rejects.toThrow('Fonts not loaded, check their files: 700 16px "Montserrat"');
   });
 
   it('counts a font whose download fails as not loaded', async () => {

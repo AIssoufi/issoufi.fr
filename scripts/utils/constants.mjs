@@ -2,17 +2,22 @@
 // Constants shared by the scripts that render a page of the site in Chromium: the link preview
 // images (`scripts/og-image/`) and the CV (`scripts/cv/`).
 
-/** Page whose Google Fonts style sheet the scripts load, relative to the project root. */
-export const INDEX_HTML_FILE = 'index.html';
-
 /** Folder whose files the site serves at its root, relative to the project root. */
 export const PUBLIC_DIR = 'public';
 
 /**
- * Google Fonts style sheet link of an HTML page. Its first group captures the URL, without the
- * quotes.
+ * Media type of each extension of the files that a page can load as a data URL: the images, the
+ * web fonts of the site and the static font files of the CV.
  */
-export const FONT_STYLESHEET_PATTERN = /href="(https:\/\/fonts\.googleapis\.com\/css2\?[^"]*)"/;
+export const DATA_URL_MEDIA_TYPES = {
+  '.avif': 'image/avif',
+  '.jpeg': 'image/jpeg',
+  '.jpg': 'image/jpeg',
+  '.png': 'image/png',
+  '.webp': 'image/webp',
+  '.woff2': 'font/woff2',
+  '.ttf': 'font/ttf',
+};
 
 /** Font size at which a page checks that each font it uses has loaded. */
 export const FONT_CHECK_SIZE_PX = 16;

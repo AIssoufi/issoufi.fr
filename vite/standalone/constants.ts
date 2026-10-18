@@ -60,3 +60,18 @@ export const NO_PRELOAD = 'void 0';
  * `\x3C`, which means the same in a JavaScript string but ends no tag.
  */
 export const ESCAPED_INLINE_SCRIPT_BREAKER = '\\x3C$1';
+
+/** Start of a data URL, which holds the content of a file instead of naming it. */
+export const DATA_URL_SCHEME = 'data:';
+
+/**
+ * A link tag of an HTML page, from `<link` to `>`, with the spaces and the line break before it,
+ * so that removing it leaves no blank line.
+ */
+export const LINK_TAG_PATTERN = /\s*<link\b[^>]*>/gi;
+
+/** `rel` attribute of a link that preloads a file, as `index.html` writes it. */
+export const PRELOAD_RELATION_PATTERN = /\srel="preload"/i;
+
+/** `as` attribute of a link that preloads a font file. */
+export const FONT_DESTINATION_PATTERN = /\sas="font"/i;

@@ -15,7 +15,8 @@ const params = {
   texts,
   styles,
   backgroundImageUrl: 'data:image/webp;base64,UklGR',
-  fontStylesheetUrl: 'https://fonts.googleapis.com/css2?family=Montserrat&display=swap',
+  fontFaceStyles:
+    "@font-face { font-family: 'Montserrat'; src: url('data:font/woff2;base64,d09G'); }",
   particlesSvg: '<svg id="particles"></svg>',
 };
 
@@ -67,11 +68,22 @@ describe('renderOgImageStyles', () => {
 });
 
 describe('renderOgImageHtml', () => {
-  it('starts an HTML document with the style sheet', () => {
+  it('starts an HTML document with the web fonts, then the style sheet', () => {
     const html = renderOgImageHtml(params);
+    const styleSheets = [...renderDocument().querySelectorAll('head style')];
 
     expect(html).toMatch(/^<!doctype html>/);
-    expect(renderDocument().querySelector('style').textContent).toBe(styles);
+    expect(styleSheets.map(({ textContent }) => textContent)).toEqual([
+      params.fontFaceStyles,
+      styles,
+    ]);
+  });
+
+  it('loads nothing from another site, the fonts included', () => {
+    const page = renderDocument();
+
+    expect(page.querySelector('link')).toBeNull();
+    expect(renderOgImageHtml(params)).not.toMatch(/https?:\/\//);
   });
 
   it('writes every text of the home page', () => {
@@ -145,12 +157,18 @@ describe('renderOgImageHtml', () => {
     expect(positions.slice(3)).toEqual(['-25%', '-25%']);
   });
 
-  it('loads the font style sheet and shows the background photo', () => {
+  it.each([undefined, null, 42, {}])(
+    'leaves the style of the fonts empty when it is %j, not a string',
+    fontFaceStyles => {
+      const [fontStyle] = renderDocument({ fontFaceStyles }).querySelectorAll('head style');
+
+      expect(fontStyle.textContent).toBe('');
+    },
+  );
+
+  it('shows the background photo', () => {
     const page = renderDocument();
 
-    expect(page.querySelector('link[rel="stylesheet"]').getAttribute('href')).toBe(
-      params.fontStylesheetUrl,
-    );
     expect(page.body.style.backgroundImage).toBe(`url("${params.backgroundImageUrl}")`);
   });
 
@@ -174,14 +192,6 @@ describe('renderOgImageHtml', () => {
   it('escapes the URL of the background photo', () => {
     const page = renderDocument({ backgroundImageUrl: 'data:image/webp;base64,A\')"><script>' });
 
-    expect(page.querySelector('script')).toBeNull();
-  });
-
-  it('escapes the URL of the font style sheet', () => {
-    const fontStylesheetUrl = 'https://fonts.googleapis.com/css2?family=A&display=swap"><script>';
-    const page = renderDocument({ fontStylesheetUrl });
-
-    expect(page.querySelector('link').getAttribute('href')).toBe(fontStylesheetUrl);
     expect(page.querySelector('script')).toBeNull();
   });
 });

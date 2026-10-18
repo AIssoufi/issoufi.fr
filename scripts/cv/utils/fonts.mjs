@@ -1,21 +1,13 @@
 // @ts-check
-import { FONT_FORMAT, FONT_MEDIA_TYPE } from '../constants.mjs';
-
-/**
- * Turns a font file into a data URL, so the page that Chromium prints, which is not served from
- * the project, can load it without network.
- * @param {Buffer} content - Content of a TrueType file of `CV_FONT_FILES`.
- * @returns {string} The data URL, e.g. `data:font/ttf;base64,AAEAAAAS…`.
- */
-export const toFontDataUrl = content =>
-  `data:${FONT_MEDIA_TYPE};base64,${content.toString('base64')}`;
+import { FONT_FORMAT } from '../constants.mjs';
 
 /**
  * A file of a font of the CV, in one weight.
  * @typedef {object} CvFontFile
  * @property {unknown} weight - CSS weight of the file, e.g. `700`, from the `fontWeights` of the
  * theme.
- * @property {string} url - URL of the file, e.g. from {@link toFontDataUrl}.
+ * @property {string} url - URL of the file, e.g. a data URL from `toDataUrl`
+ * (`scripts/utils/html.mjs`).
  */
 
 /**
