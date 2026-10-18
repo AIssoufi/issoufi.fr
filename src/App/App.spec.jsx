@@ -1,7 +1,17 @@
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
+import { LANGUAGE_STORAGE_KEY } from '../i18n/constants';
 import App from './App';
+
+/** Runs the i18n setup again, as on a new page load. */
+const reloadI18n = async () => {
+  vi.resetModules();
+  await import('../i18n');
+};
+
+const description = () =>
+  document.querySelector('meta[name="description"]').getAttribute('content');
 
 describe('App', () => {
   afterEach(() => {
@@ -59,5 +69,59 @@ describe('App', () => {
     render(<App />);
 
     expect(getComputedStyle(screen.getByTestId('app')).gridTemplateColumns).toBe('minmax(0, 1fr)');
+  });
+
+  describe('language', () => {
+    beforeEach(() => {
+      document.head.innerHTML = '<meta name="description" content="" />';
+      window.history.pushState({}, '', '/projects');
+    });
+
+    afterEach(async () => {
+      vi.restoreAllMocks();
+      localStorage.clear();
+      await reloadI18n();
+    });
+
+    it('opens in French on a first visit', async () => {
+      await reloadI18n();
+      render(<App />);
+
+      expect(screen.getByRole('heading', { name: 'Projets personnels' })).toBeInTheDocument();
+      expect(document.documentElement.lang).toBe('fr');
+      expect(document.title).toBe('Projets - ADAM Issoufi');
+    });
+
+    it('opens in the language chosen before the reload, metadata included', async () => {
+      localStorage.setItem(LANGUAGE_STORAGE_KEY, 'en');
+
+      await reloadI18n();
+      render(<App />);
+
+      expect(screen.getByRole('heading', { name: 'Personal projects' })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: 'English' })).toHaveAttribute(
+        'aria-pressed',
+        'true',
+      );
+      expect(document.documentElement.lang).toBe('en');
+      expect(document.title).toBe('Projects - ADAM Issoufi');
+      expect(description()).toBe(
+        'Personal and freelance projects by ADAM Issoufi, full-stack JavaScript developer.',
+      );
+    });
+
+    it('opens in French when the browser blocks the storage', async () => {
+      localStorage.setItem(LANGUAGE_STORAGE_KEY, 'en');
+      vi.spyOn(window, 'localStorage', 'get').mockImplementation(() => {
+        throw new DOMException('The operation is insecure.', 'SecurityError');
+      });
+
+      await reloadI18n();
+      render(<App />);
+
+      expect(screen.getByRole('heading', { name: 'Projets personnels' })).toBeInTheDocument();
+      expect(document.documentElement.lang).toBe('fr');
+      expect(document.title).toBe('Projets - ADAM Issoufi');
+    });
   });
 });

@@ -3,16 +3,13 @@ import React from 'react';
 import JobSummary from '../JobSummary';
 import Project from '../Project';
 import Technologies from '../Technologies';
+import TimelinePeriod from '../TimelinePeriod';
 
 import {
   GroupArticle,
   RoleContent,
   RoleDetails,
   RoleItem,
-  RolePeriodCol,
-  RolePeriodEnd,
-  RolePeriodSep,
-  RolePeriodStart,
   RolesList,
 } from './ExperienceGroup.styled';
 
@@ -56,11 +53,11 @@ const Role = ({ jobName, startDate, endDate, children }: RoleProps) => {
 
   return (
     <RoleItem>
-      <RolePeriodCol>
-        <RolePeriodStart>{startDate}</RolePeriodStart>
-        <RolePeriodSep>↓</RolePeriodSep>
-        <RolePeriodEnd>{endDate}</RolePeriodEnd>
-      </RolePeriodCol>
+      <TimelinePeriod
+        variant="role"
+        start={startDate}
+        end={endDate}
+      />
       <RoleContent>
         {company && (
           <JobSummary
