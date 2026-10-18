@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { render, screen, within } from '@testing-library/react';
 
 import Project from './Project';
 
@@ -34,12 +34,14 @@ describe('Project', () => {
   });
 
   it.each([
-    ['a title only', { title: 'MyFFBaD' }],
-    ['a state only', { state: 'En production' }],
-  ])('renders the header with %s', (_, props) => {
+    ['a title only', { title: 'MyFFBaD' }, 'MyFFBaD'],
+    ['a state only', { state: 'En production' }, 'En production'],
+  ])('renders the header with %s', (_, props, headerText) => {
     const { container } = render(<Project {...props} />);
+    const header = container.querySelector('header');
 
-    expect(container.querySelector('header')).toBeInTheDocument();
+    expect(header).toBeInTheDocument();
+    expect(within(header).getByText(headerText)).toBeInTheDocument();
   });
 
   it.each([
