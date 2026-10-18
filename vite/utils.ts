@@ -1,5 +1,6 @@
 import {
   DEFAULT_DEV_PORT,
+  DEFAULT_PREVIEW_PORT,
   FALLBACK_CHUNK_NAME,
   INDEX_CHUNK_NAME,
   MAX_PORT,
@@ -17,8 +18,8 @@ type Env = Record<string, string | undefined>;
 interface ServerPorts {
   /** Port of `pnpm dev`. */
   dev: number;
-  /** Port of `pnpm preview`, or `undefined` to keep Vite's default preview port, 4173. */
-  preview?: number;
+  /** Port of `pnpm preview`, also read by the browser tests of `playwright.config.ts`. */
+  preview: number;
 }
 
 /**
@@ -48,18 +49,18 @@ export const parsePort = (value: unknown): number | undefined => {
  * Picks the ports of the dev and preview servers from the `PORT` variable, which the Worktrunk
  * hook of `.config/wt.toml` writes to the `.env.local` of each worktree. Without a valid `PORT`,
  * as in the main checkout, the dev server uses {@link DEFAULT_DEV_PORT} and the preview server
- * Vite's default port.
+ * {@link DEFAULT_PREVIEW_PORT}, Vite's default.
  *
  * @param env - Environment variables. Defaults to none.
  * @returns The port of each server.
  *
  * @example
  * getServerPorts({ PORT: '12345' }); // { dev: 12345, preview: 12345 }
- * getServerPorts({}); // { dev: 3000, preview: undefined }
+ * getServerPorts({}); // { dev: 3000, preview: 4173 }
  */
 export const getServerPorts = (env: Env = {}): ServerPorts => {
   const port = parsePort(env?.PORT);
-  return { dev: port ?? DEFAULT_DEV_PORT, preview: port };
+  return { dev: port ?? DEFAULT_DEV_PORT, preview: port ?? DEFAULT_PREVIEW_PORT };
 };
 
 /** Chunk of the build, as Rollup passes it to `output.chunkFileNames`: the fields that name it. */

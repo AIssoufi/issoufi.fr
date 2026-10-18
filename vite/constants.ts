@@ -1,6 +1,9 @@
 /** Port of the dev server when no `PORT` is set, as in the main checkout. */
 export const DEFAULT_DEV_PORT = 3000;
 
+/** Port of the preview server when no `PORT` is set: Vite's own default preview port. */
+export const DEFAULT_PREVIEW_PORT = 4173;
+
 /** Lowest TCP port a server can listen on. `0` would let the system pick a random one. */
 export const MIN_PORT = 1;
 

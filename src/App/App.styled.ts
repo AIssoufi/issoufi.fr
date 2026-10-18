@@ -9,46 +9,12 @@ export const WebApp = styled.div`
   /* A plain 1fr never shrinks below its content, which would widen the page past the screen */
   grid-template-columns: minmax(0, 1fr);
   height: 100vh;
-  max-width: 1440px;
+  max-width: ${th.size('container')};
   margin: 0 auto;
 
   > header {
     padding-left: ${th.space('page')};
     padding-right: ${th.space('page')};
     grid-area: header;
-  }
-`;
-
-export const Page = styled.section<{ $backgroundImage?: string }>`
-  padding: ${th.space(16)} ${th.space('page')} 0;
-  position: relative;
-  grid-area: main;
-
-  &::before {
-    content: '';
-    display: block;
-    position: fixed;
-    z-index: ${th.zIndex('pageBackground')};
-    top: 0;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    background-image: ${props =>
-      props.$backgroundImage ? `url(${props.$backgroundImage})` : 'none'};
-    background-repeat: no-repeat;
-    background-position: center;
-    background-size: cover;
-  }
-
-  &::after {
-    content: '';
-    display: block;
-    position: fixed;
-    z-index: ${th.zIndex('behind')};
-    top: 0;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    background-color: ${th.color('shade-a80')};
   }
 `;

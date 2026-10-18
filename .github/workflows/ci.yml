@@ -95,6 +95,36 @@ jobs:
           path: dist/
           retention-days: 7
 
+  browser-test:
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+      - uses: ./.github/actions/setup
+      # Tests the build that the deploy job uploads, served by pnpm preview
+      - uses: actions/download-artifact@v8
+        with:
+          name: dist
+          path: dist
+      # Only the browser of the Playwright version in the lockfile is cached: the system libraries
+      # it needs are installed on every run, and an installed browser is not downloaded again
+      - id: playwright
+        run: echo "version=$(pnpm exec playwright --version | cut -d ' ' -f 2)" >> "$GITHUB_OUTPUT"
+      - uses: actions/cache@v6
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ steps.playwright.outputs.version }}
+      - run: pnpm exec playwright install --with-deps --only-shell chromium
+      - run: pnpm test:browser
+      # Holds a screenshot of each page that failed
+      - if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: browser-test-results
+          path: test-results/
+          retention-days: 14
+
   credentials:
     # Pull requests from forks and from Dependabot get no repository secrets
     if: >-
@@ -119,7 +149,7 @@ jobs:
           fi
 
   deploy:
-    needs: [build, credentials]
+    needs: [build, browser-test, credentials]
     if: needs.credentials.outputs.cloudflare == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 10

@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react';
 
-import { StrongWord } from '../Home.styled';
+import { StrongWord } from './SplitWords.styled';
 import { usePointerRef } from '../hooks/usePointerRef';
 import { NON_BREAKING_SPACE, RESTING_WORD, SHIMMER_CYCLE_S } from './constants';
 import type { WordState } from './types';
