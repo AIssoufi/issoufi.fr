@@ -22,6 +22,7 @@ import {
   ProjectGrid,
   ProjectInfo,
   ProjectItem,
+  ProjectLink,
   ProjectName,
   ProjectTools,
   ProjectType,
@@ -32,7 +33,7 @@ import {
   Thumbnail,
 } from './Project.styled';
 import type { ProjectItemData } from './types';
-import { getCardTilt, getNextPageStart, getPreviousPageStart } from './utils';
+import { getCardTilt, getNextPageStart, getPreviousPageStart, getProjectLinkUrl } from './utils';
 
 /** Props of {@link Project}. */
 interface ProjectProps {
@@ -51,8 +52,9 @@ const NO_PROJECTS: ProjectItemData[] = [];
  * Section of project cards with a title, paginated three at a time with previous and next
  * buttons, named for screen readers, or showing all cards after "Show all". These controls form
  * a group labelled by the title, rather than a navigation landmark. Cards tilt toward the mouse,
- * link to the project when it has a `url`, and have a like button, named after the project and
- * described by its count, whose state is kept in memory only.
+ * and have a like button, named after the project and described by its count, whose state is
+ * kept in memory only. When the project has a `url` and a name, the card title is a link to it,
+ * stretched over the whole card; the like button sits beside that link, never inside it.
  */
 const Project = ({ title, projects = NO_PROJECTS }: ProjectProps) => {
   const { t } = useTranslation();
@@ -66,13 +68,6 @@ const Project = ({ title, projects = NO_PROJECTS }: ProjectProps) => {
   const visibleProjects = isShowingAll
     ? projects
     : projects.slice(pageStart, pageStart + PAGE_SIZE);
-
-  const handleLike = ({ id, event }: { id: number; event: React.MouseEvent }) => {
-    // The card can be a link: liking must neither open it nor trigger the card's handlers
-    event.preventDefault();
-    event.stopPropagation();
-    toggleLike(id);
-  };
 
   const handleNextPage = () => {
     setPageStart(currentStart =>
@@ -108,7 +103,10 @@ const Project = ({ title, projects = NO_PROJECTS }: ProjectProps) => {
           role="group"
           aria-labelledby={titleId}
         >
-          <CtrlItem onClick={() => setIsShowingAll(!isShowingAll)}>
+          <CtrlItem
+            type="button"
+            onClick={() => setIsShowingAll(!isShowingAll)}
+          >
             {isShowingAll
               ? t('projects.showLess')
               : t('projects.showAll', { count: projects.length })}
@@ -137,15 +135,13 @@ const Project = ({ title, projects = NO_PROJECTS }: ProjectProps) => {
         {visibleProjects.map(({ id, name, type, imageUrl, url, tools }) => {
           const { count, liked } = likes[id] ?? NO_LIKE;
           const isAnimating = animatingIds.has(id);
-          const linkProps = url ? { href: url, target: '_blank', rel: 'noreferrer' } : {};
           const likeCountId = `${sectionId}-like-count-${id}`;
+          const linkUrl = getProjectLinkUrl({ url, name });
 
           return (
             <ProjectItem
               key={id}
               $displayAll={isShowingAll}
-              as={url ? 'a' : 'div'}
-              {...linkProps}
               onMouseMove={handleCardMouseMove}
               onMouseLeave={handleCardMouseLeave}
             >
@@ -161,7 +157,7 @@ const Project = ({ title, projects = NO_PROJECTS }: ProjectProps) => {
                   aria-describedby={likeCountId}
                   $liked={liked}
                   $animating={isAnimating}
-                  onClick={event => handleLike({ id, event })}
+                  onClick={() => toggleLike(id)}
                 >
                   <LikeIcon aria-hidden />
                   <LikeCount
@@ -174,7 +170,19 @@ const Project = ({ title, projects = NO_PROJECTS }: ProjectProps) => {
                 </LikeButton>
               </ImageContainer>
               <ProjectInfo>
-                <ProjectName>{name}</ProjectName>
+                <ProjectName>
+                  {linkUrl ? (
+                    <ProjectLink
+                      href={linkUrl}
+                      target="_blank"
+                      rel="noreferrer"
+                    >
+                      {name}
+                    </ProjectLink>
+                  ) : (
+                    name
+                  )}
+                </ProjectName>
                 <ProjectType>{type}</ProjectType>
                 <ProjectTools>{(tools ?? []).join(' · ')}</ProjectTools>
               </ProjectInfo>

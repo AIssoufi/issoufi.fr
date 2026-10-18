@@ -5,6 +5,28 @@ import { join, sep } from 'node:path';
 const PUBLIC_DIR = 'public';
 
 /**
+ * CSS selector of the interactive content of the HTML specification, plus the elements made
+ * focusable or editable by an attribute. Used by the page tests to check that no link holds one,
+ * since interactive content inside a link is invalid HTML.
+ */
+export const INTERACTIVE_SELECTOR = [
+  'a[href]',
+  'audio[controls]',
+  'button',
+  'details',
+  'embed',
+  'iframe',
+  'img[usemap]',
+  'input:not([type="hidden"])',
+  'label',
+  'select',
+  'textarea',
+  'video[controls]',
+  '[tabindex]',
+  '[contenteditable]:not([contenteditable="false"])',
+].join(', ');
+
+/**
  * Whether an absolute URL such as `/chess.webp` names a file of `public/`, not a folder. Used by
  * the page tests to check that every image they reference is served.
  *
@@ -37,25 +59,32 @@ export const listStyleRules = () =>
   );
 
 /**
- * Value that the generated CSS declares for a property on one of the element's classes, outside
- * any media query or inside the given one; the last declaration wins. Used by the page tests,
- * since jsdom's computed styles ignore media queries.
+ * Value that the generated CSS declares for a property on one of the element's classes, or on one
+ * of its pseudo-elements or states, outside any media query or inside the given one; the last
+ * declaration wins. Used by the page tests, since jsdom's computed styles ignore media queries,
+ * pseudo-elements and states such as `:focus-visible`.
  *
  * @param {object} params
  * @param {Element} [params.element] - Element whose classes hold the declaration.
  * @param {string} [params.property] - CSS property, such as `padding-left`.
  * @param {string} [params.media] - Condition of the media query, such as `(min-width: 50em)`;
  * `''` for the rules outside any media query.
- * @returns {string} `''` when no rule declares it, or when the element is missing.
+ * @param {string} [params.pseudo] - Pseudo-classes and pseudo-element that follow the class in the
+ * selector of the rules to read, such as `::after` or `:focus-visible::after`; `''` for the rules
+ * of the element itself.
+ * @returns {string} `''` when no rule declares it, when the element is missing, or when `property`
+ * or `pseudo` is not a string.
  *
  * @example
  * declaredStyle({ element: grid, property: 'display', media: '(min-width: 50em)' }); // 'grid'
+ * declaredStyle({ element: link, property: 'position', pseudo: '::after' }); // 'absolute'
  */
-export const declaredStyle = ({ element, property, media = '' } = {}) => {
+export const declaredStyle = ({ element, property, media = '', pseudo = '' } = {}) => {
   const hasClasses = element?.classList instanceof DOMTokenList;
-  if (!hasClasses || typeof property !== 'string') return '';
+  const areSelectorPartsStrings = typeof property === 'string' && typeof pseudo === 'string';
+  if (!hasClasses || !areSelectorPartsStrings) return '';
 
-  const classSelectors = [...element.classList].map(className => `.${className}`);
+  const classSelectors = [...element.classList].map(className => `.${className}${pseudo}`);
   const isRuleOfElement = entry => {
     const isInMedia = entry.media === media;
     return isInMedia && classSelectors.includes(entry.rule.selectorText);
