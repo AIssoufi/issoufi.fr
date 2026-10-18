@@ -15,10 +15,13 @@ export const PUBLIC_DIR = 'public';
 /**
  * Maximum gzip size, in bytes, of all the scripts and style sheets of the build together, every
  * chunk included. In October 2026, once split per route (issue #27), they weighed 188.9 kB, of
- * which 131.3 kB in the main chunk, down from a single bundle of 225.3 kB. The margin leaves room
- * for React 19.3, which adds about 9.3 kB.
+ * which 131.3 kB in the main chunk, down from a single bundle of 225.3 kB. Drawing the burger icon
+ * in CSS (issue #191) then took them from 195.1 kB to 145.9 kB: the 48.4 kB chunk of lottie-web
+ * went, and the main chunk lost the animation and its hook, from 137.1 kB to 136.3 kB. The margin
+ * leaves room for React 19.3, which adds about 9.3 kB, and about 15 kB more: a library as heavy
+ * as lottie-web fails the build.
  */
-export const SCRIPT_BUDGET_GZIP_BYTES = 210_000;
+export const SCRIPT_BUDGET_GZIP_BYTES = 170_000;
 
 /**
  * Maximum gzip size, in bytes, of the scripts and style sheets that the home page loads before it

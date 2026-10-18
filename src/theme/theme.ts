@@ -95,6 +95,8 @@ export const theme = {
      * pointer can move from the control onto the tooltip without closing it.
      */
     'tooltip-gap': spacing[8],
+    /** Distance between the centers of two bars of the burger icon of the mobile menu. */
+    'burger-bar-gap': spacing[9],
     /** Space around each project card, so two cards side by side stand twice as far apart. */
     'project-card-margin': spacing[5],
     /** Gap between an icon and its label, relative to the font size. */
@@ -114,10 +116,14 @@ export const theme = {
      * sideways: 15 % of a 320 px high screen, so the page keeps most of it. Its band follows.
      */
     'header-compact': sizes[48],
-    /** Side of the burger icon of the mobile menu, kept while its animation loads. */
+    /** Side of the burger button of the mobile menu. */
     'burger-icon': sizes[50],
     /** Side of the burger icon in the compact header, still the size of a target for a finger. */
     'burger-icon-compact': sizes[44],
+    /** Length of each of the three bars of the burger icon, their round ends included. */
+    'burger-bar': sizes[30],
+    /** Thickness of each bar of the burger icon. */
+    'burger-bar-thickness': sizes[3],
     /**
      * Side of a round button, such as the CV button floating on desktop: 44 px, the smallest
      * target that the Web Content Accessibility Guidelines recommend for a finger.
