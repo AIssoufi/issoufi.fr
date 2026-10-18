@@ -11,5 +11,9 @@ export const SCREEN_HEIGHT_PX = 800;
 /** Path that no page uses, opened to check the not found page. */
 export const NOT_FOUND_ROUTE = '/browser-test-page-that-does-not-exist';
 
-/** Element the app renders into, as declared in `index.html` and mounted by `src/index.tsx`. */
-export const APP_ROOT_SELECTOR = '#welcome';
+/**
+ * Section that every page renders, the `Page` of `src/App/App.styled.ts`, right inside the app
+ * grid. The pages other than the home page show it only once their chunk is loaded, after the
+ * header.
+ */
+export const PAGE_SELECTOR = '[data-testid="app"] > section';

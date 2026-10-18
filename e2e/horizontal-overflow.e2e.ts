@@ -1,7 +1,7 @@
 import { expect, test } from '@playwright/test';
 
 import { PAGES } from '../src/utils/pages';
-import { APP_ROOT_SELECTOR, SCREEN_HEIGHT_PX, SCREEN_WIDTHS_PX } from './constants';
+import { PAGE_SELECTOR, SCREEN_HEIGHT_PX, SCREEN_WIDTHS_PX } from './constants';
 import { getCheckedRoutes } from './utils';
 
 // jsdom computes no layout, so only a real browser sees a page wider than the screen
@@ -12,9 +12,10 @@ for (const width of SCREEN_WIDTHS_PX) {
     for (const route of getCheckedRoutes(PAGES)) {
       test(`${route} does not scroll sideways`, async ({ page }) => {
         await page.goto(route);
-        // A page that failed to render would have nothing to overflow, and would pass
-        await expect(page.locator(APP_ROOT_SELECTOR)).not.toBeEmpty();
-        // The web fonts replace the fallback font, which changes the width of every text
+        // Measured before its chunk is loaded, or if it failed to render, a page would pass
+        await expect(page.locator(PAGE_SELECTOR)).toBeVisible();
+        // Its images, then the web fonts that replace the fallback font, change its width
+        await page.waitForLoadState('networkidle');
         await page.evaluate(async () => {
           await document.fonts.ready;
         });
