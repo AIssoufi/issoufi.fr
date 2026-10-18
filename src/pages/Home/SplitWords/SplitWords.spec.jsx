@@ -117,6 +117,27 @@ describe('SplitWords', () => {
       expect(vi.getTimerCount()).toBe(0);
     });
 
+    it('puts back the remaining words once the visitor turns reduced motion on after some are removed', () => {
+      const { setMatches } = stubMatchMedia({ matches: false });
+      const { container, rerender } = render(
+        <SplitWords>Full-stack JavaScript Developer</SplitWords>,
+      );
+      // The removed word leaves an empty slot among the elements of the words
+      rerender(<SplitWords>Full-stack JavaScript</SplitWords>);
+      fireEvent.mouseMove(window, PUSHING_POINTER);
+      vi.advanceTimersByTime(FRAME_MS);
+
+      expect(() => setMatches(true)).not.toThrow();
+
+      const words = getWords(container);
+      expect(words).toHaveLength(2);
+      words.forEach(word => {
+        expect(word.style.transform).toBe('');
+        expect(word.style.textShadow).toBe('');
+      });
+      expect(vi.getTimerCount()).toBe(0);
+    });
+
     it('pushes the words again, from their place, once the visitor turns it off', () => {
       const { setMatches } = stubMatchMedia({ matches: true });
       const { container } = render(<SplitWords>Developer</SplitWords>);
