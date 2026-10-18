@@ -2,7 +2,7 @@ import styled, { css, keyframes, th } from '@xstyled/styled-components';
 
 import List from '../../../components/List';
 import { theme } from '../../../theme';
-import CvLink from '../CvLink';
+import CvLink from './CvLink';
 import ProfileLinks from './ProfileLinks';
 
 // Keyframes have no theme context, so they read the theme object rather than the th helpers

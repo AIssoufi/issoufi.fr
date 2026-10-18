@@ -144,7 +144,7 @@ export const MAX_ALIGNMENT_OFFSET_PX = 0.5;
 
 /**
  * Name of the file that the CV link downloads in each language, the end of its URL (`CV_URLS`,
- * `src/App/Header/CvLink/constants.ts`).
+ * `src/App/Header/NavMenu/CvLink/constants.ts`).
  */
 export const CV_FILE_NAMES = {
   fr: 'CV - Adam Issoufi.pdf',

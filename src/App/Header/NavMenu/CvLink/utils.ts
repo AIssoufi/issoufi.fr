@@ -1,5 +1,5 @@
-import { DEFAULT_LANGUAGE } from '../../../i18n/constants';
-import { isLanguage } from '../../../i18n/utils';
+import { DEFAULT_LANGUAGE } from '../../../../i18n/constants';
+import { isLanguage } from '../../../../i18n/utils';
 import { CV_URLS } from './constants';
 
 /**
