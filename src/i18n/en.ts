@@ -25,6 +25,7 @@ export const en = {
       title: 'Page not found - ADAM Issoufi',
       description: 'This page does not exist.',
     },
+    ogImageAlt: 'ADAM Issoufi, full-stack JavaScript developer with a passion for UX and UI Design',
   },
   errors: {
     backHome: 'Back to home',
@@ -64,6 +65,7 @@ export const en = {
     secondary: 'Professional experience',
   },
   projects: {
+    pageTitle: 'Projects',
     personal: 'Personal projects',
     freelance: 'Freelance projects',
     showLess: 'Show less',

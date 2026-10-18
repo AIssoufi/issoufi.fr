@@ -1,7 +1,8 @@
-import { render, screen } from '@testing-library/react';
+import { act, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { ThemeProvider } from '@xstyled/styled-components';
 
+import i18n from '../../i18n';
 import { theme } from '../../theme';
 import { INTERACTIVE_SELECTOR, declaredStyle, isPublicFile } from '../testUtils';
 import { BACKGROUND_IMAGE_URL } from './constants';
@@ -20,11 +21,53 @@ const firstThumbnail = () =>
   screen.getByRole('img', { name: personalProjectsData.projects[0].name });
 
 describe('Projects', () => {
+  afterEach(async () => {
+    await act(() => i18n.changeLanguage('fr'));
+  });
+
   it('renders the personal and freelance sections', () => {
     render(<Projects />);
 
     expect(screen.getByText('Projets personnels')).toBeInTheDocument();
     expect(screen.getByText('Projets freelance')).toBeInTheDocument();
+  });
+
+  it('has a single main landmark and a single level 1 heading', () => {
+    render(<Projects />);
+
+    expect(screen.getAllByRole('main')).toHaveLength(1);
+    expect(screen.getAllByRole('heading', { level: 1 })).toHaveLength(1);
+  });
+
+  it('titles the page for screen readers, and each section with a level 2 heading', () => {
+    render(<Projects />);
+    const sectionTitles = screen.getAllByRole('heading', { level: 2 });
+
+    expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('Projets');
+    expect(sectionTitles.map(title => title.textContent)).toEqual([
+      'Projets personnels',
+      'Projets freelance',
+    ]);
+  });
+
+  it('names the page in English once the language changes', async () => {
+    render(<Projects />);
+
+    await act(() => i18n.changeLanguage('en'));
+
+    expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('Projects');
+  });
+
+  it('hides the page title from the screen, out of the flow of the sections', () => {
+    render(<Projects />);
+    const pageTitle = screen.getByRole('heading', { level: 1 });
+    const style = property => declaredStyle({ element: pageTitle, property });
+
+    expect(style('position')).toBe('absolute');
+    expect(style('width')).toBe('1px');
+    expect(style('height')).toBe('1px');
+    expect(style('overflow')).toBe('hidden');
+    expect(style('clip-path')).toBe('inset(50%)');
   });
 
   it.each(allProjects.map(({ name, imageUrl }) => [name, imageUrl]))(
@@ -79,8 +122,8 @@ describe('Projects layout on mobile', () => {
     const [showAllButton] = screen.getAllByText(/^Tout afficher/);
     await userEvent.click(showAllButton);
 
-    const grid = firstThumbnail().closest('main');
-    const card = firstThumbnail().closest('main > *');
+    const grid = firstThumbnail().closest('ul');
+    const card = firstThumbnail().closest('li');
     const header = screen.getByText('Projets personnels').closest('header');
     const cardMargin = declaredStyle({ element: card, property: 'margin' });
     const gridPadding = `calc(${theme.space.page} - ${cardMargin})`;
@@ -97,7 +140,7 @@ describe('Projects layout on mobile', () => {
     const [showAllButton] = screen.getAllByText(/^Tout afficher/);
     await userEvent.click(showAllButton);
 
-    const grid = firstThumbnail().closest('main');
+    const grid = firstThumbnail().closest('ul');
     expect(declaredStyle({ element: grid, property: 'padding-left', media: TABLET_MEDIA })).toBe(
       '0',
     );
@@ -109,7 +152,7 @@ describe('Projects layout on mobile', () => {
   it('keeps the row of cards without padding, so that it scrolls to the screen edges', () => {
     renderWithTheme();
 
-    const grid = firstThumbnail().closest('main');
+    const grid = firstThumbnail().closest('ul');
     expect(declaredStyle({ element: grid, property: 'display' })).toBe('flex');
     expect(declaredStyle({ element: grid, property: 'padding-left' })).toBe('');
     expect(declaredStyle({ element: grid, property: 'padding-right' })).toBe('');

@@ -38,8 +38,8 @@ import { getCardTilt, getNextPageStart, getPreviousPageStart, getProjectLinkUrl 
 /** Props of {@link Project}. */
 interface ProjectProps {
   /**
-   * Section heading, already translated. Also names the group of the section controls, which has
-   * no name without it.
+   * Section heading, already translated. Also names the group of the section controls. When it is
+   * missing or blank, no heading is rendered and the group has no name.
    */
   title?: string;
   /** Cards to show, three per page, or all at once after "Show all". @default [] */
@@ -50,17 +50,21 @@ const NO_PROJECTS: ProjectItemData[] = [];
 
 /**
  * Section of project cards with a title, paginated three at a time with previous and next
- * buttons, named for screen readers, or showing all cards after "Show all". These controls form
- * a group labelled by the title, rather than a navigation landmark. Cards tilt toward the mouse,
- * and have a like button, named after the project and described by its count, whose state is
- * kept in memory only. When the project has a `url` and a name, the card title is a link to it,
- * stretched over the whole card; the like button sits beside that link, never inside it.
+ * buttons, named for screen readers, or showing all cards after "Show all". The cards form a
+ * list. The controls form a group labelled by the title, rather than a navigation landmark. Cards
+ * tilt toward the mouse, and have a like button, named after the project and described by its
+ * count, whose state is kept in memory only. When the project has a `url` and a name, the card
+ * title is a link to it, stretched over the whole card; the like button sits beside that link,
+ * never inside it. The title is a level 2 heading, under the `h1` of the page; without a title,
+ * the section has no heading and its controls have no name.
  */
 const Project = ({ title, projects = NO_PROJECTS }: ProjectProps) => {
   const { t } = useTranslation();
   // Prefix of the element ids, unique to each section since a page shows several of them
   const sectionId = useId();
   const titleId = `${sectionId}-title`;
+  // A blank title would leave an empty heading, and the controls labelled by it unnamed
+  const hasTitle = typeof title === 'string' && title.trim() !== '';
   const [pageStart, setPageStart] = useState(0);
   const [isShowingAll, setIsShowingAll] = useState(false);
   const { likes, animatingIds, toggleLike } = useLikes(projects);
@@ -79,7 +83,7 @@ const Project = ({ title, projects = NO_PROJECTS }: ProjectProps) => {
     setPageStart(currentStart => getPreviousPageStart({ currentStart, pageSize: PAGE_SIZE }));
   };
 
-  const handleCardMouseMove = (event: React.MouseEvent<HTMLDivElement>) => {
+  const handleCardMouseMove = (event: React.MouseEvent<HTMLLIElement>) => {
     const card = event.currentTarget;
     const { rotateX, rotateY, x, y } = getCardTilt({
       pointer: { x: event.clientX, y: event.clientY },
@@ -91,17 +95,17 @@ const Project = ({ title, projects = NO_PROJECTS }: ProjectProps) => {
     card.style.transform = `perspective(${CARD_PERSPECTIVE_PX}px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) translateY(-${CARD_HOVER_LIFT_PX}px)`;
   };
 
-  const handleCardMouseLeave = (event: React.MouseEvent<HTMLDivElement>) => {
+  const handleCardMouseLeave = (event: React.MouseEvent<HTMLLIElement>) => {
     event.currentTarget.style.transform = '';
   };
 
   return (
     <Section>
       <SectionHeader>
-        <SectionTitle id={titleId}>{title}</SectionTitle>
+        {hasTitle && <SectionTitle id={titleId}>{title}</SectionTitle>}
         <SectionControls
           role="group"
-          aria-labelledby={titleId}
+          aria-labelledby={hasTitle ? titleId : undefined}
         >
           <CtrlItem
             type="button"
