@@ -11,7 +11,7 @@ export const Header = styled.header`
   padding: ${th.space(7)} 0;
 `;
 
-export const Title = styled.h3`
+export const Title = styled.h4`
   font-size: ${th.fontSize(13)};
   font-weight: ${th.fontWeight('semibold')};
   margin: 0;

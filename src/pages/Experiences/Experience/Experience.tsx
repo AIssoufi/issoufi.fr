@@ -8,17 +8,18 @@ import { Article, Details } from './Experience.styled';
 interface ExperienceProps {
   /** Job title, already translated. */
   jobName?: string;
-  /** Company name, also used as the logo's alt text. */
+  /** Company name, written first in the company details. */
   entityName?: string;
-  /** Absolute URL of the company logo, e.g. `/wibilong.png`. No logo when missing. */
+  /** Absolute URL of the company logo, e.g. `/wibilong.png`, decorative. No logo when missing. */
   entityLogoUrl?: string;
   /** Contract type, e.g. "CDI" or "Alternance". */
   contractType?: string;
   /** City and department, e.g. "Paris (75)". */
   city?: string;
   /**
-   * Start of the job as a month and a year, e.g. "sept. 2019" or "Sept. 2019".
-   * The duration is shown, in the active language, only when both dates are valid.
+   * Start of the job as a month and a year, e.g. "sept. 2019" or "Sept. 2019", shown in the
+   * header below the tablet breakpoint. The duration is shown, in the active language, only
+   * when both dates are valid.
    */
   startDate?: string;
   /** End of the job in the same format as `startDate`, or "Aujourd'hui" / "Present". */
@@ -28,9 +29,9 @@ interface ExperienceProps {
 }
 
 /**
- * Card for one job at one company: its {@link JobSummary} (logo, job title, company details,
- * computed duration) and a free-form description. For several successive roles at the same
- * company, use `ExperienceGroup` instead.
+ * `article` card for one job at one company: its {@link JobSummary} (logo, job title as a `h3`,
+ * company details, period below the tablet breakpoint, computed duration) and a free-form
+ * description. For several successive roles at the same company, use `ExperienceGroup` instead.
  *
  * @example
  * <Experience

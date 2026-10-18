@@ -110,6 +110,7 @@ export const en = {
       months_other: '{{count}} months',
       lessThanAMonth: '< 1 month',
     },
+    periodTo: 'to',
     periods: {
       wibilongStart: 'Sept. 2019',
       wibilongEnd: 'June 2021',

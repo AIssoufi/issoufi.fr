@@ -31,11 +31,18 @@ describe('Experience', () => {
       </Experience>,
     );
 
-    expect(screen.getByText('Full-Stack Engineer')).toBeInTheDocument();
+    expect(screen.getByRole('heading', { level: 3, name: 'Full-Stack Engineer' })).toBeVisible();
     expect(screen.getByText('Wibilong · CDI · Paris (75)')).toBeInTheDocument();
     expect(screen.getByText('1 an 9 mois')).toBeInTheDocument();
-    expect(screen.getByRole('img', { name: 'Wibilong' })).toHaveAttribute('src', '/wibilong.png');
+    expect(document.querySelector('img')).toHaveAttribute('src', '/wibilong.png');
     expect(screen.getByText('Description du poste')).toBeInTheDocument();
+  });
+
+  it('is an article holding the level 3 heading of the job', () => {
+    render(<Experience jobName="Full-Stack Engineer" />);
+    const article = screen.getByRole('article');
+
+    expect(article).toContainElement(screen.getByRole('heading', { level: 3 }));
   });
 
   it('shows the duration in the active language', async () => {

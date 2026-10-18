@@ -11,7 +11,7 @@ export const mobileLineLeft = th.space(5);
 export const mobileLineCenter = css`calc(${mobileLineLeft} + ${lineWidth} / 2)`;
 
 /* How far the content of the timeline starts from its left edge on mobile, past the line and its
-   dots. Both TimelineContent (a single job) and GroupArticle (a group of roles) indent by it. */
+   dots. Both TimelineContent (a single job) and GroupItem (a group of roles) indent by it. */
 export const mobileContentIndent = th.space(22);
 
 /* Glowing dot marking an entry on the timeline line. Each caller places it.
