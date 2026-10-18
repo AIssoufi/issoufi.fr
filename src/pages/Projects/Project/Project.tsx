@@ -50,13 +50,14 @@ const NO_PROJECTS: ProjectItemData[] = [];
 
 /**
  * Section of project cards with a title, paginated three at a time with previous and next
- * buttons, named for screen readers, or showing all cards after "Show all". The cards form a
- * list. The controls form a group labelled by the title, rather than a navigation landmark. Cards
- * tilt toward the mouse, and have a like button, named after the project and described by its
- * count, whose state is kept in memory only. When the project has a `url` and a name, the card
- * title is a link to it, stretched over the whole card; the like button sits beside that link,
- * never inside it. The title is a level 2 heading, under the `h1` of the page; without a title,
- * the section has no heading and its controls have no name.
+ * buttons, named for screen readers, or showing all cards after "Show all", at the size of the
+ * row, on as many rows as they need. The cards form a list. The controls form a group labelled by
+ * the title, rather than a navigation landmark. Cards tilt toward the mouse, and have a like
+ * button, named after the project and described by its count, whose state is kept in memory only.
+ * When the project has a `url` and a name, the card title is a link to it, stretched over the
+ * whole card; the like button sits beside that link, never inside it. The title is a level 2
+ * heading, under the `h1` of the page; without a title, the section has no heading and its
+ * controls have no name.
  */
 const Project = ({ title, projects = NO_PROJECTS }: ProjectProps) => {
   const { t } = useTranslation();
