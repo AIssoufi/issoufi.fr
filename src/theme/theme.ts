@@ -78,6 +78,12 @@ export const theme = {
     ...spacing,
     /** Horizontal padding of every page and of the header. */
     page: spacing[24],
+    /**
+     * Room under the content of every page, so that its end scrolls above the site badge fixed in
+     * the bottom left corner (`src/App/SiteBadge`): the badge, 42 px tall, 20 px above the
+     * bottom edge, and a gap of 10 px.
+     */
+    'site-badge-clearance': spacing[72],
     /** Gap between an icon and its label, relative to the font size. */
     'icon-gap': relativeSpacing[70],
   },

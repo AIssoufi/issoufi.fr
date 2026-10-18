@@ -1,7 +1,8 @@
 import styled, { th } from '@xstyled/styled-components';
 
 export const Main = styled.main<{ $backgroundImage?: string }>`
-  padding: ${th.space(16)} ${th.space('page')} 0;
+  /* The room under the content lets its end scroll above the site badge (src/App/SiteBadge) */
+  padding: ${th.space(16)} ${th.space('page')} ${th.space('site-badge-clearance')};
   position: relative;
   grid-area: main;
 

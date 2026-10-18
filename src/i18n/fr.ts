@@ -57,6 +57,9 @@ export const fr = {
     open: 'Ouvrir le menu',
     close: 'Fermer le menu',
   },
+  siteBadge: {
+    githubProfile: 'Profil GitHub d’ADAM Issoufi',
+  },
   home: {
     title1: 'Développeur full-stack JavaScript',
     title2Pre: 'passionné par l’',

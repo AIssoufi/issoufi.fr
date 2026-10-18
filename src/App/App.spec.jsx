@@ -75,6 +75,21 @@ describe('App', () => {
     },
   );
 
+  it.each(['/', '/projects', '/page-inconnue'])(
+    'shows the site badge on the page at %s, outside its main landmark',
+    async path => {
+      window.history.pushState({}, '', path);
+      await renderApp();
+
+      const main = await screen.findByRole('main');
+      const siteBadge = screen.getByRole('contentinfo');
+      expect(siteBadge).toContainElement(
+        screen.getByRole('link', { name: 'Profil GitHub d’ADAM Issoufi' }),
+      );
+      expect(main).not.toContainElement(siteBadge);
+    },
+  );
+
   it('renders the home page at once, without waiting for a chunk', async () => {
     render(<App />);
 

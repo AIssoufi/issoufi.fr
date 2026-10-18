@@ -9,6 +9,7 @@ import Header from './Header';
 import { useReloadOnStaleChunk } from './hooks/useReloadOnStaleChunk';
 import PageHeadingFocus from './PageHeadingFocus';
 import RouteErrorBoundary from './RouteErrorBoundary';
+import SiteBadge from './SiteBadge';
 import { keepPendingWhileReloading } from './utils';
 
 import { WebApp } from './App.styled';
@@ -29,7 +30,8 @@ const NotFound = lazy(() => import('../pages/NotFound').then(keepPendingWhileRel
  * since it was opened (see {@link useReloadOnStaleChunk}). A page that fails to render or to
  * load shows an error with a reload button below the header, which stays usable
  * (see {@link RouteErrorBoundary}). After a navigation by link, the heading of the new page takes
- * the keyboard focus (see {@link PageHeadingFocus}).
+ * the keyboard focus (see {@link PageHeadingFocus}). The site badge, with the GitHub link and the
+ * version of the site, stays in the bottom left corner of every page (see {@link SiteBadge}).
  */
 function App() {
   useReloadOnStaleChunk();
@@ -64,6 +66,7 @@ function App() {
               <PageHeadingFocus />
             </Suspense>
           </RouteErrorBoundary>
+          <SiteBadge />
         </WebApp>
       </Router>
     </ThemeProvider>

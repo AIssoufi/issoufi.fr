@@ -2,6 +2,7 @@ import { render, screen } from '@testing-library/react';
 import styled from '@xstyled/styled-components';
 
 import { declaredStyle } from '../../styleTestUtils';
+import { theme } from '../../theme';
 import Page from './Page';
 
 const getMain = () => screen.getByRole('main');
@@ -32,6 +33,11 @@ describe('Page', () => {
   it.each([undefined, ''])('draws no background image when it is %j', backgroundImage => {
     render(<Page backgroundImage={backgroundImage} />);
     expect(getBackgroundImage(getMain())).toBe('none');
+  });
+
+  it('keeps room under its content, so that its end scrolls above the site badge', () => {
+    render(<Page />);
+    expect(getComputedStyle(getMain()).paddingBottom).toBe(theme.space['site-badge-clearance']);
   });
 
   it('keeps the class name it receives', () => {
