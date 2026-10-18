@@ -1,10 +1,9 @@
-import { format } from 'node:util';
-
 import '@testing-library/jest-dom/vitest';
 import type { RenderOptions } from '@testing-library/react';
 import type { ReactNode } from 'react';
 import { afterEach, vi } from 'vitest';
 import './i18n/index';
+import { describeLoggedErrors } from './testUtils';
 
 // jsdom ignores the inert attribute: like a browser, refuse the focus to an element inside an
 // inert subtree, so that keyboard tests see the focus stay out of it. The specs that run in the
@@ -51,7 +50,8 @@ vi.mock('@testing-library/react', async importOriginal => {
 
 // A test that logs an error fails, so that the output stays clean and a new warning is seen: an
 // update of React outside `act`, a feature jsdom lacks… A test that expects an error silences it
-// with `vi.spyOn(console, 'error').mockImplementation(() => {})`, which bypasses this check.
+// with `vi.spyOn(console, 'error').mockImplementation(() => {})`, which bypasses this check. An
+// error logged after the last test of a file, by a late callback, is printed but fails no test.
 const loggedErrors: unknown[][] = [];
 const logError = console.error;
 console.error = (...data: unknown[]) => {
@@ -60,14 +60,7 @@ console.error = (...data: unknown[]) => {
 };
 
 afterEach(() => {
-  // The first line of each error, as console.error formats it, names its cause
-  const errorSummaries = loggedErrors.map(data => format(...data).split('\n')[0]);
+  const failureMessage = describeLoggedErrors(loggedErrors);
   loggedErrors.length = 0;
-  if (errorSummaries.length === 0) return;
-
-  throw new Error(
-    `The test logged ${errorSummaries.length} error(s) with console.error: fix them, or silence ` +
-      "the expected ones with vi.spyOn(console, 'error').mockImplementation(() => {}).\n" +
-      errorSummaries.join('\n'),
-  );
+  if (failureMessage) throw new Error(failureMessage);
 });
