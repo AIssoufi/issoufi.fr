@@ -48,8 +48,16 @@ export const MONTH_NAMES: Record<string, number> = {
   december: 11,
 };
 
-/** End-date words meaning "until now", lowercase, in French and English. */
-export const TODAY_KEYWORDS = new Set(["aujourd'hui", 'auj.', 'auj', 'present', 'pres.', 'today']);
+/** End-date words meaning "until now", lowercase, in French (with either apostrophe) and English. */
+export const TODAY_KEYWORDS = new Set([
+  "aujourd'hui",
+  'aujourd’hui',
+  'auj.',
+  'auj',
+  'present',
+  'pres.',
+  'today',
+]);
 
 /** Number of months in a year, to split a month count into years and months. */
 export const MONTHS_PER_YEAR = 12;

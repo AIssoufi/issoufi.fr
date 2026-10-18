@@ -11,20 +11,12 @@ export const Header = styled.header`
   padding: ${th.space(7)} 0;
 `;
 
-export const Toggle = styled.span`
-  flex-shrink: 0;
-  font-size: ${th.fontSize(10)};
-  color: ${th.color('foreground-a35')};
-  line-height: ${th.lineHeight(100)};
-`;
-
 export const Title = styled.h3`
   font-size: ${th.fontSize(13)};
   font-weight: ${th.fontWeight('semibold')};
   margin: 0;
   flex: 1;
   line-height: ${th.lineHeight(140)};
-  transition: color ${th.duration(150)};
 `;
 
 export const State = styled.span`
