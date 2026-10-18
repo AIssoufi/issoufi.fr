@@ -1,9 +1,36 @@
 import {
+  WORKFLOW_COMMAND_ESCAPES,
+  WORKFLOW_DATA_ESCAPE_PATTERN,
+  WORKFLOW_PROPERTY_ESCAPE_PATTERN,
+} from '../constants.mjs';
+import {
   escapeWorkflowData,
   escapeWorkflowProperty,
   formatAnnotation,
   writeAnnotation,
 } from './annotations.mjs';
+
+/** Every ASCII character, to find those that the escape patterns match. */
+const ASCII_CHARACTERS = Array.from({ length: 128 }, (_, code) => String.fromCharCode(code));
+
+describe('workflow command escapes', () => {
+  it.each([
+    ['WORKFLOW_DATA_ESCAPE_PATTERN', WORKFLOW_DATA_ESCAPE_PATTERN],
+    ['WORKFLOW_PROPERTY_ESCAPE_PATTERN', WORKFLOW_PROPERTY_ESCAPE_PATTERN],
+  ])('gives an encoding to each character that %s matches', (_, pattern) => {
+    const matched = ASCII_CHARACTERS.filter(character => character.search(pattern) !== -1);
+    expect(matched.length).toBeGreaterThan(0);
+    matched.forEach(character => {
+      expect(WORKFLOW_COMMAND_ESCAPES).toHaveProperty([character]);
+    });
+  });
+
+  it('matches every character that has an encoding in the properties', () => {
+    Object.keys(WORKFLOW_COMMAND_ESCAPES).forEach(character => {
+      expect(character.search(WORKFLOW_PROPERTY_ESCAPE_PATTERN)).toBe(0);
+    });
+  });
+});
 
 describe('escapeWorkflowData', () => {
   it.each([
@@ -123,6 +150,27 @@ describe('formatAnnotation', () => {
       expect(() => formatAnnotation({ level, message: 'dist/ not found' })).toThrow(RangeError);
     },
   );
+
+  it.each(['endLine', 'endColumn', 'title'])('accepts the property name %s', name => {
+    expect(
+      formatAnnotation({ level: 'notice', message: 'Skipped', properties: { [name]: 2 } }),
+    ).toBe(`::notice ${name}=2::Skipped`);
+  });
+
+  it.each(['', 'end line', 'file=x', 'a,b', 'a::b', 'line\n', 'é'])(
+    'refuses the property name %j',
+    name => {
+      expect(() =>
+        formatAnnotation({ level: 'warning', message: 'Too large', properties: { [name]: 'x' } }),
+      ).toThrow(`Invalid annotation property name: "${name}"`);
+    },
+  );
+
+  it('refuses an invalid property name even without a value', () => {
+    expect(() =>
+      formatAnnotation({ level: 'warning', properties: { 'file,line': undefined } }),
+    ).toThrow(RangeError);
+  });
 
   it('names the refused level', () => {
     expect(() => formatAnnotation({ level: 'info' })).toThrow('Unknown annotation level: info');

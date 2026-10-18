@@ -1,6 +1,7 @@
 // @ts-check
 import {
   ANNOTATION_LEVELS,
+  ANNOTATION_PROPERTY_NAME_PATTERN,
   WORKFLOW_COMMAND_ESCAPES,
   WORKFLOW_DATA_ESCAPE_PATTERN,
   WORKFLOW_PROPERTY_ESCAPE_PATTERN,
@@ -19,7 +20,7 @@ import {
  * message gives an empty annotation.
  * @property {Record<string, unknown>} [properties] - Properties of the annotation, by name, such
  * as the `file` it points to or its `title`. A property whose value is missing or empty is left
- * out.
+ * out. Each name must match {@link ANNOTATION_PROPERTY_NAME_PATTERN}, as GitHub's names do.
  */
 
 /**
@@ -61,7 +62,8 @@ export const escapeWorkflowProperty = value =>
  * message escaped.
  * @param {FormatAnnotationParams} params
  * @returns {string} The command, e.g. `::warning file=public/cv.pdf::cv.pdf weighs 612.4 kB`.
- * @throws {RangeError} When the level is not one of {@link ANNOTATION_LEVELS}.
+ * @throws {RangeError} When the level is not one of {@link ANNOTATION_LEVELS}, or a property name
+ * does not match {@link ANNOTATION_PROPERTY_NAME_PATTERN}, since a name is written as is.
  * @example
  * formatAnnotation({ level: 'error', message: 'dist/ not found' }); // '::error::dist/ not found'
  */
@@ -70,7 +72,15 @@ export const formatAnnotation = ({ level, message, properties }) => {
   if (!isKnownLevel) throw new RangeError(`Unknown annotation level: ${String(level)}`);
 
   const hasProperties = typeof properties === 'object' && properties !== null;
-  const settings = Object.entries(hasProperties ? properties : {})
+  const entries = Object.entries(hasProperties ? properties : {});
+  const invalidName = entries
+    .map(([name]) => name)
+    .find(name => !ANNOTATION_PROPERTY_NAME_PATTERN.test(name));
+  if (invalidName !== undefined) {
+    throw new RangeError(`Invalid annotation property name: "${invalidName}"`);
+  }
+
+  const settings = entries
     .map(([name, value]) => ({ name, value: escapeWorkflowProperty(value) }))
     .filter(({ value }) => value !== '')
     .map(({ name, value }) => `${name}=${value}`)
@@ -84,7 +94,8 @@ export const formatAnnotation = ({ level, message, properties }) => {
  * Writes an annotation to the log of GitHub Actions, which shows it on the run and on the pull
  * request. Outside GitHub Actions, the command is printed as is.
  * @param {FormatAnnotationParams} params
- * @throws {RangeError} When the level is not one of {@link ANNOTATION_LEVELS}.
+ * @throws {RangeError} When the level or a property name is invalid, as for
+ * {@link formatAnnotation}.
  * @example
  * writeAnnotation({ level: 'warning', message, properties: { file: 'public/cv.pdf' } });
  */

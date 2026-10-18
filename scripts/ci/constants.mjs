@@ -261,10 +261,17 @@ export const LINE_BREAK_PATTERN = /[\r\n]/;
 export const ANNOTATION_LEVELS = /** @type {const} */ (['error', 'warning', 'notice']);
 
 /**
+ * Name of a property of an annotation, written as is: a word, like the names that GitHub reads
+ * (`file`, `line`, `endLine`, `col`, `endColumn`, `title`).
+ */
+export const ANNOTATION_PROPERTY_NAME_PATTERN = /^[a-z]+$/i;
+
+/**
  * Characters that GitHub Actions reads as part of a workflow command, and the percent-encoding
  * that writes each one as text, which GitHub decodes when it shows the annotation: a line break
  * would end the command, `%` would start an encoding, and `:` or `,` would end a property, such
- * as the `file` of an annotation.
+ * as the `file` of an annotation. Each character of {@link WORKFLOW_DATA_ESCAPE_PATTERN} and
+ * {@link WORKFLOW_PROPERTY_ESCAPE_PATTERN} needs its encoding here, which a test checks.
  */
 export const WORKFLOW_COMMAND_ESCAPES = {
   '%': '%25',
