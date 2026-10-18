@@ -1,9 +1,9 @@
 import { format } from 'node:util';
 
 /**
- * Failure message of a test that logged errors with `console.error`, which `src/setupTests.ts`
- * throws after the test: what to do, then the first line of each error, as `console.error`
- * formats it, which names its cause.
+ * Builds the failure message of a test that logged errors with `console.error`, which
+ * `src/setupTests.ts` throws after the test: what to do, then the first line of each error, as
+ * `console.error` formats it, which names its cause.
  *
  * @param loggedErrors - Arguments of each `console.error` call of the test.
  * @returns `''` when the test logged no error.

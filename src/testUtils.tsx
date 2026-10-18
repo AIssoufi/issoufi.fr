@@ -14,10 +14,11 @@ interface ThemeWrapperProps {
 }
 
 /**
- * Wrapper that renders what a spec renders in the theme and the global styles of the app, around
- * the spec's own wrapper, if any. `src/setupTests.ts` passes it to every `render` of Testing
- * Library, so that the styles hold the values of the tokens, as in the app, instead of their names
- * (`border-radius: md`, `@media (min-width: screens.tablet)`). Specs never call it themselves.
+ * Builds a wrapper that renders what a spec renders in the theme and the global styles of the app,
+ * around the spec's own wrapper, if any. `src/setupTests.ts` passes it to every `render` of
+ * Testing Library, so that the styles hold the values of the tokens, as in the app, instead of
+ * their names (`border-radius: md`, `@media (min-width: screens.tablet)`). Specs never call it
+ * themselves.
  *
  * @param Wrapper - Wrapper the spec passed to `render`, such as a router; it goes inside the theme.
  * Without it, the children sit right in the theme.
