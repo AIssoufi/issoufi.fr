@@ -1,7 +1,8 @@
-import { render, screen } from '@testing-library/react';
+import { act, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { ThemeProvider } from '@xstyled/styled-components';
 
+import i18n from '../../i18n';
 import { theme } from '../../theme';
 import { INTERACTIVE_SELECTOR, declaredStyle, isPublicFile } from '../testUtils';
 import { BACKGROUND_IMAGE_URL } from './constants';
@@ -20,6 +21,10 @@ const firstThumbnail = () =>
   screen.getByRole('img', { name: personalProjectsData.projects[0].name });
 
 describe('Projects', () => {
+  afterEach(async () => {
+    await act(() => i18n.changeLanguage('fr'));
+  });
+
   it('renders the personal and freelance sections', () => {
     render(<Projects />);
 
@@ -27,10 +32,42 @@ describe('Projects', () => {
     expect(screen.getByText('Projets freelance')).toBeInTheDocument();
   });
 
-  it('has a single main landmark', () => {
+  it('has a single main landmark and a single level 1 heading', () => {
     render(<Projects />);
 
     expect(screen.getAllByRole('main')).toHaveLength(1);
+    expect(screen.getAllByRole('heading', { level: 1 })).toHaveLength(1);
+  });
+
+  it('titles the page for screen readers, and each section with a level 2 heading', () => {
+    render(<Projects />);
+    const sectionTitles = screen.getAllByRole('heading', { level: 2 });
+
+    expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('Projets');
+    expect(sectionTitles.map(title => title.textContent)).toEqual([
+      'Projets personnels',
+      'Projets freelance',
+    ]);
+  });
+
+  it('names the page in English once the language changes', async () => {
+    render(<Projects />);
+
+    await act(() => i18n.changeLanguage('en'));
+
+    expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('Projects');
+  });
+
+  it('hides the page title from the screen, out of the flow of the sections', () => {
+    render(<Projects />);
+    const pageTitle = screen.getByRole('heading', { level: 1 });
+    const style = property => declaredStyle({ element: pageTitle, property });
+
+    expect(style('position')).toBe('absolute');
+    expect(style('width')).toBe('1px');
+    expect(style('height')).toBe('1px');
+    expect(style('overflow')).toBe('hidden');
+    expect(style('clip-path')).toBe('inset(50%)');
   });
 
   it.each(allProjects.map(({ name, imageUrl }) => [name, imageUrl]))(

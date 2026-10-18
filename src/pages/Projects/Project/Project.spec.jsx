@@ -127,6 +127,20 @@ describe('Project', () => {
     expect(screen.getByRole('list')).toBeEmptyDOMElement();
   });
 
+  it('titles the section with a level 2 heading, leaving the level 1 to the page', () => {
+    render(
+      <Project
+        title="Projets personnels"
+        projects={projects}
+      />,
+    );
+
+    expect(
+      screen.getByRole('heading', { level: 2, name: 'Projets personnels' }),
+    ).toBeInTheDocument();
+    expect(screen.queryByRole('heading', { level: 1 })).not.toBeInTheDocument();
+  });
+
   it('lists the cards, without a main landmark, which only the page renders', async () => {
     render(<Project projects={projects} />);
     const cards = () => within(screen.getByRole('list')).getAllByRole('listitem');

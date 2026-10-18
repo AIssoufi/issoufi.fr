@@ -55,7 +55,7 @@ const NO_PROJECTS: ProjectItemData[] = [];
  * tilt toward the mouse, and have a like button, named after the project and described by its
  * count, whose state is kept in memory only. When the project has a `url` and a name, the card
  * title is a link to it, stretched over the whole card; the like button sits beside that link,
- * never inside it.
+ * never inside it. The title is a level 2 heading, under the `h1` of the page.
  */
 const Project = ({ title, projects = NO_PROJECTS }: ProjectProps) => {
   const { t } = useTranslation();

@@ -48,6 +48,17 @@ describe('App', () => {
     expect(await screen.findByRole('heading', { name: heading })).toBeInTheDocument();
   });
 
+  it.each(['/', '/projects', '/experiences', '/page-inconnue'])(
+    'gives the page at %s a single main landmark and a single level 1 heading, with the header',
+    async path => {
+      window.history.pushState({}, '', path);
+      render(<App />);
+
+      expect(await screen.findAllByRole('main')).toHaveLength(1);
+      expect(screen.getAllByRole('heading', { level: 1 })).toHaveLength(1);
+    },
+  );
+
   it('renders the home page at once, without waiting for a chunk', () => {
     render(<App />);
 

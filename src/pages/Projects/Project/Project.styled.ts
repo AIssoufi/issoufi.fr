@@ -45,7 +45,7 @@ export const SectionHeader = styled.header`
   }
 `;
 
-export const SectionTitle = styled.h1`
+export const SectionTitle = styled.h2`
   font-size: ${th.fontSize(26)};
   font-weight: ${th.fontWeight('bold')};
   margin: 0;
