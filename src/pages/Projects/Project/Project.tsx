@@ -46,8 +46,9 @@ const NO_PROJECTS: ProjectItemData[] = [];
 
 /**
  * Section of project cards with a title, paginated three at a time with previous and next
- * buttons, or showing all cards after "Show all". Cards tilt toward the mouse, link to the
- * project when it has a `url`, and have a like button whose state is kept in memory only.
+ * buttons, named for screen readers, or showing all cards after "Show all". Cards tilt toward
+ * the mouse, link to the project when it has a `url`, and have a like button whose state is kept
+ * in memory only.
  */
 const Project = ({ title, projects = NO_PROJECTS }: ProjectProps) => {
   const { t } = useTranslation();
@@ -104,11 +105,19 @@ const Project = ({ title, projects = NO_PROJECTS }: ProjectProps) => {
           </CtrlItem>
           {!isShowingAll && (
             <>
-              <IconBtn onClick={handlePreviousPage}>
-                <PreviousIcon />
+              <IconBtn
+                type="button"
+                aria-label={t('projects.previousPage')}
+                onClick={handlePreviousPage}
+              >
+                <PreviousIcon aria-hidden />
               </IconBtn>
-              <IconBtn onClick={handleNextPage}>
-                <NextIcon />
+              <IconBtn
+                type="button"
+                aria-label={t('projects.nextPage')}
+                onClick={handleNextPage}
+              >
+                <NextIcon aria-hidden />
               </IconBtn>
             </>
           )}

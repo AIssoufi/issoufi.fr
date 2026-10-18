@@ -1,7 +1,8 @@
-import { fireEvent, render, screen, within } from '@testing-library/react';
+import { act, fireEvent, render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { ThemeProvider } from '@xstyled/styled-components';
 
+import i18n from '../../../i18n';
 import { theme } from '../../../theme';
 
 import { CARD_HOVER_LIFT_PX, CARD_MAX_TILT_DEG, CARD_PERSPECTIVE_PX } from './constants';
@@ -40,13 +41,15 @@ const CARD_POINTER = { x: CARD_BOX.width, y: CARD_BOX.height / 4 };
 const likeButtonOf = name =>
   within(screen.getByRole('img', { name }).parentElement).getByRole('button');
 
-/** Previous and next page buttons, which have no accessible name to find them by. */
-const pageButtons = () => {
-  const [, previousButton, nextButton] = within(screen.getByRole('navigation')).getAllByRole(
-    'button',
-  );
-  return { previousButton, nextButton };
-};
+/** French accessible names of the previous and next page buttons. */
+const PREVIOUS_PAGE_NAME = 'Page précédente';
+const NEXT_PAGE_NAME = 'Page suivante';
+
+/** Previous and next page buttons, found by their French accessible names. */
+const pageButtons = () => ({
+  previousButton: screen.getByRole('button', { name: PREVIOUS_PAGE_NAME }),
+  nextButton: screen.getByRole('button', { name: NEXT_PAGE_NAME }),
+});
 
 /** Renders with the theme, so that the styles hold the token values instead of their names. */
 const renderWithTheme = ui => render(<ThemeProvider theme={theme}>{ui}</ThemeProvider>);
@@ -98,9 +101,42 @@ const LONG_TECH_LINE_PROJECT = project(5, 'Chess engine', {
 });
 
 describe('Project', () => {
+  afterEach(async () => {
+    await act(() => i18n.changeLanguage('fr'));
+  });
+
   it('renders without any props', () => {
     expect(() => render(<Project />)).not.toThrow();
     expect(screen.getByText('Tout afficher (0)')).toBeInTheDocument();
+    expect(pageButtons().previousButton).toBeInTheDocument();
+    expect(pageButtons().nextButton).toBeInTheDocument();
+  });
+
+  it('names the page buttons in English once the language changes', async () => {
+    render(<Project projects={projects} />);
+
+    await act(() => i18n.changeLanguage('en'));
+
+    expect(screen.getByRole('button', { name: 'Previous page' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Next page' })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: PREVIOUS_PAGE_NAME })).not.toBeInTheDocument();
+  });
+
+  it('hides the page button icons from assistive technologies', () => {
+    render(<Project projects={projects} />);
+    const { previousButton, nextButton } = pageButtons();
+
+    for (const button of [previousButton, nextButton]) {
+      expect(button.querySelector('svg')).toHaveAttribute('aria-hidden', 'true');
+    }
+  });
+
+  it('makes the page buttons plain buttons, which submit no form', () => {
+    render(<Project projects={projects} />);
+    const { previousButton, nextButton } = pageButtons();
+
+    expect(previousButton).toHaveAttribute('type', 'button');
+    expect(nextButton).toHaveAttribute('type', 'button');
   });
 
   it('shows the first three projects, then all of them on demand', async () => {
@@ -184,6 +220,8 @@ describe('Project', () => {
 
     await userEvent.click(screen.getByText('Tout afficher (4)'));
 
+    expect(screen.queryByRole('button', { name: PREVIOUS_PAGE_NAME })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: NEXT_PAGE_NAME })).not.toBeInTheDocument();
     expect(within(screen.getByRole('navigation')).getAllByRole('button')).toHaveLength(1);
   });
 
