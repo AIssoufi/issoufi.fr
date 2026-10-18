@@ -19,7 +19,6 @@ import {
   ImageContainer,
   LikeButton,
   LikeCount,
-  NavCtrl,
   ProjectGrid,
   ProjectInfo,
   ProjectItem,
@@ -27,6 +26,7 @@ import {
   ProjectTools,
   ProjectType,
   Section,
+  SectionControls,
   SectionHeader,
   SectionTitle,
   Thumbnail,
@@ -46,14 +46,16 @@ const NO_PROJECTS: ProjectItemData[] = [];
 
 /**
  * Section of project cards with a title, paginated three at a time with previous and next
- * buttons, named for screen readers, or showing all cards after "Show all". Cards tilt toward
- * the mouse, link to the project when it has a `url`, and have a like button, named after the
- * project and described by its count, whose state is kept in memory only.
+ * buttons, named for screen readers, or showing all cards after "Show all". These controls form
+ * a group labelled by the title, rather than a navigation landmark. Cards tilt toward the mouse,
+ * link to the project when it has a `url`, and have a like button, named after the project and
+ * described by its count, whose state is kept in memory only.
  */
 const Project = ({ title, projects = NO_PROJECTS }: ProjectProps) => {
   const { t } = useTranslation();
   // Prefix of the element ids, unique to each section since a page shows several of them
   const sectionId = useId();
+  const titleId = `${sectionId}-title`;
   const [pageStart, setPageStart] = useState(0);
   const [isShowingAll, setIsShowingAll] = useState(false);
   const { likes, animatingIds, toggleLike } = useLikes(projects);
@@ -98,8 +100,11 @@ const Project = ({ title, projects = NO_PROJECTS }: ProjectProps) => {
   return (
     <Section>
       <SectionHeader>
-        <SectionTitle>{title}</SectionTitle>
-        <NavCtrl>
+        <SectionTitle id={titleId}>{title}</SectionTitle>
+        <SectionControls
+          role="group"
+          aria-labelledby={titleId}
+        >
           <CtrlItem onClick={() => setIsShowingAll(!isShowingAll)}>
             {isShowingAll
               ? t('projects.showLess')
@@ -123,7 +128,7 @@ const Project = ({ title, projects = NO_PROJECTS }: ProjectProps) => {
               </IconBtn>
             </>
           )}
-        </NavCtrl>
+        </SectionControls>
       </SectionHeader>
       <ProjectGrid $displayAll={isShowingAll}>
         {visibleProjects.map(({ id, name, type, imageUrl, url, tools }) => {

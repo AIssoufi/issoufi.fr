@@ -111,6 +111,40 @@ describe('Project', () => {
     expect(screen.getByText('Tout afficher (0)')).toBeInTheDocument();
     expect(pageButtons().previousButton).toBeInTheDocument();
     expect(pageButtons().nextButton).toBeInTheDocument();
+    expect(screen.getByRole('group')).toBeInTheDocument();
+  });
+
+  it('groups the section controls under the section title, without a navigation landmark', () => {
+    render(
+      <Project
+        title="Projets personnels"
+        projects={projects}
+      />,
+    );
+
+    const controls = screen.getByRole('group', { name: 'Projets personnels' });
+    expect(within(controls).getByText('Tout afficher (4)')).toBeInTheDocument();
+    expect(within(controls).getByRole('button', { name: PREVIOUS_PAGE_NAME })).toBeInTheDocument();
+    expect(within(controls).getByRole('button', { name: NEXT_PAGE_NAME })).toBeInTheDocument();
+    expect(screen.queryByRole('navigation')).not.toBeInTheDocument();
+  });
+
+  it('labels the controls of each section after its own title', () => {
+    render(
+      <>
+        <Project
+          title="Projets personnels"
+          projects={projects}
+        />
+        <Project
+          title="Projets freelance"
+          projects={projects}
+        />
+      </>,
+    );
+
+    expect(screen.getByRole('group', { name: 'Projets personnels' })).toBeInTheDocument();
+    expect(screen.getByRole('group', { name: 'Projets freelance' })).toBeInTheDocument();
   });
 
   it('names the page buttons in English once the language changes', async () => {
@@ -275,7 +309,7 @@ describe('Project', () => {
 
     expect(screen.queryByRole('button', { name: PREVIOUS_PAGE_NAME })).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: NEXT_PAGE_NAME })).not.toBeInTheDocument();
-    expect(within(screen.getByRole('navigation')).getAllByRole('button')).toHaveLength(1);
+    expect(within(screen.getByRole('group')).getAllByRole('button')).toHaveLength(1);
   });
 
   it('tilts a card toward the pointer, then flattens it when the pointer leaves', () => {
