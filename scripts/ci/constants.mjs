@@ -254,5 +254,34 @@ export const MAIN_CI_RUN_LOOKUP_DELAY_MS = 5000;
 /** Line break of any platform, which a step output of GitHub Actions cannot hold. */
 export const LINE_BREAK_PATTERN = /[\r\n]/;
 
+/**
+ * Levels of the annotations that the scripts write to the log of GitHub Actions with a workflow
+ * command, such as `::warning::<message>`. Each one has its own icon and color in GitHub.
+ */
+export const ANNOTATION_LEVELS = /** @type {const} */ (['error', 'warning', 'notice']);
+
+/**
+ * Characters that GitHub Actions reads as part of a workflow command, and the percent-encoding
+ * that writes each one as text, which GitHub decodes when it shows the annotation: a line break
+ * would end the command, `%` would start an encoding, and `:` or `,` would end a property, such
+ * as the `file` of an annotation.
+ */
+export const WORKFLOW_COMMAND_ESCAPES = {
+  '%': '%25',
+  '\r': '%0D',
+  '\n': '%0A',
+  ':': '%3A',
+  ',': '%2C',
+};
+
+/** Characters to escape in the message of a workflow command: `%` and the line breaks. */
+export const WORKFLOW_DATA_ESCAPE_PATTERN = /[%\r\n]/g;
+
+/**
+ * Characters to escape in a property of a workflow command: those of the message, plus `:` and
+ * `,`, which end the properties.
+ */
+export const WORKFLOW_PROPERTY_ESCAPE_PATTERN = /[%\r\n:,]/g;
+
 /** Slash at the end of a URL path, removed before another segment is added. */
 export const TRAILING_SLASH_PATTERN = /\/$/;
