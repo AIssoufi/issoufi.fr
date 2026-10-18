@@ -1,4 +1,7 @@
-import { SITEMAP_FILE_NAME } from '../../../src/utils/sitemap';
+import { readFileSync } from 'node:fs';
+
+import { SITE_URL as APP_SITE_URL } from '../../../src/utils/pages';
+import { SITEMAP_FILE_NAME, SITEMAP_URL } from '../../../src/utils/sitemap';
 import { SITE_URL } from '../constants.mjs';
 import {
   compareFile,
@@ -11,6 +14,12 @@ import {
   resolveSiteUrl,
   splitBuildPath,
 } from './pages.mjs';
+
+/** Source of the `robots.txt` of the build, which tells search engines where the sitemap is. */
+const ROBOTS_FILE = 'public/robots.txt';
+
+/** Names the files that write the address of the production site, when they no longer agree. */
+const PRODUCTION_ADDRESS_MESSAGE = `keep SITE_URL of src/utils/pages.ts and scripts/ci/constants.mjs, and the Sitemap line of ${ROBOTS_FILE}, on the same address`;
 
 describe('isPageCheck', () => {
   it.each([
@@ -330,6 +339,18 @@ describe('resolveSiteUrl', () => {
 
   it.each([null, 42, {}, ['https://issoufi.fr/']])('gives no site for %o', argument => {
     expect(resolveSiteUrl(argument)).toBe('');
+  });
+});
+
+describe('production address', () => {
+  it('is the same in the app and in the CI scripts', () => {
+    expect(new URL(APP_SITE_URL).href, PRODUCTION_ADDRESS_MESSAGE).toBe(SITE_URL);
+  });
+
+  it(`hosts the sitemap that ${ROBOTS_FILE} declares`, () => {
+    const robotsLines = readFileSync(ROBOTS_FILE, 'utf8').split(/\r?\n/);
+
+    expect(robotsLines, PRODUCTION_ADDRESS_MESSAGE).toContain(`Sitemap: ${SITEMAP_URL}`);
   });
 });
 
