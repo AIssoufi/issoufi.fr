@@ -17,7 +17,7 @@ export const Column = styled.div`
     /* dot on the timeline line */
     &::after {
       ${timelineDot}
-      right: -6px; /* right edge at 90px + 6px, so centered at 90px */
+      right: -8px; /* right edge at 90px + 8px, so centered at 90px */
       top: ${th.space(5)};
     }
   }

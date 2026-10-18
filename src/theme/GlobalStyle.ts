@@ -1,7 +1,16 @@
 import { createGlobalStyle, th } from '@xstyled/styled-components';
 
-/** Base styles of the document (body, links, buttons, lists, icons), built from the tokens. */
+/**
+ * Base styles of the document (box sizing, body, links, buttons, lists, icons), built from the
+ * tokens. Every element is sized with `border-box`, so a width includes its padding and border.
+ */
 export const GlobalStyle = createGlobalStyle`
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
+  }
+
   body {
     margin: 0;
     font-family: ${th.font('body')};
