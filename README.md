@@ -134,7 +134,7 @@ The version follows the commits: `fix` bumps the patch version, `feat` the minor
 │   │   └── constants.mjs # Budgets, file patterns and smoke test settings
 │   └── tsconfig.json     # Type-checks the scripts, run by pnpm typecheck
 ├── src/
-│   ├── App/              # Root component, router, layout and the pages loaded on their first visit
+│   ├── App/              # Root component, router, layout and the lazy loading of the pages
 │   │   ├── DocumentMeta/ # <html lang>, title and description per route and language
 │   │   ├── hooks/        # useReloadOnStaleChunk: reloads once when a deployment removed a chunk
 │   │   └── Header/       # Logo, navigation, burger menu and LangToggle/ (FR / EN switch)

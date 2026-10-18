@@ -16,7 +16,10 @@ export const PORT_PATTERN = /^\d+$/;
  */
 export const ALL_ENV_VARIABLES_PREFIX = '';
 
-/** Folder of the hashed scripts in the build: Vite's default `build.assetsDir`. */
+/**
+ * Folder of the hashed scripts in the build: Vite's default `build.assetsDir`. `pnpm size` only
+ * counts the scripts of this folder (`ASSETS_SUBDIR` in `scripts/ci/constants.mjs`): keep both equal.
+ */
 export const ASSETS_DIR = 'assets';
 
 /** Name that Rollup gives to the chunk of an `index` module, after its file name. */
