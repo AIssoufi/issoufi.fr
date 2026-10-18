@@ -79,11 +79,11 @@ export const theme = {
     /** Horizontal padding of every page and of the header. */
     page: spacing[24],
     /**
-     * Room under the content of every page, so that its end scrolls above the site badge fixed in
-     * the bottom left corner (`src/App/SiteBadge`): the badge, 42 px tall, 20 px above the
-     * bottom edge, and a gap of 10 px.
+     * Room under the content of every page, so that its end scrolls above the site footer fixed
+     * at the bottom of the screen (`src/App/SiteFooter`): the footer, 32 px tall, 20 px above the
+     * bottom edge, and a gap of 20 px.
      */
-    'site-badge-clearance': spacing[72],
+    'site-footer-clearance': spacing[72],
     /** Gap between an icon and its label, relative to the font size. */
     'icon-gap': relativeSpacing[70],
   },
@@ -155,7 +155,7 @@ export const theme = {
     raised: zIndices[1],
     raisedMore: zIndices[2],
     raisedMost: zIndices[3],
-    /** Full-screen mobile menu, floating language toggle and site badge. */
+    /** Full-screen mobile menu, floating language toggle and site footer. */
     overlay: zIndices[9],
     /** Header and burger icon, above the mobile menu. */
     header: zIndices[11],

@@ -7,7 +7,7 @@ import {
   getCheckedRoutes,
   getQuadCenterX,
   groupCardsIntoRows,
-  isInBottomLeftCorner,
+  isInBottomHalf,
 } from './utils';
 
 describe('getCheckedRoutes', () => {
@@ -356,16 +356,16 @@ describe('groupCardsIntoRows', () => {
 });
 
 describe('doBoxesOverlap', () => {
-  const badge = { x: 20, y: 738, width: 160, height: 42 };
+  const fixedBox = { x: 20, y: 738, width: 160, height: 42 };
 
   it.each([
     ['a line of text across it', { x: 0, y: 750, width: 320, height: 18 }],
     ['an icon inside it', { x: 30, y: 745, width: 16, height: 16 }],
     ['a card around it', { x: 0, y: 600, width: 320, height: 400 }],
     ['a box covering one pixel of its corner', { x: 179, y: 779, width: 10, height: 10 }],
-  ])('finds that %s overlaps the badge', (_name, box) => {
-    expect(doBoxesOverlap({ box, otherBox: badge })).toBe(true);
-    expect(doBoxesOverlap({ box: badge, otherBox: box })).toBe(true);
+  ])('finds that %s overlaps the fixed box', (_name, box) => {
+    expect(doBoxesOverlap({ box, otherBox: fixedBox })).toBe(true);
+    expect(doBoxesOverlap({ box: fixedBox, otherBox: box })).toBe(true);
   });
 
   it.each([
@@ -374,9 +374,9 @@ describe('doBoxesOverlap', () => {
     ['a box touching its right edge', { x: 180, y: 738, width: 40, height: 42 }],
     ['a box right of it at the same height', { x: 200, y: 738, width: 40, height: 42 }],
     ['a box below the screen', { x: 20, y: 900, width: 160, height: 42 }],
-  ])('finds that %s does not overlap the badge', (_name, box) => {
-    expect(doBoxesOverlap({ box, otherBox: badge })).toBe(false);
-    expect(doBoxesOverlap({ box: badge, otherBox: box })).toBe(false);
+  ])('finds that %s does not overlap the fixed box', (_name, box) => {
+    expect(doBoxesOverlap({ box, otherBox: fixedBox })).toBe(false);
+    expect(doBoxesOverlap({ box: fixedBox, otherBox: box })).toBe(false);
   });
 
   describe('edge cases', () => {
@@ -391,8 +391,8 @@ describe('doBoxesOverlap', () => {
       { x: '30', y: 745, width: 16, height: 16 },
       'box',
     ])('finds that the box %j covers nothing', box => {
-      expect(doBoxesOverlap({ box: box as never, otherBox: badge })).toBe(false);
-      expect(doBoxesOverlap({ box: badge, otherBox: box as never })).toBe(false);
+      expect(doBoxesOverlap({ box: box as never, otherBox: fixedBox })).toBe(false);
+      expect(doBoxesOverlap({ box: fixedBox, otherBox: box as never })).toBe(false);
     });
 
     it('finds no overlap without boxes', () => {
@@ -402,49 +402,46 @@ describe('doBoxesOverlap', () => {
   });
 });
 
-describe('isInBottomLeftCorner', () => {
+describe('isInBottomHalf', () => {
   const screen = { width: 320, height: 800 };
 
   it.each([
-    [
-      'the site badge on a narrow screen, wider than half of it',
-      { x: 20, y: 738, width: 180, height: 42 },
-    ],
-    ['a box touching the corner', { x: 0, y: 758, width: 160, height: 42 }],
-  ])('finds %s in the corner', (_name, box) => {
-    expect(isInBottomLeftCorner({ box, screen })).toBe(true);
+    ['the GitHub icon of the site footer', { x: 263, y: 748, width: 33, height: 32 }],
+    ['the version of the site footer', { x: 24, y: 756, width: 40, height: 16 }],
+    ['a box touching the bottom corners', { x: 0, y: 758, width: 320, height: 42 }],
+  ])('finds %s at the bottom', (_name, box) => {
+    expect(isInBottomHalf({ box, screen })).toBe(true);
   });
 
   it.each([
-    ['as near the right edge as the left one', { x: 20, y: 738, width: 280, height: 42 }],
     ['as near the top edge as the bottom one', { x: 20, y: 20, width: 160, height: 760 }],
-    ['in the top left corner', { x: 20, y: 20, width: 160, height: 42 }],
-    ['in the bottom right corner', { x: 140, y: 738, width: 160, height: 42 }],
+    ['at the top of the screen', { x: 20, y: 20, width: 160, height: 42 }],
     ['partly left of the screen', { x: -1, y: 738, width: 160, height: 42 }],
+    ['partly right of the screen', { x: 200, y: 738, width: 121, height: 42 }],
     ['partly below the screen', { x: 20, y: 759, width: 160, height: 42 }],
     ['below the screen', { x: 20, y: 900, width: 160, height: 42 }],
-  ])('finds a box %s out of the corner', (_name, box) => {
-    expect(isInBottomLeftCorner({ box, screen })).toBe(false);
+  ])('finds a box %s out of the bottom', (_name, box) => {
+    expect(isInBottomHalf({ box, screen })).toBe(false);
   });
 
   describe('edge cases', () => {
     it.each([undefined, null, {}, { x: 20, y: 738, width: 0, height: 42 }, 'box'])(
-      'finds the box %j out of the corner',
+      'finds the box %j out of the bottom',
       box => {
-        expect(isInBottomLeftCorner({ box: box as never, screen })).toBe(false);
+        expect(isInBottomHalf({ box: box as never, screen })).toBe(false);
       },
     );
 
     it.each([undefined, null, {}, { width: 0, height: 800 }, { width: 320, height: Number.NaN }])(
-      'finds any box out of the corner of the screen %j',
+      'finds any box out of the bottom of the screen %j',
       invalidScreen => {
         const box = { x: 20, y: 738, width: 160, height: 42 };
-        expect(isInBottomLeftCorner({ box, screen: invalidScreen as never })).toBe(false);
+        expect(isInBottomHalf({ box, screen: invalidScreen as never })).toBe(false);
       },
     );
 
-    it('finds nothing in the corner without a box nor a screen', () => {
-      expect(isInBottomLeftCorner()).toBe(false);
+    it('finds nothing at the bottom without a box nor a screen', () => {
+      expect(isInBottomHalf()).toBe(false);
     });
   });
 });

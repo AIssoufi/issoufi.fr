@@ -75,7 +75,27 @@ export const PROJECT_CARD_SCREEN_WIDTHS_PX = [375, 800, 1280, 1440, 1720, 2400] 
 export const MAX_CARD_OFFSET_PX = 0.5;
 
 /**
- * Site badge (`src/App/SiteBadge`): the footer landmark, right inside the app grid, that holds the
- * GitHub button and the version of the site in the bottom left corner of every page.
+ * Site footer (`src/App/SiteFooter`): the footer landmark, right inside the app grid, that holds
+ * the version of the site in the bottom left corner of every page and the GitHub icon in the
+ * bottom right corner.
  */
-export const SITE_BADGE_SELECTOR = '[data-testid="app"] > footer';
+export const SITE_FOOTER_SELECTOR = '[data-testid="app"] > footer';
+
+/**
+ * Header of the app, right inside the app grid: its content starts with the logo and ends with the
+ * navigation, which the site footer lines up with.
+ */
+export const HEADER_SELECTOR = '[data-testid="app"] > header';
+
+/**
+ * Screen widths, in pixels, at which the browser test of the site footer opens the pages: those of
+ * {@link SCREEN_WIDTHS_PX}, then a screen wider than the app container (1920), which centers the
+ * container and its header, so the footer must follow them.
+ */
+export const SITE_FOOTER_SCREEN_WIDTHS_PX = [...SCREEN_WIDTHS_PX, 1920] as const;
+
+/**
+ * Largest distance, in pixels, allowed between an edge of the site footer content and the edge of
+ * the header it lines up with. Half a pixel lets through subpixel rounding, but not a 1 px shift.
+ */
+export const MAX_EDGE_OFFSET_PX = 0.5;

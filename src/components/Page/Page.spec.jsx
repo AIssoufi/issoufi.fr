@@ -35,9 +35,9 @@ describe('Page', () => {
     expect(getBackgroundImage(getMain())).toBe('none');
   });
 
-  it('keeps room under its content, so that its end scrolls above the site badge', () => {
+  it('keeps room under its content, so that its end scrolls above the site footer', () => {
     render(<Page />);
-    expect(getComputedStyle(getMain()).paddingBottom).toBe(theme.space['site-badge-clearance']);
+    expect(getComputedStyle(getMain()).paddingBottom).toBe(theme.space['site-footer-clearance']);
   });
 
   it('keeps the class name it receives', () => {

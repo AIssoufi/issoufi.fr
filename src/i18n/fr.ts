@@ -57,7 +57,7 @@ export const fr = {
     open: 'Ouvrir le menu',
     close: 'Fermer le menu',
   },
-  siteBadge: {
+  siteFooter: {
     githubProfile: 'Profil GitHub d’ADAM Issoufi',
   },
   home: {

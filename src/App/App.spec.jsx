@@ -76,17 +76,17 @@ describe('App', () => {
   );
 
   it.each(['/', '/projects', '/page-inconnue'])(
-    'shows the site badge on the page at %s, outside its main landmark',
+    'shows the site footer on the page at %s, outside its main landmark',
     async path => {
       window.history.pushState({}, '', path);
       await renderApp();
 
       const main = await screen.findByRole('main');
-      const siteBadge = screen.getByRole('contentinfo');
-      expect(siteBadge).toContainElement(
+      const siteFooter = screen.getByRole('contentinfo');
+      expect(siteFooter).toContainElement(
         screen.getByRole('link', { name: 'Profil GitHub d’ADAM Issoufi' }),
       );
-      expect(main).not.toContainElement(siteBadge);
+      expect(main).not.toContainElement(siteFooter);
     },
   );
 

@@ -263,28 +263,28 @@ export const doBoxesOverlap = ({ box, otherBox }: DoBoxesOverlapParams = {}): bo
   return overlapsHorizontally && overlapsVertically;
 };
 
-/** Parameters of {@link isInBottomLeftCorner}. */
-interface IsInBottomLeftCornerParams {
-  /** Box of the element, such as the site badge. */
+/** Parameters of {@link isInBottomHalf}. */
+interface IsInBottomHalfParams {
+  /** Box of the element, such as the GitHub icon of the site footer. */
   box?: ScreenBox | null;
   /** Size of the screen the box is drawn on. */
   screen?: ScreenSize | null;
 }
 
 /**
- * Tells whether a box sits in the bottom left corner of the screen: whole on the screen, nearer its
- * left edge than its right edge, and nearer its bottom edge than its top edge, whatever its size.
+ * Tells whether a box sits at the bottom of the screen: whole on the screen, and nearer its bottom
+ * edge than its top edge, whatever its size.
  *
  * @returns `false` when the box covers no area or holds a coordinate that is not a finite number,
  * or when the size of the screen is missing or not positive.
  *
  * @example
- * isInBottomLeftCorner({
- *   box: { x: 20, y: 738, width: 180, height: 42 },
+ * isInBottomHalf({
+ *   box: { x: 24, y: 748, width: 33, height: 32 },
  *   screen: { width: 320, height: 800 },
  * }); // true
  */
-export const isInBottomLeftCorner = ({ box, screen }: IsInBottomLeftCornerParams = {}): boolean => {
+export const isInBottomHalf = ({ box, screen }: IsInBottomHalfParams = {}): boolean => {
   if (!isVisibleBox(box) || !isScreenSize(screen)) return false;
 
   const leftGap = box.x;
@@ -292,7 +292,6 @@ export const isInBottomLeftCorner = ({ box, screen }: IsInBottomLeftCornerParams
   const topGap = box.y;
   const bottomGap = screen.height - (box.y + box.height);
   const isWholeOnScreen = [leftGap, rightGap, topGap, bottomGap].every(gap => gap >= 0);
-  const isNearerLeftEdge = leftGap < rightGap;
   const isNearerBottomEdge = bottomGap < topGap;
-  return isWholeOnScreen && isNearerLeftEdge && isNearerBottomEdge;
+  return isWholeOnScreen && isNearerBottomEdge;
 };
