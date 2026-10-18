@@ -247,7 +247,7 @@ The job runs only when release-please has just created a release (its `release_c
 │   │   ├── List/         # <ul role="list"> of every list, extended with styled(List)
 │   │   ├── LocalizedLink/ # Router link to a page in the language of the current URL
 │   │   ├── Page/         # <main> landmark of every page, extended with styled(Page)
-│   │   └── StatusMessage/ # Code, title, message, action button and home link of error pages
+│   │   └── StatusPage/   # Page of the error pages (not found, forbidden, unexpected error), with its StatusMessage/: code, title, message, action button and home link
 │   ├── hooks/            # Hooks shared across the app: useUrlLanguage, the language of the URL
 │   ├── i18n/             # Translations, the stored language and the language prefixes of the URLs
 │   ├── pages/

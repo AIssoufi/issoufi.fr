@@ -1,7 +1,6 @@
 import { useTranslation } from 'react-i18next';
 
-import StatusMessage from '../../components/StatusMessage';
-import { ForbiddenPage } from './Forbidden.styled';
+import StatusPage from '../../components/StatusPage';
 
 /** Props of {@link Forbidden}. Both default to the translated forbidden texts. */
 interface ForbiddenProps {
@@ -27,13 +26,11 @@ export const Forbidden = ({ title, message }: ForbiddenProps) => {
   const { t } = useTranslation();
 
   return (
-    <ForbiddenPage>
-      <StatusMessage
-        code={403}
-        title={title ?? t('errors.forbidden.title')}
-        message={message ?? t('errors.forbidden.message')}
-        homeLinkLabel={t('errors.backHome')}
-      />
-    </ForbiddenPage>
+    <StatusPage
+      code={403}
+      title={title ?? t('errors.forbidden.title')}
+      message={message ?? t('errors.forbidden.message')}
+      homeLinkLabel={t('errors.backHome')}
+    />
   );
 };

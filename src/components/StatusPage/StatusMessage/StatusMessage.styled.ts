@@ -1,6 +1,6 @@
 import styled, { css, th } from '@xstyled/styled-components';
 
-import LocalizedLink from '../LocalizedLink';
+import LocalizedLink from '../../LocalizedLink';
 
 export const Container = styled.section`
   display: flex;

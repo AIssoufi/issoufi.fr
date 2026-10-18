@@ -1,8 +1,7 @@
 import { useTranslation } from 'react-i18next';
 import { useLocation } from 'react-router';
 
-import StatusMessage from '../../components/StatusMessage';
-import { NotFoundPage } from './NotFound.styled';
+import StatusPage from '../../components/StatusPage';
 
 /** Props of {@link NotFound}. Both default to the translated not found texts. */
 interface NotFoundProps {
@@ -26,13 +25,11 @@ export const NotFound = ({ title, message }: NotFoundProps) => {
   const { pathname } = useLocation();
 
   return (
-    <NotFoundPage>
-      <StatusMessage
-        code={404}
-        title={title ?? t('errors.notFound.title')}
-        message={message ?? t('errors.notFound.message', { path: pathname })}
-        homeLinkLabel={t('errors.backHome')}
-      />
-    </NotFoundPage>
+    <StatusPage
+      code={404}
+      title={title ?? t('errors.notFound.title')}
+      message={message ?? t('errors.notFound.message', { path: pathname })}
+      homeLinkLabel={t('errors.backHome')}
+    />
   );
 };
