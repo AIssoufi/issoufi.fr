@@ -23,3 +23,31 @@ export const getEntries = ({ value, key = '' }: GetEntriesParams): [string, stri
     getEntries({ value: child, key: key ? `${key}.${childKey}` : childKey }),
   );
 };
+
+/** Parameters of {@link getMissingKeys}. */
+interface GetMissingKeysParams {
+  /** Translations to check, such as the English ones. */
+  translations: unknown;
+  /** Translations whose every key `translations` must have, such as the French ones. */
+  reference: unknown;
+}
+
+/**
+ * Lists the dotted keys of the texts of `reference` that `translations` lacks, in the order of
+ * `reference`. Used to name the keys a language forgot.
+ *
+ * @returns Every key of `reference` when `translations` is missing or not an object, and an
+ * empty list when `reference` is. A key holding an object, a number or nothing instead of a text
+ * counts as missing.
+ *
+ * @example
+ * getMissingKeys({ translations: { nav: {} }, reference: { nav: { home: 'Accueil' } } });
+ * // ['nav.home']
+ */
+export const getMissingKeys = ({ translations, reference }: GetMissingKeysParams): string[] => {
+  const translatedKeys = new Set(getEntries({ value: translations }).map(([key]) => key));
+
+  return getEntries({ value: reference })
+    .map(([key]) => key)
+    .filter(key => !translatedKeys.has(key));
+};
