@@ -5,6 +5,7 @@ import { BrowserRouter as Router } from 'react-router';
 
 import packageJson from '../../../package.json';
 import i18n from '../../i18n';
+import { en } from '../../i18n/en';
 import { declaredStyle, serializeCssValue } from '../../styleTestUtils';
 import { theme } from '../../theme';
 import { waitForBurgerIcon } from '../testUtils';
@@ -341,6 +342,21 @@ describe('Header', () => {
 
     for (const cvLink of screen.getAllByRole('link', { name: CV_LINK_NAME, hidden: true })) {
       expect(cvLink).toHaveAttribute('href', '/CV - Adam Issoufi.pdf');
+    }
+  });
+
+  it('points every CV link to the CV written in English once English is active', async () => {
+    await renderHeader();
+
+    await act(() => i18n.changeLanguage('en'));
+    try {
+      const cvLinks = screen.getAllByRole('link', { name: en.cvLink.label, hidden: true });
+      expect(cvLinks.length).toBeGreaterThan(1);
+      cvLinks.forEach(cvLink =>
+        expect(cvLink).toHaveAttribute('href', '/CV - Adam Issoufi (EN).pdf'),
+      );
+    } finally {
+      await act(() => i18n.changeLanguage('fr'));
     }
   });
 

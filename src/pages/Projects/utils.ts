@@ -1,5 +1,6 @@
 import type { TFunction } from 'i18next';
 
+import { translateKey } from '../../i18n/utils';
 import type { ProjectItemData } from './Project/types';
 import { PROJECT_NAMES_KEY, PROJECT_TYPES_KEY } from './constants';
 import type { ProjectData } from './types';
@@ -14,20 +15,12 @@ interface TranslateChildParams {
   childKey: unknown;
 }
 
-/**
- * Whether a key of the JSON data can name a text: a filled string, and not a property that every
- * object inherits, such as `constructor`, for which i18next would return a function.
- */
-const isTextKey = (key: unknown): key is string =>
-  typeof key === 'string' && key.trim() !== '' && !(key in Object.prototype);
+/** Whether a key of the JSON data is a filled string, which can name a text of its group. */
+const isFilledKey = (key: unknown): key is string => typeof key === 'string' && key.trim() !== '';
 
 /** Text of a key of a group of translations, or an empty text when no translation has it. */
-const translateChild = ({ t, parentKey, childKey }: TranslateChildParams): string => {
-  if (!isTextKey(childKey)) return '';
-
-  // Without a default value, i18next would show the key itself in place of a missing text
-  return t(`${parentKey}.${childKey}`, { defaultValue: '' });
-};
+const translateChild = ({ t, parentKey, childKey }: TranslateChildParams): string =>
+  isFilledKey(childKey) ? translateKey({ t, key: `${parentKey}.${childKey}` }) : '';
 
 /** Whether an item of the JSON data is an object other than a list, as a project is. */
 const isObject = (item: unknown): item is ProjectData =>

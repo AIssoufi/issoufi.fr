@@ -1,9 +1,43 @@
 import { render, screen } from '@testing-library/react';
 
 import i18n from '../../i18n';
+import { en } from '../../i18n/en';
+import { fr } from '../../i18n/fr';
 import { isPublicFile } from '../testUtils';
+import experiencesData from './.data/experiences.json';
 import { BACKGROUND_IMAGE_URL } from './constants';
 import { Experiences } from './Experiences';
+
+/** Names of the fields of the data that hold a translation key, or a list of them. */
+const KEY_FIELD_PATTERN = /^key$|Keys?$/;
+
+/** Lists every translation key that a value of the data names, at any depth. */
+const listTranslationKeys = value => {
+  if (Array.isArray(value)) return value.flatMap(listTranslationKeys);
+  if (typeof value !== 'object' || value === null) return [];
+
+  return Object.entries(value).flatMap(([name, child]) =>
+    KEY_FIELD_PATTERN.test(name) ? [child].flat() : listTranslationKeys(child),
+  );
+};
+
+/** Keys of the exp translations that the page reads itself rather than through its data. */
+const PAGE_TEXT_KEYS = ['exp.pageTitle'];
+
+/** Groups of the exp translations that the page reads itself: the plurals of the durations. */
+const PAGE_TEXT_GROUPS = ['exp.duration'];
+
+/** Lists the key of every text of a group of translations, e.g. `exp.sewan.name`. */
+const listTextKeys = ({ translations, prefix }) =>
+  Object.entries(translations).flatMap(([name, value]) =>
+    typeof value === 'string'
+      ? [`${prefix}.${name}`]
+      : listTextKeys({ translations: value, prefix: `${prefix}.${name}` }),
+  );
+
+/** Reads the text of a translation key in a translations object, `undefined` when it has none. */
+const getText = ({ translations, key }) =>
+  key.split('.').reduce((group, part) => group?.[part], translations);
 
 describe('Experiences', () => {
   it('renders the page title', () => {
@@ -52,6 +86,62 @@ describe('Experiences', () => {
       expect(company).toHaveAttribute('data-timeline-dot', 'before');
     },
   );
+
+  describe('data', () => {
+    const { experiences } = experiencesData;
+    const translationKeys = listTranslationKeys(experiences);
+
+    it('names texts of the exp translations', () => {
+      expect(translationKeys.length).toBeGreaterThan(0);
+      translationKeys.forEach(key => expect(key).toMatch(/^exp\./));
+    });
+
+    it.each([
+      ['French', fr],
+      ['English', en],
+    ])('names only texts that the %s translations hold', (_language, translations) => {
+      const missingKeys = translationKeys.filter(
+        key => typeof getText({ translations, key }) !== 'string',
+      );
+      expect(missingKeys).toEqual([]);
+    });
+
+    it.each([
+      ['French', fr],
+      ['English', en],
+    ])(
+      'uses every text of the %s exp translations, so that none is left behind',
+      (_language, translations) => {
+        const usedKeys = new Set([...translationKeys, ...PAGE_TEXT_KEYS]);
+        const isReadByThePage = key =>
+          usedKeys.has(key) || PAGE_TEXT_GROUPS.some(group => key.startsWith(`${group}.`));
+
+        const unusedKeys = listTextKeys({ translations: translations.exp, prefix: 'exp' }).filter(
+          key => !isReadByThePage(key),
+        );
+
+        expect(unusedKeys).toEqual([]);
+      },
+    );
+
+    it('gives every company its own id', () => {
+      const ids = experiences.map(({ id }) => id);
+      expect(new Set(ids).size).toBe(ids.length);
+    });
+
+    it('serves every logo from public/', () => {
+      experiences.forEach(({ logoUrl }) => expect(isPublicFile(logoUrl)).toBe(true));
+    });
+
+    it('gives the timeline period of every company with a single role', () => {
+      experiences
+        .filter(({ roles }) => roles.length === 1)
+        .forEach(({ periodStartKey, periodEndKey }) => {
+          expect(periodStartKey).toBeTruthy();
+          expect(periodEndKey).toBeTruthy();
+        });
+    });
+  });
 
   it('serves its background from public/', () => {
     expect(isPublicFile(BACKGROUND_IMAGE_URL)).toBe(true);
