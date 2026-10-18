@@ -5,13 +5,17 @@
 // Usage: DEPLOY_SHA=<full SHA> GITHUB_REPOSITORY=<owner/name> GITHUB_TOKEN=<token> \
 //   node scripts/ci/check-develop-ci.mjs
 import { DEVELOP_BRANCH } from './constants.mjs';
+import { writeAnnotation } from './utils/annotations.mjs';
 import { setStepOutput } from './utils/step-output.mjs';
 import { fetchLatestRun, getCiVerdict, isCommitSha } from './utils/workflow-runs.mjs';
 
 const sha = process.env.DEPLOY_SHA;
 
 if (!isCommitSha(sha)) {
-  console.log(`::error::Invalid commit "${sha ?? ''}": DEPLOY_SHA must be a full commit SHA`);
+  writeAnnotation({
+    level: 'error',
+    message: `Invalid commit "${sha ?? ''}": DEPLOY_SHA must be a full commit SHA`,
+  });
   process.exit(1);
 }
 
@@ -23,9 +27,9 @@ try {
     console.log(message);
     setStepOutput({ name: 'sha', value: sha });
   } else {
-    console.log(`::notice::${message}`);
+    writeAnnotation({ level: 'notice', message });
   }
 } catch (error) {
-  console.log(`::error::${error instanceof Error ? error.message : error}`);
+  writeAnnotation({ level: 'error', message: error instanceof Error ? error.message : error });
   process.exitCode = 1;
 }
