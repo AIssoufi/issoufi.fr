@@ -1,5 +1,6 @@
 import type { Rollup } from 'vite';
 
+import { HEADERS_FILE_NAME } from '../../constants';
 import {
   ESCAPED_INLINE_SCRIPT_BREAKER,
   HTML_FILE_PATTERN,
@@ -11,22 +12,26 @@ import {
 import { escapeRegExp, isFileName } from './strings';
 
 /**
- * Tells whether a file of the build is an HTML page that only a web server needs: every page but
- * `index.html`, such as `projects.html` or `404.html`. Opened from the disk, the standalone build
- * shows every route from `index.html`.
+ * Tells whether a file of the build is one that only a web server needs: every HTML page but
+ * `index.html`, such as `projects.html` or `404.html`, and the `_headers` of Cloudflare Pages at
+ * its root. Opened from the disk, the standalone build shows every route from `index.html`, and no
+ * server reads its headers.
  *
  * @param fileName - Path of the file in the build, e.g. `projects.html`.
- * @returns `true` for an HTML page other than `index.html`, `false` otherwise, and when the name
- * is missing or not a string.
+ * @returns `true` for an HTML page other than `index.html` and for `_headers`, `false` otherwise,
+ * and when the name is missing or not a string.
  *
  * @example
- * isServerOnlyPage('404.html'); // true
- * isServerOnlyPage('index.html'); // false
+ * isServerOnlyFile('404.html'); // true
+ * isServerOnlyFile('_headers'); // true
+ * isServerOnlyFile('index.html'); // false
  */
-export const isServerOnlyPage = (fileName?: unknown): boolean => {
+export const isServerOnlyFile = (fileName?: unknown): boolean => {
   const isHtmlFile = typeof fileName === 'string' && HTML_FILE_PATTERN.test(fileName);
   const isStandalonePage = fileName === STANDALONE_PAGE_FILE_NAME;
-  return isHtmlFile && !isStandalonePage;
+  const isServerOnlyPage = isHtmlFile && !isStandalonePage;
+  const isHeadersFile = fileName === HEADERS_FILE_NAME;
+  return isServerOnlyPage || isHeadersFile;
 };
 
 /**
