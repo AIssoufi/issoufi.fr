@@ -38,7 +38,7 @@ interface TooltipProps {
  *
  * @example
  * <Tooltip text={t('cvLink.label')} placement="left">
- *   {tooltipId => <a href={CV_URL} aria-labelledby={tooltipId}>CV</a>}
+ *   {tooltipId => <a href={getCvUrl(language)} aria-labelledby={tooltipId}>CV</a>}
  * </Tooltip>
  */
 const Tooltip = ({ text = '', placement = DEFAULT_TOOLTIP_PLACEMENT, children }: TooltipProps) => {

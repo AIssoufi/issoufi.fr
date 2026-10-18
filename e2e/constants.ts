@@ -1,3 +1,4 @@
+import type { Language } from '../src/i18n/types';
 import { theme } from '../src/theme/theme';
 import type { Page } from '../src/utils/pages';
 
@@ -102,10 +103,13 @@ export const LONG_PAGE_ROUTE: Page['path'] = '/experiences';
 export const MAX_ICON_OFFSET_PX = 0.5;
 
 /**
- * Name of the file that the CV button downloads, the end of its URL (`CV_URL`,
+ * Name of the file that the CV button downloads in each language, the end of its URL (`CV_URLS`,
  * `src/App/Header/CvLink/constants.ts`).
  */
-export const CV_FILE_NAME = 'CV - Adam Issoufi.pdf';
+export const CV_FILE_NAMES = {
+  fr: 'CV - Adam Issoufi.pdf',
+  en: 'CV - Adam Issoufi (EN).pdf',
+} as const satisfies Record<Language, string>;
 
 /**
  * Largest distance, in pixels, allowed between the center of a tooltip and the center of the

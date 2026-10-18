@@ -148,6 +148,7 @@ export default defineConfig(({ mode }) => {
           'scripts/utils/**/*.mjs',
           'scripts/ci/utils/**/*.mjs',
           'scripts/og-image/utils/**/*.mjs',
+          'scripts/cv/utils/**/*.mjs',
         ],
         exclude: [
           '**/*.spec.*',
