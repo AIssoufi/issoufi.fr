@@ -110,6 +110,9 @@ const getFloatingCvLink = () =>
 const getFloatingGitHubLink = () =>
   within(getFloatingLinks()).getByRole('link', { name: GITHUB_LINK_NAME, hidden: true });
 
+/** Media query of the short screens, as a phone held sideways, on which the header is compact. */
+const SHORT_SCREEN_MEDIA_QUERY = `(max-height: ${theme.screenHeights.short})`;
+
 /** Value that the header declares for a property on an element on the desktop layout. */
 const desktopStyle = ({ element, property }) =>
   declaredStyle({ element, property, media: DESKTOP_MEDIA_QUERY });
@@ -150,6 +153,22 @@ describe('Header', () => {
     expect(declaredStyle({ element: header, property: 'position', pseudo: '::after' })).toBe(
       'fixed',
     );
+  });
+
+  it('gets compact on a short screen, with its band, and leaves most of it to the page', async () => {
+    await renderHeader();
+    const header = screen.getByTestId('header');
+    const shortScreenStyle = ({ element, property, pseudo }) =>
+      declaredStyle({ element, property, pseudo, media: SHORT_SCREEN_MEDIA_QUERY });
+
+    expect(shortScreenStyle({ element: header, property: 'height' })).toBe(
+      theme.sizes['header-compact'],
+    );
+    expect(shortScreenStyle({ element: header, property: 'height', pseudo: '::after' })).toBe(
+      theme.sizes['header-compact'],
+    );
+    const logo = screen.getByRole('link', { name: 'AI' }).parentElement;
+    expect(shortScreenStyle({ element: logo, property: 'font-size' })).toBe(theme.fontSizes[28]);
   });
 
   describe('version', () => {

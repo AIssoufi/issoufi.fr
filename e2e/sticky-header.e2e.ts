@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test';
+import { expect, type Locator, test } from '@playwright/test';
 
 import { LANGUAGES, ROOT_PATH } from '../src/i18n/constants';
 import { localizePath } from '../src/i18n/utils';
@@ -6,13 +6,16 @@ import { waitForEndingAnimations } from './animations';
 import {
   LONG_PAGE_ROUTE,
   MAX_BAND_OFFSET_PX,
+  MAX_HEADER_SCREEN_SHARE,
   PAGE_SELECTOR,
   PROJECTS_ROUTE,
+  SHORT_SCREENS,
   SHOW_ALL_BUTTON_NAME,
   STICKY_HEADER_SCREEN_HEIGHT_PX,
   STICKY_HEADER_SCREEN_WIDTHS_PX,
 } from './constants';
 import { scrollToEnd } from './scroll';
+import { isBoxInside } from './utils';
 
 /** The long pages, scrolled to their end: the Experiences page and the Projects page. */
 const LONG_PAGE_PATHS = [LONG_PAGE_ROUTE, PROJECTS_ROUTE] as const;
@@ -27,6 +30,45 @@ const LOGO_TEXT = 'AI';
 const getBandBox = (header: Element) => {
   const { top, height } = getComputedStyle(header, '::after');
   return { top: Number.parseFloat(top), height: Number.parseFloat(height) };
+};
+
+/**
+ * Checks that the blurred band of the header has the top and the height of the header, within
+ * {@link MAX_BAND_OFFSET_PX}, so that it never blurs the page alone.
+ */
+const expectBandOnHeader = async (header: Locator) => {
+  const headerBox = await header.boundingBox();
+  const bandBox = await header.evaluate(getBandBox);
+  expect(
+    Math.abs(bandBox.top - (headerBox?.y ?? Number.NaN)),
+    'distance in px from the top of the blurred band to the top of the header',
+  ).toBeLessThanOrEqual(MAX_BAND_OFFSET_PX);
+  expect(
+    Math.abs(bandBox.height - (headerBox?.height ?? Number.NaN)),
+    'difference in px between the height of the blurred band and that of the header',
+  ).toBeLessThanOrEqual(MAX_BAND_OFFSET_PX);
+};
+
+/**
+ * Lists the boxes of the links and buttons shown in the row of the header, such as the logo, the
+ * burger or the navigation links, leaving out the controls fixed elsewhere on the screen, such as
+ * the language toggle floating on the right edge from the tablet breakpoint. Runs in the browser,
+ * so it uses nothing from outside its own body.
+ */
+const listHeaderRowControlBoxes = (header: Element) => {
+  const isFixedBelowHeader = (element: Element) => {
+    for (let current: Element | null = element; current && current !== header; ) {
+      if (getComputedStyle(current).position === 'fixed') return true;
+      current = current.parentElement;
+    }
+    return false;
+  };
+  return [...header.querySelectorAll('a, button')]
+    .filter(control => control.checkVisibility() && !isFixedBelowHeader(control))
+    .map(control => {
+      const { x, y, width, height } = control.getBoundingClientRect();
+      return { label: control.textContent?.trim() || control.localName, x, y, width, height };
+    });
 };
 
 // jsdom computes no layout and scrolls nothing, so only a real browser sees the header leave the
@@ -59,16 +101,7 @@ for (const language of LANGUAGES) {
           await expect(header).toBeInViewport({ ratio: 1 });
           const headerBox = await header.boundingBox();
           expect(headerBox?.y, 'top of the header').toBe(0);
-
-          const bandBox = await header.evaluate(getBandBox);
-          expect(
-            Math.abs(bandBox.top - (headerBox?.y ?? Number.NaN)),
-            `distance in px from the top of the blurred band to the top of the header`,
-          ).toBeLessThanOrEqual(MAX_BAND_OFFSET_PX);
-          expect(
-            Math.abs(bandBox.height - (headerBox?.height ?? Number.NaN)),
-            `difference in px between the height of the blurred band and that of the header`,
-          ).toBeLessThanOrEqual(MAX_BAND_OFFSET_PX);
+          await expectBandOnHeader(header);
 
           // Checked in place first, since a click would scroll a link off the screen back into it
           const logo = header.getByRole('link', { name: LOGO_TEXT, exact: true });
@@ -77,6 +110,37 @@ for (const language of LANGUAGES) {
           await expect(page).toHaveURL(localizePath({ path: ROOT_PATH, language }));
         });
       }
+    });
+  }
+}
+
+for (const language of LANGUAGES) {
+  for (const viewport of SHORT_SCREENS) {
+    test.describe(`in ${language}, on a ${viewport.width} × ${viewport.height} px screen`, () => {
+      test.use({ viewport });
+
+      test('the compact header leaves most of the screen to the page, and holds its controls whole', async ({
+        page,
+      }) => {
+        await page.goto(localizePath({ path: LONG_PAGE_ROUTE, language }));
+        await expect(page.locator(PAGE_SELECTOR)).toBeVisible();
+        const header = page.getByRole('banner');
+        const headerBox = await header.boundingBox();
+
+        expect(headerBox?.height, 'height of the header').toBeLessThanOrEqual(
+          viewport.height * MAX_HEADER_SCREEN_SHARE,
+        );
+        await expectBandOnHeader(header);
+        const controlBoxes = await header.evaluate(listHeaderRowControlBoxes);
+        // The logo at least: an empty list would let a broken selector pass
+        expect(controlBoxes.length, 'links and buttons of the header row').toBeGreaterThan(1);
+        for (const { label, ...box } of controlBoxes) {
+          expect(
+            isBoxInside({ box, container: headerBox }),
+            `box of "${label}", whole in the header: ${JSON.stringify(box)}`,
+          ).toBe(true);
+        }
+      });
     });
   }
 }

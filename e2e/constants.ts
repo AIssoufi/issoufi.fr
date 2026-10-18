@@ -156,6 +156,16 @@ export const LANDSCAPE_PHONE_SCREENS = [
 ] as const;
 
 /**
+ * Short screens, on which the compact header must take at most {@link MAX_HEADER_SCREEN_SHARE} of
+ * the height: the phones held sideways, then a larger one that gets the desktop layout (896 × 414,
+ * an iPhone 11 held sideways).
+ */
+export const SHORT_SCREENS = [...LANDSCAPE_PHONE_SCREENS, { width: 896, height: 414 }] as const;
+
+/** Largest share of the height of a short screen that the header may take: 15 %. */
+export const MAX_HEADER_SCREEN_SHARE = 0.15;
+
+/**
  * Smallest height, in pixels, of a link that a finger taps: the target size that the Web Content
  * Accessibility Guidelines 2.2 require at level AA (success criterion 2.5.8).
  */

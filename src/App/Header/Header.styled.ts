@@ -29,6 +29,15 @@ export const Container = styled.header`
     z-index: ${th.zIndex('behind')};
     pointer-events: none;
   }
+
+  /* Leaves most of a short screen to the page, as on a phone held sideways */
+  @media (max-height: ${th('screenHeights.short')}) {
+    height: ${th.size('header-compact')};
+
+    &::after {
+      height: ${th.size('header-compact')};
+    }
+  }
 `;
 
 export const Brand = styled.div`
@@ -49,6 +58,10 @@ export const Logo = styled.div`
   :hover {
     transform: scale(1.08);
     color: ${th.color('accent')};
+  }
+
+  @media (max-height: ${th('screenHeights.short')}) {
+    font-size: ${th.fontSize(28)};
   }
 `;
 

@@ -33,9 +33,10 @@ import {
  * the burger button that opens it. From tablet up, the language toggle floats on the right edge of
  * the screen, with a round CV button then the GitHub icon centered under it; on mobile, the menu
  * holds the CV button and that icon. Its links lead to the pages in the language of the current
- * URL. Owns the open state of the mobile menu, and closes it after each navigation and when the
- * screen grows to the desktop layout, as when a tablet is rotated. Must be rendered inside a
- * router.
+ * URL. Owns the open state of the mobile menu, and closes it when one of its links is followed
+ * and when the screen grows to the desktop layout, as when a tablet is rotated. It stays at the top
+ * of the screen down to the end of every page, and is compact on a short screen, as on a phone held
+ * sideways, so the page keeps most of it. Must be rendered inside a router.
  *
  * The burger button comes before the links in the page, so once a keyboard user opens the menu,
  * the next `Tab` reaches its first link. While open, the mobile menu acts as a modal dialog: the

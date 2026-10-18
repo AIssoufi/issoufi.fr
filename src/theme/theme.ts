@@ -102,8 +102,15 @@ export const theme = {
      * band, fixed on the screen, has the same height, so it covers the header and nothing else.
      */
     header: sizes[94],
+    /**
+     * Height of the site header on a short screen (see `screenHeights.short`), as on a phone held
+     * sideways: 15 % of a 320 px high screen, so the page keeps most of it. Its band follows.
+     */
+    'header-compact': sizes[48],
     /** Side of the burger icon of the mobile menu, kept while its animation loads. */
     'burger-icon': sizes[50],
+    /** Side of the burger icon in the compact header, still the size of a target for a finger. */
+    'burger-icon-compact': sizes[44],
     /**
      * Side of a round button, such as the CV button floating on desktop: 44 px, the smallest
      * target that the Web Content Accessibility Guidelines recommend for a finger.
@@ -190,7 +197,10 @@ export const theme = {
    * xstyled reads `screens` as widths. Not an xstyled namespace: use `th('screenHeights.short')`.
    */
   screenHeights: {
-    /** Up to this height, as on a phone held sideways, the open mobile menu is compact. */
-    short: breakpoints[30],
+    /**
+     * Up to this height, 500 px at the default font size, as on a phone held sideways, the header
+     * and the open mobile menu are compact.
+     */
+    short: breakpoints[31.25],
   },
 } as const;
