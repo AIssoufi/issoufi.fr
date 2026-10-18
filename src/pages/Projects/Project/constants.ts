@@ -9,7 +9,10 @@ export const ROW_CARD_COUNT = 3;
  * the row is read rounded to a whole pixel.
  */
 export const WHOLE_CARD_TOLERANCE_PX = 1;
-/** Duration of the like button's pop animation; matches the CSS animation. */
+/**
+ * Duration of the like button's pop animation, written only here: the CSS animation of the heart
+ * reads it, and `useLikes` ends the animated state of the button after it.
+ */
 export const LIKE_ANIMATION_MS = 450;
 /**
  * `localStorage` key holding the ids of the projects that the visitor liked, as a JSON list
