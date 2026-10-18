@@ -192,6 +192,8 @@ for (const width of PROJECT_CARD_SCREEN_WIDTHS_PX) {
         const { section, list, cards } = await openSection({ page, title });
         const firstPage = await measureCardList(list);
         const pageCount = Math.ceil(projects.length / PAGE_SIZE);
+        // With a single page, the test would compare the first page with itself
+        expect(pageCount, 'pages of the row').toBeGreaterThan(1);
         const lastPageStart = (pageCount - 1) * PAGE_SIZE;
         for (let pageIndex = 1; pageIndex < pageCount; pageIndex += 1) {
           await section.getByRole('button', { name: texts.nextPage }).click();

@@ -77,7 +77,7 @@ Tests are `*.spec.jsx` (components), `*.spec.ts` (helpers and hooks, those of `e
 ```bash
 pnpm exec playwright install --only-shell chromium   # Once, and after a Playwright update
 pnpm build
-pnpm test:browser    # Check in Chromium that no page of the build scrolls sideways, that the timeline dots sit on its line, and that "Show all" keeps the project cards
+pnpm test:browser    # Check in Chromium that no page of the build scrolls sideways, that the timeline dots sit on its line, and that the project cards keep their size and their columns, in "Show all" and on the last page of the row
 ```
 
 jsdom computes no layout, so the browser tests run in a real browser with [Playwright](https://playwright.dev/): the `*.e2e.ts` files of `e2e/`, configured by `playwright.config.ts`. They test the production build: `pnpm test:browser` serves `dist/` with `pnpm preview` on the port of the worktree (see Ports), with `--strictPort`, and never reuses a server already on that port, so run `pnpm build` first. `e2e/horizontal-overflow.e2e.ts` opens every route of `PAGES` (`src/utils/pages.ts`), so a new page is covered without changing it, and an unknown path for the not found page, in each language of `LANGUAGES` (`src/i18n/constants.ts`), stored in `localStorage` as the language toggle does, on screens 320, 375, 414 and 1440 px wide (`e2e/constants.ts`). A page fails when it is wider than the screen (`document.documentElement.scrollWidth` above its `clientWidth`), and its screenshot is saved in `test-results/`.
