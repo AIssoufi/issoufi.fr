@@ -9,7 +9,7 @@ pnpm dev          # Start dev server on port 3000, or on PORT (.env.local in a w
 pnpm build        # Type-check + production build (tsc && vite build)
 pnpm build:standalone # Type-check + the standalone build in dist-standalone/: the site in one index.html that opens from the disk, attached to each GitHub release
 pnpm size         # After a build: fails over the gzip budgets of scripts/ci/constants.mjs (home page first load, all chunks)
-pnpm smoke-test <url> # After a build: checks that a deployed site serves the pages of dist/, its robots.txt and its sitemap.xml
+pnpm smoke-test [url] # After a build: checks that a deployed site, production (SITE_URL of scripts/ci/constants.mjs) without a URL, serves the pages of dist/, its robots.txt and its sitemap.xml
 pnpm og-image     # Regenerates public/og-image.jpg and public/og-image-en.jpg in Chromium (Playwright); needs the network
 pnpm cv           # Generates the CV of each language (public/CV - Adam Issoufi.pdf, … (EN).pdf) from the content of the site in Chromium, offline
 pnpm preview      # Preview production build on port 4173, or on PORT

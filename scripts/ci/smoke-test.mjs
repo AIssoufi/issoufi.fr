@@ -2,8 +2,9 @@
 // Checks that a deployed site serves the pages of the local build: every page of dist/ and of its
 // language folders at its route with a 200, and the not found page of each folder with a 404, each
 // with the title and canonical URL of the build, then robots.txt and sitemap.xml unchanged at its
-// root. Retries for a while, since a new deployment can take a moment to spread.
-// Usage: node scripts/ci/smoke-test.mjs <site URL>
+// root. Retries for a while, since a new deployment can take a moment to spread. Without a site
+// URL, it checks the production site, SITE_URL of constants.mjs.
+// Usage: node scripts/ci/smoke-test.mjs [site URL]
 import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { setTimeout as sleep } from 'node:timers/promises';
@@ -17,17 +18,18 @@ import {
   getFileChecks,
   getPageChecks,
   renderSmokeTestReport,
+  resolveSiteUrl,
 } from './utils/pages.mjs';
 
 /** @typedef {import('./utils/pages.mjs').PageCheck} PageCheck */
 
-const siteUrl = process.argv[2];
+const siteUrl = resolveSiteUrl(process.argv[2]);
 
-const isValidSiteUrl = URL.canParse(siteUrl ?? '');
+const isValidSiteUrl = URL.canParse(siteUrl);
 if (!isValidSiteUrl) {
   writeAnnotation({
     level: 'error',
-    message: `Invalid site URL "${siteUrl ?? ''}". Usage: smoke-test.mjs <site URL>`,
+    message: `Invalid site URL "${siteUrl}". Usage: smoke-test.mjs [site URL]`,
   });
   process.exit(1);
 }

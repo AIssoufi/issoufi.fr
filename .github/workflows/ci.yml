@@ -215,8 +215,11 @@ jobs:
       - run: node scripts/ci/smoke-test.mjs "$DEPLOYMENT_URL"
         env:
           DEPLOYMENT_URL: ${{ needs.deploy.outputs.url }}
-      - if: github.ref == 'refs/heads/main'
-        run: node scripts/ci/smoke-test.mjs https://issoufi.fr
-      - name: Check the redirects to https://issoufi.fr
+      # Without a URL, the smoke test and the redirect check read the production address from
+      # SITE_URL in scripts/ci/constants.mjs
+      - name: Smoke-test the production site
+        if: github.ref == 'refs/heads/main'
+        run: node scripts/ci/smoke-test.mjs
+      - name: Check the redirects to the production site
         if: github.ref == 'refs/heads/main'
         run: node scripts/ci/check-redirects.mjs
