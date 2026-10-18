@@ -5,18 +5,25 @@ export const SITE_URL = 'https://issoufi.fr';
 
 /**
  * Routes that get their own HTML file at build time, so link previews and search engines see
- * their title, description and canonical URL without running JavaScript.
+ * their title, description and canonical URL without running JavaScript, and the browser
+ * downloads the chunk of a lazily loaded page at the same time as the app.
  * Every route declared in `App.tsx` needs an entry here.
  */
 export const PAGES = [
-  { path: '/', meta: 'home', fileName: 'index.html' },
-  { path: '/projects', meta: 'projects', fileName: 'projects.html' },
-  { path: '/experiences', meta: 'experiences', fileName: 'experiences.html' },
+  { path: '/', meta: 'home', fileName: 'index.html', folder: 'Home' },
+  { path: '/projects', meta: 'projects', fileName: 'projects.html', folder: 'Projects' },
+  {
+    path: '/experiences',
+    meta: 'experiences',
+    fileName: 'experiences.html',
+    folder: 'Experiences',
+  },
 ] as const;
 
 /**
  * One entry of {@link PAGES}: the route `path`, the `meta` translation key holding its title
- * and description, and the `fileName` generated for it in `dist`.
+ * and description, the `fileName` generated for it in `dist`, and the `folder` of its page in
+ * `src/pages`, whose `index.ts` is the module of its chunk when the page is loaded lazily.
  */
 export type Page = (typeof PAGES)[number];
 
@@ -96,9 +103,13 @@ export function renderPageHtml({ template, page, years }: RenderPageHtmlParams):
  */
 export const NOT_FOUND_FILE_NAME = '404.html';
 
+/** Folder of the page that {@link NOT_FOUND_FILE_NAME} shows, in `src/pages`. */
+export const NOT_FOUND_FOLDER = 'NotFound';
+
 const CANONICAL_TAG = /<link\s+rel="canonical"[^>]*>\s*/;
 const OG_URL_TAG = /<meta\s+property="og:url"[^>]*>\s*/;
 const NO_INDEX_TAG = '<meta name="robots" content="noindex" />';
+const HEAD_END_TAG = '</head>';
 
 /** Parameters of {@link renderNotFoundHtml}. */
 interface RenderNotFoundHtmlParams {
@@ -119,5 +130,38 @@ export function renderNotFoundHtml({ template, years }: RenderNotFoundHtmlParams
   return fillPlaceholders({ template, meta: 'notFound', url: '', years })
     .replace(CANONICAL_TAG, '')
     .replace(OG_URL_TAG, '')
-    .replace('</head>', `  ${NO_INDEX_TAG}\n  </head>`);
+    .replace(HEAD_END_TAG, `  ${NO_INDEX_TAG}\n  ${HEAD_END_TAG}`);
+}
+
+/** Parameters of {@link addModulePreload}. */
+interface AddModulePreloadParams {
+  /** HTML of a generated page. Missing or not a string, it counts as empty. */
+  html?: string;
+  /**
+   * URL of the script to preload, e.g. `/assets/Projects-1a2b3c.js`. Missing, empty or blank,
+   * no link is added.
+   */
+  href?: string;
+}
+
+/**
+ * Adds a `modulepreload` link to a script in the head of a generated page, so that on a direct
+ * visit the browser downloads the chunk of a lazily loaded page at the same time as the app,
+ * instead of once the app has run. Used by the Vite plugin at build time.
+ *
+ * @returns The HTML with the link, HTML-escaped, just before `</head>`, or unchanged when there
+ * is no URL or no head.
+ *
+ * @example
+ * addModulePreload({ html: '<head>\n  </head>', href: '/assets/P-1.js' });
+ * // '<head>\n    <link rel="modulepreload" crossorigin href="/assets/P-1.js" />\n  </head>'
+ */
+export function addModulePreload({ html, href }: AddModulePreloadParams = {}): string {
+  const page = typeof html === 'string' ? html : '';
+  const hasHref = typeof href === 'string' && href.trim() !== '';
+  const canAddLink = hasHref && page.includes(HEAD_END_TAG);
+  if (!canAddLink) return page;
+
+  const link = `<link rel="modulepreload" crossorigin href="${escapeHtml(href)}" />`;
+  return page.replace(HEAD_END_TAG, `  ${link}\n  ${HEAD_END_TAG}`);
 }

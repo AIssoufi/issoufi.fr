@@ -1,6 +1,14 @@
 import { readFileSync, statSync } from 'node:fs';
 
-import { PAGES, SITE_URL, getPage, renderNotFoundHtml, renderPageHtml } from './pages';
+import {
+  NOT_FOUND_FOLDER,
+  PAGES,
+  SITE_URL,
+  addModulePreload,
+  getPage,
+  renderNotFoundHtml,
+  renderPageHtml,
+} from './pages';
 
 const [home, projects, experiences] = PAGES;
 
@@ -39,6 +47,15 @@ describe('getPage', () => {
     expect(getPage('/skills')).toBeUndefined();
     expect(getPage('/projects/inconnu')).toBeUndefined();
   });
+});
+
+describe('page folders', () => {
+  it.each([...PAGES.map(({ folder }) => folder), NOT_FOUND_FOLDER])(
+    'name a page of src/pages with an index file: %s',
+    folder => {
+      expect(statSync(`src/pages/${folder}/index.ts`).isFile()).toBe(true);
+    },
+  );
 });
 
 describe('renderPageHtml', () => {
@@ -172,5 +189,54 @@ describe('renderPageHtml edge cases', () => {
     expect(renderPageHtml({ template: '<p>static</p>', page: PAGES[0], years: 8 })).toBe(
       '<p>static</p>',
     );
+  });
+});
+
+describe('addModulePreload', () => {
+  const href = '/assets/Projects-1a2b3c.js';
+  const link = `<link rel="modulepreload" crossorigin href="${href}" />`;
+
+  it('adds the link just before the end of the head', () => {
+    expect(addModulePreload({ html: '<head>\n  </head>\n<body></body>', href })).toBe(
+      `<head>\n    ${link}\n  </head>\n<body></body>`,
+    );
+  });
+
+  it('keeps the rest of a generated page, in its head', () => {
+    const template = readFileSync('index.html', 'utf-8');
+    const page = renderPageHtml({ template, page: projects, years: 8 });
+    const preloadedPage = addModulePreload({ html: page, href });
+
+    expect(preloadedPage.replace(`    ${link}\n`, '')).toBe(page);
+    expect(preloadedPage.indexOf(link)).toBeLessThan(preloadedPage.indexOf('</head>'));
+  });
+
+  it('escapes the URL for the attribute', () => {
+    expect(addModulePreload({ html: '</head>', href: '/a"b&c.js' })).toContain(
+      'href="/a&quot;b&amp;c.js"',
+    );
+  });
+
+  describe('edge cases', () => {
+    it.each([
+      ['no URL', undefined],
+      ['an empty URL', ''],
+      ['a blank URL', ' \t\n'],
+      ['a URL that is not a string', 42 as never],
+    ])('leaves the page unchanged for %s', (_, missingHref) => {
+      expect(addModulePreload({ html: '<head></head>', href: missingHref })).toBe('<head></head>');
+    });
+
+    it('leaves a page without a head unchanged', () => {
+      expect(addModulePreload({ html: '<p>static</p>', href })).toBe('<p>static</p>');
+    });
+
+    it.each([
+      ['no parameters', undefined],
+      ['no HTML', { href }],
+      ['HTML that is not a string', { html: null as never, href }],
+    ])('returns an empty string for %s', (_, params) => {
+      expect(addModulePreload(params)).toBe('');
+    });
   });
 });
