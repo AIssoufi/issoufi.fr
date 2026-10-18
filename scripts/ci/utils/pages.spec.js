@@ -1,4 +1,5 @@
 import { SITEMAP_FILE_NAME } from '../../../src/utils/sitemap';
+import { SITE_URL } from '../constants.mjs';
 import {
   compareFile,
   comparePage,
@@ -7,6 +8,7 @@ import {
   isPageCheck,
   readPageHead,
   renderSmokeTestReport,
+  resolveSiteUrl,
   splitBuildPath,
 } from './pages.mjs';
 
@@ -307,6 +309,28 @@ describe('compareFile', () => {
       ).toEqual(['A file check without a file, a route or an integer status cannot be compared']);
     },
   );
+});
+
+describe('resolveSiteUrl', () => {
+  it('checks the production site when the command has no argument', () => {
+    expect(resolveSiteUrl(undefined)).toBe(SITE_URL);
+  });
+
+  it.each(['https://develop.issoufi-fr.pages.dev', 'https://issoufi.fr', 'not a URL'])(
+    'keeps the argument %o as given',
+    argument => {
+      expect(resolveSiteUrl(argument)).toBe(argument);
+    },
+  );
+
+  // An unset deployment URL must fail the smoke test, not check production in place of a preview
+  it.each(['', ' '])('keeps the empty argument %o rather than checking production', argument => {
+    expect(resolveSiteUrl(argument)).toBe(argument);
+  });
+
+  it.each([null, 42, {}, ['https://issoufi.fr/']])('gives no site for %o', argument => {
+    expect(resolveSiteUrl(argument)).toBe('');
+  });
 });
 
 describe('renderSmokeTestReport', () => {

@@ -11,6 +11,7 @@ import {
   NOT_FOUND_PAGE_FILE,
   PATH_SEPARATOR,
   SERVED_AS_BUILT_FILES,
+  SITE_URL,
   TITLE_TAG_PATTERN,
   WINDOWS_PATH_SEPARATOR_PATTERN,
 } from '../constants.mjs';
@@ -285,6 +286,24 @@ export const compareFile = ({ check, status, servedText, builtText }) => {
   }
 
   return problems;
+};
+
+/**
+ * Reads the site to smoke-test from the argument of the command: the production site,
+ * {@link SITE_URL}, when the command has none. Only a missing argument falls back to production:
+ * an empty one, such as an unset deployment URL, stays empty, so that the smoke test fails rather
+ * than checking production in place of a preview.
+ * @param {unknown} argument - First argument of the command, `undefined` when there is none.
+ * @returns {string} The argument as given, {@link SITE_URL} when it is missing, or `''` when it is
+ * not a string.
+ * @example
+ * resolveSiteUrl(undefined); // 'https://issoufi.fr/'
+ * resolveSiteUrl('https://develop.issoufi-fr.pages.dev'); // 'https://develop.issoufi-fr.pages.dev'
+ * resolveSiteUrl(''); // ''
+ */
+export const resolveSiteUrl = argument => {
+  if (argument === undefined) return SITE_URL;
+  return typeof argument === 'string' ? argument : '';
 };
 
 /**
