@@ -1,4 +1,10 @@
-import { INTERACTIVE_SELECTOR, declaredStyle, isPublicFile, listStyleRules } from './testUtils';
+import {
+  INTERACTIVE_SELECTOR,
+  declaredStyle,
+  isPublicFile,
+  listStyleRules,
+  serializeCssValue,
+} from './testUtils';
 
 describe('INTERACTIVE_SELECTOR', () => {
   afterEach(() => {
@@ -88,7 +94,14 @@ describe('declaredStyle', () => {
     });
 
     expect(declaredStyle({ element, property: 'padding-left' })).toBe('19px');
-    expect(declaredStyle({ element, property: 'padding-left', media: TABLET_MEDIA })).toBe('0');
+    expect(declaredStyle({ element, property: 'padding-left', media: TABLET_MEDIA })).toBe('0px');
+  });
+
+  it('returns the value as the CSSOM serializes it, like a browser', () => {
+    const element = setUp({ css: '.card { inset: 0; padding-left: calc(24px - 5px); }' });
+
+    expect(declaredStyle({ element, property: 'inset' })).toBe('0px');
+    expect(declaredStyle({ element, property: 'padding-left' })).toBe('calc(19px)');
   });
 
   it('keeps the last declaration of the property', () => {
@@ -155,5 +168,49 @@ describe('listStyleRules', () => {
 
   it('lists nothing without stylesheets', () => {
     expect(listStyleRules()).toEqual([]);
+  });
+});
+
+describe('serializeCssValue', () => {
+  afterEach(() => {
+    document.head.innerHTML = '';
+  });
+
+  it('serializes a value as the CSSOM does, like a browser', () => {
+    expect(serializeCssValue({ property: 'inset', value: '0' })).toBe('0px');
+    expect(serializeCssValue({ property: 'padding-left', value: 'calc(24px - 5px)' })).toBe(
+      'calc(19px)',
+    );
+    expect(serializeCssValue({ property: 'width', value: 'calc(100% - 2rem)' })).toBe(
+      'calc(100% - 2rem)',
+    );
+    expect(serializeCssValue({ property: 'display', value: 'flex' })).toBe('flex');
+  });
+
+  it('serializes the value declared by a rule the same way', () => {
+    const style = document.createElement('style');
+    style.textContent = '.card { padding-left: calc(24px - 5px); }';
+    document.head.append(style);
+    const card = document.createElement('div');
+    card.className = 'card';
+
+    expect(declaredStyle({ element: card, property: 'padding-left' })).toBe(
+      serializeCssValue({ property: 'padding-left', value: 'calc(24px - 5px)' }),
+    );
+  });
+
+  it('returns an empty string for a value the property does not accept', () => {
+    expect(serializeCssValue({ property: 'padding-left', value: 'red' })).toBe('');
+    expect(serializeCssValue({ property: 'padding-left', value: '' })).toBe('');
+    expect(serializeCssValue({ property: 'unknown-property', value: '0' })).toBe('');
+  });
+
+  it('returns an empty string for a missing property or value, or one that is not a string', () => {
+    expect(serializeCssValue()).toBe('');
+    expect(serializeCssValue({ value: '0' })).toBe('');
+    expect(serializeCssValue({ property: 'inset' })).toBe('');
+    expect(serializeCssValue({ property: 'inset', value: null })).toBe('');
+    expect(serializeCssValue({ property: 'inset', value: 0 })).toBe('');
+    expect(serializeCssValue({ property: 42, value: '0' })).toBe('');
   });
 });

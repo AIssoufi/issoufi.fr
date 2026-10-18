@@ -3,7 +3,7 @@ import userEvent from '@testing-library/user-event';
 
 import i18n from '../../i18n';
 import { theme } from '../../theme';
-import { INTERACTIVE_SELECTOR, declaredStyle, isPublicFile } from '../testUtils';
+import { INTERACTIVE_SELECTOR, declaredStyle, isPublicFile, serializeCssValue } from '../testUtils';
 import { BACKGROUND_IMAGE_URL } from './constants';
 import freelanceProjectsData from './.data/freelance-projects.json';
 import personalProjectsData from './.data/personal-projects.json';
@@ -118,7 +118,10 @@ describe('Projects layout on mobile', () => {
     const card = firstThumbnail().closest('li');
     const header = screen.getByText('Projets personnels').closest('header');
     const cardMargin = declaredStyle({ element: card, property: 'margin' });
-    const gridPadding = `calc(${theme.space.page} - ${cardMargin})`;
+    const gridPadding = serializeCssValue({
+      property: 'padding-left',
+      value: `calc(${theme.space.page} - ${cardMargin})`,
+    });
 
     expect(cardMargin).toBe(theme.space[5]);
     expect(declaredStyle({ element: header, property: 'padding-left' })).toBe(theme.space.page);
@@ -134,10 +137,10 @@ describe('Projects layout on mobile', () => {
 
     const grid = firstThumbnail().closest('ul');
     expect(declaredStyle({ element: grid, property: 'padding-left', media: TABLET_MEDIA })).toBe(
-      '0',
+      '0px',
     );
     expect(declaredStyle({ element: grid, property: 'padding-right', media: TABLET_MEDIA })).toBe(
-      '0',
+      '0px',
     );
   });
 

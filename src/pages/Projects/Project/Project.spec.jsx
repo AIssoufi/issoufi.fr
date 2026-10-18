@@ -475,7 +475,7 @@ describe('Project', () => {
 
       expect(declaredStyle({ element: cardOf('Chess'), property: 'position' })).toBe('relative');
       expect(linkLayer('position')).toBe('absolute');
-      expect(linkLayer('inset')).toBe('0');
+      expect(linkLayer('inset')).toBe('0px');
       expect([thumbnailGradientZIndex, likeButtonZIndex]).not.toContain('');
       expect(Number(linkLayer('z-index'))).toBeGreaterThan(Number(thumbnailGradientZIndex));
       expect(Number(linkLayer('z-index'))).toBeLessThan(Number(likeButtonZIndex));

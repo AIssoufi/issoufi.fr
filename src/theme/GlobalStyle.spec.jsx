@@ -28,6 +28,19 @@ const findRulesSelecting = selectors =>
       return selectors.every(selector => ruleSelectors.includes(selector));
     });
 
+/**
+ * Style rules of the document, outside any media query, that select the element and declare its
+ * box sizing. jsdom 30 leaves a rule out of the computed styles when its selector list holds a
+ * pseudo-element, as `*, *::before, *::after` does, so the tests read the rules themselves.
+ */
+const findBoxSizingRulesOf = element =>
+  listStyleRules()
+    .filter(({ media, rule }) => media === '' && rule instanceof CSSStyleRule)
+    .map(({ rule }) => rule)
+    .filter(
+      rule => rule.style.getPropertyValue('box-sizing') && element.matches(rule.selectorText),
+    );
+
 describe('GlobalStyle', () => {
   it('renders without crashing', () => {
     expect(() => renderWithGlobalStyle()).not.toThrow();
@@ -51,7 +64,10 @@ describe('GlobalStyle', () => {
     );
 
     for (const testId of ['box', 'image', 'button', 'input']) {
-      expect(getComputedStyle(screen.getByTestId(testId)).boxSizing).toBe('border-box');
+      const boxSizings = findBoxSizingRulesOf(screen.getByTestId(testId)).map(rule =>
+        rule.style.getPropertyValue('box-sizing'),
+      );
+      expect(boxSizings).toEqual(['border-box']);
     }
   });
 
@@ -65,7 +81,10 @@ describe('GlobalStyle', () => {
 
   it('lets a component that sets its own box sizing keep it', () => {
     renderWithGlobalStyle(<ContentBox data-testid="content-box" />);
+    const [universalRule] = findRulesSelecting(['*']);
 
+    // The class of a component outweighs the universal selector, unless the latter is important
+    expect(universalRule.style.getPropertyPriority('box-sizing')).toBe('');
     expect(getComputedStyle(screen.getByTestId('content-box')).boxSizing).toBe('content-box');
   });
 });
