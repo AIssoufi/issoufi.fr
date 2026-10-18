@@ -46,8 +46,11 @@ export function getPage(pathname: string): Page | undefined {
 const escapeHtml = (value: string) =>
   value.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 
-/** Key of a page's title and description in the `meta` translations. */
-type PageMetaKey = keyof typeof fr.meta;
+/**
+ * Key of a page's title and description in the `meta` translations: every key but `ogImageAlt`,
+ * the description of the link preview image that all pages share.
+ */
+type PageMetaKey = Exclude<keyof typeof fr.meta, 'ogImageAlt'>;
 
 /** Parameters of {@link fillPlaceholders}. */
 interface FillPlaceholdersParams {
@@ -61,17 +64,22 @@ interface FillPlaceholdersParams {
   years: number;
 }
 
-/** Replaces every `%PAGE_*%` placeholder with the French metadata and the URL, HTML-escaped. */
+/**
+ * Replaces every `%PAGE_*%` placeholder with the French metadata, the URL and the description of
+ * the link preview image, HTML-escaped.
+ */
 function fillPlaceholders({ template, meta, url, years }: FillPlaceholdersParams): string {
   const { title, description } = fr.meta[meta];
   const values: Record<string, string> = {
     PAGE_TITLE: title,
     PAGE_DESCRIPTION: description.replace(/{{years}}/g, String(years)),
     PAGE_URL: url,
+    PAGE_IMAGE_ALT: fr.meta.ogImageAlt,
   };
 
-  return template.replace(/%(PAGE_TITLE|PAGE_DESCRIPTION|PAGE_URL)%/g, (_, key: string) =>
-    escapeHtml(values[key]),
+  return template.replace(
+    /%(PAGE_TITLE|PAGE_DESCRIPTION|PAGE_URL|PAGE_IMAGE_ALT)%/g,
+    (_, key: string) => escapeHtml(values[key]),
   );
 }
 
@@ -86,8 +94,9 @@ interface RenderPageHtmlParams {
 }
 
 /**
- * Fills the `%PAGE_TITLE%`, `%PAGE_DESCRIPTION%` and `%PAGE_URL%` placeholders of `index.html`
- * with the French metadata of a page. Used by the Vite plugin at build time.
+ * Fills the `%PAGE_TITLE%`, `%PAGE_DESCRIPTION%`, `%PAGE_URL%` and `%PAGE_IMAGE_ALT%`
+ * placeholders of `index.html` with the French metadata of a page and the description of the
+ * link preview image. Used by the Vite plugin at build time.
  *
  * @returns The HTML with every placeholder replaced and HTML-escaped.
  */

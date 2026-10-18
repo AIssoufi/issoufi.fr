@@ -1,5 +1,6 @@
 import { readFileSync, statSync } from 'node:fs';
 
+import { fr } from '../i18n/fr';
 import {
   NOT_FOUND_FOLDER,
   PAGES,
@@ -116,6 +117,7 @@ describe('renderPageHtml', () => {
     expect(html.match(/%PAGE_TITLE%/g)).toHaveLength(3);
     expect(html.match(/%PAGE_DESCRIPTION%/g)).toHaveLength(3);
     expect(html.match(/%PAGE_URL%/g)).toHaveLength(2);
+    expect(html.match(/%PAGE_IMAGE_ALT%/g)).toHaveLength(1);
     PAGES.forEach(page =>
       expect(renderPageHtml({ template: html, page, years: 8 })).not.toMatch(/%PAGE_\w+%/),
     );
@@ -147,8 +149,12 @@ describe('Open Graph image of index.html', () => {
     expect(statSync(imageFile).size).toBeLessThan(OG_IMAGE_MAX_BYTES);
   });
 
-  it('describes the image for screen readers', () => {
-    expect(getMetaContent({ html, property: 'og:image:alt' })).toMatch(/ADAM Issoufi/);
+  it('describes the image with the French translation, for screen readers', () => {
+    const page = renderPageHtml({ template: html, page: home, years: 8 });
+
+    expect(getMetaContent({ html: page, property: 'og:image:alt' })).toBe(
+      'ADAM Issoufi, développeur full-stack JavaScript passionné par l’UX et l’UI Design',
+    );
   });
 
   it('is kept, with its description, in every generated page', () => {
@@ -160,7 +166,7 @@ describe('Open Graph image of index.html', () => {
     generatedPages.forEach(page => {
       expect(getMetaContent({ html: page, property: 'og:image' })).toBe(imageUrl);
       expect(getMetaContent({ html: page, property: 'og:image:type' })).toBe('image/jpeg');
-      expect(getMetaContent({ html: page, property: 'og:image:alt' })).toMatch(/ADAM Issoufi/);
+      expect(getMetaContent({ html: page, property: 'og:image:alt' })).toBe(fr.meta.ogImageAlt);
     });
   });
 });

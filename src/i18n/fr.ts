@@ -27,6 +27,7 @@ export const fr = {
       title: 'Page introuvable - ADAM Issoufi',
       description: 'Cette page n’existe pas.',
     },
+    ogImageAlt: 'ADAM Issoufi, développeur full-stack JavaScript passionné par l’UX et l’UI Design',
   },
   errors: {
     backHome: 'Retour à l’accueil',
