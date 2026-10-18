@@ -2,6 +2,7 @@ import { act, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
 import i18n from '../../../i18n';
+import { LANGUAGE_STORAGE_KEY } from '../../../i18n/constants';
 import LangToggle from './LangToggle';
 
 /** The indicator is the first child of the toggle, before the language buttons. */
@@ -12,6 +13,8 @@ const getEnglishButton = () => screen.getByRole('button', { name: 'English' });
 
 describe('LangToggle', () => {
   afterEach(async () => {
+    vi.restoreAllMocks();
+    localStorage.clear();
     await act(() => i18n.changeLanguage('fr'));
   });
 
@@ -29,6 +32,29 @@ describe('LangToggle', () => {
 
     await userEvent.click(getFrenchButton());
     expect(i18n.language).toBe('fr');
+  });
+
+  it('remembers the chosen language for the next visit', async () => {
+    render(<LangToggle />);
+    expect(localStorage.getItem(LANGUAGE_STORAGE_KEY)).toBeNull();
+
+    await userEvent.click(getEnglishButton());
+    expect(localStorage.getItem(LANGUAGE_STORAGE_KEY)).toBe('en');
+
+    await userEvent.click(getFrenchButton());
+    expect(localStorage.getItem(LANGUAGE_STORAGE_KEY)).toBe('fr');
+  });
+
+  it('still switches the language when the browser blocks the storage', async () => {
+    vi.spyOn(window, 'localStorage', 'get').mockImplementation(() => {
+      throw new DOMException('The operation is insecure.', 'SecurityError');
+    });
+    render(<LangToggle />);
+
+    await userEvent.click(getEnglishButton());
+
+    expect(i18n.language).toBe('en');
+    expect(getEnglishButton()).toHaveAttribute('aria-pressed', 'true');
   });
 
   it('slides the indicator under the active language', async () => {
