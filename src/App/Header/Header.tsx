@@ -1,8 +1,12 @@
-import { useId, useState } from 'react';
+import { useId, useRef, useState } from 'react';
 import { Link } from 'react-router';
 import { useTranslation } from 'react-i18next';
 
 import BurgerMenu from './BurgerMenu';
+import { DESKTOP_MEDIA_QUERY } from './constants';
+import { useEscapeKey } from './hooks/useEscapeKey';
+import { useInertOutside } from './hooks/useInertOutside';
+import { useMediaQuery } from './hooks/useMediaQuery';
 import LangToggle from './LangToggle';
 import NavMenu from './NavMenu';
 
@@ -14,12 +18,31 @@ import { Actions, Container, Logo, Menu } from './Header.styled';
  * each navigation. Must be rendered inside a router.
  *
  * The burger button comes before the links in the page, so once a keyboard user opens the menu,
- * the next `Tab` reaches its first link.
+ * the next `Tab` reaches its first link. While open, the mobile menu acts as a modal dialog: the
+ * rest of the page is inert, so `Tab` and `Shift+Tab` only reach the burger and the links, and
+ * `Escape` closes it and gives the focus back to the burger. None of this applies to the desktop
+ * layout, where the links are a bar of the page.
  */
 const Header = ({ testId }: HeaderProps) => {
   const [mobileMenuIsOpen, setMobileMenuIsOpen] = useState(false);
   const navMenuId = useId();
+  const menuRef = useRef<HTMLDivElement>(null);
+  const burgerRef = useRef<HTMLButtonElement>(null);
+  const isDesktop = useMediaQuery({ query: DESKTOP_MEDIA_QUERY });
   const { t } = useTranslation();
+
+  // A menu opened on mobile stays open when the screen grows to the desktop layout, as when a
+  // tablet is rotated: it then no longer covers the page
+  const isMenuCoveringPage = mobileMenuIsOpen && !isDesktop;
+
+  useInertOutside({ containerRef: menuRef, isActive: isMenuCoveringPage });
+  useEscapeKey({
+    isActive: isMenuCoveringPage,
+    onEscape: () => {
+      setMobileMenuIsOpen(false);
+      burgerRef.current?.focus();
+    },
+  });
 
   const items = [
     { name: t('nav.home'), url: '/', end: true },
@@ -34,8 +57,12 @@ const Header = ({ testId }: HeaderProps) => {
       </Logo>
       <Actions>
         <LangToggle />
-        <Menu $isSticky={mobileMenuIsOpen}>
+        <Menu
+          ref={menuRef}
+          $isSticky={mobileMenuIsOpen}
+        >
           <BurgerMenu
+            ref={burgerRef}
             isOpen={mobileMenuIsOpen}
             menuId={navMenuId}
             onOpen={() => setMobileMenuIsOpen(true)}
