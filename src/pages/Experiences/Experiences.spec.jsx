@@ -1,9 +1,9 @@
-import { render, screen } from '@testing-library/react';
+import { act, render, screen } from '@testing-library/react';
 
 import i18n from '../../i18n';
 import { en } from '../../i18n/en';
 import { fr } from '../../i18n/fr';
-import { isPublicFile } from '../testUtils';
+import { getReadText, isPublicFile } from '../testUtils';
 import experiencesData from './.data/experiences.json';
 import { BACKGROUND_IMAGE_URL } from './constants';
 import { Experiences } from './Experiences';
@@ -22,7 +22,7 @@ const listTranslationKeys = value => {
 };
 
 /** Keys of the exp translations that the page reads itself rather than through its data. */
-const PAGE_TEXT_KEYS = ['exp.pageTitle'];
+const PAGE_TEXT_KEYS = ['exp.pageTitle', 'exp.periodTo'];
 
 /** Groups of the exp translations that the page reads itself: the plurals of the durations. */
 const PAGE_TEXT_GROUPS = ['exp.duration'];
@@ -39,7 +39,30 @@ const listTextKeys = ({ translations, prefix }) =>
 const getText = ({ translations, key }) =>
   key.split('.').reduce((group, part) => group?.[part], translations);
 
+const { experiences: EXPERIENCES } = experiencesData;
+
+/** Every role of the data, company after company, in the order of the page. */
+const ROLES = EXPERIENCES.flatMap(({ roles }) => roles);
+
+/** Every project of the data with a title, in the order of the page. */
+const TITLED_PROJECTS = ROLES.flatMap(({ projects = [] }) => projects).filter(
+  ({ titleKey }) => titleKey,
+);
+
+/** Whether a job or a project of the data lists technologies. */
+const hasTechnologies = technologies => Array.isArray(technologies) && technologies.length > 0;
+
+/** Level of a heading element, from its tag name: 2 for a `h2`. */
+const getHeadingLevel = heading => Number(heading.tagName.slice(1));
+
+/** Characters that only decorate the page, which screen readers must not read. */
+const DECORATION_PATTERN = /[↓–›]/;
+
 describe('Experiences', () => {
+  afterEach(async () => {
+    await act(() => i18n.changeLanguage('fr'));
+  });
+
   it('renders the page title', () => {
     render(<Experiences />);
 
@@ -66,7 +89,106 @@ describe('Experiences', () => {
   it.each(['Sewan Groupe', 'Wibilong', 'Supralog', 'Beepeers'])('shows the %s experience', name => {
     render(<Experiences />);
 
-    expect(screen.getAllByRole('img', { name }).length).toBeGreaterThan(0);
+    expect(screen.getByRole('heading', { level: 2, name })).toBeInTheDocument();
+  });
+
+  it('lists the companies in the timeline, one item each, most recent first', () => {
+    const { container } = render(<Experiences />);
+    const timeline = container.querySelector('[data-timeline-line]');
+
+    expect(timeline).toHaveAttribute('role', 'list');
+    const companies = [...timeline.children];
+    expect(companies.map(company => company.tagName)).toEqual(EXPERIENCES.map(() => 'LI'));
+    expect(companies.map(company => company.querySelector('h2').textContent)).toEqual(
+      EXPERIENCES.map(({ nameKey }) => i18n.t(nameKey)),
+    );
+  });
+
+  describe('headings', () => {
+    it('gives every company a level 2 heading, in the order of the data', () => {
+      render(<Experiences />);
+
+      const names = screen
+        .getAllByRole('heading', { level: 2 })
+        .map(({ textContent }) => textContent);
+      expect(names).toEqual(EXPERIENCES.map(({ nameKey }) => i18n.t(nameKey)));
+    });
+
+    it('gives every job a level 3 heading, in the order of the data', () => {
+      render(<Experiences />);
+
+      const titles = screen
+        .getAllByRole('heading', { level: 3 })
+        .map(({ textContent }) => textContent);
+      expect(titles).toEqual(ROLES.map(({ titleKey }) => i18n.t(titleKey)));
+    });
+
+    it('gives every project a level 4 heading, in the order of the data', () => {
+      render(<Experiences />);
+
+      const titles = screen
+        .getAllByRole('heading', { level: 4 })
+        .map(({ textContent }) => textContent);
+      expect(titles.length).toBeGreaterThan(0);
+      expect(titles).toEqual(TITLED_PROJECTS.map(({ titleKey }) => i18n.t(titleKey)));
+    });
+
+    it('never skips a level from one heading to the next, as axe-core checks', () => {
+      render(<Experiences />);
+
+      const levels = screen.getAllByRole('heading').map(getHeadingLevel);
+      const skipsALevel = (level, index) => {
+        const isFirstHeading = index === 0;
+        return !isFirstHeading && level > levels[index - 1] + 1;
+      };
+      const skippedLevels = levels.filter(skipsALevel);
+      expect(levels[0]).toBe(1);
+      expect(skippedLevels).toEqual([]);
+      expect(new Set(levels)).toEqual(new Set([1, 2, 3, 4]));
+    });
+  });
+
+  describe('periods', () => {
+    it.each(['fr', 'en'])(
+      'reads the period of every job, in its column and in its card, as "start to end" in %s',
+      async language => {
+        await act(() => i18n.changeLanguage(language));
+        const { container } = render(<Experiences />);
+        const articles = screen.getAllByRole('article');
+        const columns = container.querySelectorAll('[data-timeline-dot="after"]');
+        const expectedPeriods = ROLES.map(
+          ({ startKey, endKey }) =>
+            `${i18n.t(startKey)} ${i18n.t('exp.periodTo')} ${i18n.t(endKey)}`,
+        );
+
+        expect([...columns].map(getReadText)).toEqual(expectedPeriods);
+        expect(articles).toHaveLength(ROLES.length);
+        articles.forEach((article, index) =>
+          expect(getReadText(article)).toContain(expectedPeriods[index]),
+        );
+      },
+    );
+
+    it('reads no arrow nor dash of the periods, which only decorate them', () => {
+      const { container } = render(<Experiences />);
+
+      expect(getReadText(container)).not.toMatch(DECORATION_PATTERN);
+      expect(container.textContent).toMatch(DECORATION_PATTERN);
+    });
+  });
+
+  it('lists the technologies of every job and every project', () => {
+    render(<Experiences />);
+    const technologyLists = [
+      ...ROLES.map(({ technologies }) => technologies),
+      ...ROLES.flatMap(({ projects = [] }) => projects).map(({ technologies }) => technologies),
+    ].filter(hasTechnologies);
+    const listedTexts = screen
+      .getAllByRole('list')
+      .map(list => [...list.children].map(({ textContent }) => textContent));
+
+    expect(technologyLists.length).toBeGreaterThan(1);
+    expect(listedTexts).toEqual(expect.arrayContaining(technologyLists));
   });
 
   it('names the pseudo-element of its timeline line for the browser test of the timeline', () => {
@@ -81,14 +203,14 @@ describe('Experiences', () => {
       render(<Experiences />);
 
       // Each company is a child of the timeline, a single job or the group of its roles
-      const [logo] = screen.getAllByRole('img', { name });
-      const company = logo.closest('[data-timeline-line] > *');
+      const heading = screen.getByRole('heading', { level: 2, name });
+      const company = heading.closest('[data-timeline-line] > *');
       expect(company).toHaveAttribute('data-timeline-dot', 'before');
     },
   );
 
   describe('data', () => {
-    const { experiences } = experiencesData;
+    const experiences = EXPERIENCES;
     const translationKeys = listTranslationKeys(experiences);
 
     it('names texts of the exp translations', () => {
@@ -133,13 +255,12 @@ describe('Experiences', () => {
       experiences.forEach(({ logoUrl }) => expect(isPublicFile(logoUrl)).toBe(true));
     });
 
-    it('gives the timeline period of every company with a single role', () => {
-      experiences
-        .filter(({ roles }) => roles.length === 1)
-        .forEach(({ periodStartKey, periodEndKey }) => {
-          expect(periodStartKey).toBeTruthy();
-          expect(periodEndKey).toBeTruthy();
-        });
+    it('gives every role its start and its end, which the timeline and its card both write', () => {
+      expect(ROLES.length).toBeGreaterThan(0);
+      ROLES.forEach(({ startKey, endKey }) => {
+        expect(startKey).toBeTruthy();
+        expect(endKey).toBeTruthy();
+      });
     });
   });
 

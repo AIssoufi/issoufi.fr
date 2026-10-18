@@ -2,7 +2,7 @@ import styled, { th } from '@xstyled/styled-components';
 
 import { companyBlock, mobileContentIndent, timelineRow } from '../timeline.styled';
 
-export const TimelineEntry = styled.div`
+export const TimelineEntry = styled.li`
   ${companyBlock}
   ${timelineRow}
 `;
