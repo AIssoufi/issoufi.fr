@@ -146,6 +146,35 @@ describe('Tooltip', () => {
       expect(getTooltip()).not.toBeVisible();
     });
 
+    it('shows on each trigger that Tab reaches, one after the other', async () => {
+      render(
+        <>
+          {['First', 'Second'].map(name => (
+            <Tooltip
+              key={name}
+              text={`${name} tooltip`}
+            >
+              {tooltipId => (
+                <a
+                  href={`#${name}`}
+                  aria-describedby={tooltipId}
+                >
+                  {name}
+                </a>
+              )}
+            </Tooltip>
+          ))}
+        </>,
+      );
+
+      await userEvent.tab();
+      expect(screen.getByText('First tooltip')).toBeVisible();
+
+      await userEvent.tab();
+      expect(screen.getByText('First tooltip')).not.toBeVisible();
+      expect(screen.getByText('Second tooltip')).toBeVisible();
+    });
+
     it('hides once the mouse leaves when a click focused the trigger', async () => {
       renderTooltip();
 
