@@ -45,6 +45,18 @@ describe('useParallax', () => {
     }).not.toThrow();
   });
 
+  it('does not fail when the element is gone before its transition is removed', () => {
+    const element = document.createElement('div');
+    const elementRef: { current: HTMLElement | null } = { current: element };
+    renderHook(() => useParallax(elementRef));
+    fireEvent.mouseLeave(document);
+
+    elementRef.current = null;
+
+    expect(() => vi.advanceTimersByTime(PARALLAX_RESET_DURATION_MS)).not.toThrow();
+    expect(element.style.transition).toContain('transform 0.9s');
+  });
+
   it('stops reacting and clears the pending reset on unmount', () => {
     const element = document.createElement('div');
     const { unmount } = renderHook(() => useParallax({ current: element }));

@@ -43,14 +43,14 @@ const pageMeta = (): Plugin => {
 };
 
 /**
- * Minimum test coverage, in percent, below which `pnpm test:coverage` fails. Set under the
- * coverage of October 2026, Vite and CI helpers included, as measured by Vitest 4 (97.2% of
- * lines, 96.8% of statements, 95.2% of branches, 93.7% of functions), so a change that drops
- * tests fails the CI. Vitest 4 maps the V8 coverage onto the syntax tree and counts only the
- * executable code, so its figures differ from those of Vitest 3 for the same tests. Raise them
- * when the coverage goes up.
+ * Minimum test coverage, in percent, below which `pnpm test:coverage` fails. Set two to three
+ * points under the coverage of October 2026, Vite and CI helpers included, as measured by
+ * Vitest 4 (99.6% of lines, 99.4% of statements, 98.8% of branches, 98.3% of functions), so a
+ * change that drops tests fails the CI while a few untested lines of a new change do not.
+ * Vitest 4 maps the V8 coverage onto the syntax tree and counts only the executable code, so its
+ * figures differ from those of Vitest 3 for the same tests. Raise them when the coverage goes up.
  */
-const COVERAGE_THRESHOLDS_PERCENT = { lines: 95, statements: 95, branches: 95, functions: 85 };
+const COVERAGE_THRESHOLDS_PERCENT = { lines: 97, statements: 97, branches: 96, functions: 96 };
 
 /**
  * Vite and Vitest configuration: React with SVG components, the page metadata plugin, the dev
