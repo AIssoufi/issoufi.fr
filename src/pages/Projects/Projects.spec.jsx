@@ -26,4 +26,14 @@ describe('Projects', () => {
   it('serves its background from public/', () => {
     expect(isPublicFile(BACKGROUND_IMAGE_URL)).toBe(true);
   });
+
+  it('writes the project names and types with typographic apostrophes', () => {
+    const textsWithStraightApostrophe = allProjects
+      .flatMap(({ name, type }) => [name, type])
+      .filter(text => text.includes("'"));
+
+    expect(textsWithStraightApostrophe).toEqual([]);
+    render(<Projects />);
+    expect(screen.getByText('Jeu d’échecs')).toBeInTheDocument();
+  });
 });
