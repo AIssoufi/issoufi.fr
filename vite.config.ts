@@ -94,8 +94,8 @@ export default defineConfig(({ mode }) => {
   return {
     base: '/',
     plugins: [react(), svgr(), pageMeta()],
-    // The version that release-please writes in package.json, shown by the site footer
-    // (src/App/SiteFooter) and typed in src/vite-env.d.ts; the tests read it too
+    // The version that release-please writes in package.json, shown after the logo of the header
+    // (src/App/Header) and typed in src/vite-env.d.ts; the tests read it too
     define: { __APP_VERSION__: JSON.stringify(packageJson.version) },
     build: {
       rollupOptions: {

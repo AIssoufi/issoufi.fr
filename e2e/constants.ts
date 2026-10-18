@@ -75,27 +75,27 @@ export const PROJECT_CARD_SCREEN_WIDTHS_PX = [375, 800, 1280, 1440, 1720, 2400] 
 export const MAX_CARD_OFFSET_PX = 0.5;
 
 /**
- * Site footer (`src/App/SiteFooter`): the footer landmark, right inside the app grid, that holds
- * the version of the site in the bottom left corner of every page and the GitHub icon in the
- * bottom right corner.
+ * Screen widths, in pixels, at which the language toggle floats on the right edge of the screen,
+ * with the GitHub icon under it: the tablet breakpoint (800), a laptop (1440), then a screen wider
+ * than the app container (1920).
  */
-export const SITE_FOOTER_SELECTOR = '[data-testid="app"] > footer';
+export const FLOATING_TOGGLE_SCREEN_WIDTHS_PX = [800, 1440, 1920] as const;
 
 /**
- * Header of the app, right inside the app grid: its content starts with the logo and ends with the
- * navigation, which the site footer lines up with.
+ * Screen widths, in pixels, below the tablet breakpoint, at which the mobile menu holds the GitHub
+ * icon.
  */
-export const HEADER_SELECTOR = '[data-testid="app"] > header';
+export const MOBILE_SCREEN_WIDTHS_PX = [320, 375, 414] as const;
 
 /**
- * Screen widths, in pixels, at which the browser test of the site footer opens the pages: those of
- * {@link SCREEN_WIDTHS_PX}, then a screen wider than the app container (1920), which centers the
- * container and its header, so the footer must follow them.
+ * Route of a page longer than the screen, scrolled to check what stays fixed. Typed by `PAGES`
+ * (`src/utils/pages.ts`), so the type-check fails when the route changes there.
  */
-export const SITE_FOOTER_SCREEN_WIDTHS_PX = [...SCREEN_WIDTHS_PX, 1920] as const;
+export const LONG_PAGE_ROUTE: Page['path'] = '/experiences';
 
 /**
- * Largest distance, in pixels, allowed between an edge of the site footer content and the edge of
- * the header it lines up with. Half a pixel lets through subpixel rounding, but not a 1 px shift.
+ * Largest distance, in pixels, allowed between the horizontal center of the GitHub icon and the
+ * center of the control it is centered under. Half a pixel lets through subpixel rounding, but not
+ * a 1 px shift.
  */
-export const MAX_EDGE_OFFSET_PX = 0.5;
+export const MAX_ICON_OFFSET_PX = 0.5;

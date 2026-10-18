@@ -17,10 +17,9 @@ interface PageProps {
 
 /**
  * Layout shared by every page, rendered as its `<main>` landmark: it fills the main area of the
- * app grid, with the page gutters, over a fixed background image and a dark overlay. Room is kept
- * under the content, so that its end scrolls above the site footer, fixed at the bottom of the
- * screen. Pages extend it with `styled(Page)` in their own style file. A page has a single
- * `<main>`, so the content inside it never renders another one.
+ * app grid, with the page gutters, over a fixed background image and a dark overlay. Pages
+ * extend it with `styled(Page)` in their own style file. A page has a single `<main>`, so the
+ * content inside it never renders another one.
  *
  * @example
  * const ProjectsPage = styled(Page)`

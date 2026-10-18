@@ -10,10 +10,10 @@ import { Btn, Indicator, Wrapper } from './LangToggle.styled';
 /**
  * FR/EN switch that changes the i18next language, with an indicator sliding under the active
  * language. Below the `tablet` breakpoint it sits horizontally in its parent's flow, the header
- * row, so it never covers the page; from `tablet` up it floats vertically on the right edge of
- * the screen. The chosen language is stored, so a reload or the next visit starts in it (see
- * `src/i18n/storage.ts`); it still applies, without being remembered, when the browser blocks the
- * storage.
+ * row, so it never covers the page; from `tablet` up it is vertical, and the header floats it on
+ * the right edge of the screen. The chosen language is stored, so a reload or the next visit
+ * starts in it (see `src/i18n/storage.ts`); it still applies, without being remembered, when the
+ * browser blocks the storage.
  *
  * Screen readers announce a group labelled in the active language, and each button with its
  * language's own name, pronounced in that language, and its pressed state. When the language

@@ -1,7 +1,7 @@
 import { NavLink } from 'react-router';
 
 import DownloadIcon from './icons/download.svg?react';
-import { CtaButton, Nav, NavItem, NavList } from './NavMenu.styled';
+import { CtaButton, MenuGitHubLink, Nav, NavItem, NavList } from './NavMenu.styled';
 
 /** A single link of the navigation menu. */
 interface Item {
@@ -35,7 +35,10 @@ interface NavMenuProps {
    * @default false
    */
   mobileMenuIsOpen?: boolean;
-  /** Called when a link or the CV button is clicked, so the parent can close the mobile menu. */
+  /**
+   * Called when a link, the CV button or the GitHub icon is clicked, so the parent can close the
+   * mobile menu.
+   */
   onClick?: () => void;
 }
 
@@ -43,8 +46,9 @@ const NO_ITEMS: Item[] = [];
 
 /**
  * Main navigation: the route links, with the active one highlighted, and the CV download button.
- * Displayed as a horizontal bar on desktop and as a full-screen overlay on mobile.
- * Must be rendered inside a router, because the links are `NavLink`s.
+ * Displayed as a horizontal bar on desktop and as a full-screen overlay on mobile, where the
+ * GitHub icon follows the CV button; on desktop, the header shows that icon under the language
+ * toggle instead. Must be rendered inside a router, because the links are `NavLink`s.
  */
 const NavMenu = ({ id, items = NO_ITEMS, onClick, mobileMenuIsOpen = false }: NavMenuProps) => {
   return (
@@ -75,6 +79,7 @@ const NavMenu = ({ id, items = NO_ITEMS, onClick, mobileMenuIsOpen = false }: Na
         <DownloadIcon className="icon" />
         <span className="text">CV</span>
       </CtaButton>
+      <MenuGitHubLink onClick={onClick} />
     </Nav>
   );
 };

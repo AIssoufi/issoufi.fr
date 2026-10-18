@@ -2,12 +2,11 @@ import { PAGES } from '../src/utils/pages';
 import { MAX_CARD_OFFSET_PX, MAX_DOT_OFFSET_PX, NOT_FOUND_ROUTE } from './constants';
 import {
   countWholeCards,
-  doBoxesOverlap,
+  getBoxCenterDistanceX,
   getCenterDistanceX,
   getCheckedRoutes,
   getQuadCenterX,
   groupCardsIntoRows,
-  isInBottomHalf,
 } from './utils';
 
 describe('getCheckedRoutes', () => {
@@ -355,28 +354,25 @@ describe('groupCardsIntoRows', () => {
   });
 });
 
-describe('doBoxesOverlap', () => {
-  const fixedBox = { x: 20, y: 738, width: 160, height: 42 };
+describe('getBoxCenterDistanceX', () => {
+  const toggle = { x: 1374, y: 361, width: 46, height: 78 };
 
-  it.each([
-    ['a line of text across it', { x: 0, y: 750, width: 320, height: 18 }],
-    ['an icon inside it', { x: 30, y: 745, width: 16, height: 16 }],
-    ['a card around it', { x: 0, y: 600, width: 320, height: 400 }],
-    ['a box covering one pixel of its corner', { x: 179, y: 779, width: 10, height: 10 }],
-  ])('finds that %s overlaps the fixed box', (_name, box) => {
-    expect(doBoxesOverlap({ box, otherBox: fixedBox })).toBe(true);
-    expect(doBoxesOverlap({ box: fixedBox, otherBox: box })).toBe(true);
+  it('finds no distance between a box and the box it is centered on', () => {
+    expect(
+      getBoxCenterDistanceX({
+        box: { x: 1381, y: 460, width: 32, height: 32 },
+        referenceBox: toggle,
+      }),
+    ).toBe(0);
   });
 
   it.each([
-    ['a line of text above it', { x: 0, y: 700, width: 320, height: 18 }],
-    ['a line of text touching its top edge', { x: 0, y: 720, width: 320, height: 18 }],
-    ['a box touching its right edge', { x: 180, y: 738, width: 40, height: 42 }],
-    ['a box right of it at the same height', { x: 200, y: 738, width: 40, height: 42 }],
-    ['a box below the screen', { x: 20, y: 900, width: 160, height: 42 }],
-  ])('finds that %s does not overlap the fixed box', (_name, box) => {
-    expect(doBoxesOverlap({ box, otherBox: fixedBox })).toBe(false);
-    expect(doBoxesOverlap({ box: fixedBox, otherBox: box })).toBe(false);
+    ['left of', { x: 1380, y: 460, width: 32, height: 32 }, 1],
+    ['right of', { x: 1381.5, y: 460, width: 32, height: 32 }, 0.5],
+    ['far from', { x: 24, y: 460, width: 32, height: 32 }, 1357],
+  ])('measures a box centered %s the reference', (_name, box, expected) => {
+    expect(getBoxCenterDistanceX({ box, referenceBox: toggle })).toBe(expected);
+    expect(getBoxCenterDistanceX({ box: toggle, referenceBox: box })).toBe(expected);
   });
 
   describe('edge cases', () => {
@@ -384,64 +380,17 @@ describe('doBoxesOverlap', () => {
       undefined,
       null,
       {},
-      { x: 30, y: 745, width: 0, height: 16 },
-      { x: 30, y: 745, width: 16, height: -16 },
-      { x: Number.NaN, y: 745, width: 16, height: 16 },
-      { x: 30, y: Number.POSITIVE_INFINITY, width: 16, height: 16 },
-      { x: '30', y: 745, width: 16, height: 16 },
       'box',
-    ])('finds that the box %j covers nothing', box => {
-      expect(doBoxesOverlap({ box: box as never, otherBox: fixedBox })).toBe(false);
-      expect(doBoxesOverlap({ box: fixedBox, otherBox: box as never })).toBe(false);
+      { x: Number.NaN, y: 0, width: 32, height: 32 },
+      { x: 0, y: 0, width: Number.POSITIVE_INFINITY, height: 32 },
+      { x: '1381', y: 460, width: 32, height: 32 },
+    ])('returns NaN for the box %j', box => {
+      expect(getBoxCenterDistanceX({ box: box as never, referenceBox: toggle })).toBeNaN();
+      expect(getBoxCenterDistanceX({ box: toggle, referenceBox: box as never })).toBeNaN();
     });
 
-    it('finds no overlap without boxes', () => {
-      expect(doBoxesOverlap()).toBe(false);
-      expect(doBoxesOverlap({})).toBe(false);
-    });
-  });
-});
-
-describe('isInBottomHalf', () => {
-  const screen = { width: 320, height: 800 };
-
-  it.each([
-    ['the GitHub icon of the site footer', { x: 263, y: 748, width: 33, height: 32 }],
-    ['the version of the site footer', { x: 24, y: 756, width: 40, height: 16 }],
-    ['a box touching the bottom corners', { x: 0, y: 758, width: 320, height: 42 }],
-  ])('finds %s at the bottom', (_name, box) => {
-    expect(isInBottomHalf({ box, screen })).toBe(true);
-  });
-
-  it.each([
-    ['as near the top edge as the bottom one', { x: 20, y: 20, width: 160, height: 760 }],
-    ['at the top of the screen', { x: 20, y: 20, width: 160, height: 42 }],
-    ['partly left of the screen', { x: -1, y: 738, width: 160, height: 42 }],
-    ['partly right of the screen', { x: 200, y: 738, width: 121, height: 42 }],
-    ['partly below the screen', { x: 20, y: 759, width: 160, height: 42 }],
-    ['below the screen', { x: 20, y: 900, width: 160, height: 42 }],
-  ])('finds a box %s out of the bottom', (_name, box) => {
-    expect(isInBottomHalf({ box, screen })).toBe(false);
-  });
-
-  describe('edge cases', () => {
-    it.each([undefined, null, {}, { x: 20, y: 738, width: 0, height: 42 }, 'box'])(
-      'finds the box %j out of the bottom',
-      box => {
-        expect(isInBottomHalf({ box: box as never, screen })).toBe(false);
-      },
-    );
-
-    it.each([undefined, null, {}, { width: 0, height: 800 }, { width: 320, height: Number.NaN }])(
-      'finds any box out of the bottom of the screen %j',
-      invalidScreen => {
-        const box = { x: 20, y: 738, width: 160, height: 42 };
-        expect(isInBottomHalf({ box, screen: invalidScreen as never })).toBe(false);
-      },
-    );
-
-    it('finds nothing at the bottom without a box nor a screen', () => {
-      expect(isInBottomHalf()).toBe(false);
+    it('returns NaN without boxes', () => {
+      expect(getBoxCenterDistanceX()).toBeNaN();
     });
   });
 });

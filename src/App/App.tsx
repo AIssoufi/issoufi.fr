@@ -9,7 +9,6 @@ import Header from './Header';
 import { useReloadOnStaleChunk } from './hooks/useReloadOnStaleChunk';
 import PageHeadingFocus from './PageHeadingFocus';
 import RouteErrorBoundary from './RouteErrorBoundary';
-import SiteFooter from './SiteFooter';
 import { keepPendingWhileReloading } from './utils';
 
 import { WebApp } from './App.styled';
@@ -30,8 +29,7 @@ const NotFound = lazy(() => import('../pages/NotFound').then(keepPendingWhileRel
  * since it was opened (see {@link useReloadOnStaleChunk}). A page that fails to render or to
  * load shows an error with a reload button below the header, which stays usable
  * (see {@link RouteErrorBoundary}). After a navigation by link, the heading of the new page takes
- * the keyboard focus (see {@link PageHeadingFocus}). The site footer, with the version of the site
- * and the GitHub icon, stays at the bottom of every page (see {@link SiteFooter}).
+ * the keyboard focus (see {@link PageHeadingFocus}).
  */
 function App() {
   useReloadOnStaleChunk();
@@ -66,7 +64,6 @@ function App() {
               <PageHeadingFocus />
             </Suspense>
           </RouteErrorBoundary>
-          <SiteFooter />
         </WebApp>
       </Router>
     </ThemeProvider>

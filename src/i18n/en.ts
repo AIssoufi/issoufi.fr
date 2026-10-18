@@ -55,8 +55,11 @@ export const en = {
     open: 'Open menu',
     close: 'Close menu',
   },
-  siteFooter: {
-    githubProfile: "ADAM Issoufi's GitHub profile",
+  header: {
+    buildVersion: 'build {{version}}',
+  },
+  githubLink: {
+    label: "ADAM Issoufi's GitHub profile",
   },
   home: {
     title1: 'Full-stack JavaScript Developer',

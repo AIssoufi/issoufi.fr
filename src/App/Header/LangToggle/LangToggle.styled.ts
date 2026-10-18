@@ -24,11 +24,6 @@ export const Wrapper = styled.div`
   }
 
   @media (min-width: ${th('screens.tablet')}) {
-    position: fixed;
-    right: ${th.space(20)};
-    top: 50%;
-    transform: translateY(-50%);
-    z-index: ${th.zIndex('overlay')};
     flex-direction: column;
   }
 `;

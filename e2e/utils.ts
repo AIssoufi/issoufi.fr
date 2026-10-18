@@ -199,99 +199,38 @@ export interface ScreenBox {
   height: number;
 }
 
-/** Size of the screen, in CSS pixels, such as the `viewport` of a Playwright test. */
-interface ScreenSize {
-  /** Width of the screen. */
-  width: number;
-  /** Height of the screen. */
-  height: number;
-}
+/** Tells whether a value is a box whose position and size are finite numbers. */
+const isScreenBox = (value: unknown): value is ScreenBox => {
+  if (typeof value !== 'object' || value === null) return false;
 
-/** Tells whether a value is a finite number above zero, such as the side of a visible box. */
-const isPositiveLength = (value: unknown): value is number =>
-  typeof value === 'number' && Number.isFinite(value) && value > 0;
-
-/**
- * Tells whether a value is a box that covers some area of the screen: a finite position and a
- * width and height above zero.
- */
-const isVisibleBox = (box: unknown): box is ScreenBox => {
-  if (typeof box !== 'object' || box === null) return false;
-
-  const { x, y, width, height } = box as Partial<ScreenBox>;
-  return (
-    Number.isFinite(x) && Number.isFinite(y) && isPositiveLength(width) && isPositiveLength(height)
-  );
+  const { x, y, width, height } = value as Partial<ScreenBox>;
+  return [x, y, width, height].every(Number.isFinite);
 };
 
-/** Tells whether a value is the size of a screen: a width and a height above zero. */
-const isScreenSize = (screen: unknown): screen is ScreenSize => {
-  if (typeof screen !== 'object' || screen === null) return false;
+/** Finds the horizontal center of a box, or `NaN` when it is not a box of finite numbers. */
+const getBoxCenterX = (box: unknown): number =>
+  isScreenBox(box) ? box.x + box.width / 2 : Number.NaN;
 
-  const { width, height } = screen as Partial<ScreenSize>;
-  return isPositiveLength(width) && isPositiveLength(height);
-};
-
-/** Parameters of {@link doBoxesOverlap}. */
-interface DoBoxesOverlapParams {
-  /** One of the boxes, such as the box of a line of text. */
+/** Parameters of {@link getBoxCenterDistanceX}. */
+interface GetBoxCenterDistanceXParams {
+  /** Box of the measured element, such as the GitHub icon. */
   box?: ScreenBox | null;
-  /** The other box, such as the box of an element fixed on the screen. */
-  otherBox?: ScreenBox | null;
+  /** Box of the element it should be centered on, such as the language toggle. */
+  referenceBox?: ScreenBox | null;
 }
 
 /**
- * Tells whether two boxes on the screen share some area, so that one hides part of the other when
- * it is drawn above it. Boxes that only touch by an edge do not overlap.
+ * Measures how far apart the horizontal centers of two boxes are, such as those that Playwright's
+ * `boundingBox()` returns.
  *
- * @returns `false` when either box is missing, has a width or a height of zero or less, or a
- * coordinate that is not a finite number: such a box covers nothing.
+ * @returns The distance in CSS pixels, never negative, or `NaN` when either box is missing or
+ * holds a value that is not a finite number, so that any comparison with it fails.
  *
  * @example
- * doBoxesOverlap({
- *   box: { x: 0, y: 0, width: 100, height: 20 },
- *   otherBox: { x: 50, y: 10, width: 100, height: 20 },
- * }); // true
+ * getBoxCenterDistanceX({
+ *   box: { x: 1381, y: 460, width: 33, height: 32 },
+ *   referenceBox: { x: 1374, y: 361, width: 46, height: 78 },
+ * }); // 0.5
  */
-export const doBoxesOverlap = ({ box, otherBox }: DoBoxesOverlapParams = {}): boolean => {
-  if (!isVisibleBox(box) || !isVisibleBox(otherBox)) return false;
-
-  const overlapsHorizontally =
-    box.x < otherBox.x + otherBox.width && otherBox.x < box.x + box.width;
-  const overlapsVertically =
-    box.y < otherBox.y + otherBox.height && otherBox.y < box.y + box.height;
-  return overlapsHorizontally && overlapsVertically;
-};
-
-/** Parameters of {@link isInBottomHalf}. */
-interface IsInBottomHalfParams {
-  /** Box of the element, such as the GitHub icon of the site footer. */
-  box?: ScreenBox | null;
-  /** Size of the screen the box is drawn on. */
-  screen?: ScreenSize | null;
-}
-
-/**
- * Tells whether a box sits at the bottom of the screen: whole on the screen, and nearer its bottom
- * edge than its top edge, whatever its size.
- *
- * @returns `false` when the box covers no area or holds a coordinate that is not a finite number,
- * or when the size of the screen is missing or not positive.
- *
- * @example
- * isInBottomHalf({
- *   box: { x: 24, y: 748, width: 33, height: 32 },
- *   screen: { width: 320, height: 800 },
- * }); // true
- */
-export const isInBottomHalf = ({ box, screen }: IsInBottomHalfParams = {}): boolean => {
-  if (!isVisibleBox(box) || !isScreenSize(screen)) return false;
-
-  const leftGap = box.x;
-  const rightGap = screen.width - (box.x + box.width);
-  const topGap = box.y;
-  const bottomGap = screen.height - (box.y + box.height);
-  const isWholeOnScreen = [leftGap, rightGap, topGap, bottomGap].every(gap => gap >= 0);
-  const isNearerBottomEdge = bottomGap < topGap;
-  return isWholeOnScreen && isNearerBottomEdge;
-};
+export const getBoxCenterDistanceX = ({ box, referenceBox }: GetBoxCenterDistanceXParams = {}) =>
+  Math.abs(getBoxCenterX(box) - getBoxCenterX(referenceBox));

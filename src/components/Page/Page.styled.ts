@@ -1,8 +1,7 @@
 import styled, { th } from '@xstyled/styled-components';
 
 export const Main = styled.main<{ $backgroundImage?: string }>`
-  /* The room under the content lets its end scroll above the site footer (src/App/SiteFooter) */
-  padding: ${th.space(16)} ${th.space('page')} ${th.space('site-footer-clearance')};
+  padding: ${th.space(16)} ${th.space('page')} 0;
   position: relative;
   grid-area: main;
 
