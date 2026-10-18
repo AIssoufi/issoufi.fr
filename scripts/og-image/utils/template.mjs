@@ -158,7 +158,8 @@ export const renderOgImageStyles = theme => {
  * @property {string} styles - Style sheet of the page, from {@link renderOgImageStyles}.
  * @property {string} backgroundImageUrl - Background photo of the home page, as a data URL,
  * since the page is not served from the project.
- * @property {string} fontStylesheetUrl - Google Fonts style sheet of `index.html`.
+ * @property {string} fontFaceStyles - `@font-face` rules of the web fonts of the site, their files
+ * as data URLs, from `renderFontFaces` (`src/theme/utils.ts`), written in the page as they are.
  * @property {string} particlesSvg - Still of the particle field, from `renderParticlesSvg`.
  */
 
@@ -176,7 +177,7 @@ export const renderOgImageStyles = theme => {
  *     texts,
  *     styles,
  *     backgroundImageUrl,
- *     fontStylesheetUrl,
+ *     fontFaceStyles,
  *     particlesSvg,
  *   }),
  * );
@@ -186,7 +187,7 @@ export const renderOgImageHtml = ({
   texts,
   styles,
   backgroundImageUrl,
-  fontStylesheetUrl,
+  fontFaceStyles,
   particlesSvg,
 }) => {
   const passion = texts.passion
@@ -199,7 +200,7 @@ export const renderOgImageHtml = ({
 <html lang="${escapeHtml(language)}">
   <head>
     <meta charset="utf-8" />
-    <link rel="stylesheet" href="${escapeHtml(fontStylesheetUrl)}" />
+    <style>${fontFaceStyles}</style>
     <style>${styles}</style>
   </head>
   <body style="background-image: url('${escapeHtml(backgroundImageUrl)}')">

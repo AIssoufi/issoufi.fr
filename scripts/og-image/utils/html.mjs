@@ -1,7 +1,7 @@
 // @ts-check
 import { extname } from 'node:path';
 
-import { FONT_STYLESHEET_PATTERN, IMAGE_MEDIA_TYPES } from '../constants.mjs';
+import { DATA_URL_MEDIA_TYPES } from '../constants.mjs';
 
 /** Words that a template literal writes for a missing value or a failed computation. */
 const UNRESOLVED_VALUE_PATTERN = /\b(undefined|null|NaN)\b/;
@@ -38,38 +38,25 @@ export const hasUnresolvedValue = markup =>
   typeof markup !== 'string' || UNRESOLVED_VALUE_PATTERN.test(markup);
 
 /**
- * Finds the Google Fonts style sheet that `index.html` loads, so the image uses the same fonts as
- * the site.
- * @param {unknown} html - Content of `index.html`.
- * @returns {string} The URL of the style sheet, `&amp;` decoded, or `''` when there is none.
- */
-export const findFontStylesheetUrl = html => {
-  if (typeof html !== 'string') return '';
-
-  const url = html.match(FONT_STYLESHEET_PATTERN)?.[1] ?? '';
-  return url.replaceAll('&amp;', '&');
-};
-
-/**
- * Parameters of {@link toImageDataUrl}.
- * @typedef {object} ToImageDataUrlParams
- * @property {Buffer} content - Content of the image file.
+ * Parameters of {@link toDataUrl}.
+ * @typedef {object} ToDataUrlParams
+ * @property {Buffer} content - Content of the file.
  * @property {string} fileName - Name or path of the file, whose extension gives the media type.
  */
 
 /**
- * Turns an image file into a data URL, so the page rendered by Chromium, which is not served
- * from the project, can show it.
- * @param {ToImageDataUrlParams} params
+ * Turns an image or a font file into a data URL, so the page rendered by Chromium, which is not
+ * served from the project, can load it.
+ * @param {ToDataUrlParams} params
  * @returns {string} The data URL, e.g. `data:image/webp;base64,UklGR…`.
- * @throws {RangeError} When the extension of the file is not one of {@link IMAGE_MEDIA_TYPES}.
+ * @throws {RangeError} When the extension of the file is not one of {@link DATA_URL_MEDIA_TYPES}.
  * @example
- * toImageDataUrl({ content: readFileSync('public/home.webp'), fileName: 'public/home.webp' });
+ * toDataUrl({ content: readFileSync('public/home.webp'), fileName: 'public/home.webp' });
  */
-export const toImageDataUrl = ({ content, fileName }) => {
+export const toDataUrl = ({ content, fileName }) => {
   const extension = extname(fileName).toLowerCase();
-  const mediaType = IMAGE_MEDIA_TYPES[/** @type {keyof IMAGE_MEDIA_TYPES} */ (extension)];
-  if (!mediaType) throw new RangeError(`Unknown image type: ${fileName}`);
+  const mediaType = DATA_URL_MEDIA_TYPES[/** @type {keyof DATA_URL_MEDIA_TYPES} */ (extension)];
+  if (!mediaType) throw new RangeError(`Unknown file type: ${fileName}`);
 
   return `data:${mediaType};base64,${content.toString('base64')}`;
 };
