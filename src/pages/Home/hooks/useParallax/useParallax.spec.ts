@@ -1,5 +1,6 @@
 import { fireEvent, renderHook } from '@testing-library/react';
 
+import { stubMatchMedia } from '../../../../mediaQueryTestUtils';
 import { PARALLAX_RESET_DURATION_MS } from '../../constants';
 import { useParallax } from './useParallax';
 
@@ -12,6 +13,7 @@ describe('useParallax', () => {
 
   afterEach(() => {
     vi.useRealTimers();
+    vi.unstubAllGlobals();
   });
 
   it('shifts the element away from the pointer', () => {
@@ -68,5 +70,50 @@ describe('useParallax', () => {
 
     expect(element.style.transform).toBe('');
     expect(element.style.transition).toContain('transform 0.9s');
+  });
+
+  describe('with reduced motion', () => {
+    it('does not shift the element, nor ease it back', () => {
+      stubMatchMedia({ matches: true });
+      const element = document.createElement('div');
+      renderHook(() => useParallax({ current: element }));
+
+      fireEvent.mouseMove(window, { clientX: 1000, clientY: 0 });
+      fireEvent.mouseLeave(document);
+
+      expect(element.style.transform).toBe('');
+      expect(element.style.transition).toBe('');
+    });
+
+    it('puts the element back once the visitor turns it on, then stops shifting it', () => {
+      const { setMatches } = stubMatchMedia({ matches: false });
+      const element = document.createElement('div');
+      renderHook(() => useParallax({ current: element }));
+      fireEvent.mouseMove(window, { clientX: 1000, clientY: 0 });
+
+      setMatches(true);
+      expect(element.style.transform).toBe('');
+
+      fireEvent.mouseMove(window, { clientX: 0, clientY: 800 });
+      expect(element.style.transform).toBe('');
+    });
+
+    it('does not fail without an element when the visitor turns it on', () => {
+      const { setMatches } = stubMatchMedia({ matches: false });
+      renderHook(() => useParallax({ current: null }));
+
+      expect(() => setMatches(true)).not.toThrow();
+    });
+
+    it('shifts the element again once the visitor turns it off', () => {
+      const { setMatches } = stubMatchMedia({ matches: true });
+      const element = document.createElement('div');
+      renderHook(() => useParallax({ current: element }));
+
+      setMatches(false);
+      fireEvent.mouseMove(window, { clientX: 1000, clientY: 0 });
+
+      expect(element.style.transform).toBe('translate(-10px, 7px)');
+    });
   });
 });

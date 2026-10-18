@@ -1,5 +1,6 @@
 import { fireEvent, render } from '@testing-library/react';
 
+import { stubMatchMedia } from '../../../mediaQueryTestUtils';
 import { SplitWords } from './SplitWords';
 
 const FRAME_MS = 16;
@@ -35,6 +36,7 @@ describe('SplitWords', () => {
     afterEach(() => {
       vi.useRealTimers();
       vi.restoreAllMocks();
+      vi.unstubAllGlobals();
     });
 
     it('leaves the words at rest while the mouse is outside the window', () => {
@@ -83,6 +85,48 @@ describe('SplitWords', () => {
       const words = getWords(container);
       expect(words).toHaveLength(3);
       words.forEach(word => expect(word.style.transform).toMatch(PUSHED_LEFT_TRANSFORM));
+    });
+
+    it('leaves the words in place with reduced motion, and requests no animation frame', () => {
+      stubMatchMedia({ matches: true });
+      const { container } = render(<SplitWords>Full-stack Developer</SplitWords>);
+
+      fireEvent.mouseMove(window, PUSHING_POINTER);
+      vi.advanceTimersByTime(FRAME_MS * 10);
+
+      getWords(container).forEach(word => {
+        expect(word.style.transform).toBe('');
+        expect(word.style.textShadow).toBe('');
+      });
+      expect(vi.getTimerCount()).toBe(0);
+    });
+
+    it('puts back the pushed words once the visitor turns reduced motion on', () => {
+      const { setMatches } = stubMatchMedia({ matches: false });
+      const { container } = render(<SplitWords>Full-stack Developer</SplitWords>);
+      fireEvent.mouseMove(window, PUSHING_POINTER);
+      vi.advanceTimersByTime(FRAME_MS);
+
+      setMatches(true);
+      vi.advanceTimersByTime(FRAME_MS * 10);
+
+      getWords(container).forEach(word => {
+        expect(word.style.transform).toBe('');
+        expect(word.style.textShadow).toBe('');
+      });
+      expect(vi.getTimerCount()).toBe(0);
+    });
+
+    it('pushes the words again, from their place, once the visitor turns it off', () => {
+      const { setMatches } = stubMatchMedia({ matches: true });
+      const { container } = render(<SplitWords>Developer</SplitWords>);
+
+      setMatches(false);
+      fireEvent.mouseMove(window, PUSHING_POINTER);
+      vi.advanceTimersByTime(FRAME_MS);
+
+      const [word] = getWords(container);
+      expect(word.style.transform).toMatch(PUSHED_LEFT_TRANSFORM);
     });
 
     it('cancels its next animation frame on unmount', () => {

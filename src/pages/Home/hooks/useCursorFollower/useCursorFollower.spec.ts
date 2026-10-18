@@ -1,5 +1,6 @@
 import { fireEvent, renderHook } from '@testing-library/react';
 
+import { stubMatchMedia } from '../../../../mediaQueryTestUtils';
 import { useCursorFollower } from './useCursorFollower';
 
 const FRAME_MS = 16;
@@ -12,6 +13,7 @@ describe('useCursorFollower', () => {
   afterEach(() => {
     vi.useRealTimers();
     vi.restoreAllMocks();
+    vi.unstubAllGlobals();
   });
 
   it('moves the element a fraction of the way to the pointer on each frame', () => {
@@ -52,5 +54,47 @@ describe('useCursorFollower', () => {
     vi.advanceTimersByTime(FRAME_MS * 10);
 
     expect(element.style.transform).toBe(transformAfterUnmount);
+  });
+
+  describe('with reduced motion', () => {
+    it('leaves the element where it is, and requests no animation frame', () => {
+      stubMatchMedia({ matches: true });
+      const element = document.createElement('div');
+      renderHook(() => useCursorFollower({ current: element }));
+
+      fireEvent.mouseMove(window, { clientX: 120, clientY: 220 });
+      vi.advanceTimersByTime(FRAME_MS * 10);
+
+      expect(element.style.transform).toBe('');
+      expect(vi.getTimerCount()).toBe(0);
+    });
+
+    it('stops following the pointer once the visitor turns it on', () => {
+      const { setMatches } = stubMatchMedia({ matches: false });
+      const element = document.createElement('div');
+      renderHook(() => useCursorFollower({ current: element }));
+      fireEvent.mouseMove(window, { clientX: 120, clientY: 220 });
+      vi.advanceTimersByTime(FRAME_MS);
+      const transformBeforeReducedMotion = element.style.transform;
+
+      setMatches(true);
+      fireEvent.mouseMove(window, { clientX: 500, clientY: 500 });
+      vi.advanceTimersByTime(FRAME_MS * 10);
+
+      expect(element.style.transform).toBe(transformBeforeReducedMotion);
+      expect(vi.getTimerCount()).toBe(0);
+    });
+
+    it('follows the pointer again once the visitor turns it off', () => {
+      const { setMatches } = stubMatchMedia({ matches: true });
+      const element = document.createElement('div');
+      renderHook(() => useCursorFollower({ current: element }));
+
+      setMatches(false);
+      fireEvent.mouseMove(window, { clientX: 120, clientY: 220 });
+      vi.advanceTimersByTime(FRAME_MS);
+
+      expect(element.style.transform).toBe('translate(-98px, -88px)');
+    });
   });
 });

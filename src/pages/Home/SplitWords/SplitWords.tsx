@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react';
 
+import { usePrefersReducedMotion } from '../../../hooks/usePrefersReducedMotion';
 import { StrongWord } from './SplitWords.styled';
 import { usePointerRef } from '../hooks/usePointerRef';
 import { NON_BREAKING_SPACE, RESTING_WORD, SHIMMER_CYCLE_S } from './constants';
@@ -21,7 +22,8 @@ interface SplitWordsProps {
 /**
  * Renders a text as separate words that the mouse pushes away and that spring back into place,
  * with a shimmering gradient. Runs a `requestAnimationFrame` loop and mouse listeners while
- * mounted, and removes them on unmount.
+ * mounted, and removes them on unmount. With reduced motion, the words stay in place, without the
+ * shimmer that `GlobalStyle` stops, and those pushed before the visitor turned it on go back.
  *
  * @example
  * <SplitWords startIndex={0}>Full-stack JavaScript Developer</SplitWords>
@@ -31,8 +33,20 @@ export const SplitWords = ({ children, startIndex = 0 }: SplitWordsProps) => {
   const wordElements = useRef<(HTMLSpanElement | null)[]>([]);
   const wordStates = useRef<WordState[]>(words.map(() => RESTING_WORD));
   const pointerRef = usePointerRef();
+  const prefersReducedMotion = usePrefersReducedMotion();
 
   useEffect(() => {
+    if (prefersReducedMotion) {
+      // Puts back the words pushed before the visitor turned reduced motion on
+      wordStates.current = wordStates.current.map(() => RESTING_WORD);
+      wordElements.current.forEach(element => {
+        if (!element) return;
+        element.style.transform = '';
+        element.style.textShadow = '';
+      });
+      return;
+    }
+
     let frame = 0;
 
     const tick = () => {
@@ -60,7 +74,7 @@ export const SplitWords = ({ children, startIndex = 0 }: SplitWordsProps) => {
 
     frame = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(frame);
-  }, [pointerRef]);
+  }, [pointerRef, prefersReducedMotion]);
 
   return (
     <>

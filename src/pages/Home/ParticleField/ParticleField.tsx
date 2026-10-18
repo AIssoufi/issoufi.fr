@@ -1,5 +1,7 @@
 import { useEffect, useRef } from 'react';
 
+import { usePrefersReducedMotion } from '../../../hooks/usePrefersReducedMotion';
+import { OFFSCREEN_POINTER } from '../constants';
 import type { Point } from '../types';
 import { usePointerRef } from '../hooks/usePointerRef';
 import { isPointerOnScreen } from '../utils';
@@ -37,11 +39,13 @@ interface DrawLinkParams {
  * Full-screen background canvas of drifting dots, linked by lines when they are close to each
  * other or to the cursor, and pushed away by the mouse. The number of dots follows the window
  * area. Runs an animation-frame loop and mouse and resize listeners while mounted, and removes
- * them on unmount. Stays empty without 2D canvas support.
+ * them on unmount. With reduced motion, the dots stand still and ignore the mouse: it draws them
+ * once, and again for each new size of the window. Stays empty without 2D canvas support.
  */
 export const ParticleField = () => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const pointerRef = usePointerRef();
+  const prefersReducedMotion = usePrefersReducedMotion();
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -52,12 +56,6 @@ export const ParticleField = () => {
     let particles: Particle[] = [];
     let frame = 0;
 
-    const resize = () => {
-      canvas.width = window.innerWidth;
-      canvas.height = window.innerHeight;
-      particles = createParticles({ width: canvas.width, height: canvas.height });
-    };
-
     const drawLink = ({ from, to, strength, maxOpacity, maxWidth }: DrawLinkParams) => {
       context.beginPath();
       context.moveTo(from.x, from.y);
@@ -67,12 +65,9 @@ export const ParticleField = () => {
       context.stroke();
     };
 
-    const tick = () => {
-      const { width, height } = canvas;
-      const pointer = pointerRef.current;
-      context.clearRect(0, 0, width, height);
-
-      particles = particles.map(particle => stepParticle({ particle, pointer, width, height }));
+    /** Draws the dots where they are, linked to each other and to the pointer when it is close. */
+    const draw = (pointer: Point) => {
+      context.clearRect(0, 0, canvas.width, canvas.height);
 
       // Index loops on purpose: this O(n²) pass runs on every frame and must not allocate
       for (let i = 0; i < particles.length; i++) {
@@ -117,19 +112,34 @@ export const ParticleField = () => {
         context.fillStyle = PARTICLE_COLOR;
         context.fill();
       });
+    };
+
+    const tick = () => {
+      const { width, height } = canvas;
+      const pointer = pointerRef.current;
+      particles = particles.map(particle => stepParticle({ particle, pointer, width, height }));
+      draw(pointer);
 
       frame = requestAnimationFrame(tick);
     };
 
+    const resize = () => {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+      particles = createParticles({ width: canvas.width, height: canvas.height });
+      // Resizing clears the canvas, which the next frame fills again, unless the dots stand still
+      if (prefersReducedMotion) draw(OFFSCREEN_POINTER);
+    };
+
     window.addEventListener('resize', resize);
     resize();
-    tick();
+    if (!prefersReducedMotion) tick();
 
     return () => {
       cancelAnimationFrame(frame);
       window.removeEventListener('resize', resize);
     };
-  }, [pointerRef]);
+  }, [pointerRef, prefersReducedMotion]);
 
   return <Canvas ref={canvasRef} />;
 };

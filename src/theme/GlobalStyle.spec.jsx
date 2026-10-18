@@ -2,8 +2,20 @@ import { render, screen } from '@testing-library/react';
 import styled, { ThemeProvider } from '@xstyled/styled-components';
 
 import { listStyleRules } from '../styleTestUtils';
+import { REDUCED_MOTION_QUERY } from './constants';
 import { GlobalStyle } from './GlobalStyle';
 import { theme } from './theme';
+
+/**
+ * Properties that the reduced motion rule sets, with the value it gives each one: a single
+ * near-zero iteration, so a loop stops, without the delay that would hide an entrance meanwhile.
+ */
+const REDUCED_MOTION_VALUES = {
+  'animation-duration': theme.durations.instant,
+  'animation-delay': '0s',
+  'animation-iteration-count': '1',
+  'transition-duration': theme.durations.instant,
+};
 
 const ContentBox = styled.div`
   box-sizing: content-box;
@@ -18,10 +30,13 @@ const renderWithGlobalStyle = children =>
     </ThemeProvider>,
   );
 
-/** Style rules of the document, outside any media query, whose selector lists all the given ones. */
-const findRulesSelecting = selectors =>
+/**
+ * Style rules of the document whose selector lists all the given ones, outside any media query by
+ * default, or in the media query of the given condition.
+ */
+const findRulesSelecting = (selectors, media = '') =>
   listStyleRules()
-    .filter(({ media }) => media === '')
+    .filter(rule => rule.media === media)
     .map(({ rule }) => rule)
     .filter(rule => {
       const ruleSelectors = rule.selectorText?.split(',').map(selector => selector.trim()) ?? [];
@@ -88,5 +103,33 @@ describe('GlobalStyle', () => {
     // The class of a component outweighs the universal selector, unless the latter is important
     expect(universalRule.style.getPropertyPriority('box-sizing')).toBe('');
     expect(getComputedStyle(screen.getByTestId('content-box')).boxSizing).toBe('content-box');
+  });
+
+  describe('with reduced motion', () => {
+    it('makes every animation and transition instant, on the elements and pseudo-elements', () => {
+      renderWithGlobalStyle();
+
+      const rules = findRulesSelecting(['*', '*::before', '*::after'], REDUCED_MOTION_QUERY);
+      expect(rules).toHaveLength(1);
+      const [rule] = rules;
+      for (const [property, value] of Object.entries(REDUCED_MOTION_VALUES)) {
+        expect(rule.style.getPropertyValue(property), property).toBe(value);
+        // The styles of a component, and the inline styles of the hooks, would win otherwise
+        expect(rule.style.getPropertyPriority(property), property).toBe('important');
+      }
+    });
+
+    it('leaves the animations and transitions alone without the preference', () => {
+      renderWithGlobalStyle();
+
+      const universalRules = findRulesSelecting(['*']);
+      const motionProperties = universalRules.flatMap(rule =>
+        Object.keys(REDUCED_MOTION_VALUES).filter(
+          property => rule.style.getPropertyValue(property) !== '',
+        ),
+      );
+      expect(universalRules).not.toHaveLength(0);
+      expect(motionProperties).toEqual([]);
+    });
   });
 });
