@@ -36,11 +36,22 @@ describe('TimelinePeriod', () => {
     ['an empty end', { start: 'Sept. 2019', end: '' }, 'Sept. 2019'],
     ['empty dates', { start: '', end: '' }, ''],
     ['null dates', { start: null, end: null }, ''],
-    ['dates of the wrong type', { start: 0, end: NaN }, ''],
+    ['falsy dates of the wrong type', { start: 0, end: NaN }, ''],
   ])('omits the arrow and the missing date with %s', (_, dates, expected) => {
     const { container } = render(<TimelinePeriod {...dates} />);
 
     expect(container.textContent).toBe(expected);
+  });
+
+  it('shows dates of another type as text', () => {
+    const { container } = render(
+      <TimelinePeriod
+        start={2019}
+        end={2021}
+      />,
+    );
+
+    expect(container.textContent).toBe('2019↓2021');
   });
 
   describe('variant', () => {
