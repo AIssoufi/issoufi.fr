@@ -1,4 +1,22 @@
-import { declaredStyle, isPublicFile, listStyleRules } from './testUtils';
+import { INTERACTIVE_SELECTOR, declaredStyle, isPublicFile, listStyleRules } from './testUtils';
+
+describe('INTERACTIVE_SELECTOR', () => {
+  afterEach(() => {
+    document.body.innerHTML = '';
+  });
+
+  it('matches the elements that take a click or the focus, and only them', () => {
+    document.body.innerHTML = `
+      <a href="/projects">link</a><button>button</button><input /><select></select>
+      <textarea></textarea><div tabindex="-1">focusable</div>
+      <a>anchor without href</a><span>text</span><img alt="" />`;
+
+    const matches = [...document.querySelectorAll(INTERACTIVE_SELECTOR)].map(
+      element => element.textContent || element.tagName,
+    );
+    expect(matches).toEqual(['link', 'button', 'INPUT', 'SELECT', 'TEXTAREA', 'focusable']);
+  });
+});
 
 describe('isPublicFile', () => {
   it('takes an absolute URL naming a file of public/', () => {
@@ -62,6 +80,23 @@ describe('declaredStyle', () => {
     expect(declaredStyle({ element: setUp({ css: '', className: '' }), property: 'margin' })).toBe(
       '',
     );
+  });
+
+  it('reads the rules of the given pseudo-element or state apart from those of the element', () => {
+    const element = setUp({
+      css: `.card { position: relative; } .card::after { position: absolute; }
+        .card::before { position: fixed; } .card:focus-visible::after { position: static; }`,
+    });
+
+    expect(declaredStyle({ element, property: 'position' })).toBe('relative');
+    expect(declaredStyle({ element, property: 'position', pseudo: '::after' })).toBe('absolute');
+    expect(declaredStyle({ element, property: 'position', pseudo: ':focus-visible::after' })).toBe(
+      'static',
+    );
+    expect(declaredStyle({ element, property: 'position', pseudo: '::marker' })).toBe('');
+    expect(declaredStyle({ element, property: 'position', pseudo: undefined })).toBe('relative');
+    expect(declaredStyle({ element, property: 'position', pseudo: null })).toBe('');
+    expect(declaredStyle({ element, property: 'position', pseudo: 42 })).toBe('');
   });
 
   it('returns an empty string for a missing element or property', () => {
