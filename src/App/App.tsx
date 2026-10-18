@@ -7,6 +7,7 @@ import { GlobalStyle, theme } from '../theme';
 import DocumentMeta from './DocumentMeta';
 import Header from './Header';
 import { useReloadOnStaleChunk } from './hooks/useReloadOnStaleChunk';
+import PageHeadingFocus from './PageHeadingFocus';
 import RouteErrorBoundary from './RouteErrorBoundary';
 import { keepPendingWhileReloading } from './utils';
 
@@ -27,7 +28,8 @@ const NotFound = lazy(() => import('../pages/NotFound').then(keepPendingWhileRel
  * requested URL, without redirecting. Reloads the page once when a page was deployed again
  * since it was opened (see {@link useReloadOnStaleChunk}). A page that fails to render or to
  * load shows an error with a reload button below the header, which stays usable
- * (see {@link RouteErrorBoundary}).
+ * (see {@link RouteErrorBoundary}). After a navigation by link, the heading of the new page takes
+ * the keyboard focus (see {@link PageHeadingFocus}).
  */
 function App() {
   useReloadOnStaleChunk();
@@ -59,6 +61,7 @@ function App() {
                   element={<NotFound />}
                 />
               </Routes>
+              <PageHeadingFocus />
             </Suspense>
           </RouteErrorBoundary>
         </WebApp>

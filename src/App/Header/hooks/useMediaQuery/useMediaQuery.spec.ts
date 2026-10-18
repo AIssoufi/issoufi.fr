@@ -5,6 +5,7 @@ import { renderToString } from 'react-dom/server';
 import { useMediaQuery } from './useMediaQuery';
 
 const DESKTOP_QUERY = '(min-width: 50em)';
+const WIDE_QUERY = '(min-width: 100em)';
 
 /**
  * Replaces `window.matchMedia`, which jsdom lacks, with a stub whose queries match while
@@ -59,9 +60,9 @@ describe('useMediaQuery', () => {
       initialProps: { query: DESKTOP_QUERY },
     });
 
-    rerender({ query: '(min-width: 100em)' });
+    rerender({ query: WIDE_QUERY });
 
-    expect(matchMedia).toHaveBeenLastCalledWith('(min-width: 100em)');
+    expect(matchMedia).toHaveBeenLastCalledWith(WIDE_QUERY);
   });
 
   it('stops listening on unmount', () => {
@@ -100,6 +101,109 @@ describe('useMediaQuery', () => {
     const Probe = () => String(useMediaQuery({ query: DESKTOP_QUERY }));
 
     expect(renderToString(createElement(Probe))).toBe('false');
+  });
+
+  describe('onChange', () => {
+    it('is called with the new result when the query starts or stops matching', () => {
+      const { setMatches } = stubMatchMedia({ matches: false });
+      const onChange = vi.fn();
+      renderHook(() => useMediaQuery({ query: DESKTOP_QUERY, onChange }));
+
+      setMatches(true);
+      setMatches(false);
+
+      expect(onChange.mock.calls).toEqual([[true], [false]]);
+    });
+
+    it('is not called for the first render', () => {
+      stubMatchMedia({ matches: true });
+      const onChange = vi.fn();
+
+      renderHook(() => useMediaQuery({ query: DESKTOP_QUERY, onChange }));
+
+      expect(onChange).not.toHaveBeenCalled();
+    });
+
+    it('calls the latest callback, without listening again', () => {
+      const { mediaQueryList, setMatches } = stubMatchMedia({ matches: false });
+      const firstOnChange = vi.fn();
+      const latestOnChange = vi.fn();
+      const { rerender } = renderHook(props => useMediaQuery(props), {
+        initialProps: { query: DESKTOP_QUERY, onChange: firstOnChange },
+      });
+      const listenerCount = mediaQueryList.addEventListener.mock.calls.length;
+
+      rerender({ query: DESKTOP_QUERY, onChange: latestOnChange });
+      setMatches(true);
+
+      expect(firstOnChange).not.toHaveBeenCalled();
+      expect(latestOnChange).toHaveBeenCalledWith(true);
+      expect(mediaQueryList.addEventListener).toHaveBeenCalledTimes(listenerCount);
+    });
+
+    it('listens to the new query only when the query changes', () => {
+      // One list of listeners per query, so that a change of one query reaches only its own
+      const listenersByQuery = new Map<string, Set<() => void>>();
+      vi.stubGlobal('matchMedia', (query: string) => {
+        const listeners = listenersByQuery.get(query) ?? new Set<() => void>();
+        listenersByQuery.set(query, listeners);
+        return {
+          matches: false,
+          addEventListener: (_type: string, listener: () => void) => listeners.add(listener),
+          removeEventListener: (_type: string, listener: () => void) => listeners.delete(listener),
+        };
+      });
+      const fireChange = (query: string) =>
+        act(() => listenersByQuery.get(query)?.forEach(listener => listener()));
+      const onChange = vi.fn();
+      const { rerender } = renderHook(props => useMediaQuery(props), {
+        initialProps: { query: DESKTOP_QUERY, onChange },
+      });
+
+      rerender({ query: WIDE_QUERY, onChange });
+      fireChange(DESKTOP_QUERY);
+      expect(onChange).not.toHaveBeenCalled();
+
+      fireChange(WIDE_QUERY);
+      expect(onChange).toHaveBeenCalledWith(false);
+    });
+
+    it('is no longer called after unmount', () => {
+      const { setMatches } = stubMatchMedia({ matches: false });
+      const onChange = vi.fn();
+      const { unmount } = renderHook(() => useMediaQuery({ query: DESKTOP_QUERY, onChange }));
+
+      unmount();
+      setMatches(true);
+
+      expect(onChange).not.toHaveBeenCalled();
+    });
+
+    it('is optional', () => {
+      const { setMatches } = stubMatchMedia({ matches: false });
+      const { result } = renderHook(() => useMediaQuery({ query: DESKTOP_QUERY }));
+
+      expect(() => setMatches(true)).not.toThrow();
+      expect(result.current).toBe(true);
+    });
+
+    it('is never called where matchMedia does not exist', () => {
+      vi.stubGlobal('matchMedia', undefined);
+      const onChange = vi.fn();
+
+      const { unmount } = renderHook(() => useMediaQuery({ query: DESKTOP_QUERY, onChange }));
+
+      expect(() => unmount()).not.toThrow();
+      expect(onChange).not.toHaveBeenCalled();
+    });
+
+    it('does not listen to an empty query', () => {
+      const { matchMedia } = stubMatchMedia({ matches: true });
+
+      renderHook(() => useMediaQuery({ query: '', onChange: vi.fn() }));
+
+      expect(matchMedia).not.toHaveBeenCalled();
+    });
   });
 
   it('returns false without any parameter', () => {
