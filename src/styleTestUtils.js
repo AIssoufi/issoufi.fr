@@ -26,9 +26,9 @@ export const listStyleRules = () =>
  * @param {string} [params.pseudo] - Pseudo-classes and pseudo-element that follow the class in the
  * selector of the rules to read, such as `::after` or `:focus-visible::after`; `''` for the rules
  * of the element itself.
- * @returns {string} The value as the CSSOM serializes it, like a browser: a length of `0` becomes `0px`, and
- * `calc(24px - 5px)` becomes `calc(19px)` (see {@link serializeCssValue}). `''` when no rule
- * declares it, when the element is missing, or when `property` or `pseudo` is not a string.
+ * @returns {string} The value as the CSSOM serializes it, like a browser: a length of `0` becomes
+ * `0px`, and `calc(24px - 5px)` becomes `calc(19px)` (see {@link serializeCssValue}). `''` when no
+ * rule declares it, when the element is missing, or when `property` or `pseudo` is not a string.
  *
  * @example
  * declaredStyle({ element: grid, property: 'display', media: '(min-width: 50em)' }); // 'grid'
@@ -52,11 +52,12 @@ export const declaredStyle = ({ element, property, media = '', pseudo = '' } = {
 
 /**
  * A CSS value as the CSSOM serializes it, so that a test can compare it with what
- * {@link declaredStyle} returns: a length of `0` becomes `0px`, and a `calc()` whose terms share a unit is
- * reduced to its result.
+ * {@link declaredStyle} returns: a length of `0` becomes `0px`, and a `calc()` whose terms share a
+ * unit is reduced to its result.
  *
  * @param {object} params
- * @param {string} [params.property] - CSS property the value is written for, such as `padding-left`.
+ * @param {string} [params.property] - CSS property the value is written for, such as
+ * `padding-left`.
  * @param {string} [params.value] - Value as written in the styles, such as `calc(24px - 5px)`.
  * @returns {string} `''` when the value is invalid for the property, or when either is missing or
  * not a string.

@@ -190,8 +190,10 @@ The version follows the commits: `fix` bumps the patch version, `feat` the minor
 │   ├── theme/            # Design tokens (tokens.ts, theme.ts) and global styles
 │   │   └── testUtils.js  # findRawValues, which the theme spec runs on every style file
 │   ├── utils/            # Career dates and page metadata helpers
+│   ├── cssRuleGuard.ts   # logDroppedCssRules: fails a test whose component inserts a CSS rule that browsers drop
 │   ├── index.tsx         # Entry point
 │   ├── setupTests.ts     # Test setup: theme around every render, no canvas, fails on console.error
+│   ├── styleTestUtils.js # listStyleRules, declaredStyle, serializeCssValue: the declared styles, read through the CSSOM
 │   ├── testErrors.ts     # describeLoggedErrors: the failure message of a test that logs an error
 │   └── testUtils.tsx     # withTheme: the theme and global styles wrapper of the tests
 ├── vite/                 # Helpers of vite.config.ts and playwright.config.ts: dev and preview ports, chunk names, page chunks
