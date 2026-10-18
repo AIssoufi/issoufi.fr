@@ -40,6 +40,10 @@ export const en = {
   langToggle: {
     label: 'Language',
   },
+  burgerMenu: {
+    open: 'Open menu',
+    close: 'Close menu',
+  },
   home: {
     title1: 'Full-stack JavaScript Developer',
     title2Pre: 'passionate about ',
