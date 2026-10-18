@@ -70,7 +70,7 @@ pnpm test:watch      # Watch mode
 pnpm test:coverage   # Single run with coverage, HTML report in coverage/index.html
 ```
 
-Tests are `*.spec.jsx` (components), `*.spec.ts` (helpers and hooks, those of `e2e/` included) and `*.spec.js` (helpers of the scripts of `scripts/` and the test helpers of `src/pages/testUtils.js`) files next to the code they test. Every component has one. `vite.config.spec.ts` builds the site in memory, with the real config, and checks the generated pages. `pnpm test:coverage` fails when the coverage of `src/`, of the Vite config helpers (`vite/`), of the browser test helpers (`e2e/`) and of the script helpers (`scripts/ci/utils/` and `scripts/og-image/utils/`) drops below the thresholds of `vite.config.ts` (`COVERAGE_THRESHOLDS_PERCENT`).
+Tests are `*.spec.jsx` (components), `*.spec.ts` (helpers and hooks, those of `e2e/` included) and `*.spec.js` (helpers of the scripts of `scripts/` and the test helpers of `src/pages/testUtils.js` and `src/App/testUtils.js`) files next to the code they test. Every component has one. `vite.config.spec.ts` builds the site in memory, with the real config, and checks the generated pages. `src/setupTests.ts` renders every component in the theme and global styles of the app (`src/testUtils.tsx`), so the styles hold the values of the tokens, gives no canvas context, as jsdom has none, and fails a test that logs an error with `console.error`, such as a React warning, so the output stays clean. `pnpm test:coverage` fails when the coverage of `src/`, of the Vite config helpers (`vite/`), of the browser test helpers (`e2e/`) and of the script helpers (`scripts/ci/utils/` and `scripts/og-image/utils/`) drops below the thresholds of `vite.config.ts` (`COVERAGE_THRESHOLDS_PERCENT`).
 
 ### Browser tests
 
@@ -171,7 +171,8 @@ The version follows the commits: `fix` bumps the patch version, `feat` the minor
 │   │   ├── hooks/        # useReloadOnStaleChunk: reloads once when a deployment removed a chunk
 │   │   ├── PageHeadingFocus/ # Gives the keyboard focus to the h1 of the new page after a link
 │   │   ├── RouteErrorBoundary/ # Error message with a reload button in place of a page that fails
-│   │   └── Header/       # Logo, navigation, burger menu and LangToggle/ (FR / EN switch)
+│   │   ├── Header/       # Logo, navigation, burger menu and LangToggle/ (FR / EN switch)
+│   │   └── testUtils.js  # waitForBurgerIcon, shared by the specs that render the burger menu
 │   ├── components/       # Components shared across pages
 │   │   ├── List/         # <ul role="list"> of every list, extended with styled(List)
 │   │   ├── Page/         # <main> landmark of every page, extended with styled(Page)
@@ -186,7 +187,10 @@ The version follows the commits: `fix` bumps the patch version, `feat` the minor
 │   │   └── testUtils.js  # Helpers shared by the page tests, e.g. isPublicFile
 │   ├── theme/            # Design tokens (tokens.ts, theme.ts) and global styles
 │   ├── utils/            # Career dates and page metadata helpers
-│   └── index.tsx         # Entry point
+│   ├── index.tsx         # Entry point
+│   ├── setupTests.ts     # Test setup: theme around every render, no canvas, fails on console.error
+│   ├── testErrors.ts     # describeLoggedErrors: the failure message of a test that logs an error
+│   └── testUtils.tsx     # withTheme: the theme and global styles wrapper of the tests
 ├── vite/                 # Helpers of vite.config.ts and playwright.config.ts: dev and preview ports, chunk names, page chunks
 ├── index.html            # HTML template of every page, filled at build time by vite.config.ts
 ├── playwright.config.ts  # Playwright: Chromium, on pnpm preview at the port of the worktree

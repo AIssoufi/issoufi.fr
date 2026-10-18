@@ -1,9 +1,10 @@
-import { act, render, screen, waitFor } from '@testing-library/react';
+import { act, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import lottie from 'lottie-web/build/player/lottie_light';
 import { BrowserRouter as Router } from 'react-router';
 
 import i18n from '../../i18n';
+import { waitForBurgerIcon } from '../testUtils';
 import Header from './Header';
 
 /**
@@ -12,7 +13,7 @@ import Header from './Header';
  * outside `act` after the test.
  */
 const renderHeader = async () => {
-  const loadAnimation = vi.spyOn(lottie, 'loadAnimation');
+  vi.spyOn(lottie, 'loadAnimation');
   render(
     <Router>
       <Header testId="header" />
@@ -21,7 +22,7 @@ const renderHeader = async () => {
       </main>
     </Router>,
   );
-  await waitFor(() => expect(loadAnimation).toHaveBeenCalled());
+  await waitForBurgerIcon();
 };
 
 /**

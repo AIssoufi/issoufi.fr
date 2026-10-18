@@ -1,14 +1,10 @@
 import { render, screen } from '@testing-library/react';
-import { ThemeProvider } from '@xstyled/styled-components';
 
-import { theme } from '../../../theme';
 import TimelinePeriod from './TimelinePeriod';
 
 /** Color of the start of a job's period, and of a role's dimmer one. */
 const JOB_START_COLOR = 'rgba(212, 160, 192, 0.95)';
 const ROLE_START_COLOR = 'rgba(212, 160, 192, 0.85)';
-
-const renderWithTheme = element => render(<ThemeProvider theme={theme}>{element}</ThemeProvider>);
 
 describe('TimelinePeriod', () => {
   it('renders an empty column without any props', () => {
@@ -61,7 +57,7 @@ describe('TimelinePeriod', () => {
       ['unknown', JOB_START_COLOR],
       ['', JOB_START_COLOR],
     ])('colors the start of the %j variant in %s', (variant, color) => {
-      renderWithTheme(
+      render(
         <TimelinePeriod
           variant={variant}
           start="juin 2021"
@@ -74,7 +70,7 @@ describe('TimelinePeriod', () => {
     });
 
     it('renders the period of a job by default', () => {
-      renderWithTheme(<TimelinePeriod start="Sept. 2019" />);
+      render(<TimelinePeriod start="Sept. 2019" />);
 
       expect(screen.getByText('Sept. 2019')).toHaveStyle({ color: JOB_START_COLOR });
     });

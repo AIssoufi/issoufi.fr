@@ -13,14 +13,6 @@ const renderHome = () =>
   );
 
 describe('Home', () => {
-  beforeEach(() => {
-    vi.spyOn(HTMLCanvasElement.prototype, 'getContext').mockReturnValue(null);
-  });
-
-  afterEach(() => {
-    vi.restoreAllMocks();
-  });
-
   it('renders the job title and the subtitle', () => {
     renderHome();
 
