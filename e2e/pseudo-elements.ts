@@ -71,8 +71,9 @@ interface GetMarkedPseudoElementQuadsParams {
  * attribute are ignored.
  *
  * @returns The `border` quad of each pseudo-element drawn, those of `::before` first, then those
- * of `::after`, each in the order of the elements in the page. It rejects when the protocol does,
- * as for an attribute that makes an invalid selector.
+ * of `::after`, each in the order of the elements in the page.
+ * @throws Rejects with the error of the protocol when one of its commands fails, as for an
+ * attribute that makes an invalid selector.
  *
  * @example
  * const session = await page.context().newCDPSession(page);
