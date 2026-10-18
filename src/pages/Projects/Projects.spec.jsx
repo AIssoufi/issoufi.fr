@@ -95,6 +95,19 @@ describe('Projects', () => {
     expect(screen.getByText('Jeu d’échecs')).toBeInTheDocument();
   });
 
+  it.each(['Trouillet Décors', 'Y-YServicies'])(
+    'shows the client %s with the spelling confirmed by the site owner',
+    async name => {
+      render(<Projects />);
+      for (const showAllButton of screen.getAllByText(/^Tout afficher/)) {
+        await userEvent.click(showAllButton);
+      }
+
+      expect(screen.getByText(name)).toBeInTheDocument();
+      expect(screen.getByRole('img', { name })).toBeInTheDocument();
+    },
+  );
+
   it('links every project that has a url, with no interactive element inside a link', async () => {
     render(<Projects />);
     for (const showAllButton of screen.getAllByText(/^Tout afficher/)) {
