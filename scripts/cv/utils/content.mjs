@@ -1,115 +1,17 @@
 // @ts-check
 import { PAGE_TITLE_SEPARATOR } from '../../utils/constants.mjs';
-import {
-  DETAILS_SEPARATOR,
-  EMAIL_PATTERN,
-  LINK_PROTOCOLS,
-  MAILTO_PREFIX,
-  TRAILING_SLASHES_PATTERN,
-  WEB_PROTOCOLS,
-  WWW_PREFIX,
-} from '../constants.mjs';
+import { DETAILS_SEPARATOR, EMAIL_PATTERN, MAILTO_PREFIX } from '../constants.mjs';
+import { toLinkText, toLinkUrl } from './links.mjs';
 
-/** @typedef {import('../../utils/home-texts.mjs').HomeTexts} HomeTexts */
-/** @typedef {import('../../utils/home-texts.mjs').TextSegment} TextSegment */
-
-/**
- * Translates a key of the JSON data in the language of the CV.
- * @typedef {(key: unknown) => string} Translate
- */
-
-/**
- * A piece of a paragraph of the CV.
- * @typedef {object} CvTextSegment
- * @property {string} text - Text of the piece.
- * @property {boolean} isStrong - Whether it is in bold, as a client name.
- */
-
-/**
- * A project carried out within a role.
- * @typedef {object} CvProject
- * @property {string} title - Name of the project.
- * @property {string} state - Its status, e.g. "En production", `''` without one.
- * @property {CvTextSegment[]} description - Its description, piece by piece.
- * @property {string[]} bullets - Bullet points under the description.
- * @property {string[]} technologies - Technologies of the project.
- */
-
-/**
- * One job at a company.
- * @typedef {object} CvRole
- * @property {string} title - Job title.
- * @property {string} start - Start of the job, e.g. "juin 2021".
- * @property {string} end - End of the job, or "Aujourd’hui".
- * @property {CvTextSegment[]} intro - Introduction of the role, piece by piece.
- * @property {string[]} bullets - Bullet points under the introduction.
- * @property {CvProject[]} projects - Projects of the role.
- * @property {string[]} technologies - Technologies of the role.
- */
-
-/**
- * One company of the experiences, with its roles, most recent first.
- * @typedef {object} CvExperience
- * @property {string} company - Name of the company.
- * @property {string} details - Contract type and city, e.g. "CDI · Paris (75)".
- * @property {CvRole[]} roles - Roles at the company.
- */
-
-/**
- * A contact detail of the header, or a link of the CV.
- * @typedef {object} CvLink
- * @property {string} text - Text written on the CV.
- * @property {string} url - URL it opens, `''` for a text that is not a link, such as a city.
- */
-
-/**
- * A project of the Projects page.
- * @typedef {object} CvProjectItem
- * @property {string} name - Name of the project, or of the client.
- * @property {string} type - Kind of project, e.g. "Site vitrine".
- * @property {string[]} tools - Technologies of the project.
- * @property {string} url - URL of the project, `''` without one.
- */
-
-/**
- * A group of projects, personal or freelance.
- * @typedef {object} CvProjectGroup
- * @property {string} title - Title of the group, e.g. "Projets freelance".
- * @property {CvProjectItem[]} items - Projects of the group.
- */
-
-/**
- * A degree of the education.
- * @typedef {object} CvDegree
- * @property {string} degree - Name of the degree.
- * @property {string} period - Years of study, e.g. "2016 – 2019".
- * @property {string} school - School or university.
- * @property {string} description - What it taught, `''` without one.
- */
-
-/**
- * A section of the CV that lists texts or entries under a title.
- * @template Item
- * @typedef {object} CvSection
- * @property {string} title - Title of the section.
- * @property {Item[]} items - Its entries, in order.
- */
-
-/**
- * Everything the CV writes, in one language.
- * @typedef {object} CvContent
- * @property {string} language - Code of the language, e.g. `fr`.
- * @property {string} title - Title of the document, e.g. "CV - ADAM Issoufi".
- * @property {string} name - Name of the site's author.
- * @property {string} jobTitle - Job title.
- * @property {TextSegment[]} passion - Line about UX and UI design, as on the home page.
- * @property {string} subtitle - Line under it, as on the home page.
- * @property {CvLink[]} contacts - Contact details, links or not.
- * @property {CvSection<CvExperience>} experiences - Experiences of the Experiences page.
- * @property {CvSection<CvProjectGroup>} projects - Freelance then personal projects.
- * @property {CvSection<string>} skills - Skills, from the data of the CV.
- * @property {CvSection<CvDegree>} education - Degrees, from the data of the CV.
- */
+/** @typedef {import('./types.mjs').CvContent} CvContent */
+/** @typedef {import('./types.mjs').CvDegree} CvDegree */
+/** @typedef {import('./types.mjs').CvExperience} CvExperience */
+/** @typedef {import('./types.mjs').CvLink} CvLink */
+/** @typedef {import('./types.mjs').CvProjectItem} CvProjectItem */
+/** @typedef {import('./types.mjs').CvRole} CvRole */
+/** @typedef {import('./types.mjs').CvTextSegment} CvTextSegment */
+/** @typedef {import('./types.mjs').HomeTexts} HomeTexts */
+/** @typedef {import('./types.mjs').Translate} Translate */
 
 /**
  * Reads a text of the data, so a missing or misspelled field gives an empty text instead of a
@@ -146,37 +48,6 @@ const toEntries = value => (Array.isArray(value) ? value.filter(isEntry) : []);
  * @returns {string[]} Its texts that hold more than spaces, or none when it is not a list.
  */
 const toTexts = value => (Array.isArray(value) ? value.map(toText).filter(isFilled) : []);
-
-/**
- * Reads a URL of the data that the CV can write as a link.
- * @param {unknown} value - URL to read.
- * @returns {string} The URL, or `''` when it is not a URL, or its scheme is not one of
- * {@link LINK_PROTOCOLS}, as `javascript:`.
- */
-export const toLinkUrl = value => {
-  const url = toText(value);
-  const isLink = URL.canParse(url) && LINK_PROTOCOLS.has(new URL(url).protocol);
-  return isLink ? url : '';
-};
-
-/**
- * Writes a web address the way people read it: without its scheme, `www.` and the slash that
- * ends it.
- * @param {unknown} value - Web address, e.g. `https://www.linkedin.com/in/issoufiadam/`.
- * @returns {string} The address to write, e.g. `linkedin.com/in/issoufiadam`, or `''` when it is
- * not a web address.
- * @example
- * toLinkText('https://github.com/AIssoufi'); // 'github.com/AIssoufi'
- */
-export const toLinkText = value => {
-  const url = toLinkUrl(value);
-  const isWebAddress = url !== '' && WEB_PROTOCOLS.has(new URL(url).protocol);
-  if (!isWebAddress) return '';
-
-  const { host, pathname } = new URL(url);
-  const domain = host.startsWith(WWW_PREFIX) ? host.slice(WWW_PREFIX.length) : host;
-  return `${domain}${pathname}`.replace(TRAILING_SLASHES_PATTERN, '');
-};
 
 /**
  * Parameters of {@link translateSegments}.
@@ -297,18 +168,15 @@ const buildDegrees = education =>
  * @property {Record<string, any>} contact - Contact details shared by every language, `contact`
  * of `scripts/cv/.data/cv.json`.
  * @property {Record<string, any>} texts - Texts of the data of the CV in the language.
- * @property {string} siteUrl - URL of the home page of the site in the language.
- * @property {string} siteDomain - Domain of the site, written for that link.
- * @property {unknown} gitHubUrl - GitHub profile of the site owner.
  */
 
 /**
- * Lists the contact details of the header: email, phone, city, mobility, then the links to the
- * site, LinkedIn and GitHub.
+ * Lists the contact details of the header: email, phone, city and mobility.
  * @param {BuildContactsParams} params
- * @returns {CvLink[]} The details whose text is filled, in that order.
+ * @returns {CvLink[]} The details whose text is filled, in that order, the email address and the
+ * phone number as links.
  */
-const buildContacts = ({ contact, texts, siteUrl, siteDomain, gitHubUrl }) => {
+const buildContacts = ({ contact, texts }) => {
   const email = toText(contact.email);
   const isEmailAddress = EMAIL_PATTERN.test(email);
 
@@ -317,11 +185,31 @@ const buildContacts = ({ contact, texts, siteUrl, siteDomain, gitHubUrl }) => {
     { text: toText(texts.phone), url: toLinkUrl(contact.phoneUrl) },
     { text: toText(texts.location), url: '' },
     { text: toText(texts.mobility), url: '' },
+  ].filter(({ text }) => isFilled(text));
+};
+
+/**
+ * Parameters of {@link buildProfiles}.
+ * @typedef {object} BuildProfilesParams
+ * @property {Record<string, any>} contact - Contact details shared by every language, `contact`
+ * of `scripts/cv/.data/cv.json`.
+ * @property {string} siteUrl - URL of the home page of the site in the language.
+ * @property {string} siteDomain - Domain of the site, written for that link.
+ * @property {unknown} gitHubUrl - GitHub profile of the site owner.
+ */
+
+/**
+ * Lists the links of the header to the site and the profiles of the site owner: the site,
+ * LinkedIn and GitHub.
+ * @param {BuildProfilesParams} params
+ * @returns {CvLink[]} The links whose text is filled, in that order.
+ */
+const buildProfiles = ({ contact, siteUrl, siteDomain, gitHubUrl }) =>
+  [
     { text: siteDomain, url: toLinkUrl(siteUrl) },
     { text: toLinkText(contact.linkedInUrl), url: toLinkUrl(contact.linkedInUrl) },
     { text: toLinkText(gitHubUrl), url: toLinkUrl(gitHubUrl) },
   ].filter(({ text }) => isFilled(text));
-};
 
 /**
  * Parameters of {@link buildCvContent}.
@@ -341,7 +229,7 @@ const buildContacts = ({ contact, texts, siteUrl, siteDomain, gitHubUrl }) => {
 
 /**
  * Gathers everything the CV of one language writes: the name and the job title of the home page,
- * the contact details, the experiences of the Experiences page, the projects of the Projects page,
+ * the contact details and the links to the site and the profiles of its owner, the experiences of the Experiences page, the projects of the Projects page,
  * and the skills and the education of the data of the CV, which the site does not show.
  * @param {BuildCvContentParams} params
  * @returns {CvContent} The content, with empty texts where the data or a translation lacks one.
@@ -371,7 +259,8 @@ export const buildCvContent = ({
     jobTitle: homeTexts.jobTitle,
     passion: homeTexts.passion,
     subtitle: homeTexts.subtitle,
-    contacts: buildContacts({ contact, texts, siteUrl, siteDomain: homeTexts.site, gitHubUrl }),
+    contacts: buildContacts({ contact, texts }),
+    profiles: buildProfiles({ contact, siteUrl, siteDomain: homeTexts.site, gitHubUrl }),
     experiences: {
       title: translate('exp.pageTitle'),
       items: buildExperiences({ translate, experiences }),

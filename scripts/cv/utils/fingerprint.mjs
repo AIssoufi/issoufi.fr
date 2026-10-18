@@ -3,7 +3,7 @@ import { createHash } from 'node:crypto';
 
 import { FINGERPRINT_ALGORITHM } from '../constants.mjs';
 
-/** @typedef {import('./content.mjs').CvContent} CvContent */
+/** @typedef {import('./types.mjs').CvContent} CvContent */
 
 /**
  * Computes the fingerprint of the content of a CV: two contents get the same one only when they

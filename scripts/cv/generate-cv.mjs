@@ -6,19 +6,21 @@
 // which the site does not show. Run `pnpm cv` after changing one of them, then commit the PDFs and
 // the fingerprints of their content (scripts/cv/fingerprints.json): scripts/cv/cvs.spec.js fails
 // while a CV no longer says what the site says. Chromium, from Playwright, prints each CV, in the
-// fonts and colors of the site. It needs the network, for the Google Fonts of the site.
+// font and colors of the site: the static font files of scripts/cv/fonts, so it needs no network.
 import { readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 
 import { chromium } from '@playwright/test';
 
 import { checkFontsLoaded } from '../utils/browser.mjs';
-import { INDEX_HTML_FILE, PUBLIC_DIR, TRANSLATION_MODULES } from '../utils/constants.mjs';
+import { PUBLIC_DIR, TRANSLATION_MODULES } from '../utils/constants.mjs';
 import { getFirstFontFamily, listFontsInUse } from '../utils/fonts.mjs';
-import { findFontStylesheetUrl, hasUnresolvedValue } from '../utils/html.mjs';
+import { hasUnresolvedValue } from '../utils/html.mjs';
 import { loadSiteModules } from '../utils/site-modules.mjs';
 import {
   CV_FINGERPRINTS_FILE,
+  CV_FONT_FILES,
+  CV_FONTS_DIR,
   CV_MAX_BYTES,
   CV_MAX_PAGES,
   DATA_MODULES,
@@ -26,30 +28,12 @@ import {
   SOURCE_MODULES,
 } from './constants.mjs';
 import { getCvFingerprint } from './utils/fingerprint.mjs';
-import { hasOnlyStaticFonts } from './utils/fonts.mjs';
+import { renderFontFaces, toFontDataUrl } from './utils/fonts.mjs';
 import { buildCvContents } from './utils/languages.mjs';
 import { findPdfProblems, readPdf } from './utils/pdf.mjs';
-import { renderCvHtml, renderCvStyles } from './utils/template.mjs';
+import { renderCvStyles } from './utils/styles.mjs';
+import { renderCvHtml } from './utils/template.mjs';
 import { findMissingCvTexts, listCvLinks, listCvTexts } from './utils/texts.mjs';
-
-/**
- * Downloads the style sheet of the Google Fonts of the site. Google Fonts sends static TrueType
- * files to a client it does not know as a browser, as Node.js, which Chromium embeds in the PDF
- * as TrueType fonts, whose text every reader can select.
- * @param {string} url - Google Fonts style sheet of `index.html`.
- * @returns {Promise<string>} Its `@font-face` rules.
- * @throws {Error} When the network is down, or the style sheet holds other files.
- */
-const fetchStaticFontFaces = async url => {
-  const response = await fetch(url);
-  if (!response.ok) throw new Error(`Google Fonts answered ${response.status} for ${url}`);
-
-  const css = await response.text();
-  if (!hasOnlyStaticFonts(css)) {
-    throw new Error(`Google Fonts sent other files than static TrueType ones: ${url}`);
-  }
-  return css;
-};
 
 /**
  * Parameters of {@link printPdf}.
@@ -65,7 +49,7 @@ const fetchStaticFontFaces = async url => {
  * links clickable.
  * @param {PrintPdfParams} params
  * @returns {Promise<Buffer>} The PDF file.
- * @throws {Error} When a font did not load, as when the network is down.
+ * @throws {Error} When a font did not load, as when a weight of the CV has no file.
  */
 const printPdf = async ({ html, fonts }) => {
   const browser = await chromium.launch();
@@ -119,9 +103,14 @@ const styles = renderCvStyles(theme);
 // The theme is read untyped: a renamed token shows as undefined
 if (hasUnresolvedValue(styles)) throw new Error('A design token of the CV is missing');
 
-const fontStylesheetUrl = findFontStylesheetUrl(readFileSync(INDEX_HTML_FILE, 'utf-8'));
-if (!fontStylesheetUrl) throw new Error(`No Google Fonts style sheet in ${INDEX_HTML_FILE}`);
-const fontFaces = await fetchStaticFontFaces(fontStylesheetUrl);
+const fontFamily = getFirstFontFamily(theme.fonts.body);
+const fontFaces = renderFontFaces({
+  family: fontFamily,
+  faces: Object.entries(CV_FONT_FILES).map(([weight, fileName]) => ({
+    weight: theme.fontWeights[weight],
+    url: toFontDataUrl(readFileSync(join(CV_FONTS_DIR, fileName))),
+  })),
+});
 const fonts = listFontsInUse({ theme, fontsInUse: FONTS_IN_USE });
 
 /** @type {{ fileName: string, file: Buffer }[]} */
@@ -137,7 +126,7 @@ for (const content of contents) {
     maxPages: CV_MAX_PAGES,
     texts: listCvTexts(content),
     links: listCvLinks(content),
-    fontFamily: getFirstFontFamily(theme.fonts.body),
+    fontFamily,
   });
   if (problems.length > 0) {
     throw new Error(`${fileName} would be wrong:\n- ${problems.join('\n- ')}`);

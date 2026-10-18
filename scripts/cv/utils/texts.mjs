@@ -1,7 +1,7 @@
 // @ts-check
 
-/** @typedef {import('./content.mjs').CvContent} CvContent */
-/** @typedef {import('./content.mjs').CvTextSegment} CvTextSegment */
+/** @typedef {import('./types.mjs').CvContent} CvContent */
+/** @typedef {import('./types.mjs').CvTextSegment} CvTextSegment */
 
 /**
  * Writes a paragraph made of pieces as one text.
@@ -33,6 +33,7 @@ export const listCvTexts = content => {
     joinSegments(content.passion),
     content.subtitle,
     ...content.contacts.map(({ text }) => text),
+    ...content.profiles.map(({ text }) => text),
     experiences.title,
     ...experiences.items.flatMap(({ company, details, roles }) => [
       company,
@@ -72,13 +73,13 @@ export const listCvTexts = content => {
 };
 
 /**
- * Lists every link of the CV: the contact details that are links, and the projects that have a
- * URL.
+ * Lists every link of the CV: the contact details that are links, the site and the profiles of
+ * its owner, and the projects that have a URL.
  * @param {CvContent} content - Content of the CV, from `buildCvContent`.
  * @returns {string[]} The URLs, in the order of the page.
  */
 export const listCvLinks = content => [
-  ...content.contacts.map(({ url }) => url).filter(Boolean),
+  ...[...content.contacts, ...content.profiles].map(({ url }) => url).filter(Boolean),
   ...content.projects.items.flatMap(({ items }) => items.map(({ url }) => url).filter(Boolean)),
 ];
 
@@ -137,6 +138,7 @@ export const findMissingCvTexts = content => {
   /** @type {[string, unknown[]][]} */
   const requiredLists = [
     ['contacts', content.contacts],
+    ['profiles', content.profiles],
     ['experiences.items', content.experiences.items],
     ['skills.items', content.skills.items],
     ['education.items', content.education.items],

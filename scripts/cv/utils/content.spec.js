@@ -1,10 +1,4 @@
-import {
-  buildCvContent,
-  buildExperiences,
-  buildProjectItems,
-  toLinkText,
-  toLinkUrl,
-} from './content.mjs';
+import { buildCvContent, buildExperiences, buildProjectItems } from './content.mjs';
 
 /** Translations of a tiny site, by key. */
 const TEXTS = {
@@ -105,49 +99,6 @@ const PARAMS = {
   siteUrl: 'https://issoufi.fr/',
   gitHubUrl: 'https://github.com/AIssoufi',
 };
-
-describe('toLinkUrl', () => {
-  it.each([
-    'https://issoufi.fr/en/',
-    'http://localhost:4173',
-    'mailto:adam@example.com',
-    'tel:+33600000000',
-  ])('keeps %s', url => {
-    expect(toLinkUrl(url)).toBe(url);
-  });
-
-  it.each([
-    'javascript:alert(1)',
-    'ftp://issoufi.fr',
-    'issoufi.fr',
-    '',
-    '   ',
-    undefined,
-    null,
-    42,
-  ])('gives no link for %j', url => {
-    expect(toLinkUrl(url)).toBe('');
-  });
-});
-
-describe('toLinkText', () => {
-  it.each([
-    ['https://www.linkedin.com/in/issoufiadam', 'linkedin.com/in/issoufiadam'],
-    ['https://www.linkedin.com/in/issoufiadam/', 'linkedin.com/in/issoufiadam'],
-    ['https://github.com/AIssoufi', 'github.com/AIssoufi'],
-    ['https://issoufi.fr/', 'issoufi.fr'],
-    ['http://localhost:4173/en//', 'localhost:4173/en'],
-  ])('writes %s as %s', (url, text) => {
-    expect(toLinkText(url)).toBe(text);
-  });
-
-  it.each(['mailto:adam@example.com', 'tel:+33600000000', 'github.com', '', undefined, 42])(
-    'gives no text for %j, which is not a web address',
-    url => {
-      expect(toLinkText(url)).toBe('');
-    },
-  );
-});
 
 describe('buildExperiences', () => {
   it('translates the company, its roles and their projects', () => {
@@ -262,12 +213,17 @@ describe('buildCvContent', () => {
     });
   });
 
-  it('lists the contact details, then the links to the site, LinkedIn and GitHub', () => {
+  it('lists the contact details, the email address and the phone number as links', () => {
     expect(buildCvContent(PARAMS).contacts).toEqual([
       { text: 'adam@example.com', url: 'mailto:adam@example.com' },
       { text: '06 00 00 00 00', url: 'tel:+33600000000' },
       { text: 'Massy (91)', url: '' },
       { text: 'Véhiculé', url: '' },
+    ]);
+  });
+
+  it('lists the links to the site, LinkedIn and GitHub', () => {
+    expect(buildCvContent(PARAMS).profiles).toEqual([
       { text: 'issoufi.fr', url: 'https://issoufi.fr/' },
       { text: 'linkedin.com/in/adam', url: 'https://www.linkedin.com/in/adam/' },
       { text: 'github.com/AIssoufi', url: 'https://github.com/AIssoufi' },
@@ -310,7 +266,8 @@ describe('buildCvContent', () => {
     cvData => {
       const content = buildCvContent({ ...PARAMS, cvData });
 
-      expect(content.contacts).toEqual([
+      expect(content.contacts).toEqual([]);
+      expect(content.profiles).toEqual([
         { text: 'issoufi.fr', url: 'https://issoufi.fr/' },
         { text: 'github.com/AIssoufi', url: 'https://github.com/AIssoufi' },
       ]);

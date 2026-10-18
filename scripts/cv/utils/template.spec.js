@@ -1,8 +1,8 @@
 import { theme } from '../../../src/theme/theme';
-import { hasUnresolvedValue } from '../../utils/html.mjs';
 import { CV_SOURCES } from '../testUtils';
 import { buildCvContents } from './languages.mjs';
-import { renderCvHtml, renderCvStyles } from './template.mjs';
+import { renderCvStyles } from './styles.mjs';
+import { renderCvHtml } from './template.mjs';
 
 const [FRENCH_CV, ENGLISH_CV] = await buildCvContents(CV_SOURCES);
 
@@ -18,34 +18,6 @@ const renderDocument = content =>
 /** Texts of the elements that match a selector, in order. */
 const getTexts = ({ document, selector }) =>
   [...document.querySelectorAll(selector)].map(({ textContent }) => textContent);
-
-describe('renderCvStyles', () => {
-  it('resolves every design token of the theme', () => {
-    expect(hasUnresolvedValue(styles)).toBe(false);
-  });
-
-  it('writes in the font and the colors of the site, on white paper', () => {
-    expect(styles).toContain(`font-family: ${theme.fonts.body};`);
-    expect(styles).toContain(`background-color: ${theme.colors.foreground};`);
-    expect(styles).toContain(`color: ${theme.colors.accent};`);
-  });
-
-  it('prints on A4 paper', () => {
-    expect(styles).toMatch(/@page \{\s*size: A4;/);
-  });
-
-  it('turns off ligatures, so that a search for "fi" finds the text in every reader', () => {
-    expect(styles).toContain('font-variant-ligatures: none;');
-  });
-
-  it.each([
-    ['a missing color', { colors: { ...theme.colors, 'shade-a80': undefined } }],
-    ['missing line heights', { lineHeights: {} }],
-    ['missing font weights', { fontWeights: {} }],
-  ])('shows %s as an unresolved value', (_case, overrides) => {
-    expect(hasUnresolvedValue(renderCvStyles({ ...theme, ...overrides }))).toBe(true);
-  });
-});
 
 describe('renderCvHtml', () => {
   it('writes the language, the title and the author of the document', () => {
@@ -83,16 +55,17 @@ describe('renderCvHtml', () => {
     expect(getTexts({ document, selector: '.tagline strong' })).toEqual(['UX', 'UI']);
   });
 
-  it('links the contact details that have a URL, and only them', () => {
+  it('links the contact details that have a URL, and only them, then the profiles on their line', () => {
     const document = renderDocument(FRENCH_CV);
-    const contacts = [...document.querySelectorAll('.contacts li')];
+    const [contactList, profileList] = document.querySelectorAll('.contacts');
+    const readItems = list =>
+      [...list.querySelectorAll('li')].map(item => ({
+        text: item.textContent,
+        url: item.querySelector('a')?.getAttribute('href') ?? '',
+      }));
 
-    expect(contacts.map(({ textContent }) => textContent)).toEqual(
-      FRENCH_CV.contacts.map(({ text }) => text),
-    );
-    expect(contacts.map(contact => contact.querySelector('a')?.getAttribute('href') ?? '')).toEqual(
-      FRENCH_CV.contacts.map(({ url }) => url),
-    );
+    expect(readItems(contactList)).toEqual(FRENCH_CV.contacts);
+    expect(readItems(profileList)).toEqual(FRENCH_CV.profiles);
   });
 
   it('writes each company, then each of its roles with its period', () => {

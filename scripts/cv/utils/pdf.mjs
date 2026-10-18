@@ -139,6 +139,8 @@ export const findPdfProblems = ({
     !toSearchableText(name.replace(FONT_SUBSET_PREFIX_PATTERN, '')).startsWith(family);
   /** @param {string} text */
   const isMissingText = text => !searchableText.includes(toSearchableText(text));
+  /** @param {string} link */
+  const isMissingLink = link => !pdf.links.includes(link);
 
   return [
     ...(isTooHeavy ? [`it weighs ${byteCount} bytes, over ${maxBytes}`] : []),
@@ -151,6 +153,6 @@ export const findPdfProblems = ({
       .filter(isOtherFamily)
       .map(({ name }) => `the font ${name} is not ${fontFamily}, the font of the site`),
     ...texts.filter(isMissingText).map(text => `the text "${quote(text)}" is missing`),
-    ...links.filter(link => !pdf.links.includes(link)).map(link => `the link ${link} is missing`),
+    ...links.filter(isMissingLink).map(link => `the link ${link} is missing`),
   ];
 };

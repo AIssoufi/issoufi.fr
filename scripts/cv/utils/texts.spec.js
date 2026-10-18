@@ -19,6 +19,7 @@ const CONTENT = {
     { text: 'adam@example.com', url: 'mailto:adam@example.com' },
     { text: 'Massy (91)', url: '' },
   ],
+  profiles: [{ text: 'github.com/AIssoufi', url: 'https://github.com/AIssoufi' }],
   experiences: {
     title: 'Expériences',
     items: [
@@ -78,6 +79,7 @@ describe('listCvTexts', () => {
       'Je vous aide',
       'adam@example.com',
       'Massy (91)',
+      'github.com/AIssoufi',
       'Expériences',
       'Acme',
       'Développeur',
@@ -120,8 +122,12 @@ describe('listCvTexts', () => {
 });
 
 describe('listCvLinks', () => {
-  it('lists the contact details and the projects that are links', () => {
-    expect(listCvLinks(CONTENT)).toEqual(['mailto:adam@example.com', 'https://study.fr/']);
+  it('lists the contact details, the profiles and the projects that are links', () => {
+    expect(listCvLinks(CONTENT)).toEqual([
+      'mailto:adam@example.com',
+      'https://github.com/AIssoufi',
+      'https://study.fr/',
+    ]);
   });
 
   it('lists the links of the real French CV', () => {
@@ -186,6 +192,7 @@ describe('findMissingCvTexts', () => {
     const content = {
       ...CONTENT,
       contacts: [],
+      profiles: [],
       experiences: { ...CONTENT.experiences, items: [] },
       skills: { ...CONTENT.skills, items: [] },
       education: { ...CONTENT.education, items: [] },
@@ -193,6 +200,7 @@ describe('findMissingCvTexts', () => {
 
     expect(findMissingCvTexts(content)).toEqual([
       'contacts',
+      'profiles',
       'experiences.items',
       'skills.items',
       'education.items',

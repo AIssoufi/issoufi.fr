@@ -4,7 +4,7 @@ import i18next from 'i18next';
 import { getHomeTexts } from '../../utils/home-texts.mjs';
 import { buildCvContent } from './content.mjs';
 
-/** @typedef {import('./content.mjs').CvContent} CvContent */
+/** @typedef {import('./types.mjs').CvContent} CvContent */
 /** @typedef {import('i18next').TFunction} TFunction */
 
 /**

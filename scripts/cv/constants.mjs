@@ -1,8 +1,8 @@
 // @ts-check
 
 /**
- * Largest size of each CV, in bytes. In October 2026, the French CV weighed 85.0 kB and the
- * English one 83.9 kB, down from 274.9 kB for the CV exported from Figma.
+ * Largest size of each CV, in bytes. In October 2026, the French CV weighed 76.2 kB and the
+ * English one 75.4 kB, down from 274.9 kB for the CV exported from Figma.
  */
 export const CV_MAX_BYTES = 500_000;
 
@@ -56,21 +56,30 @@ export const DATA_MODULES = {
 };
 
 /**
- * Fonts of the theme that the CV uses, with their weights: the body font, in regular for the
- * texts, medium for the dates and bold for the titles.
+ * Folder of the font files of the CV, relative to the project root: static instances of the body
+ * font of the site, with their license and their source in its README. They are outside
+ * `public/`, so the site does not serve them.
  */
-export const FONTS_IN_USE = [{ font: 'body', weights: ['regular', 'medium', 'bold'] }];
+export const CV_FONTS_DIR = 'scripts/cv/fonts';
 
 /**
- * Format of the font files that Google Fonts sends to a client it does not know as a browser,
- * such as Node.js: static TrueType files, one per weight. Chromium embeds them in the PDF as
- * TrueType fonts, whose text every reader can select and search, whereas it turns the variable
- * font that Google Fonts sends to browsers into Type 3 fonts, which Preview and Safari cannot.
+ * File of each weight of the body font that the CV uses, in {@link CV_FONTS_DIR}, by the name of
+ * the weight in the theme: regular for the texts, medium for the dates and bold for the titles.
+ * They are static TrueType files, which Chromium embeds in the PDF as TrueType fonts, whose text
+ * every reader can select and search: it would turn the variable font of the site into Type 3
+ * fonts, which Preview and Safari cannot.
  */
-export const STATIC_FONT_FORMAT = 'truetype';
+export const CV_FONT_FILES = {
+  regular: 'Montserrat-Regular.ttf',
+  medium: 'Montserrat-Medium.ttf',
+  bold: 'Montserrat-Bold.ttf',
+};
 
-/** `src` descriptors of a CSS `@font-face` rule: its first group captures the format. */
-export const FONT_FORMAT_PATTERN = /format\(['"]?([^'")]+)['"]?\)/g;
+/** Media type of the font files of {@link CV_FONT_FILES}, in their data URLs. */
+export const FONT_MEDIA_TYPE = 'font/ttf';
+
+/** Font of the theme that the CV uses, in each weight of {@link CV_FONT_FILES}. */
+export const FONTS_IN_USE = [{ font: 'body', weights: Object.keys(CV_FONT_FILES) }];
 
 /** Type that pdf.js gives a Type 3 font, whose glyphs are drawings rather than a font file. */
 export const TYPE3_FONT_TYPE = 'Type3';
@@ -93,17 +102,23 @@ export const DETAILS_SEPARATOR = ' · ';
 /** Separator of the start and the end of a period, as on the Experiences page. */
 export const PERIOD_SEPARATOR = ' — ';
 
+/** Mark before each bullet point, as on the Experiences page. */
+export const BULLET_MARK = '›';
+
 /** Prefix of the URL of an email address. */
 export const MAILTO_PREFIX = 'mailto:';
+
+/** Prefix of the URL of a phone number. */
+export const TEL_PREFIX = 'tel:';
 
 /** An email address: a name and a domain around a single `@`, without spaces. */
 export const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+$/;
 
-/** Schemes of the URLs that the CV writes as links. */
-export const LINK_PROTOCOLS = new Set(['https:', 'http:', 'mailto:', 'tel:']);
-
 /** Schemes of the web addresses, which the CV writes without them, e.g. `github.com/AIssoufi`. */
 export const WEB_PROTOCOLS = new Set(['https:', 'http:']);
+
+/** Schemes of the URLs that the CV writes as links: web addresses, email and phone. */
+export const LINK_PROTOCOLS = new Set([...WEB_PROTOCOLS, MAILTO_PREFIX, TEL_PREFIX]);
 
 /** Start of the host of a URL that the CV leaves out of the text of a link. */
 export const WWW_PREFIX = 'www.';
@@ -153,8 +168,8 @@ export const CV_LAYOUT = {
   projectIndent: '3mm',
   /** Thickness of the line on the left of a project. */
   projectRuleWidth: '1.2pt',
-  /** Indent of a bullet point, past its bullet. */
-  bulletIndent: '3.2mm',
+  /** Indent of a bullet point, past its mark. */
+  bulletIndent: '3mm',
   /** Space between two contact details. */
   contactGap: '3.5mm',
   /** Space between two columns. */

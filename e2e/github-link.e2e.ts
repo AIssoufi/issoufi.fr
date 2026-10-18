@@ -3,6 +3,7 @@ import { expect, test } from '@playwright/test';
 import { LANGUAGES } from '../src/i18n/constants';
 import { en } from '../src/i18n/en';
 import { fr } from '../src/i18n/fr';
+import type { Language, Translations } from '../src/i18n/types';
 import { localizePath } from '../src/i18n/utils';
 import { waitForEndingAnimations } from './animations';
 import {
@@ -16,7 +17,7 @@ import {
 import { getBoxBottom, getBoxCenterDistanceX } from './utils';
 
 /** Translations of each language, to find the CV button by its name. */
-const TRANSLATIONS = { fr, en };
+const TRANSLATIONS = { fr, en } satisfies Record<Language, Translations>;
 
 /** Scrolls the page to its end. Runs in the browser. */
 const scrollToEnd = () => window.scrollTo(0, document.documentElement.scrollHeight);
