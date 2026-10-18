@@ -15,8 +15,7 @@ type StatusPageProps = ComponentProps<typeof StatusMessage>;
  * its `<main>` landmark, a `Page` over the photo of the status pages ({@link BACKGROUND_IMAGE_URL})
  * and its dark overlay, with a {@link StatusMessage} centered in its height. A message taller than
  * the screen makes the page grow, so none of it is cut off. Renders an empty page when no prop is
- * provided. Needs a router when `homeLinkLabel` is set, because the home link is a router
- * link.
+ * provided. Needs a router when `homeLinkLabel` is set, because the home link is a router link.
  *
  * @example
  * <StatusPage

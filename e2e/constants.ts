@@ -39,12 +39,6 @@ export const ERROR_PAGE_SCREENS = [
 export const MAX_ERROR_MESSAGE_CENTER_OFFSET_RATIO = 0.1;
 
 /**
- * Message of an error page, the `StatusMessage` of `src/components/StatusPage`: the block of the
- * code, the title, the explanation and the buttons, right inside the `<main>` landmark.
- */
-export const ERROR_MESSAGE_SELECTOR = '[data-testid="app"] > main > section';
-
-/**
  * Chunks of the Projects page, which the test of the unexpected error keeps from loading, so the
  * page fails to load (see `getChunkName`, `vite/utils.ts`).
  */
@@ -56,6 +50,12 @@ export const PROJECTS_CHUNK_PATTERN = '**/assets/Projects-*.js';
  * header.
  */
 export const PAGE_SELECTOR = '[data-testid="app"] > main';
+
+/**
+ * Message of an error page, the `StatusMessage` of `src/components/StatusPage`: the block of the
+ * code, the title, the explanation and the buttons, right inside the `<main>` landmark.
+ */
+export const ERROR_MESSAGE_SELECTOR = `${PAGE_SELECTOR} > section`;
 
 /**
  * Route of the Experiences page, the only page with a timeline. Typed by `PAGES`

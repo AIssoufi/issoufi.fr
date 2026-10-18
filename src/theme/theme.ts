@@ -79,6 +79,11 @@ export const theme = {
     /** Horizontal padding of every page and of the header. */
     page: spacing[24],
     /**
+     * Space above the content of every page, under the header. The status pages keep as much under
+     * their message, so it sits in the middle of the page.
+     */
+    'page-top': spacing[16],
+    /**
      * Right padding of every page from the tablet breakpoint, which leaves the language toggle, the
      * CV button and the GitHub icon floating on the right edge of the screen over no content: they
      * stand 20 px from the edge and the widest, the toggle, is 46 px wide, so 80 px leaves a gap of
