@@ -1,6 +1,8 @@
-import { fireEvent, render, waitFor } from '@testing-library/react';
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import lottie from 'lottie-web/build/player/lottie_light';
 
+import i18n from '../../../i18n';
 import BurgerMenu from './BurgerMenu';
 import { OPEN_ANIMATION } from './constants';
 
@@ -14,8 +16,9 @@ const animationMock = () => ({
 });
 
 describe('BurgerMenu', () => {
-  afterEach(() => {
+  afterEach(async () => {
     vi.restoreAllMocks();
+    await act(() => i18n.changeLanguage('fr'));
   });
 
   it('renders without any props', () => {
@@ -108,5 +111,114 @@ describe('BurgerMenu', () => {
     expect(animation.setDirection).toHaveBeenLastCalledWith(OPEN_ANIMATION.direction);
     expect(animation.play).toHaveBeenCalledTimes(1);
     expect(animation.goToAndStop).not.toHaveBeenCalled();
+  });
+
+  describe('accessibility', () => {
+    it('renders a plain button, so it never submits a form', () => {
+      render(<BurgerMenu />);
+
+      expect(screen.getByRole('button')).toHaveAttribute('type', 'button');
+    });
+
+    it('is named "Ouvrir le menu" and collapsed while the menu is closed', () => {
+      render(<BurgerMenu />);
+
+      expect(screen.getByRole('button', { name: 'Ouvrir le menu' })).toHaveAttribute(
+        'aria-expanded',
+        'false',
+      );
+    });
+
+    it('is named "Fermer le menu" and expanded while the menu is open', () => {
+      render(<BurgerMenu isOpen />);
+
+      expect(screen.getByRole('button', { name: 'Fermer le menu' })).toHaveAttribute(
+        'aria-expanded',
+        'true',
+      );
+    });
+
+    it('is named "Open menu" and collapsed while the menu is closed, in English', async () => {
+      await act(() => i18n.changeLanguage('en'));
+      render(<BurgerMenu />);
+
+      expect(screen.getByRole('button', { name: 'Open menu' })).toHaveAttribute(
+        'aria-expanded',
+        'false',
+      );
+    });
+
+    it('is named "Close menu" and expanded while the menu is open, in English', async () => {
+      await act(() => i18n.changeLanguage('en'));
+      render(<BurgerMenu isOpen />);
+
+      expect(screen.getByRole('button', { name: 'Close menu' })).toHaveAttribute(
+        'aria-expanded',
+        'true',
+      );
+    });
+
+    it('names the menu it controls', () => {
+      render(<BurgerMenu menuId="mobile-menu" />);
+
+      expect(screen.getByRole('button')).toHaveAttribute('aria-controls', 'mobile-menu');
+    });
+
+    it('names no menu without a menu id, or with an empty one', () => {
+      const { rerender } = render(<BurgerMenu />);
+      expect(screen.getByRole('button')).not.toHaveAttribute('aria-controls');
+
+      rerender(<BurgerMenu menuId="" />);
+      expect(screen.getByRole('button')).not.toHaveAttribute('aria-controls');
+    });
+
+    it('is reached with Tab', async () => {
+      render(<BurgerMenu />);
+
+      await userEvent.tab();
+
+      expect(screen.getByRole('button')).toHaveFocus();
+    });
+
+    it.each([
+      ['Enter', '{Enter}'],
+      ['Space', ' '],
+    ])('calls onOpen when %s is pressed while the menu is closed', async (_key, keys) => {
+      const onOpen = vi.fn();
+      const onClose = vi.fn();
+      render(
+        <BurgerMenu
+          onOpen={onOpen}
+          onClose={onClose}
+        />,
+      );
+
+      await userEvent.tab();
+      await userEvent.keyboard(keys);
+
+      expect(onOpen).toHaveBeenCalledTimes(1);
+      expect(onClose).not.toHaveBeenCalled();
+    });
+
+    it.each([
+      ['Enter', '{Enter}'],
+      ['Space', ' '],
+    ])('calls onClose when %s is pressed while the menu is open', async (_key, keys) => {
+      const onOpen = vi.fn();
+      const onClose = vi.fn();
+      render(
+        <BurgerMenu
+          isOpen
+          onOpen={onOpen}
+          onClose={onClose}
+        />,
+      );
+
+      await userEvent.tab();
+      await userEvent.keyboard(keys);
+
+      expect(onClose).toHaveBeenCalledTimes(1);
+      expect(onOpen).not.toHaveBeenCalled();
+    });
   });
 });

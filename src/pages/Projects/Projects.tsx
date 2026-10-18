@@ -15,7 +15,7 @@ export const Projects = () => {
   const { t } = useTranslation();
 
   return (
-    <ProjectsPage $backgroundImage={BACKGROUND_IMAGE_URL}>
+    <ProjectsPage backgroundImage={BACKGROUND_IMAGE_URL}>
       <Project
         title={t('projects.personal')}
         projects={personalProjectsData.projects}
