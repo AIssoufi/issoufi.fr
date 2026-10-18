@@ -1,0 +1,14 @@
+diff --git a/src/js/pseudo-class.js b/src/js/pseudo-class.js
+index 34dca2edb8b8dbc1b92d9e75025f1f6b12ab739e..c8d548f235105df21141767a2a0f55ea2d9f6231 100644
+--- a/src/js/pseudo-class.js
++++ b/src/js/pseudo-class.js
+@@ -823,7 +823,8 @@ export class PseudoClassEvaluator {
+             if (target === relatedTarget) {
+               if (
+                 !this.#lastFocusVisible ||
+-                focusTarget === this.#lastFocusVisible
++                focusTarget === this.#lastFocusVisible ||
++                (key === 'Tab' && type === 'keydown')
+               ) {
+                 bool = true;
+               }

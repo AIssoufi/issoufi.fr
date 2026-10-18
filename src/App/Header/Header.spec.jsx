@@ -553,14 +553,15 @@ describe('Header', () => {
       getCoveredElements().forEach(element => expect(element.closest('[inert]')).toBeNull());
     });
 
-    it('closes the tooltip of the CV button with a first Escape, then itself with the next', async () => {
+    it('closes the tooltip that Tab shows on the CV button with a first Escape, then itself with the next', async () => {
       await renderHeader();
       await userEvent.click(getBurgerButton());
-      act(() => getCvLink().focus());
-      // jsdom keeps from the other tests of this file a state that stops a focus moved by Tab
-      // from matching :focus-visible here, so the mouse shows the tooltip
-      await userEvent.hover(getCvLink());
+      for (const name of ['Accueil', 'Projets', 'Expériences', CV_LINK_NAME]) {
+        await userEvent.tab();
+        expect(screen.getByRole('link', { name })).toHaveFocus();
+      }
       const tooltip = within(getNavigation()).getByRole('tooltip');
+      expect(tooltip).toBeVisible();
 
       await userEvent.keyboard('{Escape}');
       expect(tooltip).not.toBeVisible();

@@ -1,6 +1,7 @@
 import {
   formatKilobytes,
   formatPercent,
+  isPositiveInteger,
   isPositiveNumber,
   toNonNegativeNumber,
 } from './numbers.mjs';
@@ -63,5 +64,28 @@ describe('formatPercent', () => {
 
   it.each([NaN, Infinity, undefined, null, 'Unknown', '97.7'])('shows %s as n/a', percent => {
     expect(formatPercent(percent)).toBe('n/a');
+  });
+});
+
+describe('isPositiveInteger', () => {
+  it.each([1, 162, Number.MAX_SAFE_INTEGER])('accepts %s', value => {
+    expect(isPositiveInteger(value)).toBe(true);
+  });
+
+  it.each([
+    0,
+    -0,
+    -1,
+    1.5,
+    Number.MAX_SAFE_INTEGER + 1,
+    NaN,
+    Infinity,
+    undefined,
+    null,
+    '162',
+    {},
+    [],
+  ])('rejects %s', value => {
+    expect(isPositiveInteger(value)).toBe(false);
   });
 });

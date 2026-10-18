@@ -13,6 +13,7 @@ import {
   isTemplatePageFile,
   NOT_FOUND_FOLDER,
 } from './src/utils/pages';
+import { renderSitemap, SITEMAP_FILE_NAME } from './src/utils/sitemap';
 import { ALL_ENV_VARIABLES_PREFIX, ASSETS_DIR } from './vite/constants';
 import { getChunkName, getFontFaceTags, getPageChunkFile, getServerPorts } from './vite/utils';
 
@@ -98,6 +99,18 @@ const pageMeta = (): Plugin => {
 };
 
 /**
+ * Vite plugin that emits `sitemap.xml` at the root of the build: the URL of every page in every
+ * language, with the links to its translations (see {@link renderSitemap}). `public/robots.txt`
+ * points search engines to it.
+ */
+const sitemap = (): Plugin => ({
+  name: 'sitemap',
+  generateBundle() {
+    this.emitFile({ type: 'asset', fileName: SITEMAP_FILE_NAME, source: renderSitemap() });
+  },
+});
+
+/**
  * Minimum test coverage, in percent, below which `pnpm test:coverage` fails. Set two to three
  * points under the coverage of October 2026, Vite and CI helpers included, as measured by
  * Vitest 4 (99.6% of lines, 99.4% of statements, 98.8% of branches, 98.3% of functions), so a
@@ -108,9 +121,9 @@ const pageMeta = (): Plugin => {
 const COVERAGE_THRESHOLDS_PERCENT = { lines: 97, statements: 97, branches: 96, functions: 96 };
 
 /**
- * Vite and Vitest configuration: React with SVG components, the web fonts and page metadata
- * plugins, the dev and preview servers on the port of the worktree (see {@link getServerPorts}),
- * which fail when it is taken, and the tests in jsdom with coverage.
+ * Vite and Vitest configuration: React with SVG components, the web fonts, page metadata and
+ * sitemap plugins, the dev and preview servers on the port of the worktree (see
+ * {@link getServerPorts}), which fail when it is taken, and the tests in jsdom with coverage.
  * @see https://vitejs.dev/config/
  */
 export default defineConfig(({ mode }) => {
@@ -118,7 +131,7 @@ export default defineConfig(({ mode }) => {
 
   return {
     base: '/',
-    plugins: [react(), svgr(), fontFaces(), pageMeta()],
+    plugins: [react(), svgr(), fontFaces(), pageMeta(), sitemap()],
     // The version that release-please writes in package.json, shown after the logo of the header
     // (src/App/Header) and typed in src/vite-env.d.ts; the tests read it too
     define: { __APP_VERSION__: JSON.stringify(packageJson.version) },

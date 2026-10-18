@@ -9,6 +9,7 @@ import {
   getNotFoundFiles,
   getOgImageUrl,
   getPage,
+  getPageAlternates,
   getPageFiles,
   getPageUrl,
   isTemplatePageFile,
@@ -96,6 +97,38 @@ describe('getPageUrl', () => {
     ['/experiences', 'en', 'https://issoufi.fr/en/experiences'],
   ] as const)('gives %s in %s the URL %s', (path, language, url) => {
     expect(getPageUrl({ path, language })).toBe(url);
+  });
+});
+
+describe('getPageAlternates', () => {
+  it('lists the page in every language, then in the default language as x-default', () => {
+    expect(getPageAlternates('/projects')).toEqual([
+      { hreflang: 'fr', href: 'https://issoufi.fr/projects' },
+      { hreflang: 'en', href: 'https://issoufi.fr/en/projects' },
+      { hreflang: 'x-default', href: 'https://issoufi.fr/projects' },
+    ]);
+  });
+
+  it('lists the home page of each language at the folder of its prefix', () => {
+    expect(getPageAlternates('/')).toEqual([
+      { hreflang: 'fr', href: 'https://issoufi.fr/' },
+      { hreflang: 'en', href: 'https://issoufi.fr/en/' },
+      { hreflang: 'x-default', href: 'https://issoufi.fr/' },
+    ]);
+  });
+
+  it('gives the same translations from the path of any language', () => {
+    expect(getPageAlternates('/en/experiences')).toEqual(getPageAlternates('/experiences'));
+  });
+
+  it('gives the translations of the home page for an empty path', () => {
+    expect(getPageAlternates('')).toEqual(getPageAlternates('/'));
+  });
+
+  it('lists every language once, plus x-default', () => {
+    const hreflangs = getPageAlternates('/projects').map(({ hreflang }) => hreflang);
+
+    expect(hreflangs).toEqual([...LANGUAGES, 'x-default']);
   });
 });
 
