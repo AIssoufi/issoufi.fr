@@ -1,5 +1,9 @@
 import i18n from '../../../i18n';
+import { fr } from '../../../i18n/fr';
 import { computeDuration, formatDuration, parseMonthYear } from './duration';
+
+/** The current date the today keywords are tested against: 17 October 2026. */
+const FAKE_NOW = new Date(2026, 9, 17);
 
 describe('computeDuration', () => {
   describe('French month names', () => {
@@ -58,22 +62,28 @@ describe('computeDuration', () => {
   describe('today keywords', () => {
     beforeEach(() => {
       vi.useFakeTimers({ toFake: ['Date'] });
-      vi.setSystemTime(new Date(2026, 9, 17));
+      vi.setSystemTime(FAKE_NOW);
     });
 
     afterEach(() => {
       vi.useRealTimers();
     });
 
-    it.each(["Aujourd'hui", 'auj.', 'auj', 'Present', 'pres.', 'today', '  Present '])(
-      'counts up to now for %j',
-      endDate => {
-        expect(computeDuration({ startDate: 'juin 2025', endDate })).toEqual({
-          years: 1,
-          months: 4,
-        });
-      },
-    );
+    it.each([
+      "Aujourd'hui",
+      'Aujourd’hui',
+      'auj.',
+      'auj',
+      'Present',
+      'pres.',
+      'today',
+      '  Present ',
+    ])('counts up to now for %j', endDate => {
+      expect(computeDuration({ startDate: 'juin 2025', endDate })).toEqual({
+        years: 1,
+        months: 4,
+      });
+    });
   });
 });
 
@@ -160,14 +170,25 @@ describe('parseMonthYear', () => {
     expect(parseMonthYear('December 2020')).toEqual(new Date(2020, 11, 1));
   });
 
-  it('returns the current date for a today keyword', () => {
-    vi.useFakeTimers({ toFake: ['Date'] });
-    vi.setSystemTime(new Date(2026, 9, 17));
+  describe('today keywords', () => {
+    beforeEach(() => {
+      vi.useFakeTimers({ toFake: ['Date'] });
+      vi.setSystemTime(FAKE_NOW);
+    });
 
-    expect(parseMonthYear("Aujourd'hui")).toEqual(new Date(2026, 9, 17));
-    expect(parseMonthYear('Present')).toEqual(new Date(2026, 9, 17));
+    afterEach(() => {
+      vi.useRealTimers();
+    });
 
-    vi.useRealTimers();
+    it('returns the current date for a today keyword', () => {
+      expect(parseMonthYear("Aujourd'hui")).toEqual(FAKE_NOW);
+      expect(parseMonthYear('Present')).toEqual(FAKE_NOW);
+    });
+
+    it('recognizes the end date of the current jobs in the French copy', () => {
+      expect(parseMonthYear(fr.exp.sewanLead.end)).toEqual(FAKE_NOW);
+      expect(parseMonthYear(fr.exp.sewanSenior.end)).toEqual(FAKE_NOW);
+    });
   });
 
   it.each([undefined, '', '   ', 'foo 2021', 'juin', '2021', 'juin 2021 bis', 'juin 20x1'])(
