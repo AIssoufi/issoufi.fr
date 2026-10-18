@@ -22,6 +22,11 @@ interface Item {
 
 /** Props of {@link NavMenu}. */
 interface NavMenuProps {
+  /**
+   * `id` of the navigation element, so the button that opens it can name it in `aria-controls`.
+   * Left out when empty, as an empty `id` is invalid.
+   */
+  id?: string;
   /** Links to render, in display order. @default [] */
   items?: Item[];
   /**
@@ -41,9 +46,12 @@ const NO_ITEMS: Item[] = [];
  * Displayed as a horizontal bar on desktop and as a full-screen overlay on mobile.
  * Must be rendered inside a router, because the links are `NavLink`s.
  */
-const NavMenu = ({ items = NO_ITEMS, onClick, mobileMenuIsOpen = false }: NavMenuProps) => {
+const NavMenu = ({ id, items = NO_ITEMS, onClick, mobileMenuIsOpen = false }: NavMenuProps) => {
   return (
-    <Nav $mobileMenuIsOpen={mobileMenuIsOpen}>
+    <Nav
+      id={id || undefined}
+      $mobileMenuIsOpen={mobileMenuIsOpen}
+    >
       <NavList>
         {items.map(item => (
           <NavItem key={item.url}>

@@ -45,6 +45,10 @@ export const en = {
   langToggle: {
     label: 'Language',
   },
+  burgerMenu: {
+    open: 'Open menu',
+    close: 'Close menu',
+  },
   home: {
     title1: 'Full-stack JavaScript Developer',
     title2Pre: 'passionate about ',
@@ -59,6 +63,9 @@ export const en = {
     freelance: 'Freelance projects',
     showLess: 'Show less',
     showAll: 'Show all ({{count}})',
+    previousPage: 'Previous page',
+    nextPage: 'Next page',
+    like: 'Like {{name}}',
   },
   exp: {
     pageTitle: 'Experience',

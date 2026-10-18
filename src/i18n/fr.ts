@@ -52,6 +52,10 @@ export const fr = {
   langToggle: {
     label: 'Langue',
   },
+  burgerMenu: {
+    open: 'Ouvrir le menu',
+    close: 'Fermer le menu',
+  },
   home: {
     title1: 'Développeur full-stack JavaScript',
     title2Pre: 'passionné par l’',
@@ -66,6 +70,9 @@ export const fr = {
     freelance: 'Projets freelance',
     showLess: 'Afficher moins',
     showAll: 'Tout afficher ({{count}})',
+    previousPage: 'Page précédente',
+    nextPage: 'Page suivante',
+    like: 'Aimer {{name}}',
   },
   exp: {
     pageTitle: 'Expériences',
