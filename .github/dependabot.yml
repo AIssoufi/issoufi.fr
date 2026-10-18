@@ -15,6 +15,11 @@ updates:
     groups:
       minor-and-patch:
         update-types: [minor, patch]
+    ignore:
+      # The types of Node.js follow the major version of the runtime, read from .nvmrc: types of a
+      # newer Node.js would let the code use APIs that the runtime lacks. Move both together.
+      - dependency-name: '@types/node'
+        update-types: [version-update:semver-major]
 
   - package-ecosystem: github-actions
     # The workflows and the composite actions they share
