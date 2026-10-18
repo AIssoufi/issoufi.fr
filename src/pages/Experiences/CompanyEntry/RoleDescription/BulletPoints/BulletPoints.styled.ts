@@ -1,6 +1,6 @@
 import styled, { th } from '@xstyled/styled-components';
 
-import List from '../../../../components/List';
+import List from '../../../../../components/List';
 
 export const BulletList = styled(List)`
   margin-top: ${th.space(8)};

@@ -1,6 +1,6 @@
 import { act, render, screen, within } from '@testing-library/react';
 
-import i18n from '../../../../i18n';
+import i18n from '../../../../../i18n';
 import BulletPoints from './BulletPoints';
 
 describe('BulletPoints', () => {

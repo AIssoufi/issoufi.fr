@@ -1,9 +1,9 @@
 import { useTranslation } from 'react-i18next';
 
-import { translateKey } from '../../../i18n/utils';
-import Project from '../Project';
-import Technologies from '../Technologies';
-import type { ProjectData, RoleData } from '../types';
+import { translateKey } from '../../../../i18n/utils';
+import Project from '../../Project';
+import Technologies from '../../Technologies';
+import type { ProjectData, RoleData } from '../../types';
 import BulletPoints from './BulletPoints';
 import TextSegments from './TextSegments';
 

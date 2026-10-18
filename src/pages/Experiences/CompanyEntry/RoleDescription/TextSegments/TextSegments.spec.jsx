@@ -1,6 +1,6 @@
 import { act, render } from '@testing-library/react';
 
-import i18n from '../../../../i18n';
+import i18n from '../../../../../i18n';
 import TextSegments from './TextSegments';
 
 /** Renders the segments in a paragraph, to read the text and the markup they write. */

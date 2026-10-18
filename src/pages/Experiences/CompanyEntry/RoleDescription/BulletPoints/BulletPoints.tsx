@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next';
 
-import { translateKey } from '../../../../i18n/utils';
+import { translateKey } from '../../../../../i18n/utils';
 import { BulletItem, BulletList } from './BulletPoints.styled';
 
 /** Props of {@link BulletPoints}. */
