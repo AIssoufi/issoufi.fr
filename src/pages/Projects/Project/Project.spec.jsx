@@ -1,6 +1,5 @@
 import { act, fireEvent, render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { ThemeProvider } from '@xstyled/styled-components';
 
 import i18n from '../../../i18n';
 import { theme } from '../../../theme';
@@ -52,9 +51,6 @@ const pageButtons = () => ({
   previousButton: screen.getByRole('button', { name: PREVIOUS_PAGE_NAME }),
   nextButton: screen.getByRole('button', { name: NEXT_PAGE_NAME }),
 });
-
-/** Renders with the theme, so that the styles hold the token values instead of their names. */
-const renderWithTheme = ui => render(<ThemeProvider theme={theme}>{ui}</ThemeProvider>);
 
 /** Element that lays out the cards: the list holding a card's thumbnail. */
 const gridOf = name => screen.getByRole('img', { name }).closest('ul');
@@ -451,7 +447,7 @@ describe('Project', () => {
     const WIDE_MEDIA = `(min-width: ${theme.screens.wide})`;
 
     it('stretches the title link over its card, above the thumbnail and under the like button', () => {
-      renderWithTheme(<Project projects={projects} />);
+      render(<Project projects={projects} />);
 
       const linkLayer = property =>
         declaredStyle({ element: linkOf('Chess'), property, pseudo: '::after' });
@@ -475,7 +471,7 @@ describe('Project', () => {
     });
 
     it('draws the focus ring of the title link around the whole card, not around its text', () => {
-      renderWithTheme(<Project projects={projects} />);
+      render(<Project projects={projects} />);
 
       const focusedLinkStyle = ({ property, pseudo }) =>
         declaredStyle({ element: linkOf('Chess'), property, pseudo });
@@ -490,7 +486,7 @@ describe('Project', () => {
     });
 
     it('shrinks the like button while it is pressed, even under the pointer', () => {
-      renderWithTheme(<Project projects={projects} />);
+      render(<Project projects={projects} />);
       const likeButton = likeButtonOf('Chess');
       // Position in the cascade of the last rule that sets the button's transform in a state
       const lastTransformRuleIndex = state => {
@@ -515,7 +511,7 @@ describe('Project', () => {
     });
 
     it('shows the cards of a page in a single row', () => {
-      renderWithTheme(<Project projects={projects} />);
+      render(<Project projects={projects} />);
 
       const grid = gridOf('Chess');
       expect(declaredStyle({ element: grid, property: 'display' })).toBe('flex');
@@ -523,7 +519,7 @@ describe('Project', () => {
     });
 
     it('shows every card in a grid of one, then two, then three columns after "Show all"', async () => {
-      renderWithTheme(<Project projects={projects} />);
+      render(<Project projects={projects} />);
 
       await userEvent.click(screen.getByText('Tout afficher (4)'));
 
@@ -540,7 +536,7 @@ describe('Project', () => {
     });
 
     it('generates no function source text in the CSS of the "Show all" grid', async () => {
-      renderWithTheme(<Project projects={projects} />);
+      render(<Project projects={projects} />);
 
       await userEvent.click(screen.getByText('Tout afficher (4)'));
 
@@ -554,7 +550,7 @@ describe('Project', () => {
       ['the row of a page', false],
       ['the "Show all" grid', true],
     ])('lets a long tech line wrap inside its card in %s', async (_layout, isShowingAll) => {
-      renderWithTheme(<Project projects={[LONG_TECH_LINE_PROJECT, ...projects]} />);
+      render(<Project projects={[LONG_TECH_LINE_PROJECT, ...projects]} />);
 
       if (isShowingAll) await userEvent.click(screen.getByText('Tout afficher (5)'));
 
