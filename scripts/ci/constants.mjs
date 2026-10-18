@@ -160,7 +160,12 @@ export const HTTP_NOT_FOUND = 404;
 /** HTTP statuses of a redirect, whose `Location` header gives the new address. */
 export const REDIRECT_STATUSES = [301, 302, 303, 307, 308];
 
-/** Address of the production site, normalized as `URL` writes it. */
+/**
+ * Address of the production site, normalized as `URL` writes it: the site that the smoke test
+ * checks when it gets no URL, and that {@link REDIRECTED_SITE_URLS} must redirect to. The app
+ * builds its canonical URLs from its own `SITE_URL` (`src/utils/pages.ts`), written without the
+ * trailing slash: keep both on the same address.
+ */
 export const SITE_URL = 'https://issoufi.fr/';
 
 /**
