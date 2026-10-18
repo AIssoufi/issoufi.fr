@@ -6,11 +6,12 @@ import freelanceProjectsData from './.data/freelance-projects.json';
 import personalProjectsData from './.data/personal-projects.json';
 import { PageTitle, ProjectsPage } from './Projects.styled';
 import { BACKGROUND_IMAGE_URL } from './constants';
+import { translateProjects } from './utils';
 
 /**
  * Projects page: the personal and freelance project sections, with their data read from
- * `.data/personal-projects.json` and `.data/freelance-projects.json`, under a page title that
- * only screen readers announce.
+ * `.data/personal-projects.json` and `.data/freelance-projects.json` and their names and kinds
+ * translated into the language of the page, under a page title that only screen readers announce.
  */
 export const Projects = () => {
   const { t } = useTranslation();
@@ -20,11 +21,11 @@ export const Projects = () => {
       <PageTitle>{t('projects.pageTitle')}</PageTitle>
       <Project
         title={t('projects.personal')}
-        projects={personalProjectsData.projects}
+        projects={translateProjects({ projects: personalProjectsData.projects, t })}
       />
       <Project
         title={t('projects.freelance')}
-        projects={freelanceProjectsData.projects}
+        projects={translateProjects({ projects: freelanceProjectsData.projects, t })}
       />
     </ProjectsPage>
   );
