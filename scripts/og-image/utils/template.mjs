@@ -151,6 +151,9 @@ export const renderOgImageStyles = theme => {
 /**
  * Parameters of {@link renderOgImageHtml}.
  * @typedef {object} RenderOgImageHtmlParams
+ * @property {string} language - Code of the language of the texts, e.g. `en`, written in the
+ * `lang` of the page so the browser applies its typography rules. A value that is not a string
+ * leaves the language unknown (`lang=""`).
  * @property {OgImageTexts} texts - Texts of the image, from `getOgImageTexts`.
  * @property {string} styles - Style sheet of the page, from {@link renderOgImageStyles}.
  * @property {string} backgroundImageUrl - Background photo of the home page, as a data URL,
@@ -167,9 +170,10 @@ export const renderOgImageStyles = theme => {
  * @param {RenderOgImageHtmlParams} params
  * @returns {string} A complete HTML document, sized to the image.
  * @example
- * await page.setContent(renderOgImageHtml({ texts, styles, backgroundImageUrl, fontStylesheetUrl, particlesSvg }));
+ * await page.setContent(renderOgImageHtml({ language: 'en', texts, styles, backgroundImageUrl, fontStylesheetUrl, particlesSvg }));
  */
 export const renderOgImageHtml = ({
+  language,
   texts,
   styles,
   backgroundImageUrl,
@@ -183,7 +187,7 @@ export const renderOgImageHtml = ({
     .join('');
 
   return `<!doctype html>
-<html lang="fr">
+<html lang="${escapeHtml(language)}">
   <head>
     <meta charset="utf-8" />
     <link rel="stylesheet" href="${escapeHtml(fontStylesheetUrl)}" />

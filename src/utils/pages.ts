@@ -1,9 +1,34 @@
 import { DEFAULT_LANGUAGE, LANGUAGES } from '../i18n/constants';
 import type { Language } from '../i18n/types';
-import { getLanguagePrefix, localizePath, removeLanguagePrefix } from '../i18n/utils';
+import { getLanguagePrefix, isLanguage, localizePath, removeLanguagePrefix } from '../i18n/utils';
 
 /** Production origin of the site, without a trailing slash. Used to build canonical URLs. */
 export const SITE_URL = 'https://issoufi.fr';
+
+/**
+ * Path of the link preview image of each language, a 1200 × 630 JPEG of `public/` that
+ * `pnpm og-image` (`scripts/og-image/`) draws from the home page texts in that language. Every
+ * page of a language points to it in its `og:image` (see {@link getOgImageUrl}).
+ */
+export const OG_IMAGE_PATHS = {
+  fr: '/og-image.jpg',
+  en: '/og-image-en.jpg',
+} as const satisfies Record<Language, string>;
+
+/**
+ * Builds the absolute URL of the link preview image of a language, the `og:image` of its pages.
+ *
+ * @param language - Language of the image. A value that is not one of the `LANGUAGES` counts as
+ * the default language.
+ *
+ * @example
+ * getOgImageUrl('fr'); // 'https://issoufi.fr/og-image.jpg'
+ * getOgImageUrl('en'); // 'https://issoufi.fr/og-image-en.jpg'
+ */
+export const getOgImageUrl = (language: unknown): string => {
+  const imageLanguage = isLanguage(language) ? language : DEFAULT_LANGUAGE;
+  return `${SITE_URL}${OG_IMAGE_PATHS[imageLanguage]}`;
+};
 
 /**
  * Routes that get their own HTML file at build time in every language, so link previews and

@@ -1,3 +1,4 @@
+import { en } from '../../../src/i18n/en';
 import { fr } from '../../../src/i18n/fr';
 import { SITE_URL } from '../../../src/utils/pages';
 import { findMissingTexts, getAuthorName, getOgImageTexts } from './texts.mjs';
@@ -14,6 +15,12 @@ describe('getAuthorName', () => {
 
   it('reads the name in the French title of the home page', () => {
     expect(getAuthorName({ pageTitle: fr.meta.home.title, jobTitle: fr.home.title1 })).toBe(
+      'ADAM Issoufi',
+    );
+  });
+
+  it('reads the name in the English title of the home page', () => {
+    expect(getAuthorName({ pageTitle: en.meta.home.title, jobTitle: en.home.title1 })).toBe(
       'ADAM Issoufi',
     );
   });
@@ -63,6 +70,23 @@ describe('getOgImageTexts', () => {
     });
   });
 
+  it('reads the texts of the home page in the English translations', () => {
+    expect(getOgImageTexts({ translations: en, siteUrl: SITE_URL })).toEqual({
+      logo: 'AI',
+      name: 'ADAM Issoufi',
+      jobTitle: 'Full-stack JavaScript Developer',
+      passion: [
+        { text: 'passionate about ', isHighlighted: false },
+        { text: 'UX', isHighlighted: true },
+        { text: ' and ', isHighlighted: false },
+        { text: 'UI', isHighlighted: true },
+        { text: ' Design', isHighlighted: false },
+      ],
+      subtitle: 'I help you build web applications',
+      site: 'issoufi.fr',
+    });
+  });
+
   it.each([
     ['https://issoufi.fr/', 'issoufi.fr'],
     ['https://www.issoufi.fr/projects', 'www.issoufi.fr'],
@@ -97,8 +121,11 @@ describe('getOgImageTexts', () => {
 describe('findMissingTexts', () => {
   const texts = getOgImageTexts({ translations: fr, siteUrl: SITE_URL });
 
-  it('finds none in the French translations', () => {
-    expect(findMissingTexts(texts)).toEqual([]);
+  it.each([
+    ['French', fr],
+    ['English', en],
+  ])('finds none in the %s translations', (_, translations) => {
+    expect(findMissingTexts(getOgImageTexts({ translations, siteUrl: SITE_URL }))).toEqual([]);
   });
 
   it.each([

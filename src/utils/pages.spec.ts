@@ -1,10 +1,13 @@
 import { statSync } from 'node:fs';
 
+import { LANGUAGES } from '../i18n/constants';
 import {
   NOT_FOUND_FOLDER,
+  OG_IMAGE_PATHS,
   PAGES,
   getLanguageFileName,
   getNotFoundFiles,
+  getOgImageUrl,
   getPage,
   getPageFiles,
   getPageUrl,
@@ -93,6 +96,34 @@ describe('getPageUrl', () => {
     ['/experiences', 'en', 'https://issoufi.fr/en/experiences'],
   ] as const)('gives %s in %s the URL %s', (path, language, url) => {
     expect(getPageUrl({ path, language })).toBe(url);
+  });
+});
+
+describe('getOgImageUrl', () => {
+  it.each([
+    ['fr', 'https://issoufi.fr/og-image.jpg'],
+    ['en', 'https://issoufi.fr/og-image-en.jpg'],
+  ] as const)('gives the %s image the URL %s', (language, url) => {
+    expect(getOgImageUrl(language)).toBe(url);
+  });
+
+  it('gives each language its own image', () => {
+    const urls = LANGUAGES.map(getOgImageUrl);
+
+    expect(new Set(urls).size).toBe(LANGUAGES.length);
+  });
+
+  it.each(['de', 'EN', '', undefined, null, 42])(
+    'gives the default language image for %j, which is not a language of the site',
+    language => {
+      expect(getOgImageUrl(language)).toBe('https://issoufi.fr/og-image.jpg');
+    },
+  );
+});
+
+describe('OG_IMAGE_PATHS', () => {
+  it.each(Object.entries(OG_IMAGE_PATHS))('names a file of public/ for %s: %s', (_, path) => {
+    expect(statSync(`public${path}`).isFile()).toBe(true);
   });
 });
 

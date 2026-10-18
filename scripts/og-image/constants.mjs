@@ -1,8 +1,5 @@
 // @ts-check
 
-/** Link preview image written by `pnpm og-image`, relative to the project root. */
-export const OG_IMAGE_FILE = 'public/og-image.jpg';
-
 /** Width of the image, in pixels: with its height, the 1.91:1 ratio of Open Graph and X. */
 export const OG_IMAGE_WIDTH_PX = 1200;
 
@@ -10,15 +7,15 @@ export const OG_IMAGE_WIDTH_PX = 1200;
 export const OG_IMAGE_HEIGHT_PX = 630;
 
 /**
- * Largest size of the image, in bytes: WhatsApp drops larger link preview images. The test of
+ * Largest size of each image, in bytes: WhatsApp drops larger link preview images. The test of
  * `src/utils/pageHtml.spec.ts` checks the same limit.
  */
 export const OG_IMAGE_MAX_BYTES = 300_000;
 
 /**
- * JPEG quality of the image, from 0 to 100. In October 2026, 90 gave 101 kB, a third of the
- * limit, with no artifact visible at full size; 85 left a faint halo around the white text of the
- * button. A PNG of the same image weighs 473 kB.
+ * JPEG quality of the images, from 0 to 100. In October 2026, 90 gave 101 kB for the French one
+ * and 98 kB for the English one, a third of the limit, with no artifact visible at full size; 85
+ * left a faint halo around the white text of the button. A PNG of the French image weighs 473 kB.
  */
 export const OG_IMAGE_JPEG_QUALITY = 90;
 
@@ -57,16 +54,25 @@ export const IMAGE_MEDIA_TYPES = {
 
 /**
  * Modules of the site read by the script through Vite, which compiles their TypeScript: the
- * texts, the design tokens, the background photo and the particle field of the home page, and
- * the domain of the site. Paths are relative to the project root.
+ * design tokens, the background photo and the particle field of the home page, and the domain of
+ * the site and the path of the image of each language. Paths are relative to the project root.
  */
 export const SOURCE_MODULES = {
-  translations: '/src/i18n/fr.ts',
   theme: '/src/theme/theme.ts',
   home: '/src/pages/Home/constants.ts',
   particleConstants: '/src/pages/Home/ParticleField/constants.ts',
   particleUtils: '/src/pages/Home/ParticleField/utils.ts',
   pages: '/src/utils/pages.ts',
+};
+
+/**
+ * Translations of each language, read through Vite like {@link SOURCE_MODULES}: each module
+ * exports them under the code of its language (`fr` in `fr.ts`). The script draws an image for
+ * every language of `OG_IMAGE_PATHS` (`src/utils/pages.ts`), from the texts of its home page.
+ */
+export const TRANSLATION_MODULES = {
+  fr: '/src/i18n/fr.ts',
+  en: '/src/i18n/en.ts',
 };
 
 /** Logo of the header (`src/App/Header/Header.tsx`), drawn at the top left. */
@@ -111,7 +117,10 @@ export const OG_LAYOUT = {
   nameFontSizePx: 26,
   /** Font size of the job title. */
   titleFontSizePx: 68,
-  /** Width from which the job title wraps: after "full-stack" in French. */
+  /**
+   * Width from which the job title wraps: after "full-stack" in French, after "JavaScript" in
+   * English.
+   */
   titleMaxWidthPx: 960,
   /** Space between the author's name and the job title. */
   titleMarginTopPx: 20,
