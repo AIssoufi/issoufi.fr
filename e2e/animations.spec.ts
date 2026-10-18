@@ -1,4 +1,4 @@
-import { waitForEndingAnimations } from './animations';
+import { listLastingAnimations, waitForEndingAnimations } from './animations';
 
 /** Parameters of {@link fakeAnimation}. */
 interface FakeAnimationParams {
@@ -90,5 +90,103 @@ describe('waitForEndingAnimations', () => {
     finished.resolve();
     await waiting;
     expect(isDone).toBe(true);
+  });
+});
+
+/** Longest time, in ms, that the animations of {@link listLastingAnimations} tests may last. */
+const MAX_DURATION_MS = 1;
+
+/** Parameters of {@link fakeTimedAnimation}. */
+interface FakeTimedAnimationParams {
+  /** When the animation ends, delay included, in ms: `Infinity` for one that loops forever. */
+  endTime: number;
+  /** Keyframes of a CSS animation. */
+  animationName?: string;
+  /** Property changed by a CSS transition. */
+  transitionProperty?: string;
+  /** Tag of the animated element, upper case as in the DOM; `null` for an animation without one. */
+  tagName?: string | null;
+  /** Pseudo-element of the animated element, such as `::before`. */
+  pseudoElement?: string | null;
+}
+
+/** A fake CSS animation or transition that ends at `endTime`, on an element of the given tag. */
+const fakeTimedAnimation = ({
+  endTime,
+  animationName,
+  transitionProperty,
+  tagName = 'SPAN',
+  pseudoElement = null,
+}: FakeTimedAnimationParams) => ({
+  animationName,
+  transitionProperty,
+  effect: {
+    getComputedTiming: () => ({ endTime }),
+    target: tagName === null ? null : { tagName },
+    pseudoElement,
+  },
+});
+
+describe('listLastingAnimations', () => {
+  it('lists every animation of the element and of its content', () => {
+    const { container, getAnimations } = fakeContainer([]);
+
+    expect(listLastingAnimations(container, MAX_DURATION_MS)).toEqual([]);
+    expect(getAnimations).toHaveBeenCalledWith({ subtree: true });
+  });
+
+  it('describes an animation that loops forever by its keyframes, element and end', () => {
+    const { container } = fakeContainer([
+      fakeTimedAnimation({ endTime: Number.POSITIVE_INFINITY, animationName: 'textFlow' }),
+    ]);
+
+    expect(listLastingAnimations(container, MAX_DURATION_MS)).toEqual([
+      'textFlow on <span>, ends after Infinity ms',
+    ]);
+  });
+
+  it('describes a transition by the property it changes, and a pseudo-element', () => {
+    const { container } = fakeContainer([
+      fakeTimedAnimation({
+        endTime: 250,
+        transitionProperty: 'transform',
+        tagName: 'LI',
+        pseudoElement: '::after',
+      }),
+    ]);
+
+    expect(listLastingAnimations(container, MAX_DURATION_MS)).toEqual([
+      'transform on <li>::after, ends after 250 ms',
+    ]);
+  });
+
+  it('keeps an animation that ends just in time, or before, and lists one just later', () => {
+    const { container } = fakeContainer([
+      fakeTimedAnimation({ endTime: MAX_DURATION_MS, animationName: 'onTime' }),
+      fakeTimedAnimation({ endTime: MAX_DURATION_MS / 2, animationName: 'early' }),
+      // A negative delay starts an animation before the page shows it
+      fakeTimedAnimation({ endTime: -1000, animationName: 'started' }),
+      fakeTimedAnimation({ endTime: MAX_DURATION_MS + 0.001, animationName: 'late' }),
+    ]);
+
+    expect(listLastingAnimations(container, MAX_DURATION_MS)).toEqual([
+      `late on <span>, ends after ${MAX_DURATION_MS + 0.001} ms`,
+    ]);
+  });
+
+  it('names an animation without a name or an element all the same', () => {
+    const { container } = fakeContainer([
+      fakeTimedAnimation({ endTime: 900, animationName: '', tagName: null }),
+    ]);
+
+    expect(listLastingAnimations(container, MAX_DURATION_MS)).toEqual([
+      'animation on <no element>, ends after 900 ms',
+    ]);
+  });
+
+  it('leaves out an animation without an effect, which has nothing to show', () => {
+    const { container } = fakeContainer([{ effect: null }]);
+
+    expect(listLastingAnimations(container, MAX_DURATION_MS)).toEqual([]);
   });
 });
