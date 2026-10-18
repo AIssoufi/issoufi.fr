@@ -110,3 +110,27 @@ export function toggleLike(like: Like = NO_LIKE): Like {
     ? { count: Math.max(0, like.count - 1), liked: false }
     : { count: like.count + 1, liked: true };
 }
+
+/** Whether a value is a string holding more than whitespace. */
+const isFilledString = (value: unknown): value is string =>
+  typeof value === 'string' && value.trim() !== '';
+
+/**
+ * Returns the url that the card title links to, or `undefined` when the card gets no link: it
+ * needs a url to open, and a name for the link text, without which screen readers would announce
+ * an unnamed link.
+ *
+ * @param project - Card data, which may come from JSON with missing or wrong fields; `null` or
+ * `undefined` gets no link.
+ *
+ * @example
+ * getProjectLinkUrl({ url: 'https://example.com', name: 'Chess' }); // 'https://example.com'
+ * getProjectLinkUrl({ url: 'https://example.com', name: '' }); // undefined
+ */
+export function getProjectLinkUrl(
+  project?: Partial<Pick<ProjectItemData, 'url' | 'name'>> | null,
+): string | undefined {
+  const { url, name } = project ?? {};
+  const canLink = isFilledString(url) && isFilledString(name);
+  return canLink ? url : undefined;
+}
