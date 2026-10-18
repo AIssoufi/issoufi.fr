@@ -1,5 +1,8 @@
+import { SITEMAP_FILE_NAME } from '../../../src/utils/sitemap';
 import {
+  compareFile,
   comparePage,
+  getFileChecks,
   getPageChecks,
   isPageCheck,
   readPageHead,
@@ -206,6 +209,106 @@ describe('comparePage', () => {
   });
 });
 
+describe('getFileChecks', () => {
+  it('checks robots.txt and sitemap.xml at the root of the site', () => {
+    expect(getFileChecks(['index.html', 'sitemap.xml', 'assets/index.js', 'robots.txt'])).toEqual([
+      { file: 'robots.txt', route: '/robots.txt', status: 200 },
+      { file: 'sitemap.xml', route: '/sitemap.xml', status: 200 },
+    ]);
+  });
+
+  it('checks the sitemap under the name the build writes it with', () => {
+    expect(getFileChecks([SITEMAP_FILE_NAME])).toEqual([
+      { file: SITEMAP_FILE_NAME, route: `/${SITEMAP_FILE_NAME}`, status: 200 },
+    ]);
+  });
+
+  it('gives no check for a file that the build does not have', () => {
+    expect(getFileChecks(['index.html', 'robots.txt'])).toEqual([
+      { file: 'robots.txt', route: '/robots.txt', status: 200 },
+    ]);
+  });
+
+  it('gives no check for a file that the build has only in a folder', () => {
+    expect(getFileChecks(['en/sitemap.xml', 'en\\robots.txt'])).toEqual([]);
+  });
+
+  it('ignores the other files and the entries that are not file names', () => {
+    expect(
+      getFileChecks(['favicon.ico', 'manifest.json', null, 42, { name: 'robots.txt' }]),
+    ).toEqual([]);
+  });
+
+  it.each([undefined, null, [], 'robots.txt', {}])('gives no check for %o', fileNames => {
+    expect(getFileChecks(fileNames)).toEqual([]);
+  });
+});
+
+describe('compareFile', () => {
+  const check = { file: 'sitemap.xml', route: '/sitemap.xml', status: 200 };
+  const builtText = '<?xml version="1.0" encoding="UTF-8"?>\n<urlset></urlset>\n';
+
+  it('finds no problem when the file is served as built', () => {
+    expect(compareFile({ check, status: 200, servedText: builtText, builtText })).toEqual([]);
+  });
+
+  it('reports an unexpected status', () => {
+    expect(compareFile({ check, status: 404, servedText: builtText, builtText })).toEqual([
+      '/sitemap.xml: status 404 instead of 200',
+    ]);
+  });
+
+  it('reports a content that differs from the build, by a single character', () => {
+    const servedText = builtText.replace('\n<urlset>', '<urlset>');
+
+    expect(compareFile({ check, status: 200, servedText, builtText })).toEqual([
+      '/sitemap.xml: content differs from sitemap.xml of the build',
+    ]);
+  });
+
+  it('reports the not found page served in place of the file, with both problems', () => {
+    const servedText = '<!doctype html><title>Page introuvable</title>';
+
+    expect(compareFile({ check, status: 404, servedText, builtText })).toEqual([
+      '/sitemap.xml: status 404 instead of 200',
+      '/sitemap.xml: content differs from sitemap.xml of the build',
+    ]);
+  });
+
+  it.each([undefined, null, 42, ''])(
+    'reports a file empty in the build, %o, even when the site serves it empty too',
+    emptyText => {
+      expect(compareFile({ check, status: 200, servedText: '', builtText: emptyText })).toEqual([
+        '/sitemap.xml: sitemap.xml is empty in the build',
+      ]);
+    },
+  );
+
+  it.each([undefined, null, 42])('reports the served content %o as differing', servedText => {
+    expect(compareFile({ check, status: 200, servedText, builtText })).toEqual([
+      '/sitemap.xml: content differs from sitemap.xml of the build',
+    ]);
+  });
+
+  it.each([undefined, null, NaN, 200.5, '200'])(
+    'reports the served status %o as unknown',
+    status => {
+      expect(compareFile({ check, status, servedText: builtText, builtText })).toEqual([
+        '/sitemap.xml: status unknown instead of 200',
+      ]);
+    },
+  );
+
+  it.each([undefined, null, {}, { route: '/sitemap.xml', status: 200 }])(
+    'reports the missing or malformed file check %o as a single problem',
+    malformedCheck => {
+      expect(
+        compareFile({ check: malformedCheck, status: 200, servedText: builtText, builtText }),
+      ).toEqual(['A file check without a file, a route or an integer status cannot be compared']);
+    },
+  );
+});
+
 describe('renderSmokeTestReport', () => {
   const siteUrl = 'https://issoufi.fr';
   const pages = [
@@ -216,6 +319,14 @@ describe('renderSmokeTestReport', () => {
   it('lists the routes served as built', () => {
     expect(renderSmokeTestReport({ siteUrl, pages })).toBe(
       '## Smoke test\n\n✅ https://issoufi.fr serves `/` (200), `/smoke-test-page-that-does-not-exist` (404) as built.\n',
+    );
+  });
+
+  it('lists the files served as built after the pages', () => {
+    const files = getFileChecks(['sitemap.xml']);
+
+    expect(renderSmokeTestReport({ siteUrl, pages: [pages[0], ...files] })).toBe(
+      '## Smoke test\n\n✅ https://issoufi.fr serves `/` (200), `/sitemap.xml` (200) as built.\n',
     );
   });
 
