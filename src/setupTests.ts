@@ -1,4 +1,6 @@
 import '@testing-library/jest-dom/vitest';
+import type { RenderOptions } from '@testing-library/react';
+import type { ReactNode } from 'react';
 import { vi } from 'vitest';
 import './i18n/index';
 
@@ -32,3 +34,15 @@ vi.mock('lottie-web/build/player/lottie_light', () => ({
     }),
   },
 }));
+
+// Every render is in the theme and the global styles of the app, so that the styles hold the
+// values of the tokens instead of their names (`padding-left: page`). The wrapper a spec passes,
+// such as a router, goes inside the theme.
+vi.mock('@testing-library/react', async importOriginal => {
+  const testingLibrary = await importOriginal<typeof import('@testing-library/react')>();
+  const { withTheme } = await import('./testUtils');
+  const render = (ui: ReactNode, options?: RenderOptions) =>
+    testingLibrary.render(ui, { ...options, wrapper: withTheme(options?.wrapper) });
+
+  return { ...testingLibrary, render };
+});
