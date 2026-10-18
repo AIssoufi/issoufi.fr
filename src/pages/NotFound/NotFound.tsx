@@ -2,18 +2,23 @@ import { useTranslation } from 'react-i18next';
 import { useLocation } from 'react-router';
 
 import StatusPage from '../../components/StatusPage';
+import { decodePath } from './utils';
 
 /** Props of {@link NotFound}. Both default to the translated not found texts. */
 interface NotFoundProps {
   /** Heading override, e.g. for a missing project. Defaults to the translated "Page not found". */
   title?: string;
-  /** Explanation override. Defaults to a translated message naming the current path. */
+  /**
+   * Explanation override. Defaults to a translated message naming the current path, decoded (see
+   * {@link decodePath}).
+   */
   message?: string;
 }
 
 /**
- * Page shown when nothing exists at the current URL: a `404` code, a message naming the path
- * and a link back to the home page. The URL stays as typed, with no redirect.
+ * Page shown when nothing exists at the current URL: a `404` code, a message naming the path,
+ * decoded and wrapped at any character when it is longer than the line, and a link back to the
+ * home page. The URL stays as typed, with no redirect.
  * Rendered by the catch-all route of `App`; a page can also render it for a missing resource.
  * Must be rendered inside a router.
  *
@@ -28,7 +33,7 @@ export const NotFound = ({ title, message }: NotFoundProps) => {
     <StatusPage
       code={404}
       title={title ?? t('errors.notFound.title')}
-      message={message ?? t('errors.notFound.message', { path: pathname })}
+      message={message ?? t('errors.notFound.message', { path: decodePath(pathname) })}
       homeLinkLabel={t('errors.backHome')}
     />
   );

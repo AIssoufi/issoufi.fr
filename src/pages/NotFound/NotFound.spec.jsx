@@ -1,6 +1,7 @@
 import { render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router';
 
+import { declaredStyle } from '../../styleTestUtils';
 import { NotFound } from './NotFound';
 
 const renderAt = (path, props) =>
@@ -18,6 +19,27 @@ describe('NotFound', () => {
     expect(screen.getByRole('heading', { name: 'Page introuvable' })).toBeInTheDocument();
     expect(screen.getByText('La page /skills n’existe pas.')).toBeInTheDocument();
     expect(screen.getByRole('link', { name: 'Retour à l’accueil' })).toHaveAttribute('href', '/');
+  });
+
+  it('names the path decoded, as the visitor reads it', () => {
+    renderAt('/projets/2024/un%20lien%20partag%C3%A9%20tr%C3%A8s%20long');
+
+    expect(
+      screen.getByText('La page /projets/2024/un lien partagé très long n’existe pas.'),
+    ).toBeInTheDocument();
+  });
+
+  it('names a path with a malformed escape as it is, without throwing', () => {
+    renderAt('/projets/%E0%A4%A');
+
+    expect(screen.getByText('La page /projets/%E0%A4%A n’existe pas.')).toBeInTheDocument();
+  });
+
+  it('wraps a path longer than the line at any character', () => {
+    renderAt(`/${'a'.repeat(64)}`);
+
+    const message = screen.getByText(/^La page \/a+ n’existe pas\.$/);
+    expect(declaredStyle({ element: message, property: 'overflow-wrap' })).toBe('anywhere');
   });
 
   it('links back to the English home page from an English URL', () => {
