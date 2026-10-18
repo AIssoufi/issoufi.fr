@@ -1,5 +1,6 @@
 import styled, { th } from '@xstyled/styled-components';
 
+import List from '../../components/List';
 import Page from '../../components/Page';
 
 import {
@@ -78,7 +79,7 @@ export const TimelineContent = styled.div`
   }
 `;
 
-export const BulletList = styled.ul`
+export const BulletList = styled(List)`
   list-style: none;
   margin: ${th.space(8)} 0 0;
   padding: 0;

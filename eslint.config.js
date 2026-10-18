@@ -55,6 +55,26 @@ export default defineConfig([
     },
   },
   {
+    // The global style removes the bullets of every ul, and Safari then exposes it as a list only
+    // with role="list", which List sets
+    files: ['src/**/*.{ts,tsx}'],
+    ignores: ['src/components/List/List.tsx'],
+    rules: {
+      'no-restricted-syntax': [
+        'error',
+        ...[
+          "MemberExpression[object.name='styled'][property.name='ul']",
+          "CallExpression[callee.name='styled'][arguments.0.value='ul']",
+          "JSXOpeningElement[name.name='ul']",
+        ].map(selector => ({
+          selector,
+          message:
+            'Render lists with List (src/components/List), or extend it with styled(List): Safari only exposes a ul without bullets as a list with role="list", which List sets.',
+        })),
+      ],
+    },
+  },
+  {
     // Augments the theme types of styled-components, which needs the module itself
     files: ['src/theme/styled.d.ts'],
     rules: { 'no-restricted-imports': 'off' },

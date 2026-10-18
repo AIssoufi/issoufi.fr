@@ -1,4 +1,4 @@
-import { act, render, screen } from '@testing-library/react';
+import { act, render, screen, within } from '@testing-library/react';
 
 import i18n from '../../../i18n';
 import ExperienceGroup from './ExperienceGroup';
@@ -13,6 +13,27 @@ describe('ExperienceGroup', () => {
 
   it('renders without any props', () => {
     expect(() => render(<ExperienceGroup />)).not.toThrow();
+  });
+
+  it('lists its roles with an explicit list role, which Safari drops from lists without bullets', () => {
+    render(
+      <ExperienceGroup entityName="Sewan Groupe">
+        <ExperienceGroup.Role jobName="Lead Frontend Engineer" />
+        <ExperienceGroup.Role jobName="Senior Frontend Engineer" />
+      </ExperienceGroup>,
+    );
+    const list = screen.getByRole('list');
+
+    expect(list).toHaveAttribute('role', 'list');
+    expect(within(list).getAllByRole('listitem')).toHaveLength(2);
+  });
+
+  it('keeps the list role of a group without roles', () => {
+    render(<ExperienceGroup />);
+    const list = screen.getByRole('list');
+
+    expect(list).toHaveAttribute('role', 'list');
+    expect(list).toBeEmptyDOMElement();
   });
 
   it('shares the company details with its roles', () => {

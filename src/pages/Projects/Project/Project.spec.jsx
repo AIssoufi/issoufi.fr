@@ -121,6 +121,7 @@ describe('Project', () => {
     expect(pageButtons().nextButton).toBeInTheDocument();
     expect(screen.getByRole('group')).toBeInTheDocument();
     expect(screen.getByRole('list')).toBeEmptyDOMElement();
+    expect(screen.getByRole('list')).toHaveAttribute('role', 'list');
   });
 
   it('titles the section with a level 2 heading, leaving the level 1 to the page', () => {
@@ -162,6 +163,16 @@ describe('Project', () => {
 
     expect(cards()).toHaveLength(projects.length);
     expect(screen.queryByRole('main')).not.toBeInTheDocument();
+  });
+
+  it('gives the cards an explicit list role, which Safari drops from lists without bullets', async () => {
+    render(<Project projects={projects} />);
+
+    expect(screen.getByRole('list')).toHaveAttribute('role', 'list');
+
+    await userEvent.click(screen.getByText('Tout afficher (4)'));
+
+    expect(screen.getByRole('list')).toHaveAttribute('role', 'list');
   });
 
   it('groups the section controls under the section title, without a navigation landmark', () => {
