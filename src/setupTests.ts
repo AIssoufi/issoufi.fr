@@ -3,6 +3,7 @@ import type { RenderOptions } from '@testing-library/react';
 import type { ReactNode } from 'react';
 import { afterEach, vi } from 'vitest';
 import './i18n/index';
+import { logDroppedCssRules } from './cssRuleGuard';
 import { describeLoggedErrors } from './testErrors';
 
 // jsdom ignores the inert attribute: like a browser, refuse the focus to an element inside an
@@ -20,6 +21,10 @@ if (hasDom) {
   // without canvas support, give none, as the ParticleField of the home page expects. Its specs
   // replace it with a fake 2D context to check the drawing.
   HTMLCanvasElement.prototype.getContext = () => null;
+
+  // styled-components inserts its rules with insertRule (SC_DISABLE_SPEEDY in vite.config.ts): a
+  // test whose component inserts a rule that browsers drop logs it, and fails
+  logDroppedCssRules(CSSStyleSheet.prototype);
 }
 
 // jsdom cannot draw the animation: the BurgerMenu icon loads this build of lottie-web

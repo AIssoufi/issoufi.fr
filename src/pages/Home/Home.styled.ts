@@ -1,4 +1,4 @@
-import styled, { keyframes, th } from '@xstyled/styled-components';
+import styled, { css, keyframes, th } from '@xstyled/styled-components';
 
 import Page from '../../components/Page';
 import { theme } from '../../theme';
@@ -132,11 +132,11 @@ export const Btn = styled.a<{ $callToAction?: boolean }>`
 
   ${props =>
     !props.$callToAction &&
-    `
-    &:hover {
-      background-color: ${th.color('foreground')};
-      color: ${th.color('background')};
-      border-color: ${th.color('foreground')};
-    }
-  `}
+    css`
+      &:hover {
+        background-color: ${th.color('foreground')};
+        color: ${th.color('background')};
+        border-color: ${th.color('foreground')};
+      }
+    `}
 `;

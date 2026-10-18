@@ -4,8 +4,12 @@ import { join } from 'node:path';
 import { render } from '@testing-library/react';
 import styled, { th, ThemeProvider } from '@xstyled/styled-components';
 
-import { findRawValues } from './testUtils';
+import { declaredStyle } from '../styleTestUtils';
+import { findRawThemeValues, findRawValues } from './testUtils';
 import { theme } from './theme';
+
+/** Source of the semantic tokens, which may only read the primitives of tokens.ts. */
+const THEME_FILE = join('src', 'theme', 'theme.ts');
 
 /** Namespace of the theme read by each xstyled `th.*` helper. */
 const NAMESPACE_BY_HELPER = {
@@ -78,6 +82,13 @@ describe('theme', () => {
     expect(rawValues).toEqual([]);
   });
 
+  it('points every semantic token of theme.ts to a primitive of tokens.ts', () => {
+    const rawValues = findRawThemeValues(readFileSync(THEME_FILE, 'utf8')).map(
+      ({ line, kind, value }) => `${THEME_FILE}:${line}: ${kind} ${value}`,
+    );
+    expect(rawValues).toEqual([]);
+  });
+
   it('only uses th helpers that map to a theme namespace', () => {
     const unknownHelpers = tokenUsages.filter(
       ({ helper }) => helper && !(helper in NAMESPACE_BY_HELPER),
@@ -128,7 +139,8 @@ describe('theme', () => {
     expect(style.marginTop).toBe('-8px');
     // Without the theme, xstyled would turn a size of 1 into 100%
     expect(style.width).toBe('1px');
-    expect(style.maxWidth).toBe('40ch');
+    // jsdom 30 turns the computed ch into pixels with its own font metrics: read the declared value
+    expect(declaredStyle({ element: container.firstChild, property: 'max-width' })).toBe('40ch');
     expect(style.fontSize).toBe('14px');
     expect(style.lineHeight).toBe('1.5');
     expect(style.borderRadius).toBe('12px');

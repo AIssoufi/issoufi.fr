@@ -1,6 +1,8 @@
 import { render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router';
 
+import { theme } from '../../theme';
+import { declaredStyle, serializeCssValue } from '../../styleTestUtils';
 import { isPublicFile } from '../testUtils';
 import { BACKGROUND_IMAGE_URL } from './constants';
 import { Home } from './Home';
@@ -65,6 +67,21 @@ describe('Home', () => {
       expect(style.padding).toBe('13px 20px');
       expect(style.textAlign).toBe('center');
     });
+  });
+
+  it('inverts the colors of the secondary button under the pointer, not those of the main one', () => {
+    renderHome();
+    const hoverStyle = ({ name, property }) =>
+      declaredStyle({ element: screen.getByRole('link', { name }), property, pseudo: ':hover' });
+    const secondaryHoverStyle = property =>
+      hoverStyle({ name: 'Expériences professionnelles', property });
+    const color = name => serializeCssValue({ property: 'color', value: theme.colors[name] });
+
+    expect(secondaryHoverStyle('background-color')).toBe(color('foreground'));
+    expect(secondaryHoverStyle('color')).toBe(color('background'));
+    expect(secondaryHoverStyle('border-color')).toBe(color('foreground'));
+    expect(hoverStyle({ name: 'Voir mes projets', property: 'background-color' })).toBe('');
+    expect(hoverStyle({ name: 'Voir mes projets', property: 'color' })).toBe(color('foreground'));
   });
 
   it('serves its background from public/', () => {

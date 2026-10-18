@@ -115,6 +115,10 @@ export default defineConfig(({ mode }) => {
       globals: true,
       environment: 'jsdom',
       setupFiles: ['./src/setupTests.ts'],
+      // styled-components inserts each rule into the CSSOM, as in production, rather than adding
+      // its text to a <style>, which jsdom parses again whole on every change: a quadratic cost
+      // that made the tests several times slower since jsdom 29
+      env: { SC_DISABLE_SPEEDY: 'false' },
       coverage: {
         provider: 'v8',
         // The helpers of the scripts and of the browser tests are measured, not the scripts and the

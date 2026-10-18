@@ -3,7 +3,9 @@ import userEvent from '@testing-library/user-event';
 
 import i18n from '../../../i18n';
 import { theme } from '../../../theme';
-import { INTERACTIVE_SELECTOR, declaredStyle, listStyleRules } from '../../testUtils';
+import { holdsFunctionSource } from '../../../cssRuleGuard';
+import { declaredStyle, listStyleRules } from '../../../styleTestUtils';
+import { INTERACTIVE_SELECTOR } from '../../testUtils';
 
 import { CARD_HOVER_LIFT_PX, CARD_MAX_TILT_DEG, CARD_PERSPECTIVE_PX, PAGE_SIZE } from './constants';
 import Project from './Project';
@@ -491,7 +493,7 @@ describe('Project', () => {
 
       expect(declaredStyle({ element: cardOf('Chess'), property: 'position' })).toBe('relative');
       expect(linkLayer('position')).toBe('absolute');
-      expect(linkLayer('inset')).toBe('0');
+      expect(linkLayer('inset')).toBe('0px');
       expect([thumbnailGradientZIndex, likeButtonZIndex]).not.toContain('');
       expect(Number(linkLayer('z-index'))).toBeGreaterThan(Number(thumbnailGradientZIndex));
       expect(Number(linkLayer('z-index'))).toBeLessThan(Number(likeButtonZIndex));
@@ -582,10 +584,11 @@ describe('Project', () => {
 
       await userEvent.click(screen.getByText('Tout afficher (4)'));
 
-      const css = [...document.querySelectorAll('style')].map(style => style.textContent).join('');
-      expect(css).toContain(`row-gap:${theme.space[5]}`);
-      expect(css).toMatch(new RegExp(`@media \\(min-width: ?${theme.screens.tablet}\\)`));
-      expect(css).not.toMatch(/=>|\bfunction\b|\bprops\b/);
+      const rules = listStyleRules();
+      const css = rules.map(({ rule }) => rule.cssText).join('');
+      expect(css).toContain(`row-gap: ${theme.space[5]}`);
+      expect(rules.map(({ media }) => media)).toContain(`(min-width: ${theme.screens.tablet})`);
+      expect(holdsFunctionSource(css)).toBe(false);
     });
 
     it.each([
