@@ -137,7 +137,10 @@ export function renderNotFoundHtml({ template, years }: RenderNotFoundHtmlParams
 interface AddModulePreloadParams {
   /** HTML of a generated page. Missing or not a string, it counts as empty. */
   html?: string;
-  /** URL of the script to preload, e.g. `/assets/Projects-1a2b3c.js`. Missing or empty, no link is added. */
+  /**
+   * URL of the script to preload, e.g. `/assets/Projects-1a2b3c.js`. Missing, empty or blank,
+   * no link is added.
+   */
   href?: string;
 }
 
@@ -150,12 +153,12 @@ interface AddModulePreloadParams {
  * is no URL or no head.
  *
  * @example
- * addModulePreload({ html: '<head>\n  </head>', href: '/assets/Projects-1a2b3c.js' });
- * // '<head>\n    <link rel="modulepreload" crossorigin href="/assets/Projects-1a2b3c.js" />\n  </head>'
+ * addModulePreload({ html: '<head>\n  </head>', href: '/assets/P-1.js' });
+ * // '<head>\n    <link rel="modulepreload" crossorigin href="/assets/P-1.js" />\n  </head>'
  */
 export function addModulePreload({ html, href }: AddModulePreloadParams = {}): string {
   const page = typeof html === 'string' ? html : '';
-  const hasHref = typeof href === 'string' && href !== '';
+  const hasHref = typeof href === 'string' && href.trim() !== '';
   const canAddLink = hasHref && page.includes(HEAD_END_TAG);
   if (!canAddLink) return page;
 

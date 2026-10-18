@@ -204,6 +204,7 @@ describe('getPageChunkFile', () => {
       ['an empty bundle', { bundle: {}, folder: 'Projects' }],
       ['no folder', { bundle }],
       ['an empty folder', { bundle, folder: '' }],
+      ['a blank folder', { bundle, folder: '  ' }],
       ['a folder that is not a string', { bundle, folder: 42 as never }],
     ])('returns undefined for %s', (_, params) => {
       expect(getPageChunkFile(params)).toBeUndefined();

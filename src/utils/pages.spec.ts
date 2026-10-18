@@ -221,6 +221,7 @@ describe('addModulePreload', () => {
     it.each([
       ['no URL', undefined],
       ['an empty URL', ''],
+      ['a blank URL', ' \t\n'],
       ['a URL that is not a string', 42 as never],
     ])('leaves the page unchanged for %s', (_, missingHref) => {
       expect(addModulePreload({ html: '<head></head>', href: missingHref })).toBe('<head></head>');
