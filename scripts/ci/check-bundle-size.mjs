@@ -12,6 +12,7 @@ import {
   HOME_PAGE_FILE,
   INITIAL_LOAD_BUDGET_GZIP_BYTES,
   LARGE_IMAGE_BYTES,
+  MISSING_INITIAL_LOAD_REASON,
   PUBLIC_DIR,
   SCRIPT_BUDGET_GZIP_BYTES,
 } from './constants.mjs';
@@ -20,8 +21,8 @@ import {
   findLargeImages,
   findUncountedPaths,
   isBudgetedScript,
-  renderBundleReport,
 } from './utils/bundle.mjs';
+import { renderBundleReport } from './utils/bundle-report.mjs';
 import { readInitialLoadPaths } from './utils/html.mjs';
 import { appendJobSummary } from './utils/job-summary.mjs';
 import { formatKilobytes } from './utils/numbers.mjs';
@@ -80,25 +81,24 @@ const { hasInitialLoad, initialLoad, total } = checkBundleBudgets({
 
 if (!hasInitialLoad) {
   console.log(
-    `::error::${HOME_PAGE_FILE} references no script or style sheet of the build, so its initial load cannot be checked.`,
+    `::error::${HOME_PAGE_FILE} ${MISSING_INITIAL_LOAD_REASON}, so its initial load cannot be checked.`,
   );
   process.exitCode = 1;
 }
 
-const budgets = [
-  {
-    name: `Initial load of ${HOME_PAGE_FILE}`,
-    check: initialLoad,
-    budgetBytes: INITIAL_LOAD_BUDGET_GZIP_BYTES,
-    advice: 'Load what the home page does not need with a lazy import, or remove code,',
-  },
-  {
-    name: 'All scripts and styles',
-    check: total,
-    budgetBytes: SCRIPT_BUDGET_GZIP_BYTES,
-    advice: 'Split the bundle or remove code',
-  },
-];
+const initialLoadBudget = {
+  name: `Initial load of ${HOME_PAGE_FILE}`,
+  check: initialLoad,
+  budgetBytes: INITIAL_LOAD_BUDGET_GZIP_BYTES,
+  advice: 'Load what the home page does not need with a lazy import, or remove code,',
+};
+const totalBudget = {
+  name: 'All scripts and styles',
+  check: total,
+  budgetBytes: SCRIPT_BUDGET_GZIP_BYTES,
+  advice: 'Split the bundle or remove code',
+};
+const budgets = [initialLoadBudget, totalBudget];
 
 budgets.forEach(({ name, check: { totalGzipBytes, isOverBudget }, budgetBytes, advice }) => {
   const verdict = `${name}: ${formatKilobytes(totalGzipBytes)} gzip, for a budget of ${formatKilobytes(budgetBytes)}`;

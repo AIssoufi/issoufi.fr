@@ -29,6 +29,13 @@ export const SCRIPT_BUDGET_GZIP_BYTES = 210_000;
  */
 export const INITIAL_LOAD_BUDGET_GZIP_BYTES = 150_000;
 
+/**
+ * Why the initial load cannot be checked when the home page ({@link HOME_PAGE_FILE}) references
+ * none of the scripts of the build, written after its file name in the job summary and in the
+ * error annotation.
+ */
+export const MISSING_INITIAL_LOAD_REASON = 'references no script or style sheet of the build';
+
 /** Size, in bytes, above which an image of the build is reported as worth compressing. */
 export const LARGE_IMAGE_BYTES = 500_000;
 
