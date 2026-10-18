@@ -5,7 +5,7 @@ import LikeIcon from './icons/heart.svg?react';
 import NextIcon from './icons/next.svg?react';
 import PreviousIcon from './icons/previous.svg?react';
 
-import { NO_LIKE, ROW_CARD_COUNT } from './constants';
+import { ROW_CARD_COUNT } from './constants';
 import { useCardTilt } from './hooks/useCardTilt';
 import { useLikes } from './hooks/useLikes';
 import { useWholeCardCount } from './hooks/useWholeCardCount';
@@ -14,7 +14,6 @@ import {
   IconBtn,
   ImageContainer,
   LikeButton,
-  LikeCount,
   ProjectGrid,
   ProjectInfo,
   ProjectItem,
@@ -61,10 +60,11 @@ const NO_PROJECTS: ProjectItemData[] = [];
  * size of the row, on as many rows as they need. The cards form a list. The controls form a
  * group labelled by the title, rather than a navigation landmark, with its buttons in the order
  * that the screen shows them. Cards tilt toward the mouse, and have a like button, named after the
- * project and described by its count, whose state is kept in memory only. When the project has a
- * `url` and a name, the card title is a link to it, stretched over the whole card; the like
- * button sits beside that link, never inside it. The title is a level 2 heading, under the `h1`
- * of the page; without a title, the section has no heading and its controls have no name.
+ * project, whose pressed state is the visitor's own like, without a count, kept in their browser
+ * by {@link useLikes}: no project is liked on a first visit. When the project has a `url` and a
+ * name, the card title is a link to it, stretched over the whole card; the like button sits
+ * beside that link, never inside it. The title is a level 2 heading, under the `h1` of the page;
+ * without a title, the section has no heading and its controls have no name.
  */
 const Project = ({ title, projects = NO_PROJECTS }: ProjectProps) => {
   const { t } = useTranslation();
@@ -75,7 +75,7 @@ const Project = ({ title, projects = NO_PROJECTS }: ProjectProps) => {
   const hasTitle = typeof title === 'string' && title.trim() !== '';
   const [requestedPageStart, setPageStart] = useState(0);
   const [isShowingAll, setIsShowingAll] = useState(false);
-  const { likes, animatingIds, toggleLike } = useLikes(projects);
+  const { likedIds, animatingIds, toggleLike } = useLikes();
   const { listRef, wholeCardCount } = useWholeCardCount({ maxCount: ROW_CARD_COUNT });
 
   const total = projects.length;
@@ -145,9 +145,8 @@ const Project = ({ title, projects = NO_PROJECTS }: ProjectProps) => {
         $displayAll={isShowingAll}
       >
         {visibleProjects.map(({ id, name, type, imageUrl, url, tools }) => {
-          const { count, liked } = likes[id] ?? NO_LIKE;
+          const isLiked = likedIds.has(id);
           const isAnimating = animatingIds.has(id);
-          const likeCountId = `${sectionId}-like-count-${id}`;
           const linkUrl = getProjectLinkUrl({ url, name });
 
           return (
@@ -163,20 +162,12 @@ const Project = ({ title, projects = NO_PROJECTS }: ProjectProps) => {
                 <LikeButton
                   type="button"
                   aria-label={t('projects.like', { name })}
-                  aria-pressed={liked}
-                  aria-describedby={likeCountId}
-                  $liked={liked}
+                  aria-pressed={isLiked}
+                  $liked={isLiked}
                   $animating={isAnimating}
                   onClick={() => toggleLike(id)}
                 >
                   <LikeIcon aria-hidden />
-                  <LikeCount
-                    id={likeCountId}
-                    $liked={liked}
-                    $animating={isAnimating}
-                  >
-                    {count}
-                  </LikeCount>
                 </LikeButton>
               </ImageContainer>
               <ProjectInfo>

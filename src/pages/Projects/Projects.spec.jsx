@@ -56,9 +56,16 @@ const showAllProjects = async () => {
   }
 };
 
+/** French or English accessible name of a like button, which starts with the action. */
+const LIKE_BUTTON_NAME = /^(Aimer|Like) /;
+
+/** Like buttons of every card that the page shows. */
+const likeButtons = () => screen.getAllByRole('button', { name: LIKE_BUTTON_NAME });
+
 describe('Projects', () => {
   afterEach(async () => {
     await act(() => i18n.changeLanguage('fr'));
+    localStorage.clear();
   });
 
   it('renders the personal and freelance sections', () => {
@@ -159,6 +166,47 @@ describe('Projects', () => {
       expect(screen.getByRole('img', { name })).toBeInTheDocument();
     },
   );
+
+  it('gives every project of the page its own integer id, which keys its like in the storage', () => {
+    const ids = allProjects.map(({ id }) => id);
+
+    for (const id of ids) expect(Number.isInteger(id), `id ${id}`).toBe(true);
+    expect(new Set(ids).size).toBe(ids.length);
+  });
+
+  it.each(LANGUAGES)(
+    'likes no project and shows no count on a first visit, in %s',
+    async language => {
+      render(<Projects />);
+      await showAllProjects();
+      await act(() => i18n.changeLanguage(language));
+
+      expect(likeButtons()).toHaveLength(allProjects.length);
+      for (const likeButton of likeButtons()) {
+        expect(likeButton).toHaveAttribute('aria-pressed', 'false');
+        expect(likeButton).toHaveTextContent(/^$/);
+      }
+    },
+  );
+
+  it('likes a personal project without liking the freelance project in the same place, after a reload', async () => {
+    /** First like button of each section, the personal one then the freelance one. */
+    const firstLikeOfEachSection = () =>
+      screen
+        .getAllByRole('list')
+        .map(list => within(list).getAllByRole('button', { name: LIKE_BUTTON_NAME })[0]);
+    const { unmount } = render(<Projects />);
+    await userEvent.click(firstLikeOfEachSection()[0]);
+    unmount();
+
+    render(<Projects />);
+    const [firstPersonalLike, firstFreelanceLike] = firstLikeOfEachSection();
+
+    expect(firstPersonalLike).toHaveAccessibleName(`Aimer ${FRENCH_CARDS[0][0]}`);
+    expect(firstPersonalLike).toHaveAttribute('aria-pressed', 'true');
+    expect(firstFreelanceLike).toHaveAccessibleName(`Aimer ${FRENCH_CARDS[4][0]}`);
+    expect(firstFreelanceLike).toHaveAttribute('aria-pressed', 'false');
+  });
 
   it('links every project that has a url, with no interactive element inside a link', async () => {
     render(<Projects />);

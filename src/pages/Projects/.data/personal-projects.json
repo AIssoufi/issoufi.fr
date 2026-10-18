@@ -6,36 +6,28 @@
       "typeKey": "webApp",
       "imageUrl": "/chess.webp",
       "url": "https://aissoufi.github.io/chess/",
-      "tools": ["HTML 5", "CSS 3", "JavaScript", "Gulp", "Mocha", "Babel"],
-      "likeCount": 2,
-      "isLikedByOwnUser": true
+      "tools": ["HTML 5", "CSS 3", "JavaScript", "Gulp", "Mocha", "Babel"]
     },
     {
       "id": 2,
       "nameKey": "audioPluginStore",
       "typeKey": "webApp",
       "imageUrl": "/pedalboards.png",
-      "tools": ["HTML 5", "SCSS", "React.js", "Redux.js"],
-      "likeCount": 0,
-      "isLikedByOwnUser": false
+      "tools": ["HTML 5", "SCSS", "React.js", "Redux.js"]
     },
     {
       "id": 3,
       "nameKey": "connectFour",
       "typeKey": "webApp",
       "imageUrl": "/connect-four.png",
-      "tools": ["HTML 5", "CSS 3", "Express", "Swagger"],
-      "likeCount": 1,
-      "isLikedByOwnUser": false
+      "tools": ["HTML 5", "CSS 3", "Express", "Swagger"]
     },
     {
       "id": 4,
       "nameKey": "calculator",
       "typeKey": "webApp",
       "imageUrl": "/calculatrice.webp",
-      "tools": ["HTML 5", "CSS 3", "React.js", "Redux.js"],
-      "likeCount": 0,
-      "isLikedByOwnUser": false
+      "tools": ["HTML 5", "CSS 3", "React.js", "Redux.js"]
     }
   ]
 }
