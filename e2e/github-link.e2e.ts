@@ -10,10 +10,8 @@ import {
   MOBILE_SCREEN_WIDTHS_PX,
   SCREEN_HEIGHT_PX,
 } from './constants';
+import { scrollToEnd } from './scroll';
 import { getBoxBottom, getBoxCenterDistanceX } from './utils';
-
-/** Scrolls the page to its end. Runs in the browser. */
-const scrollToEnd = () => window.scrollTo(0, document.documentElement.scrollHeight);
 
 // jsdom computes no layout, so only a real browser sees the CV button or the GitHub icon off the
 // center of the control they sit under. The app opens in French, the default language.

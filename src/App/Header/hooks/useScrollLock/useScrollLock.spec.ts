@@ -68,4 +68,27 @@ describe('useScrollLock', () => {
     menu.unmount();
     expect(getRootOverflow()).toBe('');
   });
+
+  it('lets the page scroll again once every lock is released, whatever their order', () => {
+    document.documentElement.style.overflow = 'clip';
+    const menu = renderHook(() => useScrollLock({ isActive: true }));
+    const dialog = renderHook(() => useScrollLock({ isActive: true }));
+
+    menu.unmount();
+    expect(getRootOverflow()).toBe('hidden');
+
+    dialog.unmount();
+    expect(getRootOverflow()).toBe('clip');
+  });
+
+  it('locks the page again after every lock was released', () => {
+    const first = renderHook(() => useScrollLock({ isActive: true }));
+    first.unmount();
+
+    const second = renderHook(() => useScrollLock({ isActive: true }));
+    expect(getRootOverflow()).toBe('hidden');
+
+    second.unmount();
+    expect(getRootOverflow()).toBe('');
+  });
 });

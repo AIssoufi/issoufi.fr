@@ -438,3 +438,27 @@ export const isGoogleUrl = (url?: unknown): boolean => {
   const goesToAHost = (NETWORK_PROTOCOLS as readonly string[]).includes(protocol);
   return goesToAHost && isGoogleHost(hostname);
 };
+
+/** Point of the screen, in CSS pixels from its top left corner. */
+export interface ScreenPoint {
+  /** Distance from the left edge of the screen. */
+  x: number;
+  /** Distance from the top edge of the screen. */
+  y: number;
+}
+
+/**
+ * Finds the middle of the screen of a page from its size, such as the point where a scroll
+ * gesture over a full-screen menu starts.
+ *
+ * @param viewport - Size of the screen, such as the one that `page.viewportSize()` returns.
+ * @returns The middle of the screen, or `null` when the size is missing or holds a value that is
+ * not a finite number (see {@link getScreenBox}).
+ *
+ * @example
+ * getScreenCenter({ width: 568, height: 320 }); // { x: 284, y: 160 }
+ */
+export const getScreenCenter = (viewport?: ViewportSize | null): ScreenPoint | null => {
+  const screen = getScreenBox(viewport);
+  return screen && { x: screen.width / 2, y: screen.height / 2 };
+};

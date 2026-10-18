@@ -11,6 +11,7 @@ import {
   getCheckedRoutes,
   getQuadCenterX,
   getScreenBox,
+  getScreenCenter,
   groupCardsIntoRows,
   isBoxInside,
   isGoogleHost,
@@ -764,5 +765,38 @@ describe('isGoogleUrl', () => {
     'http://',
   ])('finds no Google request in %j, not an absolute URL', url => {
     expect(isGoogleUrl(url)).toBe(false);
+  });
+});
+
+describe('getScreenCenter', () => {
+  it.each([
+    [
+      { width: 568, height: 320 },
+      { x: 284, y: 160 },
+    ],
+    [
+      { width: 375, height: 667 },
+      { x: 187.5, y: 333.5 },
+    ],
+    [
+      { width: 0, height: 0 },
+      { x: 0, y: 0 },
+    ],
+  ])('finds the middle of a screen of %j', (viewport, expected) => {
+    expect(getScreenCenter(viewport)).toEqual(expected);
+  });
+
+  describe('edge cases', () => {
+    it.each([
+      undefined,
+      null,
+      {},
+      { height: 320 },
+      { width: Number.NaN, height: 320 },
+      { width: 568, height: Number.NEGATIVE_INFINITY },
+      { width: 568, height: '320' },
+    ])('returns null for the size %j', viewport => {
+      expect(getScreenCenter(viewport as never)).toBeNull();
+    });
   });
 });

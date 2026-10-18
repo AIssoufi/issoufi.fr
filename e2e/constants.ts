@@ -156,6 +156,18 @@ export const LANDSCAPE_PHONE_SCREENS = [
 ] as const;
 
 /**
+ * Smallest height, in pixels, of a link that a finger taps: the target size that the Web Content
+ * Accessibility Guidelines 2.2 require at level AA (success criterion 2.5.8).
+ */
+export const MIN_TARGET_SIZE_PX = 24;
+
+/**
+ * Smallest height, in pixels, of the CV button of the mobile menu, compact or not: the
+ * `round-button` size of the theme, the target size that the guidelines recommend for a finger.
+ */
+export const FINGER_TARGET_HEIGHT_PX = Number.parseFloat(theme.sizes['round-button']);
+
+/**
  * Screen lower than the open mobile menu, even compact, as a phone held sideways with the bars of
  * its browser shown: the menu must scroll to show each of its links whole.
  */
@@ -163,15 +175,14 @@ export const SHORTER_THAN_MENU_SCREEN = { width: 568, height: 240 } as const;
 
 /**
  * Screens below the tablet breakpoint, on which the open mobile menu covers the page: phones held
- * upright (320 × 568, 375 × 667 and 414 × 896) and sideways (568 × 320 and 667 × 375), and a tablet
- * held upright (768 × 1024).
+ * upright (320 × 568, 375 × 667 and 414 × 896) and sideways ({@link LANDSCAPE_PHONE_SCREENS}), and
+ * a tablet held upright (768 × 1024).
  */
 export const MOBILE_LAYOUT_SCREENS = [
   { width: 320, height: 568 },
   { width: 375, height: 667 },
   { width: 414, height: 896 },
-  { width: 568, height: 320 },
-  { width: 667, height: 375 },
+  ...LANDSCAPE_PHONE_SCREENS,
   { width: 768, height: 1024 },
 ] as const;
 

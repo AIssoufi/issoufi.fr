@@ -12,18 +12,13 @@ import {
   STICKY_HEADER_SCREEN_HEIGHT_PX,
   STICKY_HEADER_SCREEN_WIDTHS_PX,
 } from './constants';
+import { scrollToEnd } from './scroll';
 
 /** The long pages, scrolled to their end: the Experiences page and the Projects page. */
 const LONG_PAGE_PATHS = [LONG_PAGE_ROUTE, PROJECTS_ROUTE] as const;
 
 /** Text of the logo, which links to the home page. */
 const LOGO_TEXT = 'AI';
-
-/** Scrolls the page to its end, then returns its scroll position. Runs in the browser. */
-const scrollToEnd = () => {
-  window.scrollTo(0, document.documentElement.scrollHeight);
-  return window.scrollY;
-};
 
 /**
  * Measures the blurred band of the header, its `::after`, which the DOM gives no box for: its top

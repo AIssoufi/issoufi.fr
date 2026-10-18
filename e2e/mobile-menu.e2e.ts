@@ -7,15 +7,18 @@ import type { Translations } from '../src/i18n/types';
 import { localizePath } from '../src/i18n/utils';
 import { waitForEndingAnimations } from './animations';
 import {
+  FINGER_TARGET_HEIGHT_PX,
   LANDSCAPE_PHONE_SCREENS,
   LONG_PAGE_ROUTE,
   MENU_OPENING_SCROLL_Y_PX,
+  MIN_TARGET_SIZE_PX,
   MOBILE_LAYOUT_SCREENS,
   PAGE_SELECTOR,
   SHORTER_THAN_MENU_SCREEN,
 } from './constants';
 import { scrollDownWithGesture, type ScrollGestureSource } from './gestures';
-import { getScreenBox, isBoxInside } from './utils';
+import { getPageScrollY } from './scroll';
+import { getScreenBox, getScreenCenter, isBoxInside } from './utils';
 
 /** Translations of each language, to find the burger button and the links of the menu. */
 const TRANSLATIONS = { fr, en };
@@ -66,14 +69,13 @@ const getMenuLinks = ({ navigation, translations }: GetMenuLinksParams) =>
 /** Tells whether an element holds more than it shows, so it scrolls. Runs in the browser. */
 const isScrollable = (element: Element) => element.scrollHeight > element.clientHeight;
 
-/** Scroll position of the page, in pixels. Runs in the browser. */
-const getPageScrollY = () => window.scrollY;
-
-/** Point at the middle of the screen of a page, where the open menu covers the page. */
-const getScreenCenter = (page: Page) => {
-  const { width = 0, height = 0 } = page.viewportSize() ?? {};
-  return { x: width / 2, y: height / 2 };
-};
+/**
+ * Point where the scroll gestures over the open menu start: the middle of the screen, which the
+ * menu covers. Without a screen size, its coordinates are `NaN`, which `scrollDownWithGesture`
+ * refuses, so the test fails rather than scroll elsewhere.
+ */
+const getGesturePoint = (page: Page) =>
+  getScreenCenter(page.viewportSize()) ?? { x: Number.NaN, y: Number.NaN };
 
 // jsdom computes no layout and scrolls nothing, so only a real browser sees a link of the menu
 // out of the screen, or the page moving behind the menu
@@ -97,7 +99,16 @@ for (const language of LANGUAGES) {
             isBoxInside({ box, container: getScreenBox(page.viewportSize()) }),
             `box of "${name}", whole on the screen: ${JSON.stringify(box)}`,
           ).toBe(true);
+          expect(box?.height, `height of "${name}", big enough to tap`).toBeGreaterThanOrEqual(
+            MIN_TARGET_SIZE_PX,
+          );
         }
+        const cvBox = await navigation
+          .getByRole('link', { name: translations.cvLink.label })
+          .boundingBox();
+        expect(cvBox?.height, 'height of the CV button, compact or not').toBeGreaterThanOrEqual(
+          FINGER_TARGET_HEIGHT_PX,
+        );
         expect(await navigation.evaluate(isScrollable), 'menu higher than the screen').toBe(false);
       });
     });
@@ -125,7 +136,7 @@ for (const language of LANGUAGES) {
 
       await navigation.evaluate(element => element.scrollTo(0, 0));
       const session = await page.context().newCDPSession(page);
-      await scrollDownWithGesture({ session, ...getScreenCenter(page), source: 'mouse' });
+      await scrollDownWithGesture({ session, ...getGesturePoint(page), source: 'mouse' });
       expect(
         await navigation.evaluate(element => element.scrollTop),
         'scroll position of the menu after a wheel scroll over it',
@@ -149,7 +160,7 @@ for (const viewport of MOBILE_LAYOUT_SCREENS) {
         MENU_OPENING_SCROLL_Y_PX,
       );
       const session = await page.context().newCDPSession(page);
-      const center = getScreenCenter(page);
+      const center = getGesturePoint(page);
 
       const navigation = await openMenu({ page, translations: fr });
       for (const source of SCROLL_GESTURE_SOURCES) {
