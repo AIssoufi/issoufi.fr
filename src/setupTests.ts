@@ -12,6 +12,11 @@ if (hasDom) {
     if (this.closest('[inert]')) return;
     nativeFocus.call(this, options);
   };
+
+  // jsdom has no canvas and logs "Not implemented" for each context asked: like a browser
+  // without canvas support, give none, as the ParticleField of the home page expects. Its specs
+  // replace it with a fake 2D context to check the drawing.
+  HTMLCanvasElement.prototype.getContext = () => null;
 }
 
 // jsdom cannot draw the animation: the BurgerMenu icon loads this build of lottie-web
