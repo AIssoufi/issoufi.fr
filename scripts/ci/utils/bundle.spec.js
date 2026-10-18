@@ -296,10 +296,14 @@ describe('findLargeFiles', () => {
       { path: 'assets/index.css', bytes: 5000 },
       { path: 'assets/logo.svg', bytes: 900 },
       { path: 'animation.json', bytes: 800 },
+      { path: 'register-sw.js', bytes: 700 },
+      { path: 'assets/index.js.map', bytes: 600 },
     ];
     expect(findLargeFiles({ files, limitBytes: 500 })).toEqual([
       { path: 'assets/logo.svg', bytes: 900 },
       { path: 'animation.json', bytes: 800 },
+      { path: 'register-sw.js', bytes: 700 },
+      { path: 'assets/index.js.map', bytes: 600 },
     ]);
   });
 
