@@ -27,20 +27,6 @@ if (hasDom) {
   logDroppedCssRules(CSSStyleSheet.prototype);
 }
 
-// jsdom cannot draw the animation: the BurgerMenu icon loads this build of lottie-web
-vi.mock('lottie-web/build/player/lottie_light', () => ({
-  default: {
-    loadAnimation: () => ({
-      play: vi.fn(),
-      destroy: vi.fn(),
-      setSpeed: vi.fn(),
-      setDirection: vi.fn(),
-      goToAndStop: vi.fn(),
-      totalFrames: 60,
-    }),
-  },
-}));
-
 // Every render is in the theme and the global styles of the app, so that the styles hold the
 // values of the tokens instead of their names (`padding-left: page`). The wrapper a spec passes,
 // such as a router, goes inside the theme.

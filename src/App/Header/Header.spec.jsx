@@ -1,23 +1,16 @@
 import { act, render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import lottie from 'lottie-web/build/player/lottie_light';
 import { BrowserRouter as Router } from 'react-router';
 
 import packageJson from '../../../package.json';
 import i18n from '../../i18n';
 import { declaredStyle, serializeCssValue } from '../../styleTestUtils';
 import { theme } from '../../theme';
-import { waitForBurgerIcon } from '../testUtils';
 import { DESKTOP_MEDIA_QUERY } from './constants';
 import Header from './Header';
 
-/**
- * Renders the header above a page holding a link, which the open mobile menu covers, then waits
- * for the burger icon animation, drawn once lottie-web is loaded, so that this update never lands
- * outside `act` after the test.
- */
-const renderHeader = async (props = {}) => {
-  vi.spyOn(lottie, 'loadAnimation');
+/** Renders the header above a page holding a link, which the open mobile menu covers. */
+const renderHeader = (props = {}) => {
   render(
     <Router>
       <Header
@@ -29,7 +22,6 @@ const renderHeader = async (props = {}) => {
       </main>
     </Router>,
   );
-  await waitForBurgerIcon();
 };
 
 /**
@@ -121,19 +113,19 @@ describe('Header', () => {
     vi.unstubAllGlobals();
   });
 
-  it('renders the header', async () => {
-    await renderHeader();
+  it('renders the header', () => {
+    renderHeader();
     expect(screen.getByTestId('header')).toBeInTheDocument();
   });
 
-  it('renders the logo', async () => {
-    await renderHeader();
+  it('renders the logo', () => {
+    renderHeader();
     expect(screen.getByText('AI')).toBeInTheDocument();
   });
 
   describe('version', () => {
-    it('shows the version of the build after the logo', async () => {
-      await renderHeader();
+    it('shows the version of the build after the logo', () => {
+      renderHeader();
 
       const version = screen.getByText(`build v${packageJson.version}`);
       expect(version.previousElementSibling).toContainElement(
@@ -144,18 +136,18 @@ describe('Header', () => {
     it.each([
       ['2.0.0', 'build v2.0.0'],
       ['v2.0.0', 'build v2.0.0'],
-    ])('shows the version %j as %j', async (version, text) => {
-      await renderHeader({ version });
+    ])('shows the version %j as %j', (version, text) => {
+      renderHeader({ version });
       expect(screen.getByText(text)).toBeInTheDocument();
     });
 
-    it.each(['', '  ', 'v', null, 2])('shows no version when it is %j', async version => {
-      await renderHeader({ version });
+    it.each(['', '  ', 'v', null, 2])('shows no version when it is %j', version => {
+      renderHeader({ version });
       expect(screen.queryByText(/build/)).not.toBeInTheDocument();
     });
 
-    it('shows it in small letters, lighter than the logo', async () => {
-      await renderHeader();
+    it('shows it in small letters, lighter than the logo', () => {
+      renderHeader();
 
       const versionStyle = getComputedStyle(screen.getByText(`build v${packageJson.version}`));
       expect(versionStyle.fontSize).toBe(theme.fontSizes[11]);
@@ -164,8 +156,8 @@ describe('Header', () => {
   });
 
   describe('floating controls', () => {
-    it('floats the language toggle on the right edge from tablet up, with the CV button and the GitHub icon', async () => {
-      await renderHeader();
+    it('floats the language toggle on the right edge from tablet up, with the CV button and the GitHub icon', () => {
+      renderHeader();
 
       const floatingControls = getFloatingControls();
       expect(getFloatingCvLink()).toHaveAttribute('href', '/CV - Adam Issoufi.pdf');
@@ -175,8 +167,8 @@ describe('Header', () => {
       expect(desktopStyle({ element: floatingControls, property: 'top' })).toBe('50%');
     });
 
-    it('puts the CV button between the language toggle and the GitHub icon', async () => {
-      await renderHeader();
+    it('puts the CV button between the language toggle and the GitHub icon', () => {
+      renderHeader();
 
       expect(getFloatingLinks().previousElementSibling).toBe(
         screen.getByRole('group', { name: 'Langue' }),
@@ -188,8 +180,8 @@ describe('Header', () => {
       ]);
     });
 
-    it('stacks the CV button and the GitHub icon centered under the language toggle from tablet up', async () => {
-      await renderHeader();
+    it('stacks the CV button and the GitHub icon centered under the language toggle from tablet up', () => {
+      renderHeader();
 
       const element = getFloatingLinks();
       expect(desktopStyle({ element, property: 'display' })).toBe('flex');
@@ -204,8 +196,8 @@ describe('Header', () => {
       expect(desktopStyle({ element, property: 'transform' })).toBe('translateX(-50%)');
     });
 
-    it('draws the floating CV button as a circle holding only the text "CV"', async () => {
-      await renderHeader();
+    it('draws the floating CV button as a circle holding only the text "CV"', () => {
+      renderHeader();
 
       const cvLinkStyle = getComputedStyle(getFloatingCvLink());
       expect(cvLinkStyle.width).toBe(theme.sizes['round-button']);
@@ -217,8 +209,8 @@ describe('Header', () => {
 
     it.each([':hover', ':active'])(
       'fills the floating CV button with white and the accent text on %s',
-      async pseudo => {
-        await renderHeader();
+      pseudo => {
+        renderHeader();
 
         const pseudoStyle = property =>
           declaredStyle({ element: getFloatingCvLink(), property, pseudo });
@@ -231,8 +223,8 @@ describe('Header', () => {
       },
     );
 
-    it('grows the floating CV button on hover only, not while it is pressed', async () => {
-      await renderHeader();
+    it('grows the floating CV button on hover only, not while it is pressed', () => {
+      renderHeader();
 
       const transform = pseudo =>
         declaredStyle({ element: getFloatingCvLink(), property: 'transform', pseudo });
@@ -240,8 +232,8 @@ describe('Header', () => {
       expect(transform(':active')).toBe('');
     });
 
-    it('shows the tooltip of the floating CV button on its left, away from the edge of the screen', async () => {
-      await renderHeader();
+    it('shows the tooltip of the floating CV button on its left, away from the edge of the screen', () => {
+      renderHeader();
 
       const tooltip = within(getFloatingLinks()).getByRole('tooltip', { hidden: true });
       expect(getFloatingCvLink()).toHaveAttribute('aria-labelledby', tooltip.id);
@@ -253,9 +245,9 @@ describe('Header', () => {
       );
     });
 
-    it('hides the floating CV button and GitHub icon on mobile, where the menu holds them', async () => {
+    it('hides the floating CV button and GitHub icon on mobile, where the menu holds them', () => {
       // jsdom applies no media query, so these are the narrow-screen styles
-      await renderHeader();
+      renderHeader();
 
       expect(getComputedStyle(getFloatingLinks()).display).toBe('none');
       expect(getFloatingCvLink()).not.toBeVisible();
@@ -265,26 +257,26 @@ describe('Header', () => {
     });
   });
 
-  it('renders the language toggle', async () => {
-    await renderHeader();
+  it('renders the language toggle', () => {
+    renderHeader();
     expect(screen.getByText('FR')).toBeInTheDocument();
     expect(screen.getByText('EN')).toBeInTheDocument();
   });
 
-  it('renders all nav items', async () => {
-    await renderHeader();
+  it('renders all nav items', () => {
+    renderHeader();
     expect(screen.getByText('Accueil')).toBeInTheDocument();
     expect(screen.getByText('Projets')).toBeInTheDocument();
     expect(screen.getByText('Expériences')).toBeInTheDocument();
   });
 
-  it('does not render a skills nav item', async () => {
-    await renderHeader();
+  it('does not render a skills nav item', () => {
+    renderHeader();
     expect(screen.queryByText('Compétences')).not.toBeInTheDocument();
   });
 
-  it('renders the CV button in the menu and in the floating controls', async () => {
-    await renderHeader();
+  it('renders the CV button in the menu and in the floating controls', () => {
+    renderHeader();
 
     expect(screen.getAllByRole('link', { name: CV_LINK_NAME, hidden: true })).toHaveLength(2);
     expect(
@@ -293,8 +285,8 @@ describe('Header', () => {
     expect(getFloatingCvLink()).toBeInTheDocument();
   });
 
-  it('renders nav links with correct hrefs', async () => {
-    await renderHeader();
+  it('renders nav links with correct hrefs', () => {
+    renderHeader();
     expect(screen.getByText('Accueil').closest('a')).toHaveAttribute('href', '/');
     expect(screen.getByText('Projets').closest('a')).toHaveAttribute('href', '/projects');
     expect(screen.getByText('Expériences').closest('a')).toHaveAttribute('href', '/experiences');
@@ -311,8 +303,8 @@ describe('Header', () => {
       await act(() => i18n.changeLanguage('fr'));
     });
 
-    it('links the logo and the navigation to the English pages', async () => {
-      await renderHeader();
+    it('links the logo and the navigation to the English pages', () => {
+      renderHeader();
 
       expect(screen.getByText('AI').closest('a')).toHaveAttribute('href', '/en/');
       expect(screen.getByText('Home').closest('a')).toHaveAttribute('href', '/en/');
@@ -323,21 +315,21 @@ describe('Header', () => {
       );
     });
 
-    it('marks the English page of the URL as the current one, and not the home page', async () => {
-      await renderHeader();
+    it('marks the English page of the URL as the current one, and not the home page', () => {
+      renderHeader();
 
       expect(screen.getByText('Projects').closest('a')).toHaveClass('active');
       expect(screen.getByText('Home').closest('a')).not.toHaveClass('active');
     });
   });
 
-  it('links the logo to the home page', async () => {
-    await renderHeader();
+  it('links the logo to the home page', () => {
+    renderHeader();
     expect(screen.getByText('AI').closest('a')).toHaveAttribute('href', '/');
   });
 
-  it('renders CV links pointing to the PDF', async () => {
-    await renderHeader();
+  it('renders CV links pointing to the PDF', () => {
+    renderHeader();
 
     for (const cvLink of screen.getAllByRole('link', { name: CV_LINK_NAME, hidden: true })) {
       expect(cvLink).toHaveAttribute('href', '/CV - Adam Issoufi.pdf');
@@ -349,8 +341,8 @@ describe('Header', () => {
       await act(() => i18n.changeLanguage('fr'));
     });
 
-    it('starts closed, with a burger button to open it', async () => {
-      await renderHeader();
+    it('starts closed, with a burger button to open it', () => {
+      renderHeader();
 
       expect(getBurgerButton()).toHaveAccessibleName('Ouvrir le menu');
       expect(getBurgerButton()).toHaveAttribute('aria-expanded', 'false');
@@ -359,7 +351,7 @@ describe('Header', () => {
     });
 
     it('shows the GitHub icon after the CV button once open', async () => {
-      await renderHeader();
+      renderHeader();
 
       await userEvent.click(getBurgerButton());
 
@@ -370,7 +362,7 @@ describe('Header', () => {
     });
 
     it('opens over the page with the burger button', async () => {
-      await renderHeader();
+      renderHeader();
 
       await userEvent.click(getBurgerButton());
 
@@ -382,7 +374,7 @@ describe('Header', () => {
     });
 
     it('closes with the burger button', async () => {
-      await renderHeader();
+      renderHeader();
 
       await userEvent.click(getBurgerButton());
       await userEvent.click(getBurgerButton());
@@ -394,7 +386,7 @@ describe('Header', () => {
     });
 
     it('closes when one of its links is clicked', async () => {
-      await renderHeader();
+      renderHeader();
 
       await userEvent.click(getBurgerButton());
       await userEvent.click(screen.getByRole('link', { name: 'Projets' }));
@@ -405,7 +397,7 @@ describe('Header', () => {
 
     it('closes when the screen grows to the desktop layout, and stays closed back on mobile', async () => {
       const { setDesktop } = stubScreen({ isDesktop: false });
-      await renderHeader();
+      renderHeader();
       await userEvent.click(getBurgerButton());
 
       setDesktop(true);
@@ -421,9 +413,9 @@ describe('Header', () => {
       expect(getNavigation()).not.toBeVisible();
     });
 
-    it('stays closed when the screen shrinks to the mobile layout', async () => {
+    it('stays closed when the screen shrinks to the mobile layout', () => {
       const { setDesktop } = stubScreen({ isDesktop: true });
-      await renderHeader();
+      renderHeader();
 
       setDesktop(false);
 
@@ -431,15 +423,15 @@ describe('Header', () => {
       expect(getNavigation()).not.toBeVisible();
     });
 
-    it('links the burger button to the navigation it controls', async () => {
-      await renderHeader();
+    it('links the burger button to the navigation it controls', () => {
+      renderHeader();
 
       expect(getNavigation().id).not.toBe('');
       expect(getBurgerButton()).toHaveAttribute('aria-controls', getNavigation().id);
     });
 
     it('opens with Enter, goes on to its links with Tab, and closes with Space', async () => {
-      await renderHeader();
+      renderHeader();
       act(() => getBurgerButton().focus());
 
       await userEvent.keyboard('{Enter}');
@@ -455,7 +447,7 @@ describe('Header', () => {
 
     it('names the burger button in English', async () => {
       await act(() => i18n.changeLanguage('en'));
-      await renderHeader();
+      renderHeader();
 
       expect(getBurgerButton()).toHaveAccessibleName('Open menu');
 
@@ -468,7 +460,7 @@ describe('Header', () => {
 
   describe('keyboard focus in the open mobile menu', () => {
     it('makes the rest of the page inert while open, and reachable again once closed', async () => {
-      await renderHeader();
+      renderHeader();
       getCoveredElements().forEach(element => expect(element.closest('[inert]')).toBeNull());
 
       await userEvent.click(getBurgerButton());
@@ -480,7 +472,7 @@ describe('Header', () => {
     });
 
     it('goes through the burger and every link with Tab', async () => {
-      await renderHeader();
+      renderHeader();
       await userEvent.click(getBurgerButton());
 
       for (const name of ['Accueil', 'Projets', 'Expériences', CV_LINK_NAME, GITHUB_LINK_NAME]) {
@@ -490,7 +482,7 @@ describe('Header', () => {
     });
 
     it('keeps Tab in the menu after its last link, away from the page behind', async () => {
-      await renderHeader();
+      renderHeader();
       await userEvent.click(getBurgerButton());
       act(() => getMenuGitHubLink().focus());
 
@@ -501,7 +493,7 @@ describe('Header', () => {
     });
 
     it('keeps Shift+Tab on the burger, away from the language toggle behind', async () => {
-      await renderHeader();
+      renderHeader();
       await userEvent.click(getBurgerButton());
 
       await userEvent.tab({ shift: true });
@@ -511,7 +503,7 @@ describe('Header', () => {
     });
 
     it('gives the focus back to the burger when a link is chosen with Enter', async () => {
-      await renderHeader();
+      renderHeader();
       await userEvent.click(getBurgerButton());
       await userEvent.tab();
       await userEvent.tab();
@@ -528,7 +520,7 @@ describe('Header', () => {
       // jsdom cannot download a file: the link only closes the menu here
       const preventNavigation = event => event.preventDefault();
       window.addEventListener('click', preventNavigation, { capture: true });
-      await renderHeader();
+      renderHeader();
       await userEvent.click(getBurgerButton());
       act(() => getCvLink().focus());
 
@@ -540,7 +532,7 @@ describe('Header', () => {
     });
 
     it('closes with Escape and gives the focus back to the burger', async () => {
-      await renderHeader();
+      renderHeader();
       await userEvent.click(getBurgerButton());
       await userEvent.tab();
       expect(screen.getByRole('link', { name: 'Accueil' })).toHaveFocus();
@@ -554,7 +546,7 @@ describe('Header', () => {
     });
 
     it('closes the tooltip that Tab shows on the CV button with a first Escape, then itself with the next', async () => {
-      await renderHeader();
+      renderHeader();
       await userEvent.click(getBurgerButton());
       for (const name of ['Accueil', 'Projets', 'Expériences', CV_LINK_NAME]) {
         await userEvent.tab();
@@ -574,7 +566,7 @@ describe('Header', () => {
     });
 
     it('closes with Escape while the burger has the focus', async () => {
-      await renderHeader();
+      renderHeader();
       await userEvent.click(getBurgerButton());
 
       await userEvent.keyboard('{Escape}');
@@ -584,7 +576,7 @@ describe('Header', () => {
     });
 
     it('leaves the focus where it is when Escape is pressed while the menu is closed', async () => {
-      await renderHeader();
+      renderHeader();
       act(() => getPageLink().focus());
 
       await userEvent.keyboard('{Escape}');
@@ -595,7 +587,7 @@ describe('Header', () => {
 
     it('leaves the focus on a link chosen on the desktop layout', async () => {
       stubScreen({ isDesktop: true });
-      await renderHeader();
+      renderHeader();
       showDesktopNavigation();
       const projectsLink = screen.getByRole('link', { name: 'Projets' });
       act(() => projectsLink.focus());
@@ -608,7 +600,7 @@ describe('Header', () => {
 
     it('changes nothing on the desktop layout, where the menu is a bar of the page', async () => {
       stubScreen({ isDesktop: true });
-      await renderHeader();
+      renderHeader();
       // The burger is hidden on desktop, but jsdom still lets a click reach it
       await userEvent.click(getBurgerButton());
 

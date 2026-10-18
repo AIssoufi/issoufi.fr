@@ -121,9 +121,9 @@ describe('getChunkName', () => {
   });
 
   it('keeps the name of a chunk whose module is not an index file', () => {
-    const facadeModuleId = '/app/node_modules/lottie-web/build/player/lottie_light.js';
+    const facadeModuleId = '/app/node_modules/library/dist/library.js';
 
-    expect(getChunkName({ name: 'lottie_light', facadeModuleId })).toBe('lottie_light');
+    expect(getChunkName({ name: 'library', facadeModuleId })).toBe('library');
   });
 
   describe('edge cases', () => {
