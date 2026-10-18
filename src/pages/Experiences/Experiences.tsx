@@ -24,7 +24,7 @@ export const Experiences = () => {
   const { t } = useTranslation();
 
   return (
-    <ExperiencesPage $backgroundImage={BACKGROUND_IMAGE_URL}>
+    <ExperiencesPage backgroundImage={BACKGROUND_IMAGE_URL}>
       <PageHeader>
         <PageTitle>{t('exp.pageTitle')}</PageTitle>
       </PageHeader>

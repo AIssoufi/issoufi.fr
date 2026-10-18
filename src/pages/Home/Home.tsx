@@ -40,7 +40,7 @@ export const Home = () => {
   const jobTitleWordCount = jobTitle.split(' ').length;
 
   return (
-    <HomePage $backgroundImage={BACKGROUND_IMAGE_URL}>
+    <HomePage backgroundImage={BACKGROUND_IMAGE_URL}>
       <ParticleField />
       <CursorGlow ref={cursorRef} />
       <Content ref={contentRef}>
