@@ -333,3 +333,26 @@ export const HERO_SCREENS = [
   { width: 1440, height: 900 },
   { width: 2560, height: 1440 },
 ] as const;
+
+/**
+ * Screens with a mouse on which aiming at a button of the home page must move no word of its
+ * title: two laptops (1280 × 800 and 1440 × 900) and a desktop screen (1920 × 1080).
+ */
+export const HERO_POINTER_SCREENS = [
+  { width: 1280, height: 800 },
+  { width: 1440, height: 900 },
+  { width: 1920, height: 1080 },
+] as const;
+
+/**
+ * Largest distance, in pixels, that a word of the home title may move while the pointer rests on a
+ * button of the page: a few pixels, far from the 30 px that "UX" once jumped by.
+ */
+export const MAX_WORD_SHIFT_PX = 2;
+
+/**
+ * Time, in milliseconds, that the pointer rests at a point before the words of the home title are
+ * measured: about 30 frames, in which a word within reach of the pointer moves by far more than
+ * {@link MAX_WORD_SHIFT_PX}.
+ */
+export const POINTER_REST_MS = 500;

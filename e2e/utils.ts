@@ -485,3 +485,35 @@ export const getScreenCenter = (viewport?: ViewportSize | null): ScreenPoint | n
   const screen = getScreenBox(viewport);
   return screen && { x: screen.width / 2, y: screen.height / 2 };
 };
+
+/** Distance, in CSS pixels, between the top edge of a button and the points aimed just under it. */
+const EDGE_INSET_PX = 1;
+
+/**
+ * Lists the points of a pill-shaped button that a visitor aims at with the mouse: its center, and
+ * the middle and both ends of the straight part of its top edge, just inside it, the points of the
+ * button closest to what stands above it. The round ends of a pill take half its height on each
+ * side, so the straight part starts and ends half its height from its sides.
+ *
+ * @param box - Box of the button, such as the one that Playwright's `boundingBox()` returns.
+ * @returns The center first, then the top edge from left to right; none when the box is missing,
+ * holds a value that is not a finite number, or has no width or no height.
+ *
+ * @example
+ * getButtonAimPoints({ x: 100, y: 600, width: 300, height: 46 });
+ * // [{ x: 250, y: 623 }, { x: 123, y: 601 }, { x: 250, y: 601 }, { x: 377, y: 601 }]
+ */
+export const getButtonAimPoints = (box?: ScreenBox | null): ScreenPoint[] => {
+  const hasArea = isScreenBox(box) && box.width > 0 && box.height > 0;
+  if (!hasArea) return [];
+
+  const centerX = box.x + box.width / 2;
+  const roundEndWidth = Math.min(box.height, box.width) / 2;
+  const topY = box.y + EDGE_INSET_PX;
+  return [
+    { x: centerX, y: box.y + box.height / 2 },
+    { x: box.x + roundEndWidth, y: topY },
+    { x: centerX, y: topY },
+    { x: getBoxRight(box) - roundEndWidth, y: topY },
+  ];
+};

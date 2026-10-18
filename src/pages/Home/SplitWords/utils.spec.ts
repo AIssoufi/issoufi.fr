@@ -1,8 +1,38 @@
 import { OFFSCREEN_POINTER } from '../constants';
-import { MAX_GLOW_PX, RESTING_WORD, RETURN_DELAY_MS } from './constants';
+import { MAX_GLOW_PX, REPEL_RADIUS_PX, RESTING_WORD, RETURN_DELAY_MS } from './constants';
+import type { WordState } from './types';
 import { getGlowRadius, getTextShadow, stepWord } from './utils';
 
 const center = { x: 500, y: 300 };
+
+const FRAME_MS = 16;
+/** Frames of a pointer held still for two seconds, longer than a push and its return. */
+const STILL_POINTER_FRAMES = 120;
+/**
+ * Smallest distance from the center of a title word to a button of the home page, measured in
+ * Chromium at 1280 × 800 px, the closest of 1280, 1440 and 1920 px wide screens: from "UX" to the
+ * top edge of "Voir mes projets".
+ */
+const WORD_TO_BUTTON_DISTANCE_PX = 130;
+
+/**
+ * Runs {@link stepWord} on every frame of a pointer held still near a word resting at
+ * {@link center}, which moves with its offset as on the screen, and returns its last state.
+ */
+const holdPointer = (pointer: { x: number; y: number }) => {
+  let state: WordState = RESTING_WORD;
+  for (let frame = 1; frame <= STILL_POINTER_FRAMES; frame += 1) {
+    const shownCenter = { x: center.x + state.x, y: center.y + state.y };
+    state = stepWord({
+      state,
+      center: shownCenter,
+      pointer,
+      now: frame * FRAME_MS,
+      random: () => 0.5,
+    });
+  }
+  return state;
+};
 
 describe('stepWord', () => {
   it('leaves a resting word in place when the mouse is far away', () => {
@@ -49,6 +79,29 @@ describe('stepWord', () => {
 
     expect(next.x).toBeLessThan(40);
     expect(next.x).toBeGreaterThan(0);
+  });
+
+  it('pushes a word from a mouse just inside the repel radius, and not from one on its edge', () => {
+    const pointerAt = (distance: number) => ({ x: center.x, y: center.y + distance });
+
+    expect(
+      stepWord({ state: RESTING_WORD, center, pointer: pointerAt(REPEL_RADIUS_PX - 1), now: 1000 })
+        .y,
+    ).toBeLessThan(0);
+    expect(
+      stepWord({ state: RESTING_WORD, center, pointer: pointerAt(REPEL_RADIUS_PX), now: 1000 }),
+    ).toEqual(RESTING_WORD);
+  });
+
+  it.each([
+    ['right under the word', { x: center.x, y: center.y + WORD_TO_BUTTON_DISTANCE_PX }],
+    ['aside', { x: center.x - REPEL_RADIUS_PX, y: center.y + WORD_TO_BUTTON_DISTANCE_PX }],
+  ])('leaves a word in place while the mouse rests on a home button, %s', (_place, pointer) => {
+    expect(holdPointer(pointer)).toEqual(RESTING_WORD);
+  });
+
+  it('keeps pushing a word under a mouse held still inside the repel radius', () => {
+    expect(holdPointer({ x: center.x, y: center.y + REPEL_RADIUS_PX / 2 }).y).toBeLessThan(0);
   });
 
   it('does not push a word whose center is exactly under the mouse instead of returning NaN', () => {
