@@ -1,6 +1,6 @@
 import styled, { keyframes, th } from '@xstyled/styled-components';
 
-import { Page } from '../../App/App.styled';
+import Page from '../../components/Page';
 
 const float = keyframes`
   0%, 100% { transform: translateY(0px); }

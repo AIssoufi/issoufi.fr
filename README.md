@@ -138,6 +138,7 @@ The version follows the commits: `fix` bumps the patch version, `feat` the minor
 │   │   ├── DocumentMeta/ # <html lang>, title and description per route and language
 │   │   └── Header/       # Logo, navigation, burger menu and LangToggle/ (FR / EN switch)
 │   ├── components/       # Components shared across pages
+│   │   ├── Page/         # Layout section that every page extends with styled(Page)
 │   │   └── StatusMessage/ # Code, title, message and home link of error pages
 │   ├── i18n/             # French and English translations, and the storage of the chosen language
 │   ├── pages/
