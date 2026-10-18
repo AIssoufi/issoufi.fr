@@ -160,6 +160,13 @@ describe('Projects', () => {
     },
   );
 
+  it('gives every project of the page its own integer id, whichever its section', () => {
+    const ids = allProjects.map(({ id }) => id);
+
+    for (const id of ids) expect(Number.isInteger(id), `id ${id}`).toBe(true);
+    expect(new Set(ids).size).toBe(ids.length);
+  });
+
   it('links every project that has a url, with no interactive element inside a link', async () => {
     render(<Projects />);
     await showAllProjects();
