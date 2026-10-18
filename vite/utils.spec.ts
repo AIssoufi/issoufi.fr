@@ -1,4 +1,4 @@
-import { DEFAULT_DEV_PORT, MAX_PORT, MIN_PORT } from './constants';
+import { DEFAULT_DEV_PORT, DEFAULT_PREVIEW_PORT, MAX_PORT, MIN_PORT } from './constants';
 import { getServerPorts, parsePort } from './utils';
 
 describe('parsePort', () => {
@@ -75,7 +75,7 @@ describe('getServerPorts', () => {
   });
 
   describe('without a valid PORT, as in the main checkout', () => {
-    const defaultPorts = { dev: DEFAULT_DEV_PORT, preview: undefined };
+    const defaultPorts = { dev: DEFAULT_DEV_PORT, preview: DEFAULT_PREVIEW_PORT };
 
     it('keeps the default ports without PORT', () => {
       expect(getServerPorts({})).toEqual(defaultPorts);
