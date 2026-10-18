@@ -5,10 +5,13 @@ import {
   doBoxesOverlapHorizontally,
   getBoxBottom,
   getBoxCenterDistanceX,
+  getBoxCenterDistanceY,
+  getBoxRight,
   getCenterDistanceX,
   getCheckedRoutes,
   getQuadCenterX,
   groupCardsIntoRows,
+  isBoxInside,
 } from './utils';
 
 describe('getCheckedRoutes', () => {
@@ -441,6 +444,47 @@ describe('getBoxCenterDistanceX', () => {
   });
 });
 
+describe('getBoxCenterDistanceY', () => {
+  const cvButton = { x: 735, y: 450, width: 44, height: 44 };
+
+  it('finds no distance between a box and the box it is centered on', () => {
+    expect(
+      getBoxCenterDistanceY({
+        box: { x: 590, y: 456.5, width: 140, height: 31 },
+        referenceBox: cvButton,
+      }),
+    ).toBe(0);
+  });
+
+  it.each([
+    ['above', { x: 590, y: 455.5, width: 140, height: 31 }, 1],
+    ['below', { x: 590, y: 457, width: 140, height: 31 }, 0.5],
+    ['far from', { x: 590, y: 0, width: 140, height: 32 }, 456],
+  ])('measures a box centered %s the reference', (_name, box, expected) => {
+    expect(getBoxCenterDistanceY({ box, referenceBox: cvButton })).toBe(expected);
+    expect(getBoxCenterDistanceY({ box: cvButton, referenceBox: box })).toBe(expected);
+  });
+
+  describe('edge cases', () => {
+    it.each([
+      undefined,
+      null,
+      {},
+      'box',
+      { x: 0, y: Number.NaN, width: 32, height: 32 },
+      { x: 0, y: 0, width: 32, height: Number.NEGATIVE_INFINITY },
+      { x: 590, y: '456', width: 140, height: 31 },
+    ])('returns NaN for the box %j', box => {
+      expect(getBoxCenterDistanceY({ box: box as never, referenceBox: cvButton })).toBeNaN();
+      expect(getBoxCenterDistanceY({ box: cvButton, referenceBox: box as never })).toBeNaN();
+    });
+
+    it('returns NaN without boxes', () => {
+      expect(getBoxCenterDistanceY()).toBeNaN();
+    });
+  });
+});
+
 describe('getBoxBottom', () => {
   it.each([
     [{ x: 1374, y: 361, width: 46, height: 78 }, 439],
@@ -461,6 +505,30 @@ describe('getBoxBottom', () => {
       { x: 0, y: '10', width: 10, height: 10 },
     ])('returns NaN for the box %j', box => {
       expect(getBoxBottom(box as never)).toBeNaN();
+    });
+  });
+});
+
+describe('getBoxRight', () => {
+  it.each([
+    [{ x: 590, y: 456, width: 140, height: 31 }, 730],
+    [{ x: -20, y: 0, width: 20, height: 10 }, 0],
+    [{ x: 12.5, y: 0, width: 0, height: 10 }, 12.5],
+  ])('finds the right edge of %j', (box, expected) => {
+    expect(getBoxRight(box)).toBe(expected);
+  });
+
+  describe('edge cases', () => {
+    it.each([
+      undefined,
+      null,
+      {},
+      'box',
+      { x: Number.NaN, y: 0, width: 10, height: 10 },
+      { x: 0, y: 0, width: Number.POSITIVE_INFINITY, height: 10 },
+      { x: '10', y: 0, width: 10, height: 10 },
+    ])('returns NaN for the box %j', box => {
+      expect(getBoxRight(box as never)).toBeNaN();
     });
   });
 });
@@ -507,6 +575,59 @@ describe('doBoxesOverlapHorizontally', () => {
 
     it('finds no overlap without boxes', () => {
       expect(doBoxesOverlapHorizontally()).toBe(false);
+    });
+  });
+});
+
+describe('isBoxInside', () => {
+  const screen = { x: 0, y: 0, width: 800, height: 800 };
+
+  it.each([
+    ['a tooltip in the middle of the screen', { x: 590, y: 380, width: 140, height: 31 }],
+    ['a box on its top left corner', { x: 0, y: 0, width: 10, height: 10 }],
+    ['a box touching its right and bottom edges', { x: 790, y: 790, width: 10, height: 10 }],
+    ['the screen itself', screen],
+    ['a box without any size', { x: 400, y: 400, width: 0, height: 0 }],
+  ])('finds %s inside it', (_name, box) => {
+    expect(isBoxInside({ box, container: screen })).toBe(true);
+  });
+
+  it.each([
+    ['cut by the left edge', { x: -0.5, y: 380, width: 140, height: 31 }],
+    ['cut by the right edge', { x: 700, y: 380, width: 100.5, height: 31 }],
+    ['cut by the top edge', { x: 590, y: -1, width: 140, height: 31 }],
+    ['cut by the bottom edge', { x: 590, y: 780, width: 140, height: 31 }],
+    ['wider than the screen', { x: -10, y: 380, width: 820, height: 31 }],
+    ['out of the screen', { x: 900, y: 900, width: 10, height: 10 }],
+  ])('finds a box %s outside it', (_name, box) => {
+    expect(isBoxInside({ box, container: screen })).toBe(false);
+  });
+
+  it('measures from the position of the container', () => {
+    const container = { x: 100, y: 100, width: 50, height: 50 };
+
+    expect(isBoxInside({ box: { x: 110, y: 110, width: 10, height: 10 }, container })).toBe(true);
+    expect(isBoxInside({ box: { x: 90, y: 110, width: 10, height: 10 }, container })).toBe(false);
+  });
+
+  describe('edge cases', () => {
+    const box = { x: 590, y: 380, width: 140, height: 31 };
+
+    it.each([
+      undefined,
+      null,
+      {},
+      'box',
+      { x: 0, y: Number.NaN, width: 10, height: 10 },
+      { x: 0, y: 0, width: Number.POSITIVE_INFINITY, height: 10 },
+      { x: '0', y: 0, width: 10, height: 10 },
+    ])('returns false for the box %j', invalidBox => {
+      expect(isBoxInside({ box: invalidBox as never, container: screen })).toBe(false);
+      expect(isBoxInside({ box, container: invalidBox as never })).toBe(false);
+    });
+
+    it('returns false without any parameters', () => {
+      expect(isBoxInside()).toBe(false);
     });
   });
 });

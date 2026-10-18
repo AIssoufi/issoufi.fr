@@ -2,6 +2,8 @@ import { act, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
 import i18n from '../../../i18n';
+import { declaredStyle, serializeCssValue } from '../../../styleTestUtils';
+import { theme } from '../../../theme';
 import CvLink from './CvLink';
 
 const CV_URL = '/CV - Adam Issoufi.pdf';
@@ -74,6 +76,81 @@ describe('CvLink', () => {
   it('keeps the class name it receives', () => {
     render(<CvLink className="in-menu" />);
     expect(getLink()).toHaveClass('in-menu');
+  });
+
+  describe('tooltip', () => {
+    /** The tooltip of the link, found even while it is hidden. */
+    const getTooltip = () => screen.getByRole('tooltip', { hidden: true });
+
+    it('says what the link does while the mouse hovers it', async () => {
+      render(<CvLink />);
+      expect(getTooltip()).not.toBeVisible();
+
+      await userEvent.hover(getLink());
+      expect(getTooltip()).toBeVisible();
+      expect(getTooltip()).toHaveTextContent(/^Télécharger le CV$/);
+
+      await userEvent.unhover(getLink());
+      expect(getTooltip()).not.toBeVisible();
+    });
+
+    it('shows while the keyboard focuses the link, until Escape', async () => {
+      render(<CvLink />);
+
+      await userEvent.tab();
+      expect(getLink()).toHaveFocus();
+      expect(getTooltip()).toBeVisible();
+
+      await userEvent.keyboard('{Escape}');
+      expect(getLink()).toHaveFocus();
+      expect(getTooltip()).not.toBeVisible();
+    });
+
+    it('names the link for screen readers, whether it shows or not, which then read it once', () => {
+      render(<CvLink />);
+      expect(getTooltip()).not.toBeVisible();
+
+      expect(getLink()).toHaveAttribute('aria-labelledby', getTooltip().id);
+      expect(getLink()).toHaveAccessibleName('Télécharger le CV');
+      expect(getLink()).not.toHaveAttribute('aria-label');
+      expect(getLink()).not.toHaveAttribute('aria-describedby');
+      expect(getLink()).not.toHaveAccessibleDescription();
+    });
+
+    it('sits next to the link, outside of it, so the link still reads "CV"', () => {
+      render(<CvLink hasIcon />);
+
+      expect(getLink()).not.toContainElement(getTooltip());
+      expect(getLink().nextElementSibling).toBe(getTooltip());
+      expect(getLink()).toHaveTextContent(/^CV$/);
+    });
+
+    it.each([
+      ['above the link by default', undefined, 'bottom'],
+      ['on the left of the link when asked to', 'left', 'right'],
+      ['above the link when asked to', 'top', 'bottom'],
+    ])('shows %s', (_case, tooltipPlacement, sideTowardsLink) => {
+      render(<CvLink tooltipPlacement={tooltipPlacement} />);
+
+      expect(declaredStyle({ element: getTooltip(), property: sideTowardsLink })).toBe(
+        serializeCssValue({
+          property: sideTowardsLink,
+          value: `calc(100% + ${theme.space['tooltip-gap']})`,
+        }),
+      );
+    });
+
+    it('is written in English once English is active', async () => {
+      render(<CvLink />);
+
+      await act(() => i18n.changeLanguage('en'));
+
+      expect(getTooltip()).toHaveTextContent(/^Download the CV$/);
+      expect(screen.getByRole('link', { name: 'Download the CV' })).toHaveAttribute(
+        'aria-labelledby',
+        getTooltip().id,
+      );
+    });
   });
 
   describe('accessibility', () => {

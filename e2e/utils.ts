@@ -224,8 +224,8 @@ const isScreenBox = (value: unknown): value is ScreenBox => {
 const getBoxCenterX = (box: unknown): number =>
   isScreenBox(box) ? box.x + box.width / 2 : Number.NaN;
 
-/** Parameters of {@link getBoxCenterDistanceX}. */
-interface GetBoxCenterDistanceXParams {
+/** Parameters of {@link getBoxCenterDistanceX} and {@link getBoxCenterDistanceY}. */
+interface GetBoxCenterDistanceParams {
   /** Box of the measured element, such as the GitHub icon. */
   box?: ScreenBox | null;
   /** Box of the element it should be centered on, such as the language toggle. */
@@ -245,8 +245,28 @@ interface GetBoxCenterDistanceXParams {
  *   referenceBox: { x: 1374, y: 361, width: 46, height: 78 },
  * }); // 0.5
  */
-export const getBoxCenterDistanceX = ({ box, referenceBox }: GetBoxCenterDistanceXParams = {}) =>
+export const getBoxCenterDistanceX = ({ box, referenceBox }: GetBoxCenterDistanceParams = {}) =>
   Math.abs(getBoxCenterX(box) - getBoxCenterX(referenceBox));
+
+/** Finds the vertical center of a box, or `NaN` when it is not a box of finite numbers. */
+const getBoxCenterY = (box: unknown): number =>
+  isScreenBox(box) ? box.y + box.height / 2 : Number.NaN;
+
+/**
+ * Measures how far apart the vertical centers of two boxes are, such as a tooltip and the control
+ * it shows on the left of.
+ *
+ * @returns The distance in CSS pixels, never negative, or `NaN` when either box is missing or
+ * holds a value that is not a finite number, so that any comparison with it fails.
+ *
+ * @example
+ * getBoxCenterDistanceY({
+ *   box: { x: 590, y: 456.5, width: 140, height: 31 },
+ *   referenceBox: { x: 735, y: 450, width: 44, height: 44 },
+ * }); // 0
+ */
+export const getBoxCenterDistanceY = ({ box, referenceBox }: GetBoxCenterDistanceParams = {}) =>
+  Math.abs(getBoxCenterY(box) - getBoxCenterY(referenceBox));
 
 /**
  * Finds the bottom edge of a box, such as one that Playwright's `boundingBox()` returns.
@@ -260,6 +280,19 @@ export const getBoxCenterDistanceX = ({ box, referenceBox }: GetBoxCenterDistanc
  */
 export const getBoxBottom = (box?: ScreenBox | null): number =>
   isScreenBox(box) ? box.y + box.height : Number.NaN;
+
+/**
+ * Finds the right edge of a box, such as one that Playwright's `boundingBox()` returns.
+ *
+ * @param box - Box of an element on the screen.
+ * @returns Its distance from the left of the screen in CSS pixels, or `NaN` when the box is
+ * missing or holds a value that is not a finite number, so that any comparison with it fails.
+ *
+ * @example
+ * getBoxRight({ x: 590, y: 456, width: 140, height: 31 }); // 730
+ */
+export const getBoxRight = (box?: ScreenBox | null): number =>
+  isScreenBox(box) ? box.x + box.width : Number.NaN;
 
 /** Parameters of {@link doBoxesOverlapHorizontally}. */
 interface DoBoxesOverlapHorizontallyParams {
@@ -291,4 +324,35 @@ export const doBoxesOverlapHorizontally = ({
   if (!hasWidth(box) || !hasWidth(otherBox)) return false;
 
   return box.x < otherBox.x + otherBox.width && otherBox.x < box.x + box.width;
+};
+
+/** Parameters of {@link isBoxInside}. */
+interface IsBoxInsideParams {
+  /** Box that should show whole, such as a tooltip. */
+  box?: ScreenBox | null;
+  /**
+   * Box that should hold it, such as the screen: at `x` and `y` 0, with the size of the viewport.
+   */
+  container?: ScreenBox | null;
+}
+
+/**
+ * Tells whether a box lies whole inside another, such as a tooltip that the screen shows without
+ * cutting any of its sides. A box that touches an edge of the container is inside it.
+ *
+ * @returns `false` when either box is missing or holds a value that is not a finite number.
+ *
+ * @example
+ * isBoxInside({
+ *   box: { x: 590, y: 380, width: 140, height: 31 },
+ *   container: { x: 0, y: 0, width: 800, height: 800 },
+ * }); // true
+ */
+export const isBoxInside = ({ box, container }: IsBoxInsideParams = {}): boolean => {
+  if (!isScreenBox(box) || !isScreenBox(container)) return false;
+
+  const isInsideHorizontally =
+    box.x >= container.x && box.x + box.width <= container.x + container.width;
+  const isInsideVertically = getBoxBottom(box) <= getBoxBottom(container) && box.y >= container.y;
+  return isInsideHorizontally && isInsideVertically;
 };

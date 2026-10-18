@@ -2,7 +2,8 @@ import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router';
 
-import { declaredStyle } from '../../../styleTestUtils';
+import { declaredStyle, serializeCssValue } from '../../../styleTestUtils';
+import { theme } from '../../../theme';
 import { DESKTOP_MEDIA_QUERY } from '../constants';
 import NavMenu from './NavMenu';
 
@@ -32,7 +33,10 @@ describe('NavMenu', () => {
       renderAt('/', { items, mobileMenuIsOpen: true });
 
       expect(getCvLink()).toBeVisible();
-      expect(getCvLink().previousElementSibling).toContainElement(screen.getByText('Projets'));
+      // The link sits in the element that also holds its tooltip
+      expect(getCvLink().parentElement.previousElementSibling).toContainElement(
+        screen.getByText('Projets'),
+      );
       expect(getCvLink().querySelector('svg')).toHaveAttribute('aria-hidden', 'true');
     });
 
@@ -43,6 +47,27 @@ describe('NavMenu', () => {
       await userEvent.click(getCvLink());
 
       expect(onClick).toHaveBeenCalledOnce();
+    });
+
+    it('shows its tooltip above it, where the GitHub icon under it leaves it room', () => {
+      renderAt('/', { items, mobileMenuIsOpen: true });
+
+      const tooltip = screen.getByRole('tooltip', { hidden: true });
+      expect(getCvLink()).toHaveAttribute('aria-labelledby', tooltip.id);
+      expect(declaredStyle({ element: tooltip, property: 'bottom' })).toBe(
+        serializeCssValue({
+          property: 'bottom',
+          value: `calc(100% + ${theme.space['tooltip-gap']})`,
+        }),
+      );
+    });
+
+    it('is spaced by the gap of the open menu, with no margin to move its tooltip away', () => {
+      renderAt('/', { items, mobileMenuIsOpen: true });
+
+      expect(getComputedStyle(screen.getByRole('navigation')).gap).toBe(theme.space[28]);
+      expect(declaredStyle({ element: getCvLink(), property: 'margin-top' })).toBe('');
+      expect(declaredStyle({ element: getCvLink(), property: 'margin' })).toBe('');
     });
 
     it('is hidden on desktop, where the header floats it under the language toggle', () => {
@@ -96,8 +121,9 @@ describe('NavMenu', () => {
     it('follows the CV button in the mobile menu', () => {
       renderAt('/', { items, mobileMenuIsOpen: true });
 
+      // After the element that holds the CV button and its tooltip
       const cvLink = screen.getByText('CV').closest('a');
-      expect(cvLink.nextElementSibling).toBe(getGitHubLink());
+      expect(cvLink.parentElement.nextElementSibling).toBe(getGitHubLink());
       expect(getGitHubLink()).toBeVisible();
     });
 
