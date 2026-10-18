@@ -4,11 +4,12 @@ import { LANGUAGES } from '../src/i18n/constants';
 import { fr } from '../src/i18n/fr';
 import { localizePath } from '../src/i18n/utils';
 import { HOME_PAGE, PAGES } from '../src/utils/pages';
-import { listLastingAnimations } from './animations';
+import { listLastingAnimations, waitForEndingAnimations } from './animations';
 import {
   INSTANT_ANIMATION_MAX_MS,
   MOBILE_SCREEN_WIDTHS_PX,
   PAGE_SELECTOR,
+  PROJECTS_ROUTE,
   REDUCED_MOTION_SCREEN_WIDTHS_PX,
   SCREEN_HEIGHT_PX,
   STILLNESS_DELAY_MS,
@@ -78,6 +79,17 @@ for (const width of REDUCED_MOTION_SCREEN_WIDTHS_PX) {
       });
     }
 
+    test('a project card stays flat under the pointer', async ({ page }) => {
+      await openPage({ page, route: PROJECTS_ROUTE });
+      const card = page.getByRole('main').getByRole('listitem').first();
+
+      await card.hover();
+      // Away from the pointer, a card has a flat perspective transform, which the hover removes
+      await card.evaluate(waitForEndingAnimations);
+
+      expect(await card.evaluate(element => getComputedStyle(element).transform)).toBe('none');
+    });
+
     const hasMobileMenu = (MOBILE_SCREEN_WIDTHS_PX as readonly number[]).includes(width);
     if (hasMobileMenu) {
       // The app opens in French, the default language
@@ -108,5 +120,14 @@ test.describe('without reduced motion', () => {
 
     expect(await listPageLastingAnimations(page)).not.toEqual([]);
     expect(await isScreenStill(page)).toBe(false);
+  });
+
+  test('a project card tilts under the pointer as before', async ({ page }) => {
+    await openPage({ page, route: PROJECTS_ROUTE });
+    const card = page.getByRole('main').getByRole('listitem').first();
+
+    await card.hover();
+
+    expect(await card.evaluate(element => element.style.transform)).toContain('rotateY');
   });
 });
