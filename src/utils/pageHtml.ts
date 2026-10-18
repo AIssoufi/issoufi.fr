@@ -2,7 +2,13 @@ import { DEFAULT_LANGUAGE, LANGUAGES, OPEN_GRAPH_LOCALES } from '../i18n/constan
 import { en } from '../i18n/en';
 import { fr } from '../i18n/fr';
 import type { Language, Translations } from '../i18n/types';
-import { getOgImageUrl, getPageUrl, type Page } from './pages';
+import {
+  getOgImageUrl,
+  getPageAlternates,
+  getPageUrl,
+  type Page,
+  type PageAlternate,
+} from './pages';
 
 /** Escapes a value for use inside a double-quoted HTML attribute or a text node. */
 const escapeHtml = (value: string) =>
@@ -80,19 +86,8 @@ interface AddToHeadParams {
 const addToHead = ({ html, tags }: AddToHeadParams) =>
   html.replace(HEAD_END_TAG, `${tags.map(tag => `  ${tag}\n  `).join('')}${HEAD_END_TAG}`);
 
-/** `hreflang` of the version of a page shown to the visitors of no listed language. */
-const DEFAULT_HREFLANG = 'x-default';
-
-/** Parameters of {@link renderAlternateLink}. */
-interface RenderAlternateLinkParams {
-  /** Language of the translation, or {@link DEFAULT_HREFLANG}. */
-  hreflang: string;
-  /** Absolute URL of the translation. */
-  href: string;
-}
-
 /** Renders the `alternate` link to a translation of a page. */
-const renderAlternateLink = ({ hreflang, href }: RenderAlternateLinkParams) =>
+const renderAlternateLink = ({ hreflang, href }: PageAlternate) =>
   `<link rel="alternate" hreflang="${hreflang}" href="${escapeHtml(href)}" />`;
 
 /** Parameters of {@link renderAlternateTags}. */
@@ -104,24 +99,17 @@ interface RenderAlternateTagsParams {
 }
 
 /**
- * Renders the tags that point to the translations of a page: an `alternate` link per language,
- * the page itself included, and one for `x-default`, the default language, which search engines
- * use to show each visitor their language; then an `og:locale:alternate` tag per other language,
- * for link previews.
+ * Renders the tags that point to the translations of a page: an `alternate` link per translation
+ * (see {@link getPageAlternates}), which search engines use to show each visitor their language,
+ * then an `og:locale:alternate` tag per other language, for link previews.
  */
 const renderAlternateTags = ({ path, language }: RenderAlternateTagsParams): string[] => {
-  const languageLinks = LANGUAGES.map(alternate =>
-    renderAlternateLink({ hreflang: alternate, href: getPageUrl({ path, language: alternate }) }),
-  );
-  const defaultLink = renderAlternateLink({
-    hreflang: DEFAULT_HREFLANG,
-    href: getPageUrl({ path, language: DEFAULT_LANGUAGE }),
-  });
+  const alternateLinks = getPageAlternates(path).map(renderAlternateLink);
   const localeTags = LANGUAGES.filter(other => other !== language).map(
     other => `<meta property="og:locale:alternate" content="${OPEN_GRAPH_LOCALES[other]}" />`,
   );
 
-  return [...languageLinks, defaultLink, ...localeTags];
+  return [...alternateLinks, ...localeTags];
 };
 
 /** Parameters of {@link renderPageHtml}. */
