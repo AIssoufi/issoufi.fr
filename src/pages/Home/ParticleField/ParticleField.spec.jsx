@@ -12,7 +12,10 @@ import { ParticleField } from './ParticleField';
 
 const FRAME_MS = 16;
 
-/** Height of a thin window, wide enough to put the cursor out of reach of a dot on its row. */
+/**
+ * Height of a thin window, so that the area of a single dot makes it wide enough to hold the
+ * cursor out of reach of that dot, on the same row.
+ */
 const ONE_DOT_WINDOW_HEIGHT_PX = 10;
 /** Window whose area holds exactly one dot, at its center while `Math.random` returns 0.5. */
 const ONE_DOT_WINDOW = {
