@@ -5,6 +5,7 @@
 // (`true` or `false`) to the step outputs, and a notice when the run stops.
 // Usage: GITHUB_EVENT_NAME=schedule DEPLOY_SCHEDULE='0 4 * * *' \
 //   node scripts/ci/check-deploy-schedule.mjs
+import { writeAnnotation } from './utils/annotations.mjs';
 import { getScheduleVerdict } from './utils/schedule.mjs';
 import { setStepOutput } from './utils/step-output.mjs';
 
@@ -13,5 +14,6 @@ const { isDue, message } = getScheduleVerdict({
   schedule: process.env.DEPLOY_SCHEDULE,
 });
 
-console.log(isDue ? message : `::notice::${message}`);
+if (isDue) console.log(message);
+else writeAnnotation({ level: 'notice', message });
 setStepOutput({ name: 'due', value: String(isDue) });

@@ -9,6 +9,7 @@ import { join } from 'node:path';
 import { setTimeout as sleep } from 'node:timers/promises';
 
 import { DIST_DIR, SMOKE_TEST_ATTEMPTS, SMOKE_TEST_RETRY_DELAY_MS } from './constants.mjs';
+import { writeAnnotation } from './utils/annotations.mjs';
 import { appendJobSummary } from './utils/job-summary.mjs';
 import { comparePage, getPageChecks, renderSmokeTestReport } from './utils/pages.mjs';
 
@@ -16,12 +17,15 @@ const siteUrl = process.argv[2];
 
 const isValidSiteUrl = URL.canParse(siteUrl ?? '');
 if (!isValidSiteUrl) {
-  console.log(`::error::Invalid site URL "${siteUrl ?? ''}". Usage: smoke-test.mjs <site URL>`);
+  writeAnnotation({
+    level: 'error',
+    message: `Invalid site URL "${siteUrl ?? ''}". Usage: smoke-test.mjs <site URL>`,
+  });
   process.exit(1);
 }
 
 if (!existsSync(DIST_DIR)) {
-  console.log(`::error::${DIST_DIR}/ not found: run pnpm build first`);
+  writeAnnotation({ level: 'error', message: `${DIST_DIR}/ not found: run pnpm build first` });
   process.exit(1);
 }
 
@@ -31,7 +35,10 @@ const pages = getPageChecks(readdirSync(DIST_DIR, { recursive: true }).map(Strin
 // Without pages, the smoke test would pass after checking nothing
 const hasPages = pages.length > 0;
 if (!hasPages) {
-  console.log(`::error::${DIST_DIR}/ has no HTML page to check: run pnpm build first`);
+  writeAnnotation({
+    level: 'error',
+    message: `${DIST_DIR}/ has no HTML page to check: run pnpm build first`,
+  });
   process.exit(1);
 }
 
@@ -72,7 +79,7 @@ for (let attempt = 1; attempt <= SMOKE_TEST_ATTEMPTS; attempt += 1) {
 if (problems.length === 0) {
   console.log(`${siteUrl} serves the ${pages.length} pages of the build.`);
 } else {
-  problems.forEach(problem => console.log(`::error::${problem}`));
+  problems.forEach(problem => writeAnnotation({ level: 'error', message: problem }));
   process.exitCode = 1;
 }
 

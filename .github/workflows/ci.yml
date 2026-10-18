@@ -194,11 +194,4 @@ jobs:
         run: node scripts/ci/smoke-test.mjs https://issoufi.fr
       - name: Check the redirects to https://issoufi.fr
         if: github.ref == 'refs/heads/main'
-        run: |
-          for url in http://issoufi.fr/ https://www.issoufi.fr/; do
-            location=$(curl --silent --output /dev/null --write-out '%{redirect_url}' "$url")
-            if [ "$location" != "https://issoufi.fr/" ]; then
-              echo "::error::$url redirects to \"$location\" instead of https://issoufi.fr/"
-              exit 1
-            fi
-          done
+        run: node scripts/ci/check-redirects.mjs

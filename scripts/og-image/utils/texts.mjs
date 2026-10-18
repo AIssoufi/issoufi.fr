@@ -63,18 +63,21 @@ const getSiteDomain = siteUrl =>
 /**
  * Parameters of {@link getOgImageTexts}.
  * @typedef {object} GetOgImageTextsParams
- * @property {any} translations - French translations, `fr` of `src/i18n/fr.ts`.
+ * @property {any} translations - Translations of the language of the image, e.g. `fr` of
+ * `src/i18n/fr.ts` or `en` of `src/i18n/en.ts`.
  * @property {unknown} siteUrl - Origin of the site, `SITE_URL` of `src/utils/pages.ts`.
  */
 
 /**
- * Gathers the texts of the image from the French translations of the home page, so the image
- * says what the home page says.
+ * Gathers the texts of the image from the translations of the home page in one language, so the
+ * image says what the home page says in that language.
  * @param {GetOgImageTextsParams} params
  * @returns {OgImageTexts} The texts, empty where a translation is missing.
  * @example
  * getOgImageTexts({ translations: fr, siteUrl: SITE_URL }).subtitle;
  * // 'Je vous aide à développer vos applications web'
+ * getOgImageTexts({ translations: en, siteUrl: SITE_URL }).subtitle;
+ * // 'I help you build web applications'
  */
 export const getOgImageTexts = ({ translations, siteUrl }) => {
   const home = translations?.home;

@@ -1,3 +1,4 @@
+import { en } from '../../../src/i18n/en';
 import { fr } from '../../../src/i18n/fr';
 import { theme } from '../../../src/theme/theme';
 import { SITE_URL } from '../../../src/utils/pages';
@@ -9,6 +10,7 @@ import { getOgImageTexts } from './texts.mjs';
 const texts = getOgImageTexts({ translations: fr, siteUrl: SITE_URL });
 const styles = renderOgImageStyles(theme);
 const params = {
+  language: 'fr',
   texts,
   styles,
   backgroundImageUrl: 'data:image/webp;base64,UklGR',
@@ -82,6 +84,38 @@ describe('renderOgImageHtml', () => {
       'Je vous aide à développer vos applications web',
     );
     expect(page.querySelector('.site').textContent).toBe('issoufi.fr');
+  });
+
+  it('writes the texts of the home page in English', () => {
+    const page = renderDocument({
+      language: 'en',
+      texts: getOgImageTexts({ translations: en, siteUrl: SITE_URL }),
+    });
+
+    expect(page.querySelector('.name').textContent).toBe('ADAM Issoufi');
+    expect(page.querySelector('h1').textContent).toBe('Full-stack JavaScript Developer');
+    expect(page.querySelector('.passion').textContent).toBe('passionate about UX and UI Design');
+    expect(page.querySelector('.subtitle').textContent).toBe('I help you build web applications');
+  });
+
+  it.each(['fr', 'en'])('names the language %s of the texts', language => {
+    expect(renderDocument({ language }).documentElement.lang).toBe(language);
+  });
+
+  it.each([undefined, null, 42, {}])(
+    'leaves the language unknown when it is %j, not a string',
+    language => {
+      const html = renderOgImageHtml({ ...params, language });
+
+      expect(html).toContain('<html lang="">');
+    },
+  );
+
+  it('escapes the language, so it cannot break the page', () => {
+    const page = renderDocument({ language: 'en"><script>' });
+
+    expect(page.documentElement.lang).toBe('en"><script>');
+    expect(page.querySelector('script')).toBeNull();
   });
 
   it('puts the design skills in bold', () => {

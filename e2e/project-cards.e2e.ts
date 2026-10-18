@@ -121,7 +121,7 @@ const expectSameLength = ({ actual, expected, name }: ExpectSameLengthParams) =>
 };
 
 // jsdom computes no layout, so only a real browser sees the size and the place of each card. The
-// cards show the project data, which is not translated: one language is enough.
+// tests compare the cards of a section with each other, in the same language: one is enough.
 for (const width of PROJECT_CARD_SCREEN_WIDTHS_PX) {
   test.describe(`on a ${width} px wide screen`, () => {
     test.use({ viewport: { width, height: SCREEN_HEIGHT_PX } });
@@ -199,9 +199,10 @@ for (const width of PROJECT_CARD_SCREEN_WIDTHS_PX) {
           await section.getByRole('button', { name: texts.nextPage }).click();
         }
         // A last page as full as the first one would show the same number of cards before the click
-        await expect(cards.first(), 'first card of the last page').toContainText(
-          projects[lastPageStart].name,
-        );
+        await expect(
+          cards.first().getByRole('img'),
+          'screenshot of the first card of the last page',
+        ).toHaveAttribute('src', projects[lastPageStart].imageUrl);
         await expect(cards, 'cards of the last page').toHaveCount(projects.length - lastPageStart);
         const lastPage = await measureCardList(list);
 
