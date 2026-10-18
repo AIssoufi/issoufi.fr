@@ -1,5 +1,12 @@
 import { localizePath } from '../src/i18n/utils';
-import { MAX_CARD_OFFSET_PX, NOT_FOUND_ROUTE, QUAD_COORDINATE_COUNT } from './constants';
+import {
+  GOOGLE_COUNTRY_HOST_PATTERN,
+  GOOGLE_DOMAINS,
+  MAX_CARD_OFFSET_PX,
+  NETWORK_PROTOCOLS,
+  NOT_FOUND_ROUTE,
+  QUAD_COORDINATE_COUNT,
+} from './constants';
 
 /** A page of the site, of which only the route matters here, such as an entry of `PAGES`. */
 interface RoutedPage {
@@ -355,4 +362,47 @@ export const isBoxInside = ({ box, container }: IsBoxInsideParams = {}): boolean
     box.x >= container.x && box.x + box.width <= container.x + container.width;
   const isInsideVertically = getBoxBottom(box) <= getBoxBottom(container) && box.y >= container.y;
   return isInsideHorizontally && isInsideVertically;
+};
+
+/**
+ * Tells whether a host belongs to Google: one of the {@link GOOGLE_DOMAINS} or a subdomain of one,
+ * such as `fonts.googleapis.com`, or a country domain of the search engine, such as `google.fr`.
+ *
+ * @param hostname - Host of a URL, without its port, e.g. `fonts.gstatic.com`. Its case and a
+ * trailing dot do not count.
+ * @returns `false` for any other host, such as `notgoogle.com` or `google.com.example.org`, and
+ * for a value that is not a string.
+ *
+ * @example
+ * isGoogleHost('fonts.googleapis.com'); // true
+ * isGoogleHost('issoufi.fr'); // false
+ */
+export const isGoogleHost = (hostname?: unknown): boolean => {
+  if (typeof hostname !== 'string') return false;
+
+  const host = hostname.trim().toLowerCase().replace(/\.$/, '');
+  const isGoogleDomain = GOOGLE_DOMAINS.some(
+    domain => host === domain || host.endsWith(`.${domain}`),
+  );
+  return isGoogleDomain || GOOGLE_COUNTRY_HOST_PATTERN.test(host);
+};
+
+/**
+ * Tells whether a request goes to Google, as Playwright gives its URL: a URL of the web or of a
+ * WebSocket whose host belongs to Google (see {@link isGoogleHost}).
+ *
+ * @param url - Absolute URL of the request, e.g. `https://fonts.googleapis.com/css2?family=A`.
+ * @returns `false` for a URL of another host, for a URL that goes to no host, such as a `data:`
+ * URL, and for a value that is not a valid absolute URL.
+ *
+ * @example
+ * isGoogleUrl('https://fonts.gstatic.com/s/montserrat/v31/a.woff2'); // true
+ * isGoogleUrl('http://localhost:4173/fonts/montserrat-latin.woff2'); // false
+ */
+export const isGoogleUrl = (url?: unknown): boolean => {
+  if (typeof url !== 'string' || !URL.canParse(url)) return false;
+
+  const { protocol, hostname } = new URL(url);
+  const goesToAHost = (NETWORK_PROTOCOLS as readonly string[]).includes(protocol);
+  return goesToAHost && isGoogleHost(hostname);
 };

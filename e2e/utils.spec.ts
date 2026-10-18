@@ -12,6 +12,8 @@ import {
   getQuadCenterX,
   groupCardsIntoRows,
   isBoxInside,
+  isGoogleHost,
+  isGoogleUrl,
 } from './utils';
 
 describe('getCheckedRoutes', () => {
@@ -629,5 +631,85 @@ describe('isBoxInside', () => {
     it('returns false without any parameters', () => {
       expect(isBoxInside()).toBe(false);
     });
+  });
+});
+
+describe('isGoogleHost', () => {
+  it.each([
+    'fonts.googleapis.com',
+    'fonts.gstatic.com',
+    'google.com',
+    'www.google.com',
+    'www.googletagmanager.com',
+    'region1.google-analytics.com',
+    'stats.g.doubleclick.net',
+    'www.youtube-nocookie.com',
+    'i.ytimg.com',
+    'www.recaptcha.net',
+    'google.fr',
+    'www.google.co.uk',
+    'google.com.br',
+    'FONTS.GOOGLEAPIS.COM',
+    'fonts.googleapis.com.',
+  ])('finds that %s belongs to Google', host => {
+    expect(isGoogleHost(host)).toBe(true);
+  });
+
+  it.each([
+    'issoufi.fr',
+    'localhost',
+    '127.0.0.1',
+    'notgoogle.com',
+    'mygoogleapis.com',
+    'google.com.example.org',
+    'googleapis.com.evil.net',
+    'fonts.bunny.net',
+    'github.com',
+    '',
+  ])('finds that %j does not belong to Google', host => {
+    expect(isGoogleHost(host)).toBe(false);
+  });
+
+  it.each([undefined, null, 42, {}, ['google.com']])('finds no Google host in %j', host => {
+    expect(isGoogleHost(host)).toBe(false);
+  });
+});
+
+describe('isGoogleUrl', () => {
+  it.each([
+    'https://fonts.googleapis.com/css2?family=Montserrat&display=swap',
+    'https://fonts.gstatic.com/s/montserrat/v31/JTUSjIg1_i6t8kCHKm459WlhyyTh89Y.woff2',
+    'http://www.google-analytics.com/collect',
+    'https://www.google.fr/',
+    'wss://www.youtube.com/socket',
+    'https://fonts.googleapis.com:443/css2',
+  ])('finds that %s goes to Google', url => {
+    expect(isGoogleUrl(url)).toBe(true);
+  });
+
+  it.each([
+    'http://localhost:4173/fonts/montserrat-latin.woff2',
+    'https://issoufi.fr/en/projects',
+    'https://example.org/?next=https://fonts.googleapis.com/css2',
+    'https://github.com/AIssoufi',
+    'data:font/woff2;base64,d09GMg==',
+    'blob:http://localhost:4173/0f2a',
+    'about:blank',
+    'chrome-extension://google.com/script.js',
+  ])('finds that %s does not go to Google', url => {
+    expect(isGoogleUrl(url)).toBe(false);
+  });
+
+  it.each([
+    undefined,
+    null,
+    42,
+    {},
+    '',
+    'fonts.googleapis.com',
+    '//fonts.googleapis.com',
+    'http://',
+  ])('finds no Google request in %j, not an absolute URL', url => {
+    expect(isGoogleUrl(url)).toBe(false);
   });
 });
