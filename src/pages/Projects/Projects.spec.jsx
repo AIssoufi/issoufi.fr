@@ -20,6 +20,13 @@ const TABLET_MEDIA = `(min-width: ${theme.screens.tablet})`;
 const firstThumbnail = () =>
   screen.getByRole('img', { name: personalProjectsData.projects[0].name });
 
+/** Clicks "Show all" in every section, so that each row shows all its cards. */
+const showAllProjects = async () => {
+  for (const showAllButton of screen.getAllByText(/^Tout afficher/)) {
+    await userEvent.click(showAllButton);
+  }
+};
+
 describe('Projects', () => {
   afterEach(async () => {
     await act(() => i18n.changeLanguage('fr'));
@@ -95,11 +102,20 @@ describe('Projects', () => {
     expect(screen.getByText('Jeu d’échecs')).toBeInTheDocument();
   });
 
+  it.each(['Trouillet Décors', 'Y-YServicies'])(
+    'shows the client %s with the spelling confirmed by the site owner',
+    async name => {
+      render(<Projects />);
+      await showAllProjects();
+
+      expect(screen.getByText(name)).toBeInTheDocument();
+      expect(screen.getByRole('img', { name })).toBeInTheDocument();
+    },
+  );
+
   it('links every project that has a url, with no interactive element inside a link', async () => {
     render(<Projects />);
-    for (const showAllButton of screen.getAllByText(/^Tout afficher/)) {
-      await userEvent.click(showAllButton);
-    }
+    await showAllProjects();
 
     const links = screen.getAllByRole('link');
     const linkedProjectNames = allProjects.filter(({ url }) => url).map(({ name }) => name);
