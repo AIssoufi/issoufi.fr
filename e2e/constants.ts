@@ -262,3 +262,22 @@ export const TRAILING_DOT_PATTERN = /\.$/;
 
 /** Protocols of the requests that go to a host: the others, such as `data:`, go nowhere. */
 export const NETWORK_PROTOCOLS = ['http:', 'https:', 'ws:', 'wss:'] as const;
+
+/**
+ * Screen widths, in pixels, at which the browser test of reduced motion opens the pages: a phone
+ * (375), with the mobile menu, and a common desktop width (1440).
+ */
+export const REDUCED_MOTION_SCREEN_WIDTHS_PX = [375, 1440] as const;
+
+/**
+ * Longest time, in milliseconds, that an animation or a transition may last with reduced motion,
+ * its delay included: the `instant` duration of the theme (0.01 ms), with room for the rounding
+ * of the browser, far shorter than a frame.
+ */
+export const INSTANT_ANIMATION_MAX_MS = 1;
+
+/**
+ * Time, in milliseconds, between the two screenshots of the home page that must be identical with
+ * reduced motion: long enough for the dots, the glow or a pushed word to move.
+ */
+export const STILLNESS_DELAY_MS = 1000;

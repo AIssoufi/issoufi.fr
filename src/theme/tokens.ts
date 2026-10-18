@@ -204,6 +204,7 @@ export const lineHeights = {
 
 /** Durations; keys are milliseconds. */
 export const durations = {
+  0.01: '0.01ms',
   100: '0.1s',
   150: '0.15s',
   200: '0.2s',

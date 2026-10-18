@@ -2,6 +2,7 @@ import { useId, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import LocalizedLink from '../../components/LocalizedLink';
+import { useMediaQuery } from '../../hooks/useMediaQuery';
 import { useUrlLanguage } from '../../hooks/useUrlLanguage';
 import { localizePath } from '../../i18n/utils';
 import BurgerMenu from './BurgerMenu';
@@ -9,7 +10,6 @@ import { DESKTOP_MEDIA_QUERY } from './constants';
 import GitHubLink from './GitHubLink';
 import { useEscapeKey } from './hooks/useEscapeKey';
 import { useInertOutside } from './hooks/useInertOutside';
-import { useMediaQuery } from './hooks/useMediaQuery';
 import { useScrollLock } from './hooks/useScrollLock';
 import LangToggle from './LangToggle';
 import NavMenu from './NavMenu';

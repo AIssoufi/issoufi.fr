@@ -2,6 +2,7 @@ import { render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router';
 
 import { theme } from '../../theme';
+import { REDUCED_MOTION_QUERY } from '../../theme/constants';
 import { declaredStyle, serializeCssValue } from '../../styleTestUtils';
 import { isPublicFile } from '../testUtils';
 import { BACKGROUND_IMAGE_URL } from './constants';
@@ -90,6 +91,21 @@ describe('Home', () => {
     expect(secondaryHoverStyle('border-color')).toBe(color('foreground'));
     expect(hoverStyle({ name: 'Voir mes projets', property: 'background-color' })).toBe('');
     expect(hoverStyle({ name: 'Voir mes projets', property: 'color' })).toBe(color('foreground'));
+  });
+
+  it('hides the cursor glow with reduced motion, and nothing else, since it follows no pointer', () => {
+    const { container } = renderHome();
+
+    const hiddenWithReducedMotion = [...container.querySelectorAll('*')].filter(
+      element =>
+        declaredStyle({ element, property: 'display', media: REDUCED_MOTION_QUERY }) === 'none',
+    );
+
+    expect(hiddenWithReducedMotion).toHaveLength(1);
+    const glowStyle = getComputedStyle(hiddenWithReducedMotion[0]);
+    expect(glowStyle.position).toBe('fixed');
+    expect(glowStyle.pointerEvents).toBe('none');
+    expect(glowStyle.display).not.toBe('none');
   });
 
   it('serves its background from public/', () => {
