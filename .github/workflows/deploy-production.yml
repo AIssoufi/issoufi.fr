@@ -11,11 +11,11 @@ on:
   workflow_dispatch:
     inputs:
       dry_run:
-        description: Show what would be deployed, without pushing to main
+        description: Show what would be released and deployed, without merging the release pull request or pushing to main
         type: boolean
         default: false
 
-# The push to main uses the deploy key, not the GITHUB_TOKEN, which only reads
+# The GITHUB_TOKEN only reads, except in the release job, and the push to main uses the deploy key
 permissions:
   contents: read
   actions: read
@@ -25,7 +25,52 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  schedule:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      due: ${{ steps.schedule.outputs.due }}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+      - id: schedule
+        name: Check the schedule
+        run: node scripts/ci/check-deploy-schedule.mjs
+        env:
+          DEPLOY_SCHEDULE: ${{ github.event.schedule }}
+
+  release:
+    # Merges the release pull request once its whole CI passed, so that production gets the new
+    # version, then publishes the release and runs the CI on develop: the merge, made with the
+    # GITHUB_TOKEN, starts no push run. It never fails, and leaves a notice when no release is made.
+    needs: schedule
+    if: needs.schedule.outputs.due == 'true'
+    runs-on: ubuntu-latest
+    # Two runs of the CI, each waited for up to 20 minutes (RUN_WAIT_ATTEMPTS)
+    timeout-minutes: 50
+    permissions:
+      # Merges the release pull request
+      contents: write
+      pull-requests: write
+      # Starts ci.yml and release.yml, and follows their runs
+      actions: write
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+      - name: Release the version of the day
+        run: node scripts/ci/merge-release-pr.mjs
+        env:
+          DRY_RUN: ${{ inputs.dry_run }}
+          GITHUB_TOKEN: ${{ github.token }}
+
   check:
+    # Runs even when the release failed, which must not stop the deploy
+    needs: [schedule, release]
+    if: ${{ !cancelled() && needs.schedule.outputs.due == 'true' }}
     runs-on: ubuntu-latest
     timeout-minutes: 5
     outputs:
@@ -33,21 +78,14 @@ jobs:
     steps:
       - uses: actions/checkout@v7
         with:
-          # The trees of main and develop are compared below
+          # The trees of main and develop are compared below, once the release merged into develop
           fetch-depth: 0
       - uses: actions/setup-node@v7
         with:
           node-version-file: .nvmrc
 
-      - id: schedule
-        name: Check the schedule
-        run: node scripts/ci/check-deploy-schedule.mjs
-        env:
-          DEPLOY_SCHEDULE: ${{ github.event.schedule }}
-
       # A job condition cannot read secrets, and the key itself stays out of this job
       - name: Check the deploy key
-        if: steps.schedule.outputs.due == 'true'
         env:
           HAS_DEPLOY_KEY: ${{ secrets.DEPLOY_KEY != '' }}
         run: |
@@ -60,7 +98,6 @@ jobs:
       # means that main already serves develop
       - id: trees
         name: Compare develop with main
-        if: steps.schedule.outputs.due == 'true'
         run: |
           if [ "$(git rev-parse 'origin/develop^{tree}')" = "$(git rev-parse 'origin/main^{tree}')" ]; then
             echo "::notice::Nothing to deploy: main already holds the content of develop."
@@ -78,7 +115,8 @@ jobs:
 
   promote:
     needs: check
-    if: needs.check.outputs.sha != ''
+    # A failed release, two jobs up, would otherwise skip this job too
+    if: ${{ !cancelled() && needs.check.result == 'success' && needs.check.outputs.sha != '' }}
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
