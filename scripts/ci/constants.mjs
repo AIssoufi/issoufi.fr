@@ -54,8 +54,17 @@ export const COVERAGE_SUMMARY_FILE = 'coverage/coverage-summary.json';
 /** Coverage metrics shown in the job summary, in display order. */
 export const COVERAGE_METRICS = ['lines', 'statements', 'branches', 'functions'];
 
-/** HTML pages at the root of the build, one per route. */
+/**
+ * HTML pages of the build, one per route: at its root for the default language, and in the folder
+ * of the prefix of each other language, such as `en/projects.html`.
+ */
 export const HTML_FILE_PATTERN = /\.html$/;
+
+/** Separator of the folders in a path of the build and in a route. */
+export const PATH_SEPARATOR = '/';
+
+/** Separators of the folders in a path that Node.js lists on Windows. */
+export const WINDOWS_PATH_SEPARATOR_PATTERN = /\\/g;
 
 /** Route of the home page. */
 export const HOME_PAGE_ROUTE = '/';
@@ -63,7 +72,10 @@ export const HOME_PAGE_ROUTE = '/';
 /** Page of the build served at {@link HOME_PAGE_ROUTE}. */
 export const HOME_PAGE_FILE = 'index.html';
 
-/** Page of the build that Cloudflare Pages serves, with a 404, for any unknown path. */
+/**
+ * Page of the build that Cloudflare Pages serves, with a 404, for any unknown path: the one of the
+ * closest folder up the path, such as `en/404.html` for an unknown path under `/en/`.
+ */
 export const NOT_FOUND_PAGE_FILE = '404.html';
 
 /** Title tag of an HTML page. Its first group captures the title. */
@@ -114,7 +126,10 @@ export const URL_QUERY_AND_HASH_PATTERN = /[?#].*$/;
 /** Start of a URL relative to the root of the site, `/` or `./`. */
 export const ROOT_URL_PREFIX_PATTERN = /^\.?\//;
 
-/** Path that no page uses, requested to check the not found page. */
+/**
+ * Path that no page uses, requested to check the not found page, behind the folder of the page for
+ * a not found page in a folder, such as `/en/smoke-test-page-that-does-not-exist`.
+ */
 export const MISSING_PAGE_ROUTE = '/smoke-test-page-that-does-not-exist';
 
 /** HTTP status of a page served normally. */

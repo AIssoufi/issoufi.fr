@@ -9,7 +9,9 @@ import {
   HTTP_OK,
   MISSING_PAGE_ROUTE,
   NOT_FOUND_PAGE_FILE,
+  PATH_SEPARATOR,
   TITLE_TAG_PATTERN,
+  WINDOWS_PATH_SEPARATOR_PATTERN,
 } from '../constants.mjs';
 import { toList } from './lists.mjs';
 
@@ -48,39 +50,58 @@ export const isPageCheck = value => {
 };
 
 /**
- * Tells whether an entry at the root of the build is the file name of an HTML page.
- * @param {unknown} fileName - Entry of the build folder.
+ * Tells whether an entry of the build is the path of an HTML page.
+ * @param {unknown} fileName - Entry of the build folder, e.g. `en/projects.html`.
  * @returns {boolean} False for another file and for a value that is not a string.
  */
 const isHtmlFileName = fileName => typeof fileName === 'string' && HTML_FILE_PATTERN.test(fileName);
 
 /**
- * Lists the routes to check from the HTML files at the root of the build. Each page is served at
- * its name without the extension, `index.html` at `/`, and an unknown path must get
- * `404.html` with a 404 status.
- * @param {string[]} [fileNames] - File names at the root of the build. Any value that is not an
- * array counts as none.
+ * Writes a path of the build with `/` separators, as Node.js lists them on every system but
+ * Windows.
+ * @param {string} fileName - Path relative to the build folder, e.g. `en\\projects.html`.
+ * @returns {string} The same path with `/` separators, e.g. `en/projects.html`.
+ */
+const toPosixPath = fileName => fileName.replace(WINDOWS_PATH_SEPARATOR_PATTERN, PATH_SEPARATOR);
+
+/**
+ * Lists the routes to check from the HTML files of the build, at its root and in its folders,
+ * such as `en/`. Each page is served at its folder and its name without the extension, an
+ * `index.html` at its folder (`/`, `/en/`), and an unknown path of its folder must get the
+ * `404.html` of that folder with a 404 status.
+ * @param {string[]} [fileNames] - Paths of the files of the build, relative to its folder, as
+ * `readdirSync` lists them with `recursive`. Any value that is not an array counts as none.
  * @returns {PageCheck[]} One check per HTML file, other files are ignored.
  * @example
- * getPageChecks(['index.html', 'projects.html', '404.html', 'robots.txt']);
+ * getPageChecks(['index.html', 'projects.html', '404.html', 'en/index.html', 'robots.txt']);
  * // [
  * //   { file: 'index.html', route: '/', status: 200 },
  * //   { file: 'projects.html', route: '/projects', status: 200 },
  * //   { file: '404.html', route: '/smoke-test-page-that-does-not-exist', status: 404 },
+ * //   { file: 'en/index.html', route: '/en/', status: 200 },
  * // ]
  */
 export const getPageChecks = fileNames =>
   toList(fileNames)
     .filter(isHtmlFileName)
+    .map(toPosixPath)
     .map(file => {
-      const isNotFoundPage = file === NOT_FOUND_PAGE_FILE;
+      const separatorIndex = file.lastIndexOf(PATH_SEPARATOR);
+      const name = file.slice(separatorIndex + 1);
+      // Empty at the root of the build, `/en` for a page of the en/ folder
+      const isAtRoot = separatorIndex === -1;
+      const folderRoute = isAtRoot ? '' : `${PATH_SEPARATOR}${file.slice(0, separatorIndex)}`;
+
+      const isNotFoundPage = name === NOT_FOUND_PAGE_FILE;
       if (isNotFoundPage) {
-        return { file, route: MISSING_PAGE_ROUTE, status: HTTP_NOT_FOUND };
+        return { file, route: `${folderRoute}${MISSING_PAGE_ROUTE}`, status: HTTP_NOT_FOUND };
       }
 
-      const isHomePage = file === HOME_PAGE_FILE;
-      const route = isHomePage ? HOME_PAGE_ROUTE : `/${file.replace(HTML_FILE_PATTERN, '')}`;
-      return { file, route, status: HTTP_OK };
+      const isHomePage = name === HOME_PAGE_FILE;
+      const pageRoute = isHomePage
+        ? HOME_PAGE_ROUTE
+        : `${PATH_SEPARATOR}${name.replace(HTML_FILE_PATTERN, '')}`;
+      return { file, route: `${folderRoute}${pageRoute}`, status: HTTP_OK };
     });
 
 /**

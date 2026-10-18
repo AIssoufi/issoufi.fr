@@ -45,8 +45,41 @@ describe('getPageChecks', () => {
     ]);
   });
 
+  it('maps the pages of a language folder to the routes of its prefix', () => {
+    expect(
+      getPageChecks(['en/index.html', 'en/projects.html', 'en/experiences.html', 'en/404.html']),
+    ).toEqual([
+      { file: 'en/index.html', route: '/en/', status: 200 },
+      { file: 'en/projects.html', route: '/en/projects', status: 200 },
+      { file: 'en/experiences.html', route: '/en/experiences', status: 200 },
+      { file: 'en/404.html', route: '/en/smoke-test-page-that-does-not-exist', status: 404 },
+    ]);
+  });
+
+  it('maps a page of nested folders to the route of its folders', () => {
+    expect(getPageChecks(['a/b/index.html', 'a/b/page.html', 'a/b/404.html'])).toEqual([
+      { file: 'a/b/index.html', route: '/a/b/', status: 200 },
+      { file: 'a/b/page.html', route: '/a/b/page', status: 200 },
+      { file: 'a/b/404.html', route: '/a/b/smoke-test-page-that-does-not-exist', status: 404 },
+    ]);
+  });
+
+  it('reads the paths that Node.js lists with backslashes on Windows', () => {
+    expect(getPageChecks(['en\\projects.html'])).toEqual([
+      { file: 'en/projects.html', route: '/en/projects', status: 200 },
+    ]);
+  });
+
   it('ignores the files that are not HTML pages', () => {
-    expect(getPageChecks(['assets', 'chess.png', 'robots.txt', 'index.html.map'])).toEqual([]);
+    expect(
+      getPageChecks([
+        'assets',
+        'assets/index-B7cJ.js',
+        'chess.png',
+        'robots.txt',
+        'index.html.map',
+      ]),
+    ).toEqual([]);
   });
 
   it.each([undefined, null, [], 'index.html', {}])('gives no check for %o', fileNames => {

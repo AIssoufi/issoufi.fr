@@ -1,7 +1,8 @@
 // @ts-check
-// Checks that a deployed site serves the pages of the local build: every page of dist/ at its
-// route with a 200, and the not found page with a 404, each with the title and canonical URL of
-// the build. Retries for a while, since a new deployment can take a moment to spread.
+// Checks that a deployed site serves the pages of the local build: every page of dist/ and of its
+// language folders at its route with a 200, and the not found page of each folder with a 404, each
+// with the title and canonical URL of the build. Retries for a while, since a new deployment can
+// take a moment to spread.
 // Usage: node scripts/ci/smoke-test.mjs <site URL>
 import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
@@ -24,7 +25,8 @@ if (!existsSync(DIST_DIR)) {
   process.exit(1);
 }
 
-const pages = getPageChecks(readdirSync(DIST_DIR));
+// The pages of the other languages are in the folders of their prefix, such as en/
+const pages = getPageChecks(readdirSync(DIST_DIR, { recursive: true }).map(String));
 
 // Without pages, the smoke test would pass after checking nothing
 const hasPages = pages.length > 0;

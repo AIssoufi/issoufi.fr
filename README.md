@@ -49,7 +49,7 @@ pnpm smoke-test https://issoufi.fr   # Check that a deployed site serves the pag
 
 `pnpm size` fails when the scripts and style sheets that the home page loads before it renders (those that `dist/index.html` references with `<script src>`, `modulepreload` or `stylesheet`) exceed 150 kB gzip, or when those of the whole build, every chunk included, exceed 210 kB gzip. It also fails when `dist/index.html` references none, and warns about images over 500 kB. These limits are in `scripts/ci/constants.mjs`.
 
-`pnpm smoke-test <site URL>` requests every page of `dist/` on the site, plus an unknown path, and fails unless each answers with the expected status (200, or 404 for the unknown path) and the title and canonical URL of the build. It retries for about 20 seconds while a new deployment spreads, and fails at once when `dist/` is missing or holds no HTML page.
+`pnpm smoke-test <site URL>` requests every page of `dist/` on the site, those of its folders included (`en/projects.html` at `/en/projects`), plus an unknown path in each folder that has a `404.html` (`/smoke-test-page-that-does-not-exist`, `/en/smoke-test-page-that-does-not-exist`), and fails unless each answers with the expected status (200, or 404 for the unknown paths) and the title and canonical URL of the build. It retries for about 20 seconds while a new deployment spreads, and fails at once when `dist/` is missing or holds no HTML page.
 
 ### Link preview image
 
