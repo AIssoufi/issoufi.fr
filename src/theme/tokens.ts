@@ -79,6 +79,31 @@ export const spacing = {
   56: '56px',
 } as const;
 
+/** Widths and heights of elements, from hairlines to the app container; keys are pixel values. */
+export const sizes = {
+  1: '1px',
+  2: '2px',
+  12: '12px',
+  15: '15px',
+  16: '16px',
+  32: '32px',
+  36: '36px',
+  50: '50px',
+  54: '54px',
+  72: '72px',
+  90: '90px',
+  222: '222px',
+  240: '240px',
+  260: '260px',
+  640: '640px',
+  1440: '1440px',
+} as const;
+
+/** Line lengths of text blocks; keys are numbers of characters. */
+export const measures = {
+  40: '40ch',
+} as const;
+
 /** Font sizes; keys are pixel values. */
 export const fontSizes = {
   10: '10px',
