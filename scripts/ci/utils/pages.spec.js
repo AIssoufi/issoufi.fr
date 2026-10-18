@@ -1,3 +1,4 @@
+import { SITEMAP_FILE_NAME } from '../../../src/utils/sitemap';
 import {
   compareFile,
   comparePage,
@@ -213,6 +214,12 @@ describe('getFileChecks', () => {
     expect(getFileChecks(['index.html', 'sitemap.xml', 'assets/index.js', 'robots.txt'])).toEqual([
       { file: 'robots.txt', route: '/robots.txt', status: 200 },
       { file: 'sitemap.xml', route: '/sitemap.xml', status: 200 },
+    ]);
+  });
+
+  it('checks the sitemap under the name the build writes it with', () => {
+    expect(getFileChecks([SITEMAP_FILE_NAME])).toEqual([
+      { file: SITEMAP_FILE_NAME, route: `/${SITEMAP_FILE_NAME}`, status: 200 },
     ]);
   });
 
