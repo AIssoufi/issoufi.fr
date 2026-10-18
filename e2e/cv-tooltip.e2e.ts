@@ -1,4 +1,4 @@
-import { expect, type Page, test } from '@playwright/test';
+import { expect, test } from '@playwright/test';
 
 import { LANGUAGES } from '../src/i18n/constants';
 import { en } from '../src/i18n/en';
@@ -8,6 +8,7 @@ import { getBrowserAccessibleText } from './accessibility';
 import { waitForEndingAnimations } from './animations';
 import {
   FLOATING_CONTROLS_SCREEN_WIDTHS_PX,
+  LANDSCAPE_PHONE_SCREENS,
   LONG_PAGE_ROUTE,
   MAX_TOOLTIP_OFFSET_PX,
   MOBILE_SCREEN_WIDTHS_PX,
@@ -19,18 +20,21 @@ import {
   getBoxCenterDistanceX,
   getBoxCenterDistanceY,
   getBoxRight,
+  getScreenBox,
   isBoxInside,
-  type ScreenBox,
 } from './utils';
 
 /** Translations of each language, to find the CV button and its tooltip by their texts. */
 const TRANSLATIONS = { fr, en };
 
-/** Box of the whole screen of a page, to check that a tooltip shows whole on it. */
-const getScreenBox = (page: Page): ScreenBox | null => {
-  const viewport = page.viewportSize();
-  return viewport && { x: 0, y: 0, ...viewport };
-};
+/**
+ * Screens of the mobile layout, where the menu holds a CV button: phones held upright, then
+ * sideways, where the menu is compact.
+ */
+const MOBILE_MENU_SCREENS = [
+  ...MOBILE_SCREEN_WIDTHS_PX.map(width => ({ width, height: SCREEN_HEIGHT_PX })),
+  ...LANDSCAPE_PHONE_SCREENS,
+];
 
 // jsdom computes no layout, so only a real browser sees a tooltip cut by the edge of the screen,
 // or covering the button it describes
@@ -60,7 +64,7 @@ for (const language of LANGUAGES) {
 
         const tooltipBox = await tooltip.boundingBox();
         expect(
-          isBoxInside({ box: tooltipBox, container: getScreenBox(page) }),
+          isBoxInside({ box: tooltipBox, container: getScreenBox(page.viewportSize()) }),
           `box of the tooltip, whole on the screen: ${JSON.stringify(tooltipBox)}`,
         ).toBe(true);
         const gapPx = (cvBox?.x ?? Number.NaN) - getBoxRight(tooltipBox);
@@ -133,9 +137,9 @@ for (const language of LANGUAGES) {
     });
   }
 
-  for (const width of MOBILE_SCREEN_WIDTHS_PX) {
-    test.describe(`in ${language}, on a ${width} px wide screen`, () => {
-      test.use({ viewport: { width, height: SCREEN_HEIGHT_PX } });
+  for (const viewport of MOBILE_MENU_SCREENS) {
+    test.describe(`in ${language}, on a ${viewport.width} × ${viewport.height} px screen`, () => {
+      test.use({ viewport });
 
       test('the keyboard shows the tooltip of the CV button of the mobile menu whole above it, until Escape', async ({
         page,
@@ -164,7 +168,7 @@ for (const language of LANGUAGES) {
         const tooltipBox = await tooltip.boundingBox();
         const lastLinkBox = await lastLink.boundingBox();
         expect(
-          isBoxInside({ box: tooltipBox, container: getScreenBox(page) }),
+          isBoxInside({ box: tooltipBox, container: getScreenBox(page.viewportSize()) }),
           `box of the tooltip, whole on the screen: ${JSON.stringify(tooltipBox)}`,
         ).toBe(true);
         const gapPx = (cvBox?.y ?? Number.NaN) - getBoxBottom(tooltipBox);

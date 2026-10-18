@@ -25,6 +25,12 @@ export const Button = styled.button`
     outline-offset: ${th.space(2)};
   }
 
+  /* Fits the compact header of a short screen */
+  @media (max-height: ${th('screenHeights.short')}) {
+    width: ${th.size('burger-icon-compact')};
+    height: ${th.size('burger-icon-compact')};
+  }
+
   @media (min-width: ${th('screens.tablet')}) {
     display: none;
   }

@@ -4,6 +4,7 @@ import { BrowserRouter as Router } from 'react-router';
 
 import packageJson from '../../../package.json';
 import i18n from '../../i18n';
+import { LANGUAGE_STORAGE_KEY } from '../../i18n/constants';
 import { en } from '../../i18n/en';
 import { declaredStyle, serializeCssValue } from '../../styleTestUtils';
 import { theme } from '../../theme';
@@ -53,8 +54,17 @@ const getBurgerButton = () => screen.getByRole('button', { name: /menu/i });
 /** The navigation, found even while the closed mobile menu hides it. */
 const getNavigation = () => screen.getByRole('navigation', { hidden: true });
 
-/** The element holding the burger button and the navigation, fixed while the menu is open. */
+/** The element holding the burger button and the navigation, in the row of the header. */
 const getMenu = () => getBurgerButton().parentElement;
+
+/**
+ * The element holding the language toggle and the menu, which stay reachable while the menu is
+ * open.
+ */
+const getHeaderControls = () => getMenu().parentElement;
+
+/** The language toggle, whose buttons are named after their language. */
+const getLanguageToggle = () => screen.getByRole('group', { name: 'Langue' });
 
 /**
  * Shows the closed navigation as the tablet media query of `NavMenu` does on the desktop layout.
@@ -94,6 +104,9 @@ const getFloatingCvLink = () =>
 const getFloatingGitHubLink = () =>
   within(getFloatingLinks()).getByRole('link', { name: GITHUB_LINK_NAME, hidden: true });
 
+/** Media query of the short screens, as a phone held sideways, on which the header is compact. */
+const SHORT_SCREEN_MEDIA_QUERY = `(max-height: ${theme.screenHeights.short})`;
+
 /** Value that the header declares for a property on an element on the desktop layout. */
 const desktopStyle = ({ element, property }) =>
   declaredStyle({ element, property, media: DESKTOP_MEDIA_QUERY });
@@ -101,12 +114,11 @@ const desktopStyle = ({ element, property }) =>
 /** The link of the page under the header, covered by the open mobile menu. */
 const getPageLink = () => screen.getByRole('link', { name: 'Page link' });
 
-/** Elements of the page that the open mobile menu covers: the logo, the language toggle, the page. */
-const getCoveredElements = () => [
-  screen.getByRole('link', { name: 'AI' }),
-  screen.getByText('EN'),
-  getPageLink(),
-];
+/** Inline overflow of the root element, which locks the page while the mobile menu covers it. */
+const getRootOverflow = () => document.documentElement.style.overflow;
+
+/** Elements of the page that the open mobile menu covers: the logo and the page. */
+const getCoveredElements = () => [screen.getByRole('link', { name: 'AI' }), getPageLink()];
 
 describe('Header', () => {
   afterEach(() => {
@@ -122,6 +134,35 @@ describe('Header', () => {
   it('renders the logo', () => {
     renderHeader();
     expect(screen.getByText('AI')).toBeInTheDocument();
+  });
+
+  it('gives its blurred band its own height, so the band covers the header and nothing else', () => {
+    renderHeader();
+    const header = screen.getByTestId('header');
+
+    expect(declaredStyle({ element: header, property: 'height' })).toBe(theme.sizes.header);
+    expect(declaredStyle({ element: header, property: 'height', pseudo: '::after' })).toBe(
+      theme.sizes.header,
+    );
+    expect(declaredStyle({ element: header, property: 'position', pseudo: '::after' })).toBe(
+      'fixed',
+    );
+  });
+
+  it('gets compact on a short screen, with its band, and leaves most of it to the page', () => {
+    renderHeader();
+    const header = screen.getByTestId('header');
+    const shortScreenStyle = ({ element, property, pseudo }) =>
+      declaredStyle({ element, property, pseudo, media: SHORT_SCREEN_MEDIA_QUERY });
+
+    expect(shortScreenStyle({ element: header, property: 'height' })).toBe(
+      theme.sizes['header-compact'],
+    );
+    expect(shortScreenStyle({ element: header, property: 'height', pseudo: '::after' })).toBe(
+      theme.sizes['header-compact'],
+    );
+    const logo = screen.getByRole('link', { name: 'AI' }).parentElement;
+    expect(shortScreenStyle({ element: logo, property: 'font-size' })).toBe(theme.fontSizes[28]);
   });
 
   describe('version', () => {
@@ -338,7 +379,7 @@ describe('Header', () => {
   });
 
   it('points every CV link to the CV written in English once English is active', async () => {
-    await renderHeader();
+    renderHeader();
 
     await act(() => i18n.changeLanguage('en'));
     try {
@@ -386,7 +427,65 @@ describe('Header', () => {
       expect(getBurgerButton()).toHaveAttribute('aria-expanded', 'true');
       expect(getNavigation()).toBeVisible();
       expect(getComputedStyle(getNavigation()).position).toBe('fixed');
-      expect(getComputedStyle(getMenu()).position).toBe('fixed');
+      // The header stays at the top of the screen, so the burger keeps its place in its row
+      expect(getComputedStyle(getMenu()).position).not.toBe('fixed');
+    });
+
+    describe('language toggle', () => {
+      afterEach(() => {
+        window.history.pushState({}, '', '/');
+        // The toggle stores the language it switches to
+        localStorage.removeItem(LANGUAGE_STORAGE_KEY);
+      });
+
+      it('stays above it, like the burger', async () => {
+        renderHeader();
+
+        await userEvent.click(getBurgerButton());
+
+        const toggleControls = getLanguageToggle().parentElement;
+        expect(declaredStyle({ element: toggleControls, property: 'z-index' })).toBe(
+          String(theme.zIndices.header),
+        );
+        expect(declaredStyle({ element: getBurgerButton(), property: 'z-index' })).toBe(
+          String(theme.zIndices.header),
+        );
+        expect(getLanguageToggle().closest('[inert]')).toBeNull();
+      });
+
+      it('changes the language while it is open, which stays open', async () => {
+        renderHeader();
+        await userEvent.click(getBurgerButton());
+
+        await userEvent.click(within(getLanguageToggle()).getByRole('button', { name: 'English' }));
+
+        expect(window.location.pathname).toBe('/en/');
+        expect(
+          within(getLanguageToggle()).getByRole('button', { name: 'English' }),
+        ).toHaveAttribute('aria-pressed', 'true');
+        expect(getBurgerButton()).toHaveAttribute('aria-expanded', 'true');
+        expect(getRootOverflow()).toBe('hidden');
+      });
+    });
+
+    it('locks the page behind it while open, and lets it scroll again once closed', async () => {
+      renderHeader();
+      expect(getRootOverflow()).toBe('');
+
+      await userEvent.click(getBurgerButton());
+      expect(getRootOverflow()).toBe('hidden');
+
+      await userEvent.click(getBurgerButton());
+      expect(getRootOverflow()).toBe('');
+    });
+
+    it('lets the page scroll again when one of its links is chosen', async () => {
+      renderHeader();
+      await userEvent.click(getBurgerButton());
+
+      await userEvent.click(screen.getByRole('link', { name: 'Projets' }));
+
+      expect(getRootOverflow()).toBe('');
     });
 
     it('closes with the burger button', async () => {
@@ -422,6 +521,7 @@ describe('Header', () => {
       expect(getComputedStyle(getMenu()).position).not.toBe('fixed');
       expect(getComputedStyle(getNavigation()).position).not.toBe('fixed');
       getCoveredElements().forEach(element => expect(element.closest('[inert]')).toBeNull());
+      expect(getRootOverflow()).toBe('');
 
       setDesktop(false);
 
@@ -482,6 +582,7 @@ describe('Header', () => {
       await userEvent.click(getBurgerButton());
       getCoveredElements().forEach(element => expect(element.closest('[inert]')).not.toBeNull());
       expect(getMenu().closest('[inert]')).toBeNull();
+      expect(getLanguageToggle().closest('[inert]')).toBeNull();
 
       await userEvent.click(getBurgerButton());
       getCoveredElements().forEach(element => expect(element.closest('[inert]')).toBeNull());
@@ -497,7 +598,7 @@ describe('Header', () => {
       }
     });
 
-    it('keeps Tab in the menu after its last link, away from the page behind', async () => {
+    it('keeps Tab in the header controls after the last link, away from the page behind', async () => {
       renderHeader();
       await userEvent.click(getBurgerButton());
       act(() => getMenuGitHubLink().focus());
@@ -505,17 +606,20 @@ describe('Header', () => {
       await userEvent.tab();
 
       expect(getPageLink()).not.toHaveFocus();
-      expect(getMenu()).toContainElement(document.activeElement);
+      expect(screen.getByRole('link', { name: 'AI' })).not.toHaveFocus();
+      expect(getHeaderControls()).toContainElement(document.activeElement);
     });
 
-    it('keeps Shift+Tab on the burger, away from the language toggle behind', async () => {
+    it('reaches the language toggle above the menu with Shift+Tab from the burger', async () => {
       renderHeader();
       await userEvent.click(getBurgerButton());
 
       await userEvent.tab({ shift: true });
 
-      expect(screen.getByText('EN')).not.toHaveFocus();
-      expect(getBurgerButton()).toHaveFocus();
+      expect(within(getLanguageToggle()).getByRole('button', { name: 'English' })).toHaveFocus();
+
+      await userEvent.tab({ shift: true });
+      expect(within(getLanguageToggle()).getByRole('button', { name: 'Français' })).toHaveFocus();
     });
 
     it('gives the focus back to the burger when a link is chosen with Enter', async () => {
@@ -621,6 +725,7 @@ describe('Header', () => {
       await userEvent.click(getBurgerButton());
 
       getCoveredElements().forEach(element => expect(element.closest('[inert]')).toBeNull());
+      expect(getRootOverflow()).toBe('');
       act(() => getPageLink().focus());
       await userEvent.keyboard('{Escape}');
       expect(getPageLink()).toHaveFocus();

@@ -5,7 +5,12 @@ import { en } from '../src/i18n/en';
 import { fr } from '../src/i18n/fr';
 import { PAGES } from '../src/utils/pages';
 import { waitForEndingAnimations } from './animations';
-import { FLOATING_CONTROLS_SCREEN_WIDTHS_PX, PAGE_SELECTOR, SCREEN_HEIGHT_PX } from './constants';
+import {
+  FLOATING_CONTROLS_SCREEN_WIDTHS_PX,
+  PAGE_SELECTOR,
+  SCREEN_HEIGHT_PX,
+  SHOW_ALL_BUTTON_NAME,
+} from './constants';
 import { doBoxesOverlapHorizontally, getCheckedRoutes, type ScreenBox } from './utils';
 
 /**
@@ -13,9 +18,6 @@ import { doBoxesOverlapHorizontally, getCheckedRoutes, type ScreenBox } from './
  * names.
  */
 const TRANSLATIONS = { fr, en };
-
-/** Name of the "Show all" buttons of the Projects page, in both languages, whatever their count. */
-const SHOW_ALL_BUTTON_NAME = /^(Tout afficher|Show all) \(\d+\)$/;
 
 /** Box of something a visitor reads or uses on a page, with a label that names it in a failure. */
 interface ContentBox extends ScreenBox {

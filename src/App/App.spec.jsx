@@ -2,6 +2,7 @@ import { act, cleanup, configure, getConfig, render, screen } from '@testing-lib
 import userEvent from '@testing-library/user-event';
 
 import { LANGUAGE_STORAGE_KEY } from '../i18n/constants';
+import { declaredStyle } from '../styleTestUtils';
 import App from './App';
 
 /** Runs the i18n setup again, as on a new page load. */
@@ -132,6 +133,15 @@ describe('App', () => {
     render(<App />);
 
     expect(getComputedStyle(screen.getByTestId('app')).gridTemplateColumns).toBe('minmax(0, 1fr)');
+  });
+
+  it('grows with the page, so the sticky header stays on screen down to its end', () => {
+    // The header sticks within the grid: a grid one screen high would let it leave the screen
+    render(<App />);
+    const app = screen.getByTestId('app');
+
+    expect(declaredStyle({ element: app, property: 'min-height' })).toBe('100vh');
+    expect(declaredStyle({ element: app, property: 'height' })).toBe('');
   });
 
   describe('focus after a navigation', () => {

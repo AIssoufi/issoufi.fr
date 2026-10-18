@@ -47,6 +47,19 @@ describe('BurgerMenu', () => {
     expect(() => fireEvent.click(container.firstChild)).not.toThrow();
   });
 
+  it('keeps its size, and a smaller one that fits the compact header of a short screen', () => {
+    render(<BurgerMenu />);
+    const button = screen.getByRole('button');
+    const shortScreenMedia = `(max-height: ${theme.screenHeights.short})`;
+
+    expect(declaredStyle({ element: button, property: 'height' })).toBe(theme.sizes['burger-icon']);
+    for (const property of ['width', 'height']) {
+      expect(declaredStyle({ element: button, property, media: shortScreenMedia })).toBe(
+        theme.sizes['burger-icon-compact'],
+      );
+    }
+  });
+
   it('calls onOpen when clicked while closed', () => {
     const onOpen = vi.fn();
     const onClose = vi.fn();

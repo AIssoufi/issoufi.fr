@@ -101,8 +101,20 @@ export const theme = {
     ...sizes,
     /** Largest width of the app container. */
     container: sizes[1440],
+    /**
+     * Height of the site header: the logo, 54 px high, with 20 px above and below. Its blurred
+     * band, fixed on the screen, has the same height, so it covers the header and nothing else.
+     */
+    header: sizes[94],
+    /**
+     * Height of the site header on a short screen (see `screenHeights.short`), as on a phone held
+     * sideways: 15 % of a 320 px high screen, so the page keeps most of it. Its band follows.
+     */
+    'header-compact': sizes[48],
     /** Side of the burger button of the mobile menu. */
     'burger-icon': sizes[50],
+    /** Side of the burger icon in the compact header, still the size of a target for a finger. */
+    'burger-icon-compact': sizes[44],
     /** Length of each of the three bars of the burger icon, their round ends included. */
     'burger-bar': sizes[30],
     /** Thickness of each bar of the burger icon. */
@@ -208,5 +220,16 @@ export const theme = {
     'three-project-columns': breakpoints['57.125'],
     /** Wide screens. */
     wide: breakpoints[100],
+  },
+  /**
+   * Screen heights where the layout changes, in `em` like `screens`, kept apart from them since
+   * xstyled reads `screens` as widths. Not an xstyled namespace: use `th('screenHeights.short')`.
+   */
+  screenHeights: {
+    /**
+     * Up to this height, 500 px at the default font size, as on a phone held sideways, the header
+     * and the open mobile menu are compact.
+     */
+    short: breakpoints[31.25],
   },
 } as const;

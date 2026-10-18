@@ -8,7 +8,9 @@ export const WebApp = styled.div`
   grid-template-rows: max-content 1fr;
   /* A plain 1fr never shrinks below its content, which would widen the page past the screen */
   grid-template-columns: minmax(0, 1fr);
-  height: 100vh;
+  /* A minimum, not a height: the sticky header stays stuck only within this grid, so a grid one
+     screen high would let it leave the screen after one screen of scrolling */
+  min-height: 100vh;
   max-width: ${th.size('container')};
   margin: 0 auto;
 
