@@ -1,4 +1,4 @@
-import { act, cleanup, render, screen } from '@testing-library/react';
+import { act, cleanup, configure, getConfig, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
 import { LANGUAGE_STORAGE_KEY } from '../i18n/constants';
@@ -16,16 +16,30 @@ const description = () =>
 /** Query of the French page title of /projects, which only screen readers announce. */
 const PROJECTS_PAGE_TITLE = { level: 1, name: 'Projets' };
 
+/**
+ * Timeout of the `findBy` queries, in milliseconds: the app loads its pages lazily, and evaluates
+ * them again after `vi.resetModules`, which can outlast the default of 1 s while the whole suite
+ * runs with coverage.
+ */
+const PAGE_LOAD_TIMEOUT_MS = 3000;
+
 describe('App', () => {
-  // Vite transforms a lazily loaded page on its first import, which can outlast the timeout of a
-  // `findBy` query: import them once before the tests, which still load them through React.lazy
-  beforeAll(() =>
-    Promise.all([
+  const { asyncUtilTimeout } = getConfig();
+
+  beforeAll(() => {
+    configure({ asyncUtilTimeout: PAGE_LOAD_TIMEOUT_MS });
+    // Vite transforms a lazily loaded page on its first import: import them once before the
+    // tests, which still load them through React.lazy
+    return Promise.all([
       import('../pages/Projects'),
       import('../pages/Experiences'),
       import('../pages/NotFound'),
-    ]),
-  );
+    ]);
+  });
+
+  afterAll(() => {
+    configure({ asyncUtilTimeout });
+  });
 
   afterEach(() => {
     vi.restoreAllMocks();
