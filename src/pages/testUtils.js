@@ -5,10 +5,26 @@ import { join, sep } from 'node:path';
 const PUBLIC_DIR = 'public';
 
 /**
- * CSS selector of the elements that take a click or the focus. Used by the page tests to check
- * that no link holds one, since interactive content inside a link is invalid HTML.
+ * CSS selector of the interactive content of the HTML specification, plus the elements made
+ * focusable or editable by an attribute. Used by the page tests to check that no link holds one,
+ * since interactive content inside a link is invalid HTML.
  */
-export const INTERACTIVE_SELECTOR = 'a[href], button, input, select, textarea, [tabindex]';
+export const INTERACTIVE_SELECTOR = [
+  'a[href]',
+  'audio[controls]',
+  'button',
+  'details',
+  'embed',
+  'iframe',
+  'img[usemap]',
+  'input:not([type="hidden"])',
+  'label',
+  'select',
+  'textarea',
+  'video[controls]',
+  '[tabindex]',
+  '[contenteditable]:not([contenteditable="false"])',
+].join(', ');
 
 /**
  * Whether an absolute URL such as `/chess.webp` names a file of `public/`, not a folder. Used by
@@ -56,7 +72,8 @@ export const listStyleRules = () =>
  * @param {string} [params.pseudo] - Pseudo-classes and pseudo-element that follow the class in the
  * selector of the rules to read, such as `::after` or `:focus-visible::after`; `''` for the rules
  * of the element itself.
- * @returns {string} `''` when no rule declares it, or when the element is missing.
+ * @returns {string} `''` when no rule declares it, when the element is missing, or when `property`
+ * or `pseudo` is not a string.
  *
  * @example
  * declaredStyle({ element: grid, property: 'display', media: '(min-width: 50em)' }); // 'grid'
@@ -64,7 +81,8 @@ export const listStyleRules = () =>
  */
 export const declaredStyle = ({ element, property, media = '', pseudo = '' } = {}) => {
   const hasClasses = element?.classList instanceof DOMTokenList;
-  if (!hasClasses || typeof property !== 'string') return '';
+  const areSelectorPartsStrings = typeof property === 'string' && typeof pseudo === 'string';
+  if (!hasClasses || !areSelectorPartsStrings) return '';
 
   const classSelectors = [...element.classList].map(className => `.${className}${pseudo}`);
   const isRuleOfElement = entry => {

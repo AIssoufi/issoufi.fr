@@ -5,16 +5,41 @@ describe('INTERACTIVE_SELECTOR', () => {
     document.body.innerHTML = '';
   });
 
-  it('matches the elements that take a click or the focus, and only them', () => {
+  it('matches the interactive content of HTML, and the focusable or editable elements', () => {
     document.body.innerHTML = `
-      <a href="/projects">link</a><button>button</button><input /><select></select>
-      <textarea></textarea><div tabindex="-1">focusable</div>
-      <a>anchor without href</a><span>text</span><img alt="" />`;
+      <a href="/projects">link</a><audio controls></audio><button>button</button>
+      <details>details</details><embed /><iframe></iframe><img alt="" usemap="#map" />
+      <input /><label>label</label><select></select><textarea></textarea>
+      <video controls></video><div tabindex="-1">focusable</div>
+      <div contenteditable="true">editable</div>`;
 
     const matches = [...document.querySelectorAll(INTERACTIVE_SELECTOR)].map(
       element => element.textContent || element.tagName,
     );
-    expect(matches).toEqual(['link', 'button', 'INPUT', 'SELECT', 'TEXTAREA', 'focusable']);
+    expect(matches).toEqual([
+      'link',
+      'AUDIO',
+      'button',
+      'details',
+      'EMBED',
+      'IFRAME',
+      'IMG',
+      'INPUT',
+      'label',
+      'SELECT',
+      'TEXTAREA',
+      'VIDEO',
+      'focusable',
+      'editable',
+    ]);
+  });
+
+  it('matches none of the elements that take no click nor focus', () => {
+    document.body.innerHTML = `
+      <a>anchor without href</a><span>text</span><img alt="" /><input type="hidden" />
+      <audio></audio><video></video><div contenteditable="false">read only</div>`;
+
+    expect(document.querySelectorAll(INTERACTIVE_SELECTOR)).toHaveLength(0);
   });
 });
 
