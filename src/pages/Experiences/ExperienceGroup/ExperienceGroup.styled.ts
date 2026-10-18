@@ -1,12 +1,18 @@
 import styled, { th } from '@xstyled/styled-components';
 
-import { card, companyBlock, timelineRow } from '../timeline.styled';
+import {
+  card,
+  companyBlock,
+  mobileContentIndent,
+  mobileLineCenter,
+  timelineRow,
+} from '../timeline.styled';
 
 /* ── Group wrapper — participates directly in Timeline ─────── */
 
 export const GroupArticle = styled.section`
   ${companyBlock}
-  padding-left: ${th.space(22)}; /* mobile: indent past the dot */
+  padding-left: ${mobileContentIndent};
 
   @media (min-width: ${th('screens.tablet')}) {
     padding-left: 0;
@@ -30,11 +36,12 @@ export const RoleItem = styled.li`
   position: relative;
   ${timelineRow}
 
-  /* mobile dot per role */
+  /* mobile dot per role, centered on the line, which runs left of the group's indent */
   &::before {
     content: '';
     position: absolute;
-    left: -28px; /* 22px padding + 6px (half of 12px dot) */
+    left: calc(${mobileLineCenter} - ${mobileContentIndent});
+    transform: translateX(-50%);
     top: ${th.space(14)};
     width: 8px;
     height: 8px;
@@ -42,6 +49,11 @@ export const RoleItem = styled.li`
     background: ${th.color('accent-a65')};
     border: ${th.borderWidth('thick')} solid ${th.color('foreground-a50')};
     z-index: ${th.zIndex('raised')};
+  }
+
+  /* the company dot already marks the first role, at the same height */
+  &:first-child::before {
+    display: none;
   }
 
   @media (min-width: ${th('screens.tablet')}) {

@@ -1,5 +1,14 @@
 import { css, th } from '@xstyled/styled-components';
 
+/* Center of the mobile line, from the left edge of the timeline: its left edge plus half its
+   width, as Timeline (Experiences.styled.ts) draws it. Keep both in line. The mobile dots center
+   themselves on it with translateX(-50%), so their size and box-sizing do not matter. */
+export const mobileLineCenter = css`calc(${th.space(5)} + 2px / 2)`;
+
+/* How far the content of the timeline starts from its left edge on mobile, past the line and its
+   dots. */
+export const mobileContentIndent = th.space(22);
+
 /* Glowing dot marking an entry on the timeline line. Each caller places it. */
 export const timelineDot = css`
   content: '';
@@ -21,7 +30,8 @@ export const companyBlock = css`
 
   &::before {
     ${timelineDot}
-    left: -1px; /* centered on the line at left: 5px (5 - 6 = -1) */
+    left: ${mobileLineCenter};
+    transform: translateX(-50%);
     top: ${th.space(18)};
   }
 
