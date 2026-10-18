@@ -159,7 +159,8 @@ export const ProjectItem = styled.li<{ $displayAll?: boolean }>`
   margin: ${cardMargin};
   flex: 0 0 calc(33.333% - 10px);
   min-width: 260px;
-  /* The page gutter of the first and last cards widens them beyond the 260px of the card */
+  /* Keeps content-box: the 260px minimum and the flex basis leave out the page gutter that pads
+     the first and last cards, so the gutter widens them instead of narrowing their content */
   box-sizing: content-box;
   transition:
     transform 0.15s ease,
