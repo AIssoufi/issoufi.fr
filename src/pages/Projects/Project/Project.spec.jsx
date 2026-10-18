@@ -12,6 +12,7 @@ import {
   CARD_HOVER_LIFT_PX,
   CARD_MAX_TILT_DEG,
   CARD_PERSPECTIVE_PX,
+  LIKE_ANIMATION_MS,
   LIKED_PROJECTS_STORAGE_KEY,
   ROW_CARD_COUNT,
 } from './constants';
@@ -140,6 +141,7 @@ const LONG_TECH_LINE_PROJECT = project(5, 'Chess engine', {
 
 describe('Project', () => {
   afterEach(async () => {
+    vi.useRealTimers();
     vi.unstubAllGlobals();
     await act(() => i18n.changeLanguage('fr'));
     // Back to the hook itself, which mockReset gives back since Vitest 3. Only once the language
@@ -770,6 +772,24 @@ describe('Project', () => {
       // A pressed button is hovered too: the rule of :active must come last to win
       expect(lastTransformRuleIndex(':hover')).toBeGreaterThan(-1);
       expect(lastTransformRuleIndex(':active')).toBeGreaterThan(lastTransformRuleIndex(':hover'));
+    });
+
+    it('plays the pop animation of the heart for exactly as long as its button stays animated', () => {
+      vi.useFakeTimers();
+      render(<Project projects={projects} />);
+      // jsdom keeps the `animation` shorthand as written, without filling its longhands
+      const heartAnimation = () =>
+        getComputedStyle(likeButtonOf('Chess').querySelector('svg')).getPropertyValue('animation');
+
+      expect(heartAnimation()).toBe('');
+      fireEvent.click(likeButtonOf('Chess'));
+      expect(heartAnimation().split(' ')).toContain(`${LIKE_ANIMATION_MS}ms`);
+
+      act(() => vi.advanceTimersByTime(LIKE_ANIMATION_MS - 1));
+      expect(heartAnimation()).not.toBe('');
+
+      act(() => vi.advanceTimersByTime(1));
+      expect(heartAnimation()).toBe('');
     });
 
     it('draws the like button as a circle around its heart, now that it shows no count', () => {
