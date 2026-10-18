@@ -152,6 +152,10 @@ const CARD_SIZE = { width: 260, height: 302 };
 const CARD_STEP_PX = 270;
 /** Visible box of a list 375 px wide, the width of a phone. */
 const PHONE_LIST = { left: 0, top: 100, width: 375, height: 312 };
+/** Left edge of the first card of the row on a phone: the page gutter, then the card margin. */
+const ROW_CARD_LEFT_PX = 29;
+/** Left edge of the cards of "Show all" on a phone, in line with the section title. */
+const SHOW_ALL_CARD_LEFT_PX = 24;
 
 /** Box of a card placed at the given position, with the size of {@link CARD_SIZE}. */
 const cardAt = ({ left, top = PHONE_LIST.top }: { left: number; top?: number }) => ({
@@ -161,7 +165,9 @@ const cardAt = ({ left, top = PHONE_LIST.top }: { left: number; top?: number }) 
 });
 
 /** The three cards of a row on a phone: the first one whole, the others scrolled out of view. */
-const PHONE_ROW = [29, 29 + CARD_STEP_PX, 29 + 2 * CARD_STEP_PX].map(left => cardAt({ left }));
+const PHONE_ROW = [0, 1, 2].map(column =>
+  cardAt({ left: ROW_CARD_LEFT_PX + column * CARD_STEP_PX }),
+);
 
 describe('countWholeCards', () => {
   it('counts only the cards of the row that the list shows whole', () => {
@@ -169,7 +175,7 @@ describe('countWholeCards', () => {
   });
 
   it('counts every card of a row that fits in the list', () => {
-    const wideList = { ...PHONE_LIST, width: 3 * CARD_STEP_PX + 29 };
+    const wideList = { ...PHONE_LIST, width: ROW_CARD_LEFT_PX + 3 * CARD_STEP_PX };
 
     expect(countWholeCards({ cards: PHONE_ROW, container: wideList })).toBe(3);
   });
@@ -181,7 +187,7 @@ describe('countWholeCards', () => {
   });
 
   it('ignores how far the cards are from the list vertically', () => {
-    const lowerCard = cardAt({ left: 29, top: 5000 });
+    const lowerCard = cardAt({ left: ROW_CARD_LEFT_PX, top: 5000 });
 
     expect(countWholeCards({ cards: [lowerCard], container: PHONE_LIST })).toBe(1);
   });
@@ -231,10 +237,16 @@ describe('countWholeCards', () => {
       expect(countWholeCards(params as never)).toBe(0);
     });
 
-    it.each([undefined, null, 42, {}, { ...cardAt({ left: 29 }), width: Infinity }])(
+    it('counts no card whole with a NaN tolerance, so that a check of the columns fails', () => {
+      expect(countWholeCards({ cards: PHONE_ROW, container: PHONE_LIST, tolerancePx: NaN })).toBe(
+        0,
+      );
+    });
+
+    it.each([undefined, null, 42, {}, { ...cardAt({ left: ROW_CARD_LEFT_PX }), width: Infinity }])(
       'does not count the entry %j, which is not a box',
       entry => {
-        const cards = [entry as never, cardAt({ left: 29 })];
+        const cards = [entry as never, cardAt({ left: ROW_CARD_LEFT_PX })];
 
         expect(countWholeCards({ cards, container: PHONE_LIST })).toBe(1);
       },
@@ -245,9 +257,15 @@ describe('countWholeCards', () => {
 describe('groupCardsIntoRows', () => {
   /** Vertical distance from the top of a row of cards to the top of the next one. */
   const ROW_STEP_PX = 317;
+  /** Left edges of the three columns of "Show all", from the left edge of the first card. */
+  const SHOW_ALL_COLUMN_LEFTS = [0, 1, 2].map(
+    column => SHOW_ALL_CARD_LEFT_PX + column * CARD_STEP_PX,
+  );
   /** Cards of three columns wrapped onto two rows, as "Show all" lays out five projects. */
-  const firstRow = [24, 294, 564].map(left => cardAt({ left }));
-  const secondRow = [24, 294].map(left => cardAt({ left, top: PHONE_LIST.top + ROW_STEP_PX }));
+  const firstRow = SHOW_ALL_COLUMN_LEFTS.map(left => cardAt({ left }));
+  const secondRow = SHOW_ALL_COLUMN_LEFTS.slice(0, 2).map(left =>
+    cardAt({ left, top: PHONE_LIST.top + ROW_STEP_PX }),
+  );
 
   it('groups the cards of each row, from top to bottom', () => {
     expect(groupCardsIntoRows({ cards: [...firstRow, ...secondRow] })).toEqual([
@@ -258,7 +276,7 @@ describe('groupCardsIntoRows', () => {
 
   it('puts each card in a row of its own when the cards are stacked', () => {
     const stackedCards = [0, 1, 2].map(row =>
-      cardAt({ left: 24, top: PHONE_LIST.top + row * ROW_STEP_PX }),
+      cardAt({ left: SHOW_ALL_CARD_LEFT_PX, top: PHONE_LIST.top + row * ROW_STEP_PX }),
     );
 
     expect(groupCardsIntoRows({ cards: stackedCards })).toEqual(stackedCards.map(card => [card]));
@@ -276,8 +294,8 @@ describe('groupCardsIntoRows', () => {
       ['just past the tolerance, above', -MAX_CARD_OFFSET_PX - 0.01, 2],
     ])('tells whether a card %s is in the same row', (_position, topOffsetPx, expectedRowCount) => {
       const cards = [
-        cardAt({ left: 24 }),
-        cardAt({ left: 294, top: PHONE_LIST.top + topOffsetPx }),
+        cardAt({ left: SHOW_ALL_CARD_LEFT_PX }),
+        cardAt({ left: SHOW_ALL_CARD_LEFT_PX + CARD_STEP_PX, top: PHONE_LIST.top + topOffsetPx }),
       ];
 
       expect(groupCardsIntoRows({ cards })).toHaveLength(expectedRowCount);
@@ -285,14 +303,20 @@ describe('groupCardsIntoRows', () => {
 
     it('compares each card with the first card of its row, so a row cannot drift', () => {
       const cards = [0, 0.4, 0.8].map((topOffsetPx, column) =>
-        cardAt({ left: 24 + column * CARD_STEP_PX, top: PHONE_LIST.top + topOffsetPx }),
+        cardAt({
+          left: SHOW_ALL_CARD_LEFT_PX + column * CARD_STEP_PX,
+          top: PHONE_LIST.top + topOffsetPx,
+        }),
       );
 
       expect(groupCardsIntoRows({ cards }).map(row => row.length)).toEqual([2, 1]);
     });
 
     it('applies the tolerance it is given', () => {
-      const cards = [cardAt({ left: 24 }), cardAt({ left: 294, top: PHONE_LIST.top + 2 })];
+      const cards = [
+        cardAt({ left: SHOW_ALL_CARD_LEFT_PX }),
+        cardAt({ left: SHOW_ALL_CARD_LEFT_PX + CARD_STEP_PX, top: PHONE_LIST.top + 2 }),
+      ];
 
       expect(groupCardsIntoRows({ cards, tolerancePx: 2 })).toHaveLength(1);
       expect(groupCardsIntoRows({ cards, tolerancePx: 0 })).toHaveLength(2);
@@ -309,13 +333,22 @@ describe('groupCardsIntoRows', () => {
       expect(groupCardsIntoRows(params as never)).toEqual([]);
     });
 
-    it.each([undefined, null, 'card', {}, { ...cardAt({ left: 24 }), top: NaN }])(
-      'skips the entry %j, which is not a box',
-      entry => {
-        const cards = [entry as never, ...firstRow];
+    it('puts each card in a row of its own with a NaN tolerance', () => {
+      expect(groupCardsIntoRows({ cards: firstRow, tolerancePx: NaN })).toEqual(
+        firstRow.map(card => [card]),
+      );
+    });
 
-        expect(groupCardsIntoRows({ cards })).toEqual([firstRow]);
-      },
-    );
+    it.each([
+      undefined,
+      null,
+      'card',
+      {},
+      { ...cardAt({ left: SHOW_ALL_CARD_LEFT_PX }), top: NaN },
+    ])('skips the entry %j, which is not a box', entry => {
+      const cards = [entry as never, ...firstRow];
+
+      expect(groupCardsIntoRows({ cards })).toEqual([firstRow]);
+    });
   });
 });

@@ -102,7 +102,10 @@ interface CountWholeCardsParams {
   cards?: readonly CardBox[] | null;
   /** Visible box of the list that holds the row, which scrolls the cards it cannot show. */
   container?: CardBox | null;
-  /** How far a card may overflow the container, for subpixel rounding. */
+  /**
+   * How far a card may overflow the container, for subpixel rounding. `NaN` counts no card whole.
+   * @default MAX_CARD_OFFSET_PX
+   */
   tolerancePx?: number;
 }
 
@@ -144,7 +147,11 @@ export const countWholeCards = ({
 interface GroupCardsIntoRowsParams {
   /** Boxes of the cards, in the order of the page, as a wrapping row lays them out. */
   cards?: readonly CardBox[] | null;
-  /** How far apart the tops of two cards of the same row may be, for subpixel rounding. */
+  /**
+   * How far apart the tops of two cards of the same row may be, for subpixel rounding. `NaN` puts
+   * each card in a row of its own.
+   * @default MAX_CARD_OFFSET_PX
+   */
   tolerancePx?: number;
 }
 
