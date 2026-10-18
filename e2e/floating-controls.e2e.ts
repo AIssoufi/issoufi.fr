@@ -7,7 +7,10 @@ import { PAGES } from '../src/utils/pages';
 import { FLOATING_CONTROLS_SCREEN_WIDTHS_PX, PAGE_SELECTOR, SCREEN_HEIGHT_PX } from './constants';
 import { doBoxesOverlapHorizontally, getCheckedRoutes, type ScreenBox } from './utils';
 
-/** Translations of each language, to find the toggle and the GitHub icon by their names. */
+/**
+ * Translations of each language, to find the toggle, the CV button and the GitHub icon by their
+ * names.
+ */
 const TRANSLATIONS = { fr, en };
 
 /** Name of the "Show all" buttons of the Projects page, in both languages, whatever their count. */
@@ -124,7 +127,8 @@ const listContentUnderControls = async ({ page, controlBoxes }: ListContentUnder
 };
 
 // jsdom computes no layout, so only a real browser sees the content of a page reach the column of
-// the language toggle and of the GitHub icon, which float on the right edge from tablet up
+// the language toggle, the CV button and the GitHub icon, which float on the right edge from tablet
+// up
 for (const language of LANGUAGES) {
   for (const width of FLOATING_CONTROLS_SCREEN_WIDTHS_PX) {
     test.describe(`in ${language}, on a ${width} px wide screen`, () => {
@@ -146,16 +150,18 @@ for (const language of LANGUAGES) {
           const translations = TRANSLATIONS[language];
           const controls = [
             page.getByRole('group', { name: translations.langToggle.label }),
+            page.getByRole('link', { name: translations.cvLink.label }),
             page.getByRole('link', { name: translations.githubLink.label }),
           ];
           const controlBoxes = await Promise.all(controls.map(control => control.boundingBox()));
-          expect(controlBoxes, 'boxes of the language toggle and the GitHub icon').not.toContain(
-            null,
-          );
+          expect(
+            controlBoxes,
+            'boxes of the language toggle, the CV button and the GitHub icon',
+          ).not.toContain(null);
 
           expect(
             await listContentUnderControls({ page, controlBoxes }),
-            'texts and controls under the language toggle or the GitHub icon',
+            'texts and controls under the language toggle, the CV button or the GitHub icon',
           ).toEqual([]);
 
           // "Show all" wraps the cards of a row onto as many rows as they need. A clicked button

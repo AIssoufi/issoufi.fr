@@ -79,9 +79,10 @@ export const theme = {
     /** Horizontal padding of every page and of the header. */
     page: spacing[24],
     /**
-     * Right padding of every page from the tablet breakpoint, which leaves the language toggle and
-     * the GitHub icon floating on the right edge of the screen over no content: they stand 20 px
-     * from the edge and are 46 px wide, so 80 px leaves a gap of 14 px.
+     * Right padding of every page from the tablet breakpoint, which leaves the language toggle, the
+     * CV button and the GitHub icon floating on the right edge of the screen over no content: they
+     * stand 20 px from the edge and the widest, the toggle, is 46 px wide, so 80 px leaves a gap of
+     * 14 px.
      */
     'floating-controls-room': spacing[80],
     /** Gap between an icon and its label, relative to the font size. */
@@ -93,6 +94,11 @@ export const theme = {
     container: sizes[1440],
     /** Side of the burger icon of the mobile menu, kept while its animation loads. */
     'burger-icon': sizes[50],
+    /**
+     * Side of a round button, such as the CV button floating on desktop: 44 px, the smallest
+     * target that the Web Content Accessibility Guidelines recommend for a finger.
+     */
+    'round-button': sizes[44],
     /** Largest width of the text of a status message, short enough to read at a glance. */
     message: measures[40],
   },

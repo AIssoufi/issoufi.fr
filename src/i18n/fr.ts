@@ -64,6 +64,10 @@ export const fr = {
   githubLink: {
     label: 'Profil GitHub d’ADAM Issoufi',
   },
+  cvLink: {
+    text: 'CV',
+    label: 'Télécharger le CV',
+  },
   home: {
     title1: 'Développeur full-stack JavaScript',
     title2Pre: 'passionné par l’',

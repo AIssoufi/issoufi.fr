@@ -72,8 +72,11 @@ const showDesktopNavigation = () => {
   getNavigation().style.display = 'flex';
 };
 
-/** The link of the menu that downloads the CV. */
-const getCvLink = () => screen.getByRole('link', { name: 'CV' });
+/** Name of the CV links: the one floating under the language toggle and the one of the menu. */
+const CV_LINK_NAME = 'Télécharger le CV';
+
+/** The CV link of the open mobile menu, the only one shown on mobile. */
+const getCvLink = () => screen.getByRole('link', { name: CV_LINK_NAME });
 
 /** Name of the GitHub links: the one floating under the language toggle and the one of the menu. */
 const GITHUB_LINK_NAME = 'Profil GitHub d’ADAM Issoufi';
@@ -81,15 +84,22 @@ const GITHUB_LINK_NAME = 'Profil GitHub d’ADAM Issoufi';
 /** The GitHub link of the open mobile menu, the last link of the menu. */
 const getMenuGitHubLink = () => screen.getByRole('link', { name: GITHUB_LINK_NAME });
 
-/** The element holding the language toggle and the GitHub icon, floating from tablet up. */
+/**
+ * The element holding the language toggle, the CV button and the GitHub icon, floating from tablet
+ * up.
+ */
 const getFloatingControls = () => screen.getByRole('group', { name: 'Langue' }).parentElement;
 
-/**
- * The GitHub link floating under the language toggle from tablet up. Hidden on mobile, it has no
- * accessible name there, so it is found in its parent rather than by its name.
- */
+/** The element holding the CV button and the GitHub icon, under the language toggle. */
+const getFloatingLinks = () => getFloatingControls().lastElementChild;
+
+/** The CV link floating under the language toggle from tablet up, hidden on mobile. */
+const getFloatingCvLink = () =>
+  within(getFloatingLinks()).getByRole('link', { name: CV_LINK_NAME, hidden: true });
+
+/** The GitHub link floating under the CV button from tablet up, hidden on mobile. */
 const getFloatingGitHubLink = () =>
-  within(getFloatingControls()).getByRole('link', { hidden: true });
+  within(getFloatingLinks()).getByRole('link', { name: GITHUB_LINK_NAME, hidden: true });
 
 /** Value that the header declares for a property on an element on the desktop layout. */
 const desktopStyle = ({ element, property }) =>
@@ -153,21 +163,38 @@ describe('Header', () => {
     });
   });
 
-  describe('GitHub icon', () => {
-    it('floats the language toggle on the right edge from tablet up, with the GitHub icon', async () => {
+  describe('floating controls', () => {
+    it('floats the language toggle on the right edge from tablet up, with the CV button and the GitHub icon', async () => {
       await renderHeader();
 
       const floatingControls = getFloatingControls();
+      expect(getFloatingCvLink()).toHaveAttribute('href', '/CV - Adam Issoufi.pdf');
       expect(getFloatingGitHubLink()).toHaveAttribute('aria-label', GITHUB_LINK_NAME);
       expect(desktopStyle({ element: floatingControls, property: 'position' })).toBe('fixed');
       expect(desktopStyle({ element: floatingControls, property: 'right' })).toBe(theme.space[20]);
       expect(desktopStyle({ element: floatingControls, property: 'top' })).toBe('50%');
     });
 
-    it('centers the GitHub icon under the language toggle from tablet up', async () => {
+    it('puts the CV button between the language toggle and the GitHub icon', async () => {
       await renderHeader();
 
-      const element = getFloatingGitHubLink();
+      expect(getFloatingLinks().previousElementSibling).toBe(
+        screen.getByRole('group', { name: 'Langue' }),
+      );
+      expect([...getFloatingLinks().children]).toEqual([
+        getFloatingCvLink(),
+        getFloatingGitHubLink(),
+      ]);
+    });
+
+    it('stacks the CV button and the GitHub icon centered under the language toggle from tablet up', async () => {
+      await renderHeader();
+
+      const element = getFloatingLinks();
+      expect(desktopStyle({ element, property: 'display' })).toBe('flex');
+      expect(desktopStyle({ element, property: 'flex-direction' })).toBe('column');
+      expect(desktopStyle({ element, property: 'align-items' })).toBe('center');
+      expect(desktopStyle({ element, property: 'gap' })).toBe(theme.space[16]);
       expect(desktopStyle({ element, property: 'position' })).toBe('absolute');
       expect(desktopStyle({ element, property: 'top' })).toBe(
         serializeCssValue({ property: 'top', value: `calc(100% + ${theme.space[16]})` }),
@@ -176,11 +203,50 @@ describe('Header', () => {
       expect(desktopStyle({ element, property: 'transform' })).toBe('translateX(-50%)');
     });
 
-    it('hides the floating GitHub icon on mobile, where the menu holds it', async () => {
+    it('draws the floating CV button as a circle holding only the text "CV"', async () => {
+      await renderHeader();
+
+      const cvLinkStyle = getComputedStyle(getFloatingCvLink());
+      expect(cvLinkStyle.width).toBe(theme.sizes['round-button']);
+      expect(cvLinkStyle.height).toBe(theme.sizes['round-button']);
+      expect(cvLinkStyle.borderRadius).toBe(theme.radii.circle);
+      expect(getFloatingCvLink()).toHaveTextContent(/^CV$/);
+      expect(getFloatingCvLink().querySelector('svg')).not.toBeInTheDocument();
+    });
+
+    it.each([':hover', ':active'])(
+      'fills the floating CV button with white and the accent text on %s',
+      async pseudo => {
+        await renderHeader();
+
+        const pseudoStyle = property =>
+          declaredStyle({ element: getFloatingCvLink(), property, pseudo });
+        expect(pseudoStyle('background-color')).toBe(
+          serializeCssValue({ property: 'background-color', value: theme.colors.foreground }),
+        );
+        expect(pseudoStyle('color')).toBe(
+          serializeCssValue({ property: 'color', value: theme.colors.accent }),
+        );
+      },
+    );
+
+    it('grows the floating CV button on hover only, not while it is pressed', async () => {
+      await renderHeader();
+
+      const transform = pseudo =>
+        declaredStyle({ element: getFloatingCvLink(), property: 'transform', pseudo });
+      expect(transform(':hover')).toBe('scale(1.06)');
+      expect(transform(':active')).toBe('');
+    });
+
+    it('hides the floating CV button and GitHub icon on mobile, where the menu holds them', async () => {
       // jsdom applies no media query, so these are the narrow-screen styles
       await renderHeader();
 
-      expect(getComputedStyle(getFloatingGitHubLink()).display).toBe('none');
+      expect(getComputedStyle(getFloatingLinks()).display).toBe('none');
+      expect(getFloatingCvLink()).not.toBeVisible();
+      expect(getFloatingGitHubLink()).not.toBeVisible();
+      expect(screen.queryByRole('link', { name: CV_LINK_NAME })).not.toBeInTheDocument();
       expect(screen.queryByRole('link', { name: GITHUB_LINK_NAME })).not.toBeInTheDocument();
     });
   });
@@ -203,9 +269,14 @@ describe('Header', () => {
     expect(screen.queryByText('Compétences')).not.toBeInTheDocument();
   });
 
-  it('renders the CV button', async () => {
+  it('renders the CV button in the menu and in the floating controls', async () => {
     await renderHeader();
-    expect(screen.getByText('CV')).toBeInTheDocument();
+
+    expect(screen.getAllByRole('link', { name: CV_LINK_NAME, hidden: true })).toHaveLength(2);
+    expect(
+      within(getNavigation()).getByRole('link', { name: CV_LINK_NAME, hidden: true }),
+    ).toBeInTheDocument();
+    expect(getFloatingCvLink()).toBeInTheDocument();
   });
 
   it('renders nav links with correct hrefs', async () => {
@@ -251,9 +322,12 @@ describe('Header', () => {
     expect(screen.getByText('AI').closest('a')).toHaveAttribute('href', '/');
   });
 
-  it('renders CV link pointing to the PDF', async () => {
+  it('renders CV links pointing to the PDF', async () => {
     await renderHeader();
-    expect(screen.getByText('CV').closest('a')).toHaveAttribute('href', '/CV - Adam Issoufi.pdf');
+
+    for (const cvLink of screen.getAllByRole('link', { name: CV_LINK_NAME, hidden: true })) {
+      expect(cvLink).toHaveAttribute('href', '/CV - Adam Issoufi.pdf');
+    }
   });
 
   describe('mobile menu', () => {
@@ -395,7 +469,7 @@ describe('Header', () => {
       await renderHeader();
       await userEvent.click(getBurgerButton());
 
-      for (const name of ['Accueil', 'Projets', 'Expériences', 'CV', GITHUB_LINK_NAME]) {
+      for (const name of ['Accueil', 'Projets', 'Expériences', CV_LINK_NAME, GITHUB_LINK_NAME]) {
         await userEvent.tab();
         expect(screen.getByRole('link', { name })).toHaveFocus();
       }
@@ -436,8 +510,8 @@ describe('Header', () => {
       expect(document.body).not.toHaveFocus();
     });
 
-    it('gives the focus back to the burger when the CV link opens its new tab', async () => {
-      // jsdom cannot open a new tab: the link only closes the menu here
+    it('gives the focus back to the burger when the CV link downloads the CV', async () => {
+      // jsdom cannot download a file: the link only closes the menu here
       const preventNavigation = event => event.preventDefault();
       window.addEventListener('click', preventNavigation, { capture: true });
       await renderHeader();

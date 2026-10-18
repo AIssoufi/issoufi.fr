@@ -1,6 +1,6 @@
 import styled, { css, th } from '@xstyled/styled-components';
 
-import GitHubLink from './GitHubLink';
+import CvLink from './CvLink';
 
 export const Container = styled.header`
   display: flex;
@@ -58,7 +58,8 @@ export const BuildVersion = styled.span`
 `;
 
 /* Holds the language toggle in the row of the header on mobile, and floats it on the right edge of
-   the screen from tablet up, centered vertically */
+   the screen from tablet up, centered vertically, with the CV button and the GitHub icon under
+   it */
 export const FloatingControls = styled.div`
   position: relative;
 
@@ -71,17 +72,57 @@ export const FloatingControls = styled.div`
   }
 `;
 
-/* Hidden on mobile, where the mobile menu holds the GitHub icon. From tablet up, centered under
-   the language toggle and out of the flow, so the toggle stays centered on the screen */
-export const FloatingGitHubLink = styled(GitHubLink)`
+/* Hidden on mobile, where the mobile menu holds the CV button and the GitHub icon. From tablet up,
+   they stack centered under the language toggle, out of the flow, so the toggle stays centered on
+   the screen */
+export const FloatingLinks = styled.div`
   display: none;
 
   @media (min-width: ${th('screens.tablet')}) {
     display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: ${th.space(16)};
     position: absolute;
     top: calc(100% + ${th.space(16)});
     left: 50%;
     transform: translateX(-50%);
+  }
+`;
+
+/* White fill of the floating CV button, on hover and while pressed, as on a touch screen */
+const filledCvLink = css`
+  color: ${th.color('accent')};
+  background-color: ${th.color('foreground')};
+  border-color: ${th.color('foreground')};
+  box-shadow: ${th.shadow('accentGlowWide')};
+`;
+
+/* Only shown from tablet up, in the floating links: a frosted circle like the language toggle,
+   outlined like a call to action */
+export const FloatingCvLink = styled(CvLink)`
+  width: ${th.size('round-button')};
+  height: ${th.size('round-button')};
+  border-radius: ${th.radius('circle')};
+  border: ${th.borderWidth('thin')} solid ${th.color('foreground-a50')};
+  background-color: ${th.color('shade-a35')};
+  backdrop-filter: ${th('blurs.14')};
+  -webkit-backdrop-filter: ${th('blurs.14')};
+  box-shadow: ${th.shadow('card')};
+  font-size: ${th.fontSize(13)};
+  font-weight: ${th.fontWeight('semibold')};
+  letter-spacing: ${th.letterSpacing(4)};
+  transform: scale(1);
+  transition-property: color, border-color, transform, background-color, box-shadow;
+  transition-duration: ${th.duration('base')};
+
+  &:hover {
+    ${filledCvLink}
+    transform: scale(1.06);
+  }
+
+  &:active {
+    ${filledCvLink}
   }
 `;
 

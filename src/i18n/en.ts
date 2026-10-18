@@ -62,6 +62,10 @@ export const en = {
   githubLink: {
     label: "ADAM Issoufi's GitHub profile",
   },
+  cvLink: {
+    text: 'CV',
+    label: 'Download the CV',
+  },
   home: {
     title1: 'Full-stack JavaScript Developer',
     title2Pre: 'passionate about ',
