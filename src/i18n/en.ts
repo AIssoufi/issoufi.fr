@@ -111,14 +111,6 @@ export const en = {
       lessThanAMonth: '< 1 month',
     },
     periodTo: 'to',
-    periods: {
-      wibilongStart: 'Sept. 2019',
-      wibilongEnd: 'June 2021',
-      supralogStart: 'June 2018',
-      supralogEnd: 'Sept. 2019',
-      beepeersStart: 'May 2017',
-      beepeersEnd: 'Aug. 2017',
-    },
     sewan: {
       name: 'Sewan Groupe',
       contract: 'Permanent',

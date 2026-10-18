@@ -11,8 +11,6 @@ const WIBILONG = {
   contractKey: 'exp.wibilong.contract',
   cityKey: 'exp.wibilong.city',
   logoUrl: '/wibilong.png',
-  periodStartKey: 'exp.periods.wibilongStart',
-  periodEndKey: 'exp.periods.wibilongEnd',
   roles: [
     {
       titleKey: 'exp.wibilong.title',
@@ -113,11 +111,27 @@ describe('CompanyEntry', () => {
       ).toBeInTheDocument();
     });
 
-    it('writes the period of the company on the timeline, read "sept. 2019 à juin 2021"', () => {
+    it('writes the period of its role on the timeline, read "sept. 2019 à juin 2021"', () => {
       const { container } = render(<CompanyEntry experience={WIBILONG} />);
       const column = container.querySelector('[data-timeline-dot="after"]');
 
       expect(getReadText(column)).toBe('sept. 2019 à juin 2021');
+    });
+
+    it.each([
+      ['without dates', {}, ''],
+      ['with a start only', { startKey: 'exp.wibilong.start' }, 'sept. 2019'],
+      [
+        'with a date key without translation',
+        { startKey: 'exp.unknown', endKey: 'exp.wibilong.end' },
+        'juin 2021',
+      ],
+    ])('writes only the dates it has of a role %s', (_, dates, expected) => {
+      const role = { titleKey: 'exp.wibilong.title', ...dates };
+      const { container } = render(<CompanyEntry experience={{ ...WIBILONG, roles: [role] }} />);
+      const column = container.querySelector('[data-timeline-dot="after"]');
+
+      expect(getReadText(column)).toBe(expected);
     });
 
     it('writes the period of the job in its card too, for the screens without the column', () => {

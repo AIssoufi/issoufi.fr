@@ -75,8 +75,6 @@
       "contractKey": "exp.wibilong.contract",
       "cityKey": "exp.wibilong.city",
       "logoUrl": "/wibilong.png",
-      "periodStartKey": "exp.periods.wibilongStart",
-      "periodEndKey": "exp.periods.wibilongEnd",
       "roles": [
         {
           "titleKey": "exp.wibilong.title",
@@ -104,8 +102,6 @@
       "contractKey": "exp.supralog.contract",
       "cityKey": "exp.supralog.city",
       "logoUrl": "/supralog.png",
-      "periodStartKey": "exp.periods.supralogStart",
-      "periodEndKey": "exp.periods.supralogEnd",
       "roles": [
         {
           "titleKey": "exp.supralog.title",
@@ -150,8 +146,6 @@
       "contractKey": "exp.beepeers.contract",
       "cityKey": "exp.beepeers.city",
       "logoUrl": "/beepeers.jpg",
-      "periodStartKey": "exp.periods.beepeersStart",
-      "periodEndKey": "exp.periods.beepeersEnd",
       "roles": [
         {
           "titleKey": "exp.beepeers.title",

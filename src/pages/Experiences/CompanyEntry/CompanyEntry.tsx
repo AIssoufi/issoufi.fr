@@ -22,7 +22,7 @@ const NO_ROLES: RoleData[] = [];
  * list, named by a `h2` that only screen readers read, since each card already writes the
  * company. With several roles, it is an {@link ExperienceGroup} that writes the company once and
  * each role with its own period. With a single one, it is an {@link Experience} card after the
- * period of the company. Either way, the element that draws its dot on the timeline is marked
+ * period of its role, from the same dates as the card. Either way, the element that draws its dot on the timeline is marked
  * `data-timeline-dot`.
  *
  * @example
@@ -60,19 +60,21 @@ const CompanyEntry = ({ experience }: CompanyEntryProps) => {
   }
 
   const [role] = roles;
+  const startDate = translateKey({ t, key: role?.startKey });
+  const endDate = translateKey({ t, key: role?.endKey });
   return (
     <TimelineEntry data-timeline-dot="before">
       {company.entityName && <VisuallyHidden as="h2">{company.entityName}</VisuallyHidden>}
       <TimelinePeriod
-        start={translateKey({ t, key: experience?.periodStartKey })}
-        end={translateKey({ t, key: experience?.periodEndKey })}
+        start={startDate}
+        end={endDate}
       />
       <TimelineContent>
         <Experience
           {...company}
           jobName={translateKey({ t, key: role?.titleKey })}
-          startDate={translateKey({ t, key: role?.startKey })}
-          endDate={translateKey({ t, key: role?.endKey })}
+          startDate={startDate}
+          endDate={endDate}
         >
           <RoleDescription role={role} />
         </Experience>

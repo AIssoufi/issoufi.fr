@@ -255,13 +255,12 @@ describe('Experiences', () => {
       experiences.forEach(({ logoUrl }) => expect(isPublicFile(logoUrl)).toBe(true));
     });
 
-    it('gives the timeline period of every company with a single role', () => {
-      experiences
-        .filter(({ roles }) => roles.length === 1)
-        .forEach(({ periodStartKey, periodEndKey }) => {
-          expect(periodStartKey).toBeTruthy();
-          expect(periodEndKey).toBeTruthy();
-        });
+    it('gives every role its start and its end, which the timeline and its card both write', () => {
+      expect(ROLES.length).toBeGreaterThan(0);
+      ROLES.forEach(({ startKey, endKey }) => {
+        expect(startKey).toBeTruthy();
+        expect(endKey).toBeTruthy();
+      });
     });
   });
 
