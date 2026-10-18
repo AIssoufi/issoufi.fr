@@ -1,6 +1,6 @@
 import {
   renderBundleReport,
-  renderLargeImagesSection,
+  renderLargeFilesSection,
   renderScriptsTable,
 } from './bundle-report.mjs';
 
@@ -85,43 +85,43 @@ describe('renderScriptsTable', () => {
   });
 });
 
-describe('renderLargeImagesSection', () => {
-  it('lists the images under a heading with the limit', () => {
-    const largeImages = [
+describe('renderLargeFilesSection', () => {
+  it('lists the files under a heading with the limit', () => {
+    const largeFiles = [
+      { path: 'CV - Adam Issoufi.pdf', bytes: 3_851_658 },
       { path: 'chess.png', bytes: 928_988 },
-      { path: 'study-sarl.png', bytes: 840_000 },
     ];
-    expect(renderLargeImagesSection({ largeImages, largeImageBytes: 500_000 })).toBe(
+    expect(renderLargeFilesSection({ largeFiles, largeFileBytes: 500_000 })).toBe(
       [
-        '### Images over 500.0 kB',
+        '### Files over 500.0 kB',
         '',
-        '| Image | Size |',
+        '| File | Size |',
         '| --- | ---: |',
+        '| `CV - Adam Issoufi.pdf` | 3851.7 kB |',
         '| `chess.png` | 929.0 kB |',
-        '| `study-sarl.png` | 840.0 kB |',
       ].join('\n'),
     );
   });
 
   it.each([undefined, null, [], {}, [null, { bytes: 900_000 }, { path: '' }]])(
-    'gives an empty string for the images %o',
-    largeImages => {
-      expect(renderLargeImagesSection({ largeImages, largeImageBytes: 500_000 })).toBe('');
+    'gives an empty string for the files %o',
+    largeFiles => {
+      expect(renderLargeFilesSection({ largeFiles, largeFileBytes: 500_000 })).toBe('');
     },
   );
 
   it('leaves out the entries that are not build files', () => {
-    const section = renderLargeImagesSection({
-      largeImages: [null, { path: 'chess.png', bytes: 928_988 }, { bytes: 900_000 }],
-      largeImageBytes: 500_000,
+    const section = renderLargeFilesSection({
+      largeFiles: [null, { path: 'chess.png', bytes: 928_988 }, { bytes: 900_000 }],
+      largeFileBytes: 500_000,
     });
     expect(section.endsWith('| --- | ---: |\n| `chess.png` | 929.0 kB |')).toBe(true);
   });
 
   it.each([0, -1, NaN, Infinity, undefined, null, '500000'])(
-    'throws for the invalid limit %s, even without images',
-    largeImageBytes => {
-      expect(() => renderLargeImagesSection({ largeImageBytes })).toThrow(RangeError);
+    'throws for the invalid limit %s, even without files',
+    largeFileBytes => {
+      expect(() => renderLargeFilesSection({ largeFileBytes })).toThrow(RangeError);
     },
   );
 });
@@ -134,7 +134,7 @@ describe('renderBundleReport', () => {
   const limits = {
     budgetBytes: 210_000,
     initialLoadBudgetBytes: 150_000,
-    largeImageBytes: 500_000,
+    largeFileBytes: 500_000,
   };
 
   it('lists the scripts, the initial load and the total, with their verdicts', () => {
@@ -218,20 +218,20 @@ describe('renderBundleReport', () => {
     },
   );
 
-  it('lists the large images', () => {
+  it('lists the large files', () => {
     const report = renderBundleReport({
       scripts,
       initialPaths,
       ...limits,
-      largeImages: [{ path: 'chess.png', bytes: 928_988 }],
+      largeFiles: [{ path: 'chess.png', bytes: 928_988 }],
     });
-    expect(report).toContain('### Images over 500.0 kB');
+    expect(report).toContain('### Files over 500.0 kB');
     expect(report).toContain('| `chess.png` | 929.0 kB |');
   });
 
-  it('leaves out the image section when no image is too large', () => {
+  it('leaves out the file section when no file is too large', () => {
     const report = renderBundleReport({ scripts, initialPaths, ...limits });
-    expect(report).not.toContain('Images over');
+    expect(report).not.toContain('Files over');
   });
 
   it('leaves out the entries that are not build files, from the sizes too', () => {
@@ -239,20 +239,20 @@ describe('renderBundleReport', () => {
       scripts: [null, main.path, { bytes: 9_000, gzipBytes: 5_000 }, { path: '' }, ...scripts],
       initialPaths: [null, '', 42, ...initialPaths],
       ...limits,
-      largeImages: [null, { bytes: 900_000 }, { path: '', bytes: 900_000 }],
+      largeFiles: [null, { bytes: 900_000 }, { path: '', bytes: 900_000 }],
     });
     expect(report).toBe(renderBundleReport({ scripts, initialPaths, ...limits }));
   });
 
-  it('lists the valid large images next to malformed ones', () => {
+  it('lists the valid large files next to malformed ones', () => {
     const report = renderBundleReport({
       scripts,
       initialPaths,
       ...limits,
-      largeImages: [null, { path: 'chess.png', bytes: 928_988 }, { bytes: 900_000 }],
+      largeFiles: [null, { path: 'chess.png', bytes: 928_988 }, { bytes: 900_000 }],
     });
     expect(report).toContain(
-      ['| Image | Size |', '| --- | ---: |', '| `chess.png` | 929.0 kB |', ''].join('\n'),
+      ['| File | Size |', '| --- | ---: |', '| `chess.png` | 929.0 kB |', ''].join('\n'),
     );
     expect(report).not.toContain('undefined');
   });
@@ -276,21 +276,21 @@ describe('renderBundleReport', () => {
   );
 
   it.each([0, -1, NaN, Infinity, undefined, null, '500000'])(
-    'throws for the invalid image size limit %s',
-    largeImageBytes => {
+    'throws for the invalid file size limit %s',
+    largeFileBytes => {
       expect(() =>
-        renderBundleReport({ scripts, initialPaths, ...limits, largeImageBytes }),
+        renderBundleReport({ scripts, initialPaths, ...limits, largeFileBytes }),
       ).toThrow(RangeError);
     },
   );
 
   it.each([undefined, null, {}, 'assets/index.js'])(
-    'reports sizes of 0, no initial load and no image for the lists %o',
+    'reports sizes of 0, no initial load and no file for the lists %o',
     list => {
       const report = renderBundleReport({
         scripts: list,
         initialPaths: list,
-        largeImages: list,
+        largeFiles: list,
         ...limits,
       });
       expect(report).toBe(

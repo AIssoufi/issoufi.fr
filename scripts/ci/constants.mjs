@@ -36,8 +36,11 @@ export const INITIAL_LOAD_BUDGET_GZIP_BYTES = 150_000;
  */
 export const MISSING_INITIAL_LOAD_REASON = 'references no script or style sheet of the build';
 
-/** Size, in bytes, above which an image of the build is reported as worth compressing. */
-export const LARGE_IMAGE_BYTES = 500_000;
+/**
+ * Size, in bytes, above which a file of the build is reported as worth compressing: an image, the
+ * CV or any other file that the script budgets leave out.
+ */
+export const LARGE_FILE_BYTES = 500_000;
 
 /** Bytes per kilobyte: the decimal unit Vite uses in its build report. */
 export const BYTES_PER_KILOBYTE = 1000;
@@ -45,8 +48,17 @@ export const BYTES_PER_KILOBYTE = 1000;
 /** Files counted in the script budget. */
 export const SCRIPT_FILE_PATTERN = /\.(js|css)$/;
 
-/** Files whose size is checked as images. */
+/** Images of the build: the warning about a large one also advises a lighter format. */
 export const IMAGE_FILE_PATTERN = /\.(png|jpe?g|gif|webp|avif|svg)$/i;
+
+/** Advice written after the size of an image of the build over {@link LARGE_FILE_BYTES}. */
+export const LARGE_IMAGE_ADVICE = 'Compress it or convert it to WebP or AVIF.';
+
+/**
+ * Advice written after the size of another file of the build over {@link LARGE_FILE_BYTES}, such
+ * as a PDF.
+ */
+export const LARGE_FILE_ADVICE = 'Compress it.';
 
 /** Report written by the `json-summary` coverage reporter of Vitest. */
 export const COVERAGE_SUMMARY_FILE = 'coverage/coverage-summary.json';
