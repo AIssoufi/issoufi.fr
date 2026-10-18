@@ -31,6 +31,11 @@ export const en = {
       title: 'Access denied',
       message: 'You do not have permission to access this page.',
     },
+    unexpected: {
+      title: 'Something went wrong',
+      message: 'This page could not be displayed. Reload it to try again.',
+      reload: 'Reload the page',
+    },
   },
   nav: {
     home: 'Home',

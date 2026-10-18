@@ -1,5 +1,5 @@
 import { STALE_CHUNK_RELOAD_COOLDOWN_MS } from './constants';
-import { isStaleChunkReloadAllowed } from './utils';
+import { isStaleChunkReloadAllowed, keepPendingWhileReloading } from './utils';
 
 const NOW = 1_800_000_000_000;
 
@@ -48,5 +48,49 @@ describe('isStaleChunkReloadAllowed', () => {
 
   it.each([NaN, Infinity, -Infinity])('refuses a reload when the current time is %s', now => {
     expect(isStaleChunkReloadAllowed({ lastReloadAt: null, now })).toBe(false);
+  });
+});
+
+describe('keepPendingWhileReloading', () => {
+  /** Value that wins the race against a promise that has not settled yet. */
+  const PENDING = Symbol('pending');
+
+  /** Settles with `PENDING` when `value` is still pending once the current tasks are done. */
+  const settleOrPending = (value: unknown) =>
+    Promise.race([value, new Promise(resolve => setTimeout(() => resolve(PENDING)))]);
+
+  it('passes on a loaded module as it is', () => {
+    const module = { default: () => null };
+
+    expect(keepPendingWhileReloading(module)).toBe(module);
+  });
+
+  it('passes on a module without a default export', () => {
+    const module = {};
+
+    expect(keepPendingWhileReloading(module)).toBe(module);
+  });
+
+  it.each([
+    ['undefined, as Vite resolves it during a reload', undefined],
+    ['null', null],
+  ])('keeps loading when the module is %s', async (_, module) => {
+    const result = keepPendingWhileReloading(module);
+
+    expect(result).toBeInstanceOf(Promise);
+    await expect(settleOrPending(result)).resolves.toBe(PENDING);
+  });
+
+  it('keeps a dynamic import pending once chained to it', async () => {
+    const load = Promise.resolve(undefined).then(keepPendingWhileReloading);
+
+    await expect(settleOrPending(load)).resolves.toBe(PENDING);
+  });
+
+  it('lets a failed import reject', async () => {
+    const error = new TypeError('Failed to fetch dynamically imported module');
+    const load = Promise.reject(error).then(keepPendingWhileReloading);
+
+    await expect(load).rejects.toBe(error);
   });
 });

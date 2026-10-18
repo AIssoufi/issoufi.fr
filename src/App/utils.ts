@@ -42,3 +42,23 @@ export function isStaleChunkReloadAllowed({
   const isLastReloadInFuture = elapsedMs < 0;
   return isLastReloadInFuture || elapsedMs >= cooldownMs;
 }
+
+/**
+ * Passes on the module of a lazily loaded page, or keeps the page loading when there is none.
+ * When a chunk fails to load and `useReloadOnStaleChunk` reloads the page, Vite resolves the
+ * dynamic import with `undefined` instead of rejecting it: rendering that as a page would throw
+ * while the page reloads. A promise that never settles keeps `Suspense` waiting until the
+ * reloaded page replaces this one. A failed import that does not reload still rejects,
+ * since this only runs on success.
+ *
+ * @param module - What the dynamic import of the page resolved with.
+ * @returns The module itself, or a promise that never settles when it is `undefined` or `null`.
+ *
+ * @example
+ * const Projects = lazy(() => import('../pages/Projects').then(keepPendingWhileReloading));
+ */
+export function keepPendingWhileReloading<Module>(
+  module: Module | null | undefined,
+): Module | Promise<never> {
+  return module ?? new Promise<never>(() => {});
+}
