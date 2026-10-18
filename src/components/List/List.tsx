@@ -1,7 +1,10 @@
 import type { ComponentPropsWithRef } from 'react';
 
-/** Props of {@link List}: every attribute of a `<ul>` and its `ref`, except `role`, which is ignored. */
-type ListProps = ComponentPropsWithRef<'ul'>;
+/**
+ * Props of {@link List}: every attribute of a `<ul>` and its `ref`, except `role`, which List
+ * always sets. A `role` passed anyway, from JavaScript, is ignored.
+ */
+type ListProps = Omit<ComponentPropsWithRef<'ul'>, 'role'>;
 
 /**
  * List of the site, rendered as a `<ul>` that always has `role="list"`. The global style removes
