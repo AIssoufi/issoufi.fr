@@ -6,8 +6,8 @@ import { LANGUAGES } from '../../i18n/constants';
 import { fr } from '../../i18n/fr';
 import { theme } from '../../theme';
 import { declaredStyle, serializeCssValue } from '../../styleTestUtils';
-import { INTERACTIVE_SELECTOR, isPublicFile } from '../testUtils';
-import { BACKGROUND_IMAGE_URL } from './constants';
+import { getPage } from '../../utils/pages';
+import { INTERACTIVE_SELECTOR, isPublicFile, readBackgroundImages } from '../testUtils';
 import freelanceProjectsData from './.data/freelance-projects.json';
 import personalProjectsData from './.data/personal-projects.json';
 import { Projects } from './Projects';
@@ -113,8 +113,14 @@ describe('Projects', () => {
     },
   );
 
-  it('serves its background from public/', () => {
-    expect(isPublicFile(BACKGROUND_IMAGE_URL)).toBe(true);
+  it('shows the background photo of its entry in PAGES, which its HTML files preload', () => {
+    const { url, portraitUrl } = getPage('/projects').backgroundPhoto;
+    render(<Projects />);
+
+    expect(readBackgroundImages(screen.getByRole('main'))).toEqual({
+      image: `url("${url}")`,
+      portraitImage: `url("${portraitUrl}")`,
+    });
   });
 
   it.each(

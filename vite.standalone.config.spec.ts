@@ -137,9 +137,24 @@ describe('standalone build', () => {
 
     expect(fileNames.length).toBeGreaterThan(0);
     expect(absoluteUrls).toEqual([]);
-    ['home.webp', 'projects.webp', 'experiences.webp', 'favicon.ico'].forEach(name => {
+    [
+      'home.webp',
+      'home-portrait.webp',
+      'projects.webp',
+      'projects-portrait.webp',
+      'experiences.webp',
+      'experiences-portrait.webp',
+      'favicon.ico',
+    ].forEach(name => {
       expect(html).toContain(`"./${name}"`);
     });
+  });
+
+  it('preloads the background photo of the home page from the folder of the page', () => {
+    const html = stripInlineScripts(getSource(STANDALONE_PAGE_FILE_NAME));
+
+    expect(html).toContain('<link rel="preload" as="image" href="./home-portrait.webp"');
+    expect(html).toContain('<link rel="preload" as="image" href="./home.webp"');
   });
 
   it('embeds the web fonts of the site in the page, as data URLs', () => {

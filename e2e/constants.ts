@@ -1,6 +1,6 @@
 import type { Language } from '../src/i18n/types';
 import { theme } from '../src/theme/theme';
-import type { Page } from '../src/utils/pages';
+import type { BackgroundPhoto, Page } from '../src/utils/pages';
 
 /**
  * Screen widths, in pixels, at which the browser tests open the pages, and every page must fit
@@ -90,6 +90,37 @@ export const MAX_DOT_OFFSET_PX = 0.5;
 
 /** Number of coordinates in a quad of the DevTools protocol: the x and the y of its 4 corners. */
 export const QUAD_COORDINATE_COUNT = 8;
+
+/** Screen of the browser test of the background photos, with the version of the photo it shows. */
+interface PhotoScreen {
+  /** Width of the screen, in pixels. */
+  width: number;
+  /** Height of the screen, in pixels. */
+  height: number;
+  /** Version of the background photo that the screen downloads and shows. */
+  version: keyof BackgroundPhoto;
+}
+
+/**
+ * Screens at which the browser test of the background photos opens every page, with the version
+ * that each one downloads (`PORTRAIT_PHOTO_MEDIA_QUERY`, `src/utils/pages.ts`): two phones and a
+ * tablet in portrait, just under the tablet breakpoint (799), get the portrait version; a tablet
+ * in portrait at the breakpoint (800), a phone in landscape and a laptop, the whole photo.
+ */
+export const PHOTO_SCREENS: readonly PhotoScreen[] = [
+  { width: 375, height: 812, version: 'portraitUrl' },
+  { width: 414, height: 896, version: 'portraitUrl' },
+  { width: 799, height: 1024, version: 'portraitUrl' },
+  { width: 800, height: 1024, version: 'url' },
+  { width: 667, height: 375, version: 'url' },
+  { width: 1440, height: 800, version: 'url' },
+];
+
+/**
+ * `initiatorType` of the resource timing of a file that a `<link>` loaded, such as a background
+ * photo preloaded by the HTML file of its page, rather than by the style that shows it (`css`).
+ */
+export const LINK_INITIATOR_TYPE = 'link';
 
 /**
  * Route of the Projects page, whose sections show the project cards. Typed by `PAGES`

@@ -3,12 +3,16 @@ import { en } from '../i18n/en';
 import { fr } from '../i18n/fr';
 import type { Language, Translations } from '../i18n/types';
 import {
+  type BackgroundPhoto,
   getOgImageUrl,
   getPageAlternates,
   getPageUrl,
   type Page,
   type PageAlternate,
+  PORTRAIT_PHOTO_MEDIA_QUERY,
+  STATUS_PAGE_BACKGROUND_PHOTO,
 } from './pages';
+import { isNonBlankString } from './strings';
 
 /** Escapes a value for use inside a double-quoted HTML attribute or a text node. */
 const escapeHtml = (value: string) =>
@@ -112,6 +116,85 @@ const renderAlternateTags = ({ path, language }: RenderAlternateTagsParams): str
   return [...alternateLinks, ...localeTags];
 };
 
+/** Vite's default `base`: the files of the build are served from the root of the site. */
+export const DEFAULT_BASE = '/';
+
+/** Slashes at the start of a URL, which make it absolute. */
+const LEADING_SLASHES_PATTERN = /^\/+/;
+
+/** Parameters of {@link toBaseUrl}. */
+interface ToBaseUrlParams {
+  /** Absolute URL of a file of `public/`, e.g. `/home.webp`. */
+  url?: string;
+  /**
+   * Public base path of the build, Vite's `base`, which always ends with a slash: `/`, or `./` for
+   * the standalone build. Any other value counts as {@link DEFAULT_BASE}.
+   */
+  base?: string;
+}
+
+/**
+ * Builds the URL of a file of `public/` under the base path of the build, as Vite writes the URLs
+ * of its own files in the pages.
+ *
+ * @returns The URL under the base path, or an empty string for a missing, blank or non-string URL.
+ *
+ * @example
+ * toBaseUrl({ url: '/home.webp', base: '/' }); // '/home.webp'
+ * toBaseUrl({ url: '/home.webp', base: './' }); // './home.webp'
+ */
+export const toBaseUrl = ({ url, base }: ToBaseUrlParams = {}): string => {
+  if (!isNonBlankString(url)) return '';
+
+  const isBasePath = typeof base === 'string' && base.endsWith('/');
+  const basePath = isBasePath ? base : DEFAULT_BASE;
+  return `${basePath}${url.trim().replace(LEADING_SLASHES_PATTERN, '')}`;
+};
+
+/** Parameters of {@link renderImagePreload}. */
+interface RenderImagePreloadParams {
+  /** URL of the image. */
+  href: string;
+  /** Media query of the screens that download it. */
+  media: string;
+}
+
+/**
+ * Renders a link that preloads an image, only on the screens that match its media query. It keeps
+ * the low priority of a preloaded image, without `fetchpriority="high"`: a server that follows the
+ * priorities of the browser over HTTP/2 or HTTP/3 then sends the scripts and fonts that the text
+ * waits for first, and the image right after. Sharing the bandwidth with them, as the network
+ * throttling of Chrome does whatever the priorities, shows the text about 0.2 s later on a phone at
+ * 1.6 Mbit/s.
+ */
+const renderImagePreload = ({ href, media }: RenderImagePreloadParams) =>
+  `<link rel="preload" as="image" href="${escapeHtml(href)}" media="${escapeHtml(media)}" />`;
+
+/** Parameters of {@link renderPhotoPreloads}. */
+interface RenderPhotoPreloadsParams {
+  /** Background photo of the page. */
+  photo?: Partial<BackgroundPhoto>;
+  /** Public base path of the build, Vite's `base` (see {@link toBaseUrl}). */
+  base: string;
+}
+
+/**
+ * Renders the links that preload the background photo of a page, so that the browser downloads it
+ * with the app rather than once the app has drawn the page: its portrait version on the screens of
+ * {@link PORTRAIT_PHOTO_MEDIA_QUERY}, the whole photo on the others, the version that the style of
+ * `Page` shows on each screen, so that none downloads both. A version without a URL gets no link.
+ */
+const renderPhotoPreloads = ({ photo, base }: RenderPhotoPreloadsParams): string[] =>
+  [
+    { href: toBaseUrl({ url: photo?.portraitUrl, base }), media: PORTRAIT_PHOTO_MEDIA_QUERY },
+    {
+      href: toBaseUrl({ url: photo?.url, base }),
+      media: `not all and ${PORTRAIT_PHOTO_MEDIA_QUERY}`,
+    },
+  ]
+    .filter(({ href }) => href !== '')
+    .map(renderImagePreload);
+
 /** Parameters of {@link renderPageHtml}. */
 interface RenderPageHtmlParams {
   /** Content of `index.html`, with its placeholders. */
@@ -122,13 +205,19 @@ interface RenderPageHtmlParams {
   language?: Language;
   /** Years of experience, replacing `{{years}}` in the description. */
   years: number;
+  /**
+   * Public base path of the build, Vite's `base`, under which the background photo is preloaded
+   * (see {@link toBaseUrl}). @default DEFAULT_BASE
+   */
+  base?: string;
 }
 
 /**
  * Fills the `%PAGE_*%` placeholders of `index.html` with the metadata of a page in a language
  * (see {@link fillPlaceholders}), its URL in that language as the canonical URL, and adds to its
- * head the links to its translations (see {@link renderAlternateTags}). Used by the Vite plugin at
- * build time.
+ * head the links to its translations (see {@link renderAlternateTags}), then the links that
+ * preload its background photo (see {@link renderPhotoPreloads}). Used by the Vite plugin at build
+ * time.
  *
  * @returns The HTML with every placeholder replaced and HTML-escaped.
  */
@@ -137,10 +226,15 @@ export function renderPageHtml({
   page,
   language = DEFAULT_LANGUAGE,
   years,
+  base = DEFAULT_BASE,
 }: RenderPageHtmlParams): string {
   const url = getPageUrl({ path: page.path, language });
   const html = fillPlaceholders({ template, meta: page.meta, language, url, years });
-  return addToHead({ html, tags: renderAlternateTags({ path: page.path, language }) });
+  const tags = [
+    ...renderAlternateTags({ path: page.path, language }),
+    ...renderPhotoPreloads({ photo: page.backgroundPhoto, base }),
+  ];
+  return addToHead({ html, tags });
 }
 
 const CANONICAL_TAG = /<link\s+rel="canonical"[^>]*>\s*/;
@@ -155,13 +249,19 @@ interface RenderNotFoundHtmlParams {
   language?: Language;
   /** Years of experience, in case the not found description uses `{{years}}`. */
   years: number;
+  /**
+   * Public base path of the build, Vite's `base`, under which the background photo is preloaded
+   * (see {@link toBaseUrl}). @default DEFAULT_BASE
+   */
+  base?: string;
 }
 
 /**
  * Builds a not found page from the `index.html` template: the "page not found" title and
  * description in its language, no canonical URL, `og:url` or translations (the page has no
- * address of its own), and a `noindex` robots tag. The app loads normally and shows its NotFound
- * page at the requested URL.
+ * address of its own), a `noindex` robots tag, and the links that preload the photo of the status
+ * pages, {@link STATUS_PAGE_BACKGROUND_PHOTO} (see {@link renderPhotoPreloads}). The app loads
+ * normally and shows its NotFound page at the requested URL.
  *
  * @returns The HTML of the not found page, with every placeholder replaced.
  */
@@ -169,11 +269,16 @@ export function renderNotFoundHtml({
   template,
   language = DEFAULT_LANGUAGE,
   years,
+  base = DEFAULT_BASE,
 }: RenderNotFoundHtmlParams): string {
   const html = fillPlaceholders({ template, meta: 'notFound', language, url: '', years })
     .replace(CANONICAL_TAG, '')
     .replace(OG_URL_TAG, '');
-  return addToHead({ html, tags: [NO_INDEX_TAG] });
+  const tags = [
+    NO_INDEX_TAG,
+    ...renderPhotoPreloads({ photo: STATUS_PAGE_BACKGROUND_PHOTO, base }),
+  ];
+  return addToHead({ html, tags });
 }
 
 /** Parameters of {@link addModulePreload}. */
@@ -201,8 +306,7 @@ interface AddModulePreloadParams {
  */
 export function addModulePreload({ html, href }: AddModulePreloadParams = {}): string {
   const page = typeof html === 'string' ? html : '';
-  const hasHref = typeof href === 'string' && href.trim() !== '';
-  const canAddLink = hasHref && page.includes(HEAD_END_TAG);
+  const canAddLink = isNonBlankString(href) && page.includes(HEAD_END_TAG);
   if (!canAddLink) return page;
 
   const link = `<link rel="modulepreload" crossorigin href="${escapeHtml(href)}" />`;

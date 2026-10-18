@@ -3,8 +3,22 @@ import { readFileSync, statSync } from 'node:fs';
 import { LANGUAGES } from '../i18n/constants';
 import { en } from '../i18n/en';
 import { fr } from '../i18n/fr';
-import { addModulePreload, renderNotFoundHtml, renderPageHtml } from './pageHtml';
-import { OG_IMAGE_PATHS, PAGES, SITE_URL, getNotFoundFiles, getPageFiles } from './pages';
+import {
+  addModulePreload,
+  DEFAULT_BASE,
+  renderNotFoundHtml,
+  renderPageHtml,
+  toBaseUrl,
+} from './pageHtml';
+import {
+  OG_IMAGE_PATHS,
+  PAGES,
+  PORTRAIT_PHOTO_MEDIA_QUERY,
+  SITE_URL,
+  STATUS_PAGE_BACKGROUND_PHOTO,
+  getNotFoundFiles,
+  getPageFiles,
+} from './pages';
 
 const [home, projects, experiences] = PAGES;
 
@@ -208,6 +222,152 @@ describe('links between the translations of a page', () => {
     expect(renderPageHtml({ template: '<p>%PAGE_TITLE%</p>', page: home, years: 8 })).toBe(
       '<p>ADAM Issoufi - Développeur full-stack JavaScript</p>',
     );
+  });
+});
+
+describe('preload of the background photo', () => {
+  const html = readFileSync('index.html', 'utf-8');
+
+  /** `media` of the link that preloads the portrait version, as written in the HTML. */
+  const PORTRAIT_MEDIA = PORTRAIT_PHOTO_MEDIA_QUERY.replace('<', '&lt;');
+
+  /** Lists the URL and the media query of each link of a page that preloads an image. */
+  const getImagePreloads = (page: string) =>
+    [...page.matchAll(/<link rel="preload" as="image" href="([^"]*)" media="([^"]*)" \/>/g)].map(
+      ([, href, media]) => [href, media],
+    );
+
+  it.each(getPageFiles().map(({ page, language, fileName }) => ({ page, language, fileName })))(
+    'preloads the photo of $fileName, the portrait version on narrow portrait screens only',
+    ({ page, language }) => {
+      const { url, portraitUrl } = page.backgroundPhoto;
+
+      expect(
+        getImagePreloads(renderPageHtml({ template: html, page, language, years: 8 })),
+      ).toEqual([
+        [portraitUrl, PORTRAIT_MEDIA],
+        [url, `not all and ${PORTRAIT_MEDIA}`],
+      ]);
+    },
+  );
+
+  it('escapes the media queries for their attribute, as the browser reads them back', () => {
+    const page = renderPageHtml({ template: html, page: home, years: 8 });
+
+    expect(PORTRAIT_PHOTO_MEDIA_QUERY).toContain('<');
+    expect(page).not.toContain(`media="${PORTRAIT_PHOTO_MEDIA_QUERY}"`);
+  });
+
+  it('puts the links at the end of the head, after the links to the translations', () => {
+    const page = renderPageHtml({ template: html, page: projects, years: 8 });
+    const preloadPosition = page.indexOf('as="image" href="/projects-portrait.webp"');
+
+    expect(preloadPosition).toBeGreaterThan(page.indexOf('hreflang="x-default"'));
+    expect(preloadPosition).toBeLessThan(page.indexOf('</head>'));
+    expect(page).toContain('\n    <link rel="preload" as="image" href="/projects.webp"');
+  });
+
+  it('preloads the photo relative to the page under the base of the standalone build', () => {
+    const page = renderPageHtml({ template: html, page: home, years: 8, base: './' });
+
+    expect(getImagePreloads(page).map(([href]) => href)).toEqual([
+      './home-portrait.webp',
+      './home.webp',
+    ]);
+  });
+
+  it('preloads the photo from the root of the site without a base', () => {
+    const page = renderPageHtml({ template: html, page: experiences, years: 8 });
+
+    expect(getImagePreloads(page).map(([href]) => href)).toEqual([
+      '/experiences-portrait.webp',
+      '/experiences.webp',
+    ]);
+  });
+
+  it.each(getNotFoundFiles())(
+    'preloads the photo of the status pages in the not found page $fileName',
+    ({ language }) => {
+      const { url, portraitUrl } = STATUS_PAGE_BACKGROUND_PHOTO;
+
+      expect(getImagePreloads(renderNotFoundHtml({ template: html, language, years: 8 }))).toEqual([
+        [portraitUrl, PORTRAIT_MEDIA],
+        [url, `not all and ${PORTRAIT_MEDIA}`],
+      ]);
+    },
+  );
+
+  it('preloads the photo of the status pages under the base of the standalone build', () => {
+    const page = renderNotFoundHtml({ template: html, years: 8, base: './' });
+
+    expect(getImagePreloads(page).map(([href]) => href)).toEqual([
+      './home-portrait.webp',
+      './home.webp',
+    ]);
+  });
+
+  describe('edge cases', () => {
+    it('preloads only the version of the photo that has a URL', () => {
+      const page = { ...home, backgroundPhoto: { url: '/home.webp', portraitUrl: ' ' } };
+
+      expect(
+        getImagePreloads(renderPageHtml({ template: html, page: page as never, years: 8 })),
+      ).toEqual([['/home.webp', `not all and ${PORTRAIT_MEDIA}`]]);
+    });
+
+    it.each([
+      ['no photo', undefined],
+      ['a photo without URLs', {}],
+    ])('preloads no image for a page with %s', (_, backgroundPhoto) => {
+      const page = { ...home, backgroundPhoto };
+
+      expect(
+        getImagePreloads(renderPageHtml({ template: html, page: page as never, years: 8 })),
+      ).toEqual([]);
+    });
+  });
+});
+
+describe('toBaseUrl', () => {
+  it('keeps an absolute URL under the root base', () => {
+    expect(toBaseUrl({ url: '/home.webp', base: '/' })).toBe('/home.webp');
+  });
+
+  it('makes the URL relative to the page under the base of the standalone build', () => {
+    expect(toBaseUrl({ url: '/home.webp', base: './' })).toBe('./home.webp');
+  });
+
+  it('puts the URL under a base path in a folder', () => {
+    expect(toBaseUrl({ url: '/fonts/a.woff2', base: '/site/' })).toBe('/site/fonts/a.woff2');
+  });
+
+  it('writes the URL once under the base, whatever its leading slashes and spaces', () => {
+    expect(toBaseUrl({ url: ' //home.webp ', base: './' })).toBe('./home.webp');
+    expect(toBaseUrl({ url: 'home.webp', base: './' })).toBe('./home.webp');
+  });
+
+  describe('edge cases', () => {
+    it.each([
+      ['no base', undefined],
+      ['an empty base', ''],
+      ['a base without a trailing slash', '/site'],
+      ['a base that is not a string', 42 as never],
+    ])('uses the root of the site for %s', (_, base) => {
+      expect(toBaseUrl({ url: '/home.webp', base })).toBe(`${DEFAULT_BASE}home.webp`);
+    });
+
+    it.each([
+      ['no URL', undefined],
+      ['an empty URL', ''],
+      ['a blank URL', ' \t'],
+      ['a URL that is not a string', 42 as never],
+    ])('returns an empty string for %s', (_, url) => {
+      expect(toBaseUrl({ url, base: '/' })).toBe('');
+    });
+
+    it('returns an empty string without parameters', () => {
+      expect(toBaseUrl()).toBe('');
+    });
   });
 });
 

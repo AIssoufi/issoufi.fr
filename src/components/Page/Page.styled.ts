@@ -1,11 +1,13 @@
 import styled, { th } from '@xstyled/styled-components';
 
-export const Main = styled.main<{ $backgroundImage?: string }>`
+import { PORTRAIT_PHOTO_MEDIA_QUERY } from '../../utils/pages';
+
+export const Main = styled.main<{ $backgroundImage: string; $portraitBackgroundImage: string }>`
   padding: ${th.space('page-top')} ${th.space('page')} 0;
   position: relative;
   grid-area: main;
 
-  /* The language toggle and the GitHub icon float on the right edge from tablet up */
+  /* The language toggle, the CV button and the GitHub icon float on the right edge from tablet up */
   @media (min-width: ${th('screens.tablet')}) {
     padding-right: ${th.space('floating-controls-room')};
   }
@@ -19,11 +21,15 @@ export const Main = styled.main<{ $backgroundImage?: string }>`
     bottom: 0;
     left: 0;
     right: 0;
-    background-image: ${props =>
-      props.$backgroundImage ? `url(${props.$backgroundImage})` : 'none'};
+    background-image: ${props => props.$backgroundImage};
     background-repeat: no-repeat;
     background-position: center;
     background-size: cover;
+
+    /* The same media query as the links that preload the photo, so no screen downloads both */
+    @media ${PORTRAIT_PHOTO_MEDIA_QUERY} {
+      background-image: ${props => props.$portraitBackgroundImage};
+    }
   }
 
   &::after {

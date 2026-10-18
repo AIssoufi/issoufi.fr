@@ -3,9 +3,9 @@ import { render, screen } from '@testing-library/react';
 import i18n from '../../i18n';
 import { en } from '../../i18n/en';
 import { fr } from '../../i18n/fr';
-import { isPublicFile } from '../testUtils';
+import { getPage } from '../../utils/pages';
+import { isPublicFile, readBackgroundImages } from '../testUtils';
 import experiencesData from './.data/experiences.json';
-import { BACKGROUND_IMAGE_URL } from './constants';
 import { Experiences } from './Experiences';
 
 /** Names of the fields of the data that hold a translation key, or a list of them. */
@@ -143,7 +143,13 @@ describe('Experiences', () => {
     });
   });
 
-  it('serves its background from public/', () => {
-    expect(isPublicFile(BACKGROUND_IMAGE_URL)).toBe(true);
+  it('shows the background photo of its entry in PAGES, which its HTML files preload', () => {
+    const { url, portraitUrl } = getPage('/experiences').backgroundPhoto;
+    render(<Experiences />);
+
+    expect(readBackgroundImages(screen.getByRole('main'))).toEqual({
+      image: `url("${url}")`,
+      portraitImage: `url("${portraitUrl}")`,
+    });
   });
 });

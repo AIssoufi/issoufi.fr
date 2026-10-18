@@ -3,6 +3,7 @@ import styled from '@xstyled/styled-components';
 
 import { declaredStyle } from '../../styleTestUtils';
 import { theme } from '../../theme';
+import { PORTRAIT_PHOTO_MEDIA_QUERY } from '../../utils/pages';
 import Page from './Page';
 
 /** Media query of the desktop layout, from the tablet breakpoint. */
@@ -10,12 +11,18 @@ const TABLET_MEDIA = `(min-width: ${theme.screens.tablet})`;
 
 const getMain = () => screen.getByRole('main');
 
+/** A background photo in its two versions. */
+const PHOTO = { url: '/projects.webp', portraitUrl: '/projects-portrait.webp' };
+
 /**
- * Reads the `background-image` declared for the main element's `::before` layer, since jsdom
- * computes no style for pseudo-elements.
+ * Reads the `background-image` declared for the main element's `::before` layer, outside any media
+ * query or inside the given one, since jsdom computes no style for pseudo-elements.
  */
-const getBackgroundImage = main =>
-  declaredStyle({ element: main, property: 'background-image', pseudo: '::before' });
+const getBackgroundImage = (main, media = '') =>
+  declaredStyle({ element: main, property: 'background-image', pseudo: '::before', media });
+
+/** Reads the `background-image` that narrow portrait screens show behind the main element. */
+const getPortraitBackgroundImage = main => getBackgroundImage(main, PORTRAIT_PHOTO_MEDIA_QUERY);
 
 describe('Page', () => {
   it('renders its content in the main landmark of the page', () => {
@@ -28,15 +35,39 @@ describe('Page', () => {
     expect(getMain()).toContainElement(screen.getByRole('heading', { name: 'Projets' }));
   });
 
-  it('shows the background image behind the page', () => {
-    render(<Page backgroundImage="/projects.webp" />);
+  it('shows the whole photo behind the page', () => {
+    render(<Page backgroundPhoto={PHOTO} />);
     expect(getBackgroundImage(getMain())).toBe('url("/projects.webp")');
   });
 
-  it.each([undefined, ''])('draws no background image when it is %j', backgroundImage => {
-    render(<Page backgroundImage={backgroundImage} />);
-    expect(getBackgroundImage(getMain())).toBe('none');
+  it('shows the portrait version of the photo on narrow portrait screens', () => {
+    render(<Page backgroundPhoto={PHOTO} />);
+    expect(getPortraitBackgroundImage(getMain())).toBe('url("/projects-portrait.webp")');
   });
+
+  it.each([
+    ['no portrait version', { url: '/projects.webp' }, 'url("/projects.webp")'],
+    [
+      'no whole photo',
+      { portraitUrl: '/projects-portrait.webp' },
+      'url("/projects-portrait.webp")',
+    ],
+  ])('shows the same version on every screen when the photo has %s', (_, photo, image) => {
+    render(<Page backgroundPhoto={photo} />);
+
+    expect(getBackgroundImage(getMain())).toBe(image);
+    expect(getPortraitBackgroundImage(getMain())).toBe(image);
+  });
+
+  it.each([undefined, null, {}, { url: '', portraitUrl: '  ' }, '/projects.webp'])(
+    'draws no background image when the photo is %j',
+    backgroundPhoto => {
+      render(<Page backgroundPhoto={backgroundPhoto} />);
+
+      expect(getBackgroundImage(getMain())).toBe('none');
+      expect(getPortraitBackgroundImage(getMain())).toBe('none');
+    },
+  );
 
   it('leaves room on the right for the controls floating on the right edge from tablet up', () => {
     render(<Page />);
@@ -56,7 +87,7 @@ describe('Page', () => {
     const CenteredPage = styled(Page)`
       display: flex;
     `;
-    render(<CenteredPage backgroundImage="/experiences.webp" />);
+    render(<CenteredPage backgroundPhoto={{ url: '/experiences.webp' }} />);
     const main = getMain();
 
     expect(getComputedStyle(main).display).toBe('flex');

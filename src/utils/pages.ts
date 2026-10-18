@@ -1,6 +1,7 @@
 import { DEFAULT_LANGUAGE, LANGUAGES } from '../i18n/constants';
 import type { Language } from '../i18n/types';
 import { getLanguagePrefix, isLanguage, localizePath, removeLanguagePrefix } from '../i18n/utils';
+import { theme } from '../theme/theme';
 
 /**
  * Production origin of the site, without a trailing slash. Used to build canonical URLs. The CI
@@ -36,28 +37,74 @@ export const getOgImageUrl = (language: unknown): string => {
 };
 
 /**
+ * Photo covering the screen behind a page, in two files of `public/`, each written as one whole
+ * absolute URL, which the standalone build makes relative to its page.
+ */
+export interface BackgroundPhoto {
+  /** URL of the whole photo, shown on every screen but narrow portrait ones, e.g. `/home.webp`. */
+  url: string;
+  /**
+   * URL of its lighter portrait version, shown where {@link PORTRAIT_PHOTO_MEDIA_QUERY} matches,
+   * e.g. `/home-portrait.webp`: the center of the photo in 3:4, what such a screen shows of the
+   * whole photo, at a lower resolution.
+   */
+  portraitUrl: string;
+}
+
+/**
+ * Media query of the screens that show the portrait version of a {@link BackgroundPhoto}: narrower
+ * than the tablet breakpoint and in portrait, as a phone held upright. The other screens, landscape
+ * phones included, show the whole photo, framed as before. The style of `Page` and the links that
+ * preload the photo in the HTML file of each page (`renderPageHtml`) both read it, so a browser
+ * downloads only the version that it shows.
+ */
+export const PORTRAIT_PHOTO_MEDIA_QUERY = `(orientation: portrait) and (width < ${theme.screens.tablet})`;
+
+/**
+ * Home page, the first entry of {@link PAGES}. In the default language, its HTML file is
+ * `index.html` itself, which Vite writes from the template.
+ */
+export const HOME_PAGE = {
+  path: '/',
+  meta: 'home',
+  fileName: 'index.html',
+  folder: 'Home',
+  backgroundPhoto: { url: '/home.webp', portraitUrl: '/home-portrait.webp' },
+} as const;
+
+/** Projects page, an entry of {@link PAGES}. */
+export const PROJECTS_PAGE = {
+  path: '/projects',
+  meta: 'projects',
+  fileName: 'projects.html',
+  folder: 'Projects',
+  backgroundPhoto: { url: '/projects.webp', portraitUrl: '/projects-portrait.webp' },
+} as const;
+
+/** Experiences page, an entry of {@link PAGES}. */
+export const EXPERIENCES_PAGE = {
+  path: '/experiences',
+  meta: 'experiences',
+  fileName: 'experiences.html',
+  folder: 'Experiences',
+  backgroundPhoto: { url: '/experiences.webp', portraitUrl: '/experiences-portrait.webp' },
+} as const;
+
+/**
  * Routes that get their own HTML file at build time in every language, so link previews and
  * search engines see their title, description, canonical URL and translations without running
- * JavaScript, and the browser downloads the chunk of a lazily loaded page at the same time as the
- * app. Each `path` and `fileName` is the one of the default language; the other languages put them
- * behind their prefix (see {@link getPageFiles}). Every route declared in `App.tsx` needs an entry
- * here.
+ * JavaScript, and the browser downloads the chunk of a lazily loaded page and its background photo
+ * at the same time as the app. Each `path` and `fileName` is the one of the default language; the
+ * other languages put them behind their prefix (see {@link getPageFiles}). Every route declared in
+ * `App.tsx` needs an entry here, and each page shows the `backgroundPhoto` of its entry.
  */
-export const PAGES = [
-  { path: '/', meta: 'home', fileName: 'index.html', folder: 'Home' },
-  { path: '/projects', meta: 'projects', fileName: 'projects.html', folder: 'Projects' },
-  {
-    path: '/experiences',
-    meta: 'experiences',
-    fileName: 'experiences.html',
-    folder: 'Experiences',
-  },
-] as const;
+export const PAGES = [HOME_PAGE, PROJECTS_PAGE, EXPERIENCES_PAGE] as const;
 
 /**
  * One entry of {@link PAGES}: the route `path`, the `meta` translation key holding its title
- * and description, the `fileName` generated for it in `dist`, and the `folder` of its page in
- * `src/pages`, whose `index.ts` is the module of its chunk when the page is loaded lazily.
+ * and description, the `fileName` generated for it in `dist`, the `folder` of its page in
+ * `src/pages`, whose `index.ts` is the module of its chunk when the page is loaded lazily, and the
+ * `backgroundPhoto` that the page shows and that its HTML file preloads.
  */
 export type Page = (typeof PAGES)[number];
 
@@ -130,12 +177,6 @@ export const getPageFiles = (): PageFile[] =>
       fileName: getLanguageFileName({ fileName: page.fileName, language }),
     })),
   );
-
-/**
- * Home page, the first entry of {@link PAGES}. In the default language, its HTML file is
- * `index.html` itself, which Vite writes from the template.
- */
-export const [HOME_PAGE] = PAGES;
 
 /**
  * Tells whether a page file is the home page of the default language, `index.html`, which Vite
@@ -211,6 +252,17 @@ export const NOT_FOUND_FILE_NAME = '404.html';
 
 /** Folder of the page that {@link NOT_FOUND_FILE_NAME} shows, in `src/pages`. */
 export const NOT_FOUND_FOLDER = 'NotFound';
+
+/**
+ * Photo behind every status page (not found, forbidden, unexpected error), which `StatusPage`
+ * shows and the not found pages of {@link getNotFoundFiles} preload: mountains lost in the
+ * clouds, for a visitor who lost their way. The home page shows it too, but each may change its
+ * own.
+ */
+export const STATUS_PAGE_BACKGROUND_PHOTO: BackgroundPhoto = {
+  url: '/home.webp',
+  portraitUrl: '/home-portrait.webp',
+};
 
 /** Not found page of one language, emitted at build time. */
 export interface NotFoundFile {
