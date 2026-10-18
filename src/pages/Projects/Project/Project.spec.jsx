@@ -4,6 +4,7 @@ import { ThemeProvider } from '@xstyled/styled-components';
 
 import { theme } from '../../../theme';
 
+import { CARD_HOVER_LIFT_PX, CARD_MAX_TILT_DEG, CARD_PERSPECTIVE_PX } from './constants';
 import Project from './Project';
 
 const project = (id, name, extra = {}) => ({
@@ -27,6 +28,10 @@ const projects = [
 /** Project that is not in the list of the first render. */
 const ADDED_PROJECT = project(6, 'Weather app', { likeCount: 5, isLikedByOwnUser: true });
 const TOOLLESS_PROJECT = project(7, 'Landing page', { tools: undefined });
+
+/** Box of a card in the viewport, and its top-right corner, where the tilt is at its maximum. */
+const CARD_BOX = { left: 100, top: 100, width: 200, height: 100 };
+const CARD_TOP_RIGHT = { x: CARD_BOX.left + CARD_BOX.width, y: CARD_BOX.top };
 
 const likeButtonOf = name =>
   within(screen.getByRole('img', { name }).parentElement).getByRole('button');
@@ -181,9 +186,15 @@ describe('Project', () => {
   it('tilts a card toward the pointer, then flattens it when the pointer leaves', () => {
     render(<Project projects={projects} />);
     const card = screen.getByText('Chess').closest('a');
+    // jsdom lays nothing out: give the card a box so that it can tilt
+    vi.spyOn(card, 'getBoundingClientRect').mockReturnValue(CARD_BOX);
 
-    fireEvent.mouseMove(card, { clientX: 10, clientY: 10 });
-    expect(card.style.transform).toMatch(/^perspective\(.+\) rotateX\(.+\) rotateY\(.+\)/);
+    fireEvent.mouseMove(card, { clientX: CARD_TOP_RIGHT.x, clientY: CARD_TOP_RIGHT.y });
+    expect(card.style.transform).toBe(
+      `perspective(${CARD_PERSPECTIVE_PX}px) rotateX(${CARD_MAX_TILT_DEG}deg) rotateY(${CARD_MAX_TILT_DEG}deg) translateY(-${CARD_HOVER_LIFT_PX}px)`,
+    );
+    expect(card.style.getPropertyValue('--mouse-x')).toBe(`${CARD_BOX.width}px`);
+    expect(card.style.getPropertyValue('--mouse-y')).toBe('0px');
 
     fireEvent.mouseLeave(card);
     expect(card.style.transform).toBe('');
