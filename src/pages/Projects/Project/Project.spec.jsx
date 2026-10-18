@@ -12,6 +12,7 @@ import {
   CARD_HOVER_LIFT_PX,
   CARD_MAX_TILT_DEG,
   CARD_PERSPECTIVE_PX,
+  LIKED_PROJECTS_STORAGE_KEY,
   ROW_CARD_COUNT,
 } from './constants';
 import { useWholeCardCount } from './hooks/useWholeCardCount';
@@ -35,20 +36,18 @@ const project = (id, name, extra = {}) => ({
   type: 'Application web',
   imageUrl: `/${id}.png`,
   tools: ['HTML 5', 'CSS 3'],
-  likeCount: 0,
-  isLikedByOwnUser: false,
   ...extra,
 });
 
 const projects = [
-  project(1, 'Chess', { url: 'https://example.com/chess', likeCount: 2, isLikedByOwnUser: true }),
+  project(1, 'Chess', { url: 'https://example.com/chess' }),
   project(2, 'Calculator'),
   project(3, 'Plugin store'),
   project(4, 'Connect Four'),
 ];
 
 /** Project that is not in the list of the first render. */
-const ADDED_PROJECT = project(6, 'Weather app', { likeCount: 5, isLikedByOwnUser: true });
+const ADDED_PROJECT = project(6, 'Weather app');
 const TOOLLESS_PROJECT = project(7, 'Landing page', { tools: undefined });
 const NAMELESS_PROJECT = project(8, undefined);
 
@@ -62,6 +61,15 @@ const CARD_POINTER = { x: CARD_BOX.width, y: CARD_BOX.height / 4 };
 
 /** Like button of a card, found by its French accessible name, which holds the project name. */
 const likeButtonOf = name => screen.getByRole('button', { name: `Aimer ${name}` });
+
+/** Stores the likes of a previous visit, as the like buttons do. */
+const storeLikedIds = ids => localStorage.setItem(LIKED_PROJECTS_STORAGE_KEY, JSON.stringify(ids));
+
+/** Makes every access to `localStorage` throw, as when the browser blocks it. */
+const blockStorageAccess = () =>
+  vi.spyOn(window, 'localStorage', 'get').mockImplementation(() => {
+    throw new DOMException('The operation is insecure.', 'SecurityError');
+  });
 
 /** French accessible names of the previous and next page buttons. */
 const PREVIOUS_PAGE_NAME = 'Page précédente';
@@ -137,6 +145,8 @@ describe('Project', () => {
     // Back to the hook itself, which mockReset gives back since Vitest 3. Only once the language
     // is back, since the change renders the sections of the test again, with the same hooks.
     vi.mocked(useWholeCardCount).mockReset();
+    vi.restoreAllMocks();
+    localStorage.clear();
   });
 
   it('renders without any props', () => {
@@ -314,8 +324,7 @@ describe('Project', () => {
 
     await press(likeButtonOf('Chess'));
 
-    expect(likeButtonOf('Chess')).toHaveAttribute('aria-pressed', 'false');
-    expect(likeButtonOf('Chess')).toHaveTextContent('1');
+    expect(likeButtonOf('Chess')).toHaveAttribute('aria-pressed', 'true');
     expect(onLinkClick).not.toHaveBeenCalled();
   });
 
@@ -330,14 +339,14 @@ describe('Project', () => {
     await userEvent.keyboard('{Enter}');
 
     expect(onLinkClick).toHaveBeenCalledOnce();
-    expect(likeButtonOf('Chess')).toHaveTextContent('2');
+    expect(likeButtonOf('Chess')).toHaveAttribute('aria-pressed', 'false');
   });
 
   it('gives no link to a project without a name, which would leave the link unnamed', () => {
     render(<Project projects={[{ ...NAMELESS_PROJECT, url: 'https://example.com/nameless' }]} />);
 
     expect(screen.queryByRole('link')).not.toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Aimer' })).toHaveAccessibleDescription('0');
+    expect(screen.getByRole('button', { name: 'Aimer' })).toHaveAttribute('aria-pressed', 'false');
   });
 
   it('gives no link to a card whose url is empty', () => {
@@ -347,26 +356,48 @@ describe('Project', () => {
     expect(cardOf('Draft')).toHaveTextContent('Draft');
   });
 
-  it('names each like button after its project, and tells its state and count', async () => {
+  it('likes no project on a first visit, and shows no count', () => {
     render(<Project projects={projects} />);
 
-    expect(likeButtonOf('Chess')).toHaveAttribute('aria-pressed', 'true');
-    expect(likeButtonOf('Chess')).toHaveAccessibleDescription('2');
+    for (const { name } of projects.slice(0, ROW_CARD_COUNT)) {
+      expect(likeButtonOf(name)).toHaveAttribute('aria-pressed', 'false');
+      // The icon alone, hidden from screen readers: no count to show or to announce
+      expect(likeButtonOf(name)).toHaveTextContent(/^$/);
+      expect(likeButtonOf(name)).not.toHaveAttribute('aria-describedby');
+    }
+  });
+
+  it('names each like button after its project, and tells its state', async () => {
+    render(<Project projects={projects} />);
+
+    await userEvent.click(likeButtonOf('Calculator'));
+    expect(likeButtonOf('Calculator')).toHaveAttribute('aria-pressed', 'true');
+
+    await userEvent.click(likeButtonOf('Calculator'));
     expect(likeButtonOf('Calculator')).toHaveAttribute('aria-pressed', 'false');
-    expect(likeButtonOf('Calculator')).toHaveAccessibleDescription('0');
+    expect(likeButtonOf('Calculator')).toHaveTextContent(/^$/);
+  });
+
+  it('likes only the project whose button is pressed', async () => {
+    render(<Project projects={projects} />);
 
     await userEvent.click(likeButtonOf('Calculator'));
 
     expect(likeButtonOf('Calculator')).toHaveAttribute('aria-pressed', 'true');
-    expect(likeButtonOf('Calculator')).toHaveAccessibleDescription('1');
+    expect(likeButtonOf('Chess')).toHaveAttribute('aria-pressed', 'false');
+    expect(likeButtonOf('Plugin store')).toHaveAttribute('aria-pressed', 'false');
   });
 
-  it('names the like buttons in English once the language changes', async () => {
+  it('names the like buttons in English once the language changes, keeping their state', async () => {
     render(<Project projects={projects} />);
+    await userEvent.click(likeButtonOf('Chess'));
 
     await act(() => i18n.changeLanguage('en'));
 
-    expect(screen.getByRole('button', { name: 'Like Chess' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Like Chess' })).toHaveAttribute(
+      'aria-pressed',
+      'true',
+    );
     expect(screen.queryByRole('button', { name: 'Aimer Chess' })).not.toBeInTheDocument();
   });
 
@@ -378,45 +409,75 @@ describe('Project', () => {
     expect(likeButton).toHaveAttribute('type', 'button');
   });
 
-  it('describes each like button by the count of its own card, in every section', () => {
-    render(
-      <>
-        <Project projects={projects} />
-        <Project projects={[project(1, 'Chess', { likeCount: 9 })]} />
-      </>,
-    );
+  it('shows the likes stored on a previous visit', () => {
+    storeLikedIds([1, 3]);
 
-    const [firstChessLike, secondChessLike] = screen.getAllByRole('button', {
-      name: 'Aimer Chess',
-    });
-    expect(firstChessLike).toHaveAccessibleDescription('2');
-    expect(secondChessLike).toHaveAccessibleDescription('9');
+    render(<Project projects={projects} />);
+
+    expect(likeButtonOf('Chess')).toHaveAttribute('aria-pressed', 'true');
+    expect(likeButtonOf('Calculator')).toHaveAttribute('aria-pressed', 'false');
+    expect(likeButtonOf('Plugin store')).toHaveAttribute('aria-pressed', 'true');
+  });
+
+  it.each([
+    ['a reload', 'fr', 'Aimer Chess'],
+    ['a change of language', 'en', 'Like Chess'],
+  ])('keeps a like through %s, which renders the page again', async (_change, language, name) => {
+    const { unmount } = render(<Project projects={projects} />);
+    await userEvent.click(likeButtonOf('Chess'));
+    unmount();
+
+    await act(() => i18n.changeLanguage(language));
+    render(<Project projects={projects} />);
+
+    expect(screen.getByRole('button', { name })).toHaveAttribute('aria-pressed', 'true');
+  });
+
+  it('keeps the removal of a like through a reload', async () => {
+    storeLikedIds([1]);
+    const { unmount } = render(<Project projects={projects} />);
+    await userEvent.click(likeButtonOf('Chess'));
+    unmount();
+
+    render(<Project projects={projects} />);
+
+    expect(likeButtonOf('Chess')).toHaveAttribute('aria-pressed', 'false');
+  });
+
+  it('still toggles a like for the visit when the browser blocks the storage', async () => {
+    blockStorageAccess();
+    render(<Project projects={projects} />);
+
+    await userEvent.click(likeButtonOf('Chess'));
+    expect(likeButtonOf('Chess')).toHaveAttribute('aria-pressed', 'true');
+
+    await userEvent.click(likeButtonOf('Chess'));
+    expect(likeButtonOf('Chess')).toHaveAttribute('aria-pressed', 'false');
+  });
+
+  it('likes nothing when the stored likes are not a list of ids', () => {
+    localStorage.setItem(LIKED_PROJECTS_STORAGE_KEY, '{"1":true}');
+
+    render(<Project projects={projects} />);
+
+    expect(likeButtonOf('Chess')).toHaveAttribute('aria-pressed', 'false');
   });
 
   it('still names the like button of a project without a name', () => {
     render(<Project projects={[NAMELESS_PROJECT]} />);
 
-    expect(screen.getByRole('button', { name: 'Aimer' })).toHaveAccessibleDescription('0');
+    expect(screen.getByRole('button', { name: 'Aimer' })).toHaveAttribute('aria-pressed', 'false');
   });
 
-  it('toggles the like count', async () => {
-    render(<Project projects={projects} />);
-
-    await userEvent.click(likeButtonOf('Calculator'));
-    expect(likeButtonOf('Calculator')).toHaveTextContent('1');
-
-    await userEvent.click(likeButtonOf('Chess'));
-    expect(likeButtonOf('Chess')).toHaveTextContent('1');
-  });
-
-  it('starts a card missing from the likes of the first render at no like', async () => {
+  it('lets a card added after the first render be liked, starting from the stored likes', async () => {
+    storeLikedIds([ADDED_PROJECT.id]);
     const { rerender } = render(<Project projects={projects} />);
     rerender(<Project projects={[ADDED_PROJECT, ...projects]} />);
 
-    expect(likeButtonOf(ADDED_PROJECT.name)).toHaveTextContent('0');
+    expect(likeButtonOf(ADDED_PROJECT.name)).toHaveAttribute('aria-pressed', 'true');
 
     await userEvent.click(likeButtonOf(ADDED_PROJECT.name));
-    expect(likeButtonOf(ADDED_PROJECT.name)).toHaveTextContent('1');
+    expect(likeButtonOf(ADDED_PROJECT.name)).toHaveAttribute('aria-pressed', 'false');
   });
 
   it('pages through the projects, without going past the first or the last page', async () => {
@@ -709,6 +770,17 @@ describe('Project', () => {
       // A pressed button is hovered too: the rule of :active must come last to win
       expect(lastTransformRuleIndex(':hover')).toBeGreaterThan(-1);
       expect(lastTransformRuleIndex(':active')).toBeGreaterThan(lastTransformRuleIndex(':hover'));
+    });
+
+    it('draws the like button as a circle around its heart, now that it shows no count', () => {
+      render(<Project projects={projects} />);
+      const style = property => declaredStyle({ element: likeButtonOf('Chess'), property });
+
+      expect(style('width')).toBe(theme.sizes[32]);
+      expect(style('height')).toBe(theme.sizes[32]);
+      expect(style('padding')).toBe('0px');
+      expect(style('border-radius')).toBe(theme.radii.circle);
+      expect(style('justify-content')).toBe('center');
     });
 
     it('shows the cards of a page in a single row', () => {

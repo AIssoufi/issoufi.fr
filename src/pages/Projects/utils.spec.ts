@@ -10,19 +10,15 @@ const CHESS: ProjectData = {
   imageUrl: '/chess.webp',
   url: 'https://aissoufi.github.io/chess/',
   tools: ['HTML 5', 'CSS 3'],
-  likeCount: 2,
-  isLikedByOwnUser: true,
 };
 
 /** A freelance project, named after its client. */
 const TROUILLET_DECORS: ProjectData = {
-  id: 3,
+  id: 7,
   nameKey: 'trouilletDecors',
   typeKey: 'showcaseWebsite',
   imageUrl: '/trouillet-decors.jpeg',
   tools: ['WordPress'],
-  likeCount: 0,
-  isLikedByOwnUser: false,
 };
 
 /**
@@ -72,17 +68,13 @@ describe('translateProjects', () => {
         imageUrl: '/chess.webp',
         url: 'https://aissoufi.github.io/chess/',
         tools: ['HTML 5', 'CSS 3'],
-        likeCount: 2,
-        isLikedByOwnUser: true,
       },
       {
-        id: 3,
+        id: 7,
         name: 'Trouillet Décors',
         type: 'Site vitrine',
         imageUrl: '/trouillet-decors.jpeg',
         tools: ['WordPress'],
-        likeCount: 0,
-        isLikedByOwnUser: false,
       },
     ]);
   });
