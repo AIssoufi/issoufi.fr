@@ -31,34 +31,31 @@ export const FONTS_IN_USE = [
   { font: 'display', weights: ['regular'] },
 ];
 
-/** Page whose Google Fonts style sheet the image loads, relative to the project root. */
-export const INDEX_HTML_FILE = 'index.html';
-
 /** Folder whose files the site serves at its root, relative to the project root. */
 export const PUBLIC_DIR = 'public';
 
 /**
- * Google Fonts style sheet link of an HTML page. Its first group captures the URL, without the
- * quotes.
+ * Media type of each extension of the files that the page can load as a data URL: the images,
+ * and the font files of the site.
  */
-export const FONT_STYLESHEET_PATTERN = /href="(https:\/\/fonts\.googleapis\.com\/css2\?[^"]*)"/;
-
-/** Media type of each extension of the images that the page can show as a data URL. */
-export const IMAGE_MEDIA_TYPES = {
+export const DATA_URL_MEDIA_TYPES = {
   '.avif': 'image/avif',
   '.jpeg': 'image/jpeg',
   '.jpg': 'image/jpeg',
   '.png': 'image/png',
   '.webp': 'image/webp',
+  '.woff2': 'font/woff2',
 };
 
 /**
  * Modules of the site read by the script through Vite, which compiles their TypeScript: the
- * design tokens, the background photo and the particle field of the home page, and the domain of
- * the site and the path of the image of each language. Paths are relative to the project root.
+ * design tokens, the `@font-face` rules of the web fonts, the background photo and the particle
+ * field of the home page, and the domain of the site and the path of the image of each language.
+ * Paths are relative to the project root.
  */
 export const SOURCE_MODULES = {
   theme: '/src/theme/theme.ts',
+  fonts: '/src/theme/utils.ts',
   home: '/src/pages/Home/constants.ts',
   particleConstants: '/src/pages/Home/ParticleField/constants.ts',
   particleUtils: '/src/pages/Home/ParticleField/utils.ts',

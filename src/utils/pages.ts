@@ -2,7 +2,12 @@ import { DEFAULT_LANGUAGE, LANGUAGES } from '../i18n/constants';
 import type { Language } from '../i18n/types';
 import { getLanguagePrefix, isLanguage, localizePath, removeLanguagePrefix } from '../i18n/utils';
 
-/** Production origin of the site, without a trailing slash. Used to build canonical URLs. */
+/**
+ * Production origin of the site, without a trailing slash. Used to build canonical URLs. The CI
+ * scripts check the same address, their own `SITE_URL` (`scripts/ci/constants.mjs`), and
+ * `public/robots.txt` declares the sitemap there: the `production address` tests of
+ * `scripts/ci/utils/pages.spec.js` fail when one of the three changes alone.
+ */
 export const SITE_URL = 'https://issoufi.fr';
 
 /**
