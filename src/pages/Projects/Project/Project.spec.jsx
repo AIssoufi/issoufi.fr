@@ -5,11 +5,29 @@ import i18n from '../../../i18n';
 import { theme } from '../../../theme';
 import { holdsFunctionSource } from '../../../cssRuleGuard';
 import { stubMatchMedia } from '../../../mediaQueryTestUtils';
-import { declaredStyle, listStyleRules } from '../../../styleTestUtils';
+import { declaredStyle, listStyleRules, serializeCssValue } from '../../../styleTestUtils';
 import { INTERACTIVE_SELECTOR } from '../../testUtils';
 
-import { CARD_HOVER_LIFT_PX, CARD_MAX_TILT_DEG, CARD_PERSPECTIVE_PX, PAGE_SIZE } from './constants';
+import {
+  CARD_HOVER_LIFT_PX,
+  CARD_MAX_TILT_DEG,
+  CARD_PERSPECTIVE_PX,
+  ROW_CARD_COUNT,
+} from './constants';
+import { useWholeCardCount } from './hooks/useWholeCardCount';
 import Project from './Project';
+
+// jsdom lays nothing out, so the row counts as many cards shown whole as it holds: the tests of a
+// narrower screen give the count that it would measure
+vi.mock('./hooks/useWholeCardCount', async importOriginal => {
+  const hook = await importOriginal();
+  return { ...hook, useWholeCardCount: vi.fn(hook.useWholeCardCount) };
+});
+
+/** Makes the row of every section count `count` cards shown whole, as on a narrower screen. */
+const showWholeCards = count => {
+  vi.mocked(useWholeCardCount).mockReturnValue({ listRef: () => {}, wholeCardCount: count });
+};
 
 const project = (id, name, extra = {}) => ({
   id,
@@ -116,6 +134,9 @@ describe('Project', () => {
   afterEach(async () => {
     vi.unstubAllGlobals();
     await act(() => i18n.changeLanguage('fr'));
+    // Back to the hook itself, which mockReset gives back since Vitest 3. Only once the language
+    // is back, since the change renders the sections of the test again, with the same hooks.
+    vi.mocked(useWholeCardCount).mockReset();
   });
 
   it('renders without any props', () => {
@@ -161,7 +182,7 @@ describe('Project', () => {
     render(<Project projects={projects} />);
     const cards = () => within(screen.getByRole('list')).getAllByRole('listitem');
 
-    expect(cards()).toHaveLength(PAGE_SIZE);
+    expect(cards()).toHaveLength(ROW_CARD_COUNT);
 
     await userEvent.click(screen.getByText('Tout afficher (4)'));
 
@@ -233,7 +254,7 @@ describe('Project', () => {
 
   // "Show all" and the two page buttons, then "Show less" alone, plus one like button per card
   it.each([
-    ['a page of cards', { isShowingAll: false, controlCount: 3, cardCount: PAGE_SIZE }],
+    ['a page of cards', { isShowingAll: false, controlCount: 3, cardCount: ROW_CARD_COUNT }],
     ['every card', { isShowingAll: true, controlCount: 1, cardCount: projects.length }],
   ])(
     'makes every button a plain button, which submits no form, while showing %s',
@@ -417,6 +438,133 @@ describe('Project', () => {
     expect(screen.queryByText('Connect Four')).not.toBeInTheDocument();
   });
 
+  it.each([
+    [1, ['Chess', 'Calculator', 'Plugin store', 'Connect Four']],
+    [2, ['Chess', 'Plugin store']],
+    [3, ['Chess', 'Connect Four']],
+  ])(
+    'moves the row by the %i cards it shows whole, so the arrows show every project in turn',
+    async (count, firstCardOfEachPage) => {
+      showWholeCards(count);
+      render(<Project projects={projects} />);
+      const { previousButton, nextButton } = pageButtons();
+      const firstCard = () => within(screen.getByRole('list')).getAllByRole('img')[0];
+
+      expect(firstCard()).toHaveAccessibleName(firstCardOfEachPage[0]);
+      for (const name of firstCardOfEachPage.slice(1)) {
+        await userEvent.click(nextButton);
+        expect(firstCard()).toHaveAccessibleName(name);
+      }
+      expect(nextButton).toHaveAttribute('aria-disabled', 'true');
+
+      for (const name of firstCardOfEachPage.slice(0, -1).reverse()) {
+        await userEvent.click(previousButton);
+        expect(firstCard()).toHaveAccessibleName(name);
+      }
+      expect(previousButton).toHaveAttribute('aria-disabled', 'true');
+    },
+  );
+
+  it('keeps three cards in the row, the next ones scrolled to, when it shows fewer whole', async () => {
+    showWholeCards(1);
+    render(<Project projects={projects} />);
+
+    await userEvent.click(pageButtons().nextButton);
+
+    const cards = within(screen.getByRole('list')).getAllByRole('listitem');
+    expect(cards).toHaveLength(ROW_CARD_COUNT);
+    expect(cards[0]).toHaveTextContent('Calculator');
+  });
+
+  it('shows the last page once the screen widens past the page shown', async () => {
+    showWholeCards(1);
+    const { rerender } = render(<Project projects={projects} />);
+    const { nextButton } = pageButtons();
+    for (let page = 1; page < projects.length; page += 1) await userEvent.click(nextButton);
+    expect(screen.getByRole('img')).toHaveAccessibleName('Connect Four');
+
+    // Two cards shown whole: the last page starts on the third project
+    showWholeCards(2);
+    rerender(<Project projects={projects} />);
+
+    const cards = within(screen.getByRole('list')).getAllByRole('img');
+    expect(cards.map(card => card.getAttribute('alt'))).toEqual(['Plugin store', 'Connect Four']);
+    expect(nextButton).toHaveAttribute('aria-disabled', 'true');
+    expect(pageButtons().previousButton).toHaveAttribute('aria-disabled', 'false');
+  });
+
+  it('marks the arrow that would go past the first or the last page as disabled', async () => {
+    render(<Project projects={projects} />);
+    const { previousButton, nextButton } = pageButtons();
+
+    expect(previousButton).toHaveAttribute('aria-disabled', 'true');
+    expect(nextButton).toHaveAttribute('aria-disabled', 'false');
+
+    await userEvent.click(nextButton);
+
+    expect(previousButton).toHaveAttribute('aria-disabled', 'false');
+    expect(nextButton).toHaveAttribute('aria-disabled', 'true');
+    // The disabled attribute would take the focus away from the button
+    for (const button of [previousButton, nextButton]) expect(button).toBeEnabled();
+  });
+
+  it.each([
+    ['a single page of projects', projects.slice(0, ROW_CARD_COUNT)],
+    ['a single project', projects.slice(0, 1)],
+    ['no project', []],
+  ])('marks both arrows as disabled with %s', (_cards, shownProjects) => {
+    render(<Project projects={shownProjects} />);
+    const { previousButton, nextButton } = pageButtons();
+
+    expect(previousButton).toHaveAttribute('aria-disabled', 'true');
+    expect(nextButton).toHaveAttribute('aria-disabled', 'true');
+  });
+
+  it('keeps the focus on an arrow pressed at a bound, which changes nothing', async () => {
+    render(<Project projects={projects} />);
+    const { previousButton, nextButton } = pageButtons();
+
+    previousButton.focus();
+    await userEvent.keyboard('{Enter}');
+    expect(previousButton).toHaveFocus();
+    expect(screen.getByText('Chess')).toBeInTheDocument();
+
+    nextButton.focus();
+    await userEvent.keyboard('{Enter}');
+    await userEvent.keyboard('{Enter}');
+    expect(nextButton).toHaveFocus();
+    expect(screen.getByRole('img')).toHaveAccessibleName('Connect Four');
+  });
+
+  it('puts the section buttons in the order of the screen, which Tab follows', async () => {
+    render(<Project projects={projects} />);
+    const { previousButton, nextButton } = pageButtons();
+    const showAllButton = screen.getByRole('button', { name: 'Tout afficher (4)' });
+
+    expect(within(screen.getByRole('group')).getAllByRole('button')).toEqual([
+      previousButton,
+      nextButton,
+      showAllButton,
+    ]);
+
+    previousButton.focus();
+    await userEvent.tab();
+    expect(nextButton).toHaveFocus();
+    await userEvent.tab();
+    expect(showAllButton).toHaveFocus();
+  });
+
+  it('keeps the focus on "Show all" and "Show less" while they hide and show the arrows', async () => {
+    render(<Project projects={projects} />);
+
+    screen.getByRole('button', { name: 'Tout afficher (4)' }).focus();
+    await userEvent.keyboard('{Enter}');
+    expect(screen.getByRole('button', { name: 'Afficher moins' })).toHaveFocus();
+
+    await userEvent.keyboard('{Enter}');
+    expect(screen.getByRole('button', { name: 'Tout afficher (4)' })).toHaveFocus();
+  });
+
   it('hides the page buttons while every project is shown', async () => {
     render(<Project projects={projects} />);
 
@@ -471,10 +619,16 @@ describe('Project', () => {
   });
 
   describe('layout', () => {
+    const TWO_COLUMNS_MEDIA = `(min-width: ${theme.screens['two-project-columns']})`;
     const TABLET_MEDIA = `(min-width: ${theme.screens.tablet})`;
+    const THREE_COLUMNS_MEDIA = `(min-width: ${theme.screens['three-project-columns']})`;
     const WIDE_MEDIA = `(min-width: ${theme.screens.wide})`;
+    /** Every breakpoint of the theme, after the rules outside any media query. */
+    const ALL_MEDIA = ['', TWO_COLUMNS_MEDIA, TABLET_MEDIA, THREE_COLUMNS_MEDIA, WIDE_MEDIA];
     /** Properties that size a card: its width, its minimum width and the space around it. */
     const CARD_SIZE_PROPERTIES = ['flex', 'min-width', 'box-sizing', 'margin'];
+    /** A card size property that no rule of a breakpoint declares. */
+    const UNDECLARED = '';
 
     /**
      * Size of the card of a project as the generated CSS declares it, outside any media query and
@@ -482,7 +636,7 @@ describe('Project', () => {
      */
     const cardSizeOf = name =>
       Object.fromEntries(
-        ['', TABLET_MEDIA, WIDE_MEDIA].map(media => [
+        ALL_MEDIA.map(media => [
           media,
           Object.fromEntries(
             CARD_SIZE_PROPERTIES.map(property => [
@@ -578,7 +732,7 @@ describe('Project', () => {
       // A last row with fewer cards starts on the left, under the first columns
       expect(declaredStyle({ element: grid, property: 'justify-content' })).toBe('flex-start');
       expect(declaredStyle({ element: grid, property: 'row-gap' })).toBe(theme.space[5]);
-      for (const media of ['', TABLET_MEDIA, WIDE_MEDIA]) {
+      for (const media of ALL_MEDIA) {
         expect(declaredStyle({ element: grid, property: 'grid-template-columns', media })).toBe('');
       }
     });
@@ -589,15 +743,71 @@ describe('Project', () => {
 
       await userEvent.click(screen.getByText('Tout afficher (4)'));
 
-      // A size that jsdom failed to parse would be empty in both modes, and pass unnoticed
-      expect(rowCardSize['']).toEqual({
-        // A third of the row less the margins, which jsdom may serialize already computed
-        flex: expect.stringMatching(/^0 0 calc\(33\.333% - /),
-        'min-width': theme.sizes[260],
-        'box-sizing': 'content-box',
-        margin: theme.space[5],
+      // A size that jsdom failed to parse would be empty in both modes, and pass unnoticed. Each
+      // width is a share of the row less the margins, which jsdom may serialize already computed,
+      // with no minimum width, which would leave the columns short of the width of the section.
+      expect(rowCardSize).toEqual({
+        // One column on a phone, as wide as the space between the page gutters
+        '': {
+          flex: expect.stringMatching(/^0 0 calc\(100% - /),
+          'min-width': UNDECLARED,
+          'box-sizing': UNDECLARED,
+          margin: theme.space['project-card-margin'],
+        },
+        [TWO_COLUMNS_MEDIA]: {
+          flex: expect.stringMatching(/^0 0 calc\(50% - /),
+          'min-width': UNDECLARED,
+          'box-sizing': UNDECLARED,
+          margin: UNDECLARED,
+        },
+        [TABLET_MEDIA]: {
+          flex: UNDECLARED,
+          'min-width': UNDECLARED,
+          'box-sizing': UNDECLARED,
+          margin: UNDECLARED,
+        },
+        [THREE_COLUMNS_MEDIA]: {
+          flex: expect.stringMatching(/^0 0 calc\(33\.333% - /),
+          'min-width': UNDECLARED,
+          'box-sizing': UNDECLARED,
+          margin: UNDECLARED,
+        },
+        [WIDE_MEDIA]: {
+          flex: UNDECLARED,
+          'min-width': UNDECLARED,
+          'box-sizing': UNDECLARED,
+          margin: UNDECLARED,
+        },
       });
       expect(cardSizeOf('Chess')).toEqual(rowCardSize);
+    });
+
+    it('dims an arrow marked as disabled, and keeps the hover color for the others', () => {
+      render(<Project projects={projects} />);
+      const { previousButton } = pageButtons();
+      const disabledState = "[aria-disabled='true']";
+      const arrowStyle = ({ property, pseudo }) =>
+        declaredStyle({ element: previousButton, property, pseudo });
+
+      expect(arrowStyle({ property: 'opacity', pseudo: disabledState })).toBe('0.4');
+      expect(arrowStyle({ property: 'cursor', pseudo: disabledState })).toBe('default');
+      expect(
+        arrowStyle({ property: 'background-color', pseudo: `:hover:not(${disabledState})` }),
+      ).toBe(serializeCssValue({ property: 'background-color', value: theme.colors.accent }));
+      // A hover color for every state would light up the disabled arrow too
+      expect(arrowStyle({ property: 'background-color', pseudo: ':hover' })).toBe(UNDECLARED);
+    });
+
+    it('lays the section buttons out in the order of the page, which Tab follows', () => {
+      render(<Project projects={projects} />);
+      const controls = screen.getByRole('group');
+
+      expect(declaredStyle({ element: controls, property: 'flex-direction' })).toBe('row');
+      for (const media of ALL_MEDIA) {
+        for (const button of within(controls).getAllByRole('button')) {
+          expect(declaredStyle({ element: button, property: 'order', media })).toBe(UNDECLARED);
+        }
+      }
     });
 
     it('generates no function source text in the CSS of the "Show all" rows', async () => {
