@@ -2,6 +2,7 @@ import { render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router';
 
 import { declaredStyle } from '../../styleTestUtils';
+import { ELLIPSIS, MAX_DISPLAYED_PATH_LENGTH_CHARS } from './constants';
 import { NotFound } from './NotFound';
 
 const renderAt = (path, props) =>
@@ -33,6 +34,21 @@ describe('NotFound', () => {
     renderAt('/projets/%E0%A4%A');
 
     expect(screen.getByText('La page /projets/%E0%A4%A n’existe pas.')).toBeInTheDocument();
+  });
+
+  it('leaves the invisible characters of the path encoded', () => {
+    renderAt('/a%E2%80%AEtxt.exe%E2%80%8B');
+
+    expect(
+      screen.getByText('La page /a%E2%80%AEtxt.exe%E2%80%8B n’existe pas.'),
+    ).toBeInTheDocument();
+  });
+
+  it(`cuts a path longer than ${MAX_DISPLAYED_PATH_LENGTH_CHARS} characters`, () => {
+    renderAt(`/${'a'.repeat(MAX_DISPLAYED_PATH_LENGTH_CHARS * 2)}`);
+
+    const shownPath = `/${'a'.repeat(MAX_DISPLAYED_PATH_LENGTH_CHARS - 2)}${ELLIPSIS}`;
+    expect(screen.getByText(`La page ${shownPath} n’existe pas.`)).toBeInTheDocument();
   });
 
   it('wraps a path longer than the line at any character', () => {
