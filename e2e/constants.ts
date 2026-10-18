@@ -155,5 +155,8 @@ export const GOOGLE_DOMAINS = [
  */
 export const GOOGLE_COUNTRY_HOST_PATTERN = /(?:^|\.)google\.(?:[a-z]{2,3}|com?\.[a-z]{2})$/i;
 
+/** Dot that may end a fully qualified host name, such as `google.com.`. */
+export const TRAILING_DOT_PATTERN = /\.$/;
+
 /** Protocols of the requests that go to a host: the others, such as `data:`, go nowhere. */
 export const NETWORK_PROTOCOLS = ['http:', 'https:', 'ws:', 'wss:'] as const;

@@ -651,6 +651,7 @@ describe('isGoogleHost', () => {
     'google.com.br',
     'FONTS.GOOGLEAPIS.COM',
     'fonts.googleapis.com.',
+    '  fonts.gstatic.com ',
   ])('finds that %s belongs to Google', host => {
     expect(isGoogleHost(host)).toBe(true);
   });

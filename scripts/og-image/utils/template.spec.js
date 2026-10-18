@@ -156,6 +156,15 @@ describe('renderOgImageHtml', () => {
     expect(positions.slice(3)).toEqual(['-25%', '-25%']);
   });
 
+  it.each([undefined, null, 42, {}])(
+    'leaves the style of the fonts empty when it is %j, not a string',
+    fontFaceStyles => {
+      const [fontStyle] = renderDocument({ fontFaceStyles }).querySelectorAll('head style');
+
+      expect(fontStyle.textContent).toBe('');
+    },
+  );
+
   it('shows the background photo', () => {
     const page = renderDocument();
 

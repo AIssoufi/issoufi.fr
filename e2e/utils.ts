@@ -6,6 +6,7 @@ import {
   NETWORK_PROTOCOLS,
   NOT_FOUND_ROUTE,
   QUAD_COORDINATE_COUNT,
+  TRAILING_DOT_PATTERN,
 } from './constants';
 
 /** A page of the site, of which only the route matters here, such as an entry of `PAGES`. */
@@ -368,8 +369,8 @@ export const isBoxInside = ({ box, container }: IsBoxInsideParams = {}): boolean
  * Tells whether a host belongs to Google: one of the {@link GOOGLE_DOMAINS} or a subdomain of one,
  * such as `fonts.googleapis.com`, or a country domain of the search engine, such as `google.fr`.
  *
- * @param hostname - Host of a URL, without its port, e.g. `fonts.gstatic.com`. Its case and a
- * trailing dot do not count.
+ * @param hostname - Host of a URL, without its port, e.g. `fonts.gstatic.com`. Its case, the
+ * spaces around it and a trailing dot do not count.
  * @returns `false` for any other host, such as `notgoogle.com` or `google.com.example.org`, and
  * for a value that is not a string.
  *
@@ -380,7 +381,7 @@ export const isBoxInside = ({ box, container }: IsBoxInsideParams = {}): boolean
 export const isGoogleHost = (hostname?: unknown): boolean => {
   if (typeof hostname !== 'string') return false;
 
-  const host = hostname.trim().toLowerCase().replace(/\.$/, '');
+  const host = hostname.trim().toLowerCase().replace(TRAILING_DOT_PATTERN, '');
   const isGoogleDomain = GOOGLE_DOMAINS.some(
     domain => host === domain || host.endsWith(`.${domain}`),
   );

@@ -58,7 +58,9 @@ interface RenderFontFacesParams {
  * weight, style or range of characters leaves its descriptor out.
  *
  * @example
- * renderFontFaces({ getUrl: url => readAsDataUrl(`public${url}`) });
+ * renderFontFaces({
+ *   getUrl: url => toDataUrl({ content: readFileSync(join('public', url)), fileName: url }),
+ * });
  * // "@font-face {\n  font-family: 'Montserrat';\n  …\n  src: url('data:font/woff2;base64,…') …"
  */
 export const renderFontFaces = ({

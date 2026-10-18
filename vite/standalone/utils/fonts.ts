@@ -63,6 +63,29 @@ const isEmbeddedFont = (value: unknown): value is EmbeddedFont => {
   return isFileName(font?.url) && hasDataUrl;
 };
 
+/** Tells whether a value is a font file with a URL that could not be read: no data URL. */
+const isUnreadFont = (value: unknown): value is Partial<EmbeddedFont> & { url: string } => {
+  const font = value as Partial<EmbeddedFont> | null | undefined;
+  return isFileName(font?.url) && !isEmbeddedFont(font);
+};
+
+/**
+ * Lists the font files that could not be read, so that the standalone build fails rather than
+ * ship a page without its fonts.
+ *
+ * @param fonts - Font files and their data URLs, from {@link readFontDataUrl}, whose data URL is
+ * empty when the file is missing. Any value that is not an array counts as none.
+ * @returns The URL of each font whose data URL is missing or does not start with `data:`, in
+ * order; entries without a URL are skipped.
+ *
+ * @example
+ * findMissingFontUrls([{ url: '/fonts/a.woff2', dataUrl: '' }]); // ['/fonts/a.woff2']
+ */
+export const findMissingFontUrls = (fonts?: readonly Partial<EmbeddedFont>[] | null): string[] => {
+  const fontList: readonly unknown[] = Array.isArray(fonts) ? fonts : [];
+  return fontList.filter(isUnreadFont).map(({ url }) => url);
+};
+
 /** Parameters of {@link toFontDataUrls}. */
 interface ToFontDataUrlsParams {
   /**
@@ -99,14 +122,14 @@ export const toFontDataUrls = ({ source, fonts }: ToFontDataUrlsParams = {}): st
   const canNameAFont = text !== '' && embeddedFonts.length > 0;
   if (!canNameAFont) return text;
 
-  const dataUrls = new Map(embeddedFonts.map(({ url, dataUrl }) => [url, dataUrl]));
-  const urlPattern = new RegExp(
-    `(?<=${QUOTE_PATTERN})(?:${embeddedFonts.map(({ url }) => escapeRegExp(url)).join('|')})` +
-      `(?=${OPTIONAL_ESCAPE_PATTERN}${QUOTE_PATTERN})`,
-    'g',
-  );
-  // A function, so that no `$` of a data URL is read as a reference to a group
-  return text.replace(urlPattern, url => dataUrls.get(url) ?? url);
+  return embeddedFonts.reduce((embeddedText, { url, dataUrl }) => {
+    const urlPattern = new RegExp(
+      `(?<=${QUOTE_PATTERN})${escapeRegExp(url)}(?=${OPTIONAL_ESCAPE_PATTERN}${QUOTE_PATTERN})`,
+      'g',
+    );
+    // A function, so that no `$` of a data URL is read as a reference to a group
+    return embeddedText.replace(urlPattern, () => dataUrl);
+  }, text);
 };
 
 /** Tells whether a link tag preloads a font file. */

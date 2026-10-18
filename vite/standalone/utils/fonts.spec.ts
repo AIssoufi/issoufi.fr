@@ -3,7 +3,13 @@ import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
-import { type EmbeddedFont, readFontDataUrl, removeFontPreloads, toFontDataUrls } from './fonts';
+import {
+  type EmbeddedFont,
+  findMissingFontUrls,
+  readFontDataUrl,
+  removeFontPreloads,
+  toFontDataUrls,
+} from './fonts';
 
 describe('readFontDataUrl', () => {
   let projectDir = '';
@@ -63,6 +69,50 @@ describe('readFontDataUrl', () => {
 
     it('reads nothing without parameters', () => {
       expect(readFontDataUrl()).toBe('');
+    });
+  });
+});
+
+describe('findMissingFontUrls', () => {
+  const montserrat = {
+    url: '/fonts/montserrat-latin.woff2',
+    dataUrl: 'data:font/woff2;base64,bW9u',
+  };
+
+  it('finds no missing font when each one has its data URL', () => {
+    expect(findMissingFontUrls([montserrat])).toEqual([]);
+  });
+
+  it('lists the fonts whose file could not be read, in order', () => {
+    const fonts = [
+      { url: '/fonts/b.woff2', dataUrl: '' },
+      montserrat,
+      { url: '/fonts/a.woff2', dataUrl: '' },
+    ];
+
+    expect(findMissingFontUrls(fonts)).toEqual(['/fonts/b.woff2', '/fonts/a.woff2']);
+  });
+
+  describe('edge cases', () => {
+    it.each([
+      ['no data URL', { url: '/fonts/a.woff2' }],
+      ['a data URL without its scheme', { url: '/fonts/a.woff2', dataUrl: 'abc' }],
+      ['a data URL that is not a string', { url: '/fonts/a.woff2', dataUrl: 42 }],
+    ])('lists a font with %s', (_, font) => {
+      expect(findMissingFontUrls([font as Partial<EmbeddedFont>])).toEqual(['/fonts/a.woff2']);
+    });
+
+    it.each([
+      ['no URL', { dataUrl: '' }],
+      ['a blank URL', { url: ' ', dataUrl: '' }],
+      ['a null entry', null],
+      ['a string', '/fonts/a.woff2'],
+    ])('skips an entry with %s', (_, font) => {
+      expect(findMissingFontUrls([font as Partial<EmbeddedFont>])).toEqual([]);
+    });
+
+    it.each([undefined, null, 'fonts', 42, {}])('finds none in %j', fonts => {
+      expect(findMissingFontUrls(fonts as unknown as EmbeddedFont[])).toEqual([]);
     });
   });
 });

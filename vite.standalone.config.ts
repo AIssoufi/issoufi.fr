@@ -20,6 +20,7 @@ import {
 } from './vite/standalone/utils/bundle';
 import {
   type EmbeddedFont,
+  findMissingFontUrls,
   readFontDataUrl,
   removeFontPreloads,
   toFontDataUrls,
@@ -91,7 +92,7 @@ const embeddedFonts = (): Plugin => {
       }));
     },
     buildStart() {
-      const missingUrls = fonts.filter(({ dataUrl }) => dataUrl === '').map(({ url }) => url);
+      const missingUrls = findMissingFontUrls(fonts);
       if (missingUrls.length > 0)
         this.error(`Font files missing from public/: ${missingUrls.join(', ')}`);
     },
