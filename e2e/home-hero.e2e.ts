@@ -3,6 +3,7 @@ import { expect, type Page, test } from '@playwright/test';
 import { LANGUAGES } from '../src/i18n/constants';
 import { localizePath } from '../src/i18n/utils';
 import { HOME_PAGE } from '../src/utils/pages';
+import { waitForEndingAnimations } from './animations';
 import {
   HERO_POINTER_SCREENS,
   HERO_SCREENS,
@@ -29,13 +30,17 @@ interface OpenHomePageParams {
   route: string;
 }
 
-/** Opens the home page and waits for its web fonts, which set the size of its title. */
+/**
+ * Opens the home page and waits for its web fonts, which set the size of its title, and for the
+ * end of its entrance, during which the title and the buttons rise 20 px into place.
+ */
 const openHomePage = async ({ page, route }: OpenHomePageParams) => {
   await page.goto(route);
   await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
   await page.evaluate(async () => {
     await document.fonts.ready;
   });
+  await page.locator(PAGE_SELECTOR).evaluate(waitForEndingAnimations);
 };
 
 /**
@@ -84,7 +89,7 @@ for (const language of LANGUAGES) {
   }
 
   for (const viewport of HERO_POINTER_SCREENS) {
-    test.describe(`in ${language}, with a mouse, on a ${viewport.width} px wide screen`, () => {
+    test.describe(`in ${language}, with a mouse, on a ${viewport.width} × ${viewport.height} px screen`, () => {
       test.use({ viewport, reducedMotion: 'no-preference' });
 
       test(`aiming at a button of ${route} moves no word of its title`, async ({ page }) => {

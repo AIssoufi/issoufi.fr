@@ -566,10 +566,17 @@ export const countOccurrences = ({ text, searched }: CountOccurrencesParams = {}
 const EDGE_INSET_PX = 1;
 
 /**
- * Lists the points of a pill-shaped button that a visitor aims at with the mouse: its center, and
- * the middle and both ends of the straight part of its top edge, just inside it, the points of the
- * button closest to what stands above it. The round ends of a pill take half its height on each
- * side, so the straight part starts and ends half its height from its sides.
+ * Number of points aimed at along the straight part of the top edge of a button, evenly spaced
+ * from one end to the other, so that one of them stands near the point closest to each word above.
+ */
+const TOP_EDGE_AIM_POINT_COUNT = 9;
+
+/**
+ * Lists the points of a pill-shaped button that a visitor aims at with the mouse: its center, then
+ * {@link TOP_EDGE_AIM_POINT_COUNT} points evenly spaced along the straight part of its top edge,
+ * just inside it, the points of the button closest to what stands above it. The round ends of a
+ * pill take half its height on each side, so the straight part starts and ends half its height
+ * from its sides.
  *
  * @param box - Box of the button, such as the one that Playwright's `boundingBox()` returns.
  * @returns The center first, then the top edge from left to right; none when the box is missing,
@@ -577,19 +584,18 @@ const EDGE_INSET_PX = 1;
  *
  * @example
  * getButtonAimPoints({ x: 100, y: 600, width: 300, height: 46 });
- * // [{ x: 250, y: 623 }, { x: 123, y: 601 }, { x: 250, y: 601 }, { x: 377, y: 601 }]
+ * // [{ x: 250, y: 623 }, { x: 123, y: 601 }, { x: 154.75, y: 601 }, …, { x: 377, y: 601 }]
  */
 export const getButtonAimPoints = (box?: ScreenBox | null): ScreenPoint[] => {
   const hasArea = isScreenBox(box) && box.width > 0 && box.height > 0;
   if (!hasArea) return [];
 
-  const centerX = box.x + box.width / 2;
   const roundEndWidth = Math.min(box.height, box.width) / 2;
-  const topY = box.y + EDGE_INSET_PX;
-  return [
-    { x: centerX, y: box.y + box.height / 2 },
-    { x: box.x + roundEndWidth, y: topY },
-    { x: centerX, y: topY },
-    { x: getBoxRight(box) - roundEndWidth, y: topY },
-  ];
+  const straightPartWidth = box.width - 2 * roundEndWidth;
+  const spacing = straightPartWidth / (TOP_EDGE_AIM_POINT_COUNT - 1);
+  const topEdgePoints = Array.from({ length: TOP_EDGE_AIM_POINT_COUNT }, (_, index) => ({
+    x: box.x + roundEndWidth + index * spacing,
+    y: box.y + EDGE_INSET_PX,
+  }));
+  return [{ x: box.x + box.width / 2, y: box.y + box.height / 2 }, ...topEdgePoints];
 };

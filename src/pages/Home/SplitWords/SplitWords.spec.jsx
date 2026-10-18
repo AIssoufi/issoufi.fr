@@ -1,4 +1,4 @@
-import { fireEvent, render } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
 
 import { stubMatchMedia } from '../../../mediaQueryTestUtils';
 import { SplitWords } from './SplitWords';
@@ -60,6 +60,30 @@ describe('SplitWords', () => {
       expect(word.style.transform).toMatch(PUSHED_LEFT_TRANSFORM);
       expect(word.style.textShadow).not.toBe('');
     });
+
+    it.each([
+      ['a link', <a href="/projects">Voir mes projets</a>],
+      ['a button', <button type="button">Menu</button>],
+    ])(
+      'leaves the words in place while the mouse is over %s, and pushes them once it leaves',
+      (_control, control) => {
+        const { container } = render(
+          <>
+            <SplitWords>Developer</SplitWords>
+            {control}
+          </>,
+        );
+        const [word] = getWords(container);
+
+        fireEvent.mouseMove(screen.getByText(control.props.children), PUSHING_POINTER);
+        vi.advanceTimersByTime(FRAME_MS * 10);
+        expect(word.style.transform).toBe(RESTING_TRANSFORM);
+
+        fireEvent.mouseMove(window, PUSHING_POINTER);
+        vi.advanceTimersByTime(FRAME_MS);
+        expect(word.style.transform).toMatch(PUSHED_LEFT_TRANSFORM);
+      },
+    );
 
     it('keeps animating the remaining words after some are removed', () => {
       const { container, rerender } = render(

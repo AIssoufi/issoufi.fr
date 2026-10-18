@@ -358,13 +358,18 @@ export const HERO_SCREENS = [
 ] as const;
 
 /**
- * Screens with a mouse on which aiming at a button of the home page must move no word of its
- * title: two laptops (1280 × 800 and 1440 × 900) and a desktop screen (1920 × 1080).
+ * Screens on which aiming at a button of the home page with the mouse must move no word of its
+ * title: two laptops (1280 × 800 and 1440 × 900) and a desktop screen (1920 × 1080), then short
+ * screens (568 × 320, 844 × 390 and 896 × 414), where the buttons stand within the push radius of
+ * the closest words, so only the rule that a mouse over a control pushes nothing keeps them still.
  */
 export const HERO_POINTER_SCREENS = [
   { width: 1280, height: 800 },
   { width: 1440, height: 900 },
   { width: 1920, height: 1080 },
+  { width: 568, height: 320 },
+  { width: 844, height: 390 },
+  { width: 896, height: 414 },
 ] as const;
 
 /**

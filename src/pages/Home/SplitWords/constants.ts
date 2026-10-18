@@ -14,9 +14,15 @@ export const RESTING_WORD: WordState = {
 /**
  * Distance under which the mouse pushes a word. On a laptop or a larger screen, the buttons of the
  * home page stand farther from the center of every word (130 px at least, at 1280 × 800 px), so
- * aiming at one moves no word.
+ * the mouse on its way to one moves no word; on a shorter screen, a mouse over a control pushes
+ * nothing (see {@link CONTROL_SELECTOR}).
  */
 export const REPEL_RADIUS_PX = 100;
+/**
+ * Elements over which the mouse pushes no word, as if it were away: the links and the buttons, so
+ * that aiming at one of them never makes the title jump, whatever the size of the screen.
+ */
+export const CONTROL_SELECTOR = 'a, button';
 /** Distance under which the push is skipped, to avoid dividing by a near-zero distance. */
 export const MIN_REPEL_DISTANCE_PX = 1;
 /** Push given to a word right under the mouse, in pixels per frame. */

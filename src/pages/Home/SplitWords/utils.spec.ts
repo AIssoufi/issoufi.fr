@@ -1,7 +1,7 @@
 import { OFFSCREEN_POINTER } from '../constants';
 import { MAX_GLOW_PX, REPEL_RADIUS_PX, RESTING_WORD, RETURN_DELAY_MS } from './constants';
 import type { WordState } from './types';
-import { getGlowRadius, getTextShadow, stepWord } from './utils';
+import { getGlowRadius, getTextShadow, isOnControl, stepWord } from './utils';
 
 const center = { x: 500, y: 300 };
 
@@ -135,5 +135,39 @@ describe('getTextShadow', () => {
 
   it.each([0, 0.5, -3])('draws nothing for a glow of %i', glow => {
     expect(getTextShadow(glow)).toBe('');
+  });
+});
+
+describe('isOnControl', () => {
+  afterEach(() => {
+    document.body.innerHTML = '';
+  });
+
+  it.each([
+    ['a link', '<a href="/projects">Voir mes projets</a>', 'a'],
+    ['the text of a link', '<a href="/projects"><span>Voir</span></a>', 'span'],
+    ['a button', '<button type="button">Menu</button>', 'button'],
+    ['the icon of a button', '<button type="button"><svg></svg></button>', 'svg'],
+  ])('is true on %s', (_case, html, selector) => {
+    document.body.innerHTML = html;
+    expect(isOnControl(document.querySelector(selector))).toBe(true);
+  });
+
+  it.each([
+    ['a paragraph', '<p>Texte</p>', 'p'],
+    ['a word of the title', '<h1><span>UX</span></h1>', 'span'],
+  ])('is false on %s', (_case, html, selector) => {
+    document.body.innerHTML = html;
+    expect(isOnControl(document.querySelector(selector))).toBe(false);
+  });
+
+  it.each([
+    ['the window', window],
+    ['the document', document],
+    ['a text node', document.createTextNode('Voir')],
+    ['null', null],
+    ['undefined', undefined],
+  ])('is false on %s, which is no element', (_case, target) => {
+    expect(isOnControl(target)).toBe(false);
   });
 });
