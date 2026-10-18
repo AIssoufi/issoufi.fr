@@ -150,6 +150,18 @@ export const HTTP_OK = 200;
 /** HTTP status of the not found page. */
 export const HTTP_NOT_FOUND = 404;
 
+/** HTTP statuses of a redirect, whose `Location` header gives the new address. */
+export const REDIRECT_STATUSES = [301, 302, 303, 307, 308];
+
+/** Address of the production site, normalized as `URL` writes it. */
+export const SITE_URL = 'https://issoufi.fr/';
+
+/**
+ * Other addresses of the production site, without HTTPS and with `www`, which must redirect to
+ * {@link SITE_URL}. The redirects are set in Cloudflare, so the CI checks them on `main` only.
+ */
+export const REDIRECTED_SITE_URLS = ['http://issoufi.fr/', 'https://www.issoufi.fr/'];
+
 /** Number of times the smoke test checks the site before failing, while a deployment spreads. */
 export const SMOKE_TEST_ATTEMPTS = 5;
 
