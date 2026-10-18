@@ -60,11 +60,13 @@ export const BuildVersion = styled.span`
   white-space: nowrap;
 `;
 
-/* Holds the language toggle in the row of the header on mobile, and floats it on the right edge of
+/* Holds the language toggle in the row of the header on mobile, above the open menu like the
+   burger, so the language can change while the menu is open, and floats it on the right edge of
    the screen from tablet up, centered vertically, with the CV button and the GitHub icon under
    it */
 export const FloatingControls = styled.div`
   position: relative;
+  z-index: ${th.zIndex('header')};
 
   @media (min-width: ${th('screens.tablet')}) {
     position: fixed;
@@ -136,20 +138,9 @@ export const Actions = styled.div`
   gap: ${th.space(12)};
 `;
 
-export const Menu = styled.div<MenuProps>`
+/* Stays in the row of the header while the menu is open: the header stays at the top of the
+   screen, so the burger and the language toggle next to it keep their place */
+export const Menu = styled.div`
   display: flex;
   flex-direction: row;
-
-  ${props =>
-    props.$isSticky &&
-    css`
-      position: fixed;
-      top: ${th.space(20)};
-      z-index: ${th.zIndex('raised')};
-      right: ${th.space(20)};
-    `}
 `;
-
-interface MenuProps {
-  $isSticky: boolean;
-}

@@ -39,15 +39,17 @@ import {
  *
  * The burger button comes before the links in the page, so once a keyboard user opens the menu,
  * the next `Tab` reaches its first link. While open, the mobile menu acts as a modal dialog: the
- * rest of the page is inert, so `Tab` and `Shift+Tab` only reach the burger and the links, the
- * page behind it no longer scrolls (see {@link useScrollLock}), and `Escape` or a click on one of
- * its links closes it and gives the focus back to the burger, rather than leaving it on a hidden
- * link. None of this applies to the desktop layout, where the links are a bar of the page.
+ * language toggle and the burger stay above it, in the header row, and the rest of the page is
+ * inert, so `Tab` and `Shift+Tab` only reach the toggle, the burger and the links; the page behind
+ * it no longer scrolls (see {@link useScrollLock}), and `Escape` or a click on one of its links
+ * closes it and gives the focus back to the burger, rather than leaving it on a hidden link. The
+ * toggle changes the language without closing it. None of this applies to the desktop layout,
+ * where the links are a bar of the page.
  */
 const Header = ({ testId, version = __APP_VERSION__ }: HeaderProps) => {
   const [mobileMenuIsOpen, setMobileMenuIsOpen] = useState(false);
   const navMenuId = useId();
-  const menuRef = useRef<HTMLDivElement>(null);
+  const controlsRef = useRef<HTMLDivElement>(null);
   const burgerRef = useRef<HTMLButtonElement>(null);
   const { t } = useTranslation();
   const versionText = formatVersion(version);
@@ -73,7 +75,8 @@ const Header = ({ testId, version = __APP_VERSION__ }: HeaderProps) => {
     if (isMenuCoveringPage) burgerRef.current?.focus();
   };
 
-  useInertOutside({ containerRef: menuRef, isActive: isMenuCoveringPage });
+  // The language toggle stays usable over the open menu, like the burger: both stay reachable
+  useInertOutside({ containerRef: controlsRef, isActive: isMenuCoveringPage });
   useEscapeKey({ isActive: isMenuCoveringPage, onEscape: closeMobileMenu });
   useScrollLock({ isActive: isMenuCoveringPage });
 
@@ -93,7 +96,7 @@ const Header = ({ testId, version = __APP_VERSION__ }: HeaderProps) => {
           <BuildVersion>{t('header.buildVersion', { version: versionText })}</BuildVersion>
         )}
       </Brand>
-      <Actions>
+      <Actions ref={controlsRef}>
         <FloatingControls>
           <LangToggle />
           <FloatingLinks>
@@ -101,10 +104,7 @@ const Header = ({ testId, version = __APP_VERSION__ }: HeaderProps) => {
             <GitHubLink />
           </FloatingLinks>
         </FloatingControls>
-        <Menu
-          ref={menuRef}
-          $isSticky={mobileMenuIsOpen}
-        >
+        <Menu>
           <BurgerMenu
             ref={burgerRef}
             isOpen={mobileMenuIsOpen}

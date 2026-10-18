@@ -1,5 +1,6 @@
 import { expect, type Locator, type Page, test } from '@playwright/test';
 
+import { LANGUAGE_NAMES } from '../src/App/Header/LangToggle/constants';
 import { LANGUAGES } from '../src/i18n/constants';
 import { en } from '../src/i18n/en';
 import { fr } from '../src/i18n/fr';
@@ -185,6 +186,31 @@ for (const viewport of MOBILE_LAYOUT_SCREENS) {
           'scroll position after a wheel scroll once the menu is closed',
         ).toBeGreaterThan(MENU_OPENING_SCROLL_Y_PX);
       }).toPass();
+    });
+
+    test('the language toggle stays usable over the open mobile menu, with Shift+Tab and a tap', async ({
+      page,
+    }) => {
+      await page.goto(LONG_PAGE_ROUTE);
+      const burgerBox = await page.getByRole('button', { name: fr.burgerMenu.open }).boundingBox();
+      const navigation = await openMenu({ page, translations: fr });
+      const burger = page.getByRole('button', { name: fr.burgerMenu.close });
+      expect(await burger.boundingBox(), 'box of the burger once the menu is open').toEqual(
+        burgerBox,
+      );
+
+      // Named after its language whatever the language of the page
+      const englishButton = page
+        .getByRole('group', { name: fr.langToggle.label })
+        .getByRole('button', { name: LANGUAGE_NAMES.en });
+      await burger.focus();
+      await page.keyboard.press('Shift+Tab');
+      await expect(englishButton).toBeFocused();
+
+      // A tap fails when something covers the button, as the menu did
+      await englishButton.tap();
+      await expect(page).toHaveURL(localizePath({ path: LONG_PAGE_ROUTE, language: 'en' }));
+      await expect(navigation, 'menu once the language changed').toBeVisible();
     });
   });
 }
