@@ -1,7 +1,9 @@
+import { format } from 'node:util';
+
 import '@testing-library/jest-dom/vitest';
 import type { RenderOptions } from '@testing-library/react';
 import type { ReactNode } from 'react';
-import { vi } from 'vitest';
+import { afterEach, vi } from 'vitest';
 import './i18n/index';
 
 // jsdom ignores the inert attribute: like a browser, refuse the focus to an element inside an
@@ -45,4 +47,27 @@ vi.mock('@testing-library/react', async importOriginal => {
     testingLibrary.render(ui, { ...options, wrapper: withTheme(options?.wrapper) });
 
   return { ...testingLibrary, render };
+});
+
+// A test that logs an error fails, so that the output stays clean and a new warning is seen: an
+// update of React outside `act`, a feature jsdom lacks… A test that expects an error silences it
+// with `vi.spyOn(console, 'error').mockImplementation(() => {})`, which bypasses this check.
+const loggedErrors: unknown[][] = [];
+const logError = console.error;
+console.error = (...data: unknown[]) => {
+  loggedErrors.push(data);
+  logError(...data);
+};
+
+afterEach(() => {
+  // The first line of each error, as console.error formats it, names its cause
+  const errorSummaries = loggedErrors.map(data => format(...data).split('\n')[0]);
+  loggedErrors.length = 0;
+  if (errorSummaries.length === 0) return;
+
+  throw new Error(
+    `The test logged ${errorSummaries.length} error(s) with console.error: fix them, or silence ` +
+      "the expected ones with vi.spyOn(console, 'error').mockImplementation(() => {}).\n" +
+      errorSummaries.join('\n'),
+  );
 });
