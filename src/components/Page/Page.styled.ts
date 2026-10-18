@@ -5,7 +5,7 @@ export const Main = styled.main<{ $backgroundImage?: string }>`
   position: relative;
   grid-area: main;
 
-  /* The language toggle and the GitHub icon float on the right edge from tablet up */
+  /* The language toggle floats on the right edge from tablet up */
   @media (min-width: ${th('screens.tablet')}) {
     padding-right: ${th.space('floating-controls-room')};
   }

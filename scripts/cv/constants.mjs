@@ -41,7 +41,7 @@ export const SOURCE_MODULES = {
   i18nUtils: '/src/i18n/utils.ts',
   projectUtils: '/src/pages/Projects/utils.ts',
   cvLink: '/src/App/Header/CvLink/constants.ts',
-  gitHubLink: '/src/App/Header/GitHubLink/constants.ts',
+  profileLinks: '/src/App/Header/NavMenu/ProfileLinks/constants.ts',
 };
 
 /**

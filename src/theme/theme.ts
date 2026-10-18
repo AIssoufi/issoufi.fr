@@ -84,17 +84,11 @@ export const theme = {
      */
     'page-top': spacing[16],
     /**
-     * Right padding of every page from the tablet breakpoint, which leaves the language toggle, the
-     * CV button and the GitHub icon floating on the right edge of the screen over no content: they
-     * stand 20 px from the edge and the widest, the toggle, is 46 px wide, so 80 px leaves a gap of
-     * 14 px.
+     * Right padding of every page from the tablet breakpoint, which leaves the language toggle
+     * floating on the right edge of the screen over no content: it stands 20 px from the edge and
+     * is 46 px wide, so 80 px leaves a gap of 14 px.
      */
     'floating-controls-room': spacing[80],
-    /**
-     * Space between a tooltip and the control it describes, which an invisible bridge fills, so the
-     * pointer can move from the control onto the tooltip without closing it.
-     */
-    'tooltip-gap': spacing[8],
     /** Distance between the centers of two bars of the burger icon of the mobile menu. */
     'burger-bar-gap': spacing[9],
     /** Space around each project card, so two cards side by side stand twice as far apart. */
@@ -125,10 +119,10 @@ export const theme = {
     /** Thickness of each bar of the burger icon. */
     'burger-bar-thickness': sizes[3],
     /**
-     * Side of a round button, such as the CV button floating on desktop: 44 px, the smallest
-     * target that the Web Content Accessibility Guidelines recommend for a finger.
+     * Smallest side of a target that a finger taps, such as the CV link of the mobile menu: 44 px,
+     * the size that the Web Content Accessibility Guidelines recommend.
      */
-    'round-button': sizes[44],
+    'finger-target': sizes[44],
     /** Largest width of the text of a status message, short enough to read at a glance. */
     message: measures[40],
   },
@@ -164,7 +158,6 @@ export const theme = {
     cardHover: `${shadowShapes['8-32']} ${colors['shade-a40']}`,
     accentGlow: `${shadowShapes['0-10']} ${colors['accent-a55']}`,
     accentGlowFaint: `${shadowShapes['0-10']} ${colors['accent-a25']}`,
-    accentGlowWide: `${shadowShapes['0-16']} ${colors['accent-a30']}`,
     accentGlowStrong: `${shadowShapes['0-28']} ${colors['accent-a65']}`,
     accentHalo: `${shadowShapes['4-28']} ${colors['accent-a20']}`,
     lightGlow: `${shadowShapes['0-16']} ${colors['foreground-a15']}`,
@@ -200,7 +193,7 @@ export const theme = {
     raised: zIndices[1],
     raisedMore: zIndices[2],
     raisedMost: zIndices[3],
-    /** Full-screen mobile menu, and the language toggle and GitHub icon floating on desktop. */
+    /** Full-screen mobile menu, and the language toggle floating on desktop. */
     overlay: zIndices[9],
     /** Header and burger icon, above the mobile menu. */
     header: zIndices[11],

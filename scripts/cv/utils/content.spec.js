@@ -2,7 +2,7 @@ import { buildCvContent, buildExperiences, buildProjectItems } from './content.m
 
 /** Translations of a tiny site, by key. */
 const TEXTS = {
-  'cvLink.text': 'CV',
+  'cvLink.documentName': 'CV',
   'exp.pageTitle': 'Expériences',
   'projects.pageTitle': 'Projets',
   'projects.freelance': 'Projets freelance',
@@ -307,7 +307,7 @@ describe('buildCvContent', () => {
   it('names the document after its author alone when the CV has no name', () => {
     const content = buildCvContent({
       ...PARAMS,
-      translate: key => (key === 'cvLink.text' ? '' : translate(key)),
+      translate: key => (key === 'cvLink.documentName' ? '' : translate(key)),
     });
 
     expect(content.title).toBe('ADAM Issoufi');

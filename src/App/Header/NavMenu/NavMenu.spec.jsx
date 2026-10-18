@@ -22,25 +22,175 @@ const renderAt = (path, props) =>
     </MemoryRouter>,
   );
 
+/** Name of the link that downloads the CV, which its text gives. */
+const CV_LINK_NAME = 'Télécharger CV';
+
+/** Names of the profile icons, in their order. */
+const PROFILE_LINK_NAMES = ['Profil GitHub d’ADAM Issoufi', 'Profil LinkedIn d’ADAM Issoufi'];
+
+/** Value that the navigation declares for a property on an element on the desktop layout. */
+const desktopStyle = ({ element, property, pseudo }) =>
+  declaredStyle({ element, property, pseudo, media: DESKTOP_MEDIA_QUERY });
+
+/** The link that downloads the CV, found even while the closed mobile menu hides it. */
+const getCvLink = () => screen.getByRole('link', { name: CV_LINK_NAME, hidden: true });
+
+/** The profile icons, in their order, found even while the closed mobile menu hides them. */
+const getProfileLinks = () =>
+  PROFILE_LINK_NAMES.map(name => screen.getByRole('link', { name, hidden: true }));
+
+/** The row holding the profile icons. */
+const getProfileRow = () => getProfileLinks()[0].parentElement;
+
+/** The lines between the groups of the bar, which screen readers skip. */
+const getSeparators = () =>
+  [...getNavigation().children].filter(child => child.localName === 'span');
+
+/** The navigation, found even while the closed mobile menu hides it. */
+const getNavigation = () => screen.getByRole('navigation', { hidden: true });
+
 describe('NavMenu', () => {
-  it('renders the CV link without any props', () => {
+  it('renders the profile icons and the CV link without any props', () => {
     renderAt('/');
 
-    expect(screen.getByText('CV').closest('a')).toHaveAttribute('href', '/CV - Adam Issoufi.pdf');
+    expect(getCvLink()).toHaveAttribute('href', '/CV - Adam Issoufi.pdf');
+    expect(getProfileLinks()).toHaveLength(PROFILE_LINK_NAMES.length);
   });
 
-  describe('CV button', () => {
-    const getCvLink = () => screen.getByRole('link', { name: 'Télécharger le CV', hidden: true });
+  it('puts the links, a line, the profile icons, a line, then the CV link, in this order', () => {
+    renderAt('/', { items });
 
-    it('follows the links in the open mobile menu, with its download icon', () => {
+    const [firstSeparator, secondSeparator] = getSeparators();
+    expect([...getNavigation().children]).toEqual([
+      screen.getByRole('list', { hidden: true }),
+      firstSeparator,
+      getProfileRow(),
+      secondSeparator,
+      getCvLink(),
+    ]);
+  });
+
+  it('goes through the links, the profile icons, then the CV link with Tab', async () => {
+    renderAt('/', { items, mobileMenuIsOpen: true });
+
+    for (const name of ['Accueil', 'Projets', ...PROFILE_LINK_NAMES, CV_LINK_NAME]) {
+      await userEvent.tab();
+      expect(screen.getByRole('link', { name })).toHaveFocus();
+    }
+  });
+
+  describe('separators', () => {
+    it('hides them from screen readers, as they only decorate the bar', () => {
+      renderAt('/', { items });
+
+      expect(getSeparators()).toHaveLength(2);
+      getSeparators().forEach(separator => {
+        expect(separator).toHaveAttribute('aria-hidden', 'true');
+        expect(separator).toBeEmptyDOMElement();
+      });
+    });
+
+    it('leaves them out of the open mobile menu, which spaces its groups with its gap', () => {
+      renderAt('/', { items, mobileMenuIsOpen: true });
+
+      getSeparators().forEach(separator =>
+        expect(getComputedStyle(separator).display).toBe('none'),
+      );
+    });
+
+    it('draws each one on desktop as a faint line, as high as the text of the links', () => {
+      renderAt('/', { items });
+
+      getSeparators().forEach(element => {
+        expect(desktopStyle({ element, property: 'display' })).toBe('block');
+        expect(desktopStyle({ element, property: 'height' })).toBe(theme.sizes[16]);
+        expect(desktopStyle({ element, property: 'border-left' })).toBe(
+          serializeCssValue({
+            property: 'border-left',
+            value: `${theme.borderWidths.thin} solid ${theme.colors['foreground-a25']}`,
+          }),
+        );
+      });
+    });
+
+    it('stands halfway between its neighbours, which keep 16 px on each side as the links do', () => {
+      renderAt('/', { items });
+      const [firstItem] = screen.getAllByRole('listitem', { hidden: true });
+
+      expect(desktopStyle({ element: firstItem, property: 'padding' })).toBe(
+        `${theme.space[10]} ${theme.space[16]}`,
+      );
+      expect(desktopStyle({ element: getProfileRow(), property: 'padding' })).toBe(
+        serializeCssValue({ property: 'padding', value: `0 ${theme.space[16]}` }),
+      );
+      expect(desktopStyle({ element: getCvLink(), property: 'padding' })).toBe(
+        `${theme.space[10]} ${theme.space[16]}`,
+      );
+      getSeparators().forEach(element => {
+        expect(desktopStyle({ element, property: 'margin' })).toBe('');
+      });
+    });
+  });
+
+  describe('profile icons', () => {
+    it('follow the links in the open mobile menu, on one row', () => {
+      renderAt('/', { items, mobileMenuIsOpen: true });
+
+      getProfileLinks().forEach(link => expect(link).toBeVisible());
+      expect(getProfileRow().previousElementSibling.previousElementSibling).toContainElement(
+        screen.getByText('Projets'),
+      );
+      expect(getComputedStyle(getProfileRow()).flexDirection).toBe('row');
+    });
+
+    it.each(PROFILE_LINK_NAMES)('close the mobile menu when %s is clicked', async name => {
+      const onClick = vi.fn(event => event?.preventDefault());
+      renderAt('/', { items, onClick, mobileMenuIsOpen: true });
+
+      await userEvent.click(screen.getByRole('link', { name }));
+
+      expect(onClick).toHaveBeenCalledOnce();
+    });
+
+    it('stay shown on desktop, in the bar of the header', () => {
+      renderAt('/', { items });
+
+      expect(desktopStyle({ element: getProfileRow(), property: 'display' })).not.toBe('none');
+      expect(desktopStyle({ element: getProfileRow(), property: 'animation' })).toBe('none');
+    });
+  });
+
+  describe('CV link', () => {
+    it('follows the profile icons in the open mobile menu, as a pill with its download icon', () => {
       renderAt('/', { items, mobileMenuIsOpen: true });
 
       expect(getCvLink()).toBeVisible();
-      // The link sits in the element that also holds its tooltip
-      expect(getCvLink().parentElement.previousElementSibling).toContainElement(
-        screen.getByText('Projets'),
-      );
+      expect(getCvLink().previousElementSibling.previousElementSibling).toBe(getProfileRow());
+      expect(getCvLink()).toHaveTextContent(/^Télécharger CV$/);
       expect(getCvLink().querySelector('svg')).toHaveAttribute('aria-hidden', 'true');
+      expect(getComputedStyle(getCvLink()).borderRadius).toBe(theme.radii.pill);
+    });
+
+    it('gets smaller on a short screen, as the links do, to stay clear of the language toggle', () => {
+      renderAt('/', { items, mobileMenuIsOpen: true });
+      const shortScreenStyle = property =>
+        declaredStyle({ element: getCvLink(), property, media: SHORT_SCREEN_MEDIA_QUERY });
+
+      expect(shortScreenStyle('font-size')).toBe(theme.fontSizes[16]);
+      expect(shortScreenStyle('padding')).toBe(`${theme.space[10]} ${theme.space[24]}`);
+    });
+
+    it('is big enough for a finger in the mobile menu, even on a short screen', () => {
+      renderAt('/', { items, mobileMenuIsOpen: true });
+
+      expect(getComputedStyle(getCvLink()).minHeight).toBe(theme.sizes['finger-target']);
+      expect(
+        declaredStyle({
+          element: getCvLink(),
+          property: 'min-height',
+          media: SHORT_SCREEN_MEDIA_QUERY,
+        }),
+      ).toBe('');
     });
 
     it('closes the mobile menu when it is clicked', async () => {
@@ -52,42 +202,37 @@ describe('NavMenu', () => {
       expect(onClick).toHaveBeenCalledOnce();
     });
 
-    it('shows its tooltip above it, where the GitHub icon under it leaves it room', () => {
-      renderAt('/', { items, mobileMenuIsOpen: true });
+    it('is a text link like the others in the bar of the header on desktop, without its icon', () => {
+      renderAt('/', { items });
+      const [firstItem] = screen.getAllByRole('listitem', { hidden: true });
 
-      const tooltip = screen.getByRole('tooltip', { hidden: true });
-      expect(getCvLink()).toHaveAttribute('aria-labelledby', tooltip.id);
-      expect(declaredStyle({ element: tooltip, property: 'bottom' })).toBe(
-        serializeCssValue({
-          property: 'bottom',
-          value: `calc(100% + ${theme.space['tooltip-gap']})`,
-        }),
+      expect(desktopStyle({ element: getCvLink(), property: 'display' })).not.toBe('none');
+      expect(desktopStyle({ element: getCvLink(), property: 'font-size' })).toBe(
+        desktopStyle({ element: firstItem, property: 'font-size' }),
+      );
+      expect(desktopStyle({ element: getCvLink(), property: 'letter-spacing' })).toBe(
+        desktopStyle({ element: firstItem, property: 'letter-spacing' }),
+      );
+      expect(desktopStyle({ element: getCvLink(), property: 'border-style' })).toBe('none');
+      expect(desktopStyle({ element: getCvLink(), property: 'min-height' })).toBe('0px');
+      expect(desktopStyle({ element: getCvLink(), property: 'display', pseudo: ' svg' })).toBe(
+        'none',
       );
     });
 
-    it('is spaced by the gap of the open menu, with no margin to move its tooltip away', () => {
-      renderAt('/', { items, mobileMenuIsOpen: true });
-
-      expect(getComputedStyle(screen.getByRole('navigation')).gap).toBe(theme.space[28]);
-      expect(declaredStyle({ element: getCvLink(), property: 'margin-top' })).toBe('');
-      expect(declaredStyle({ element: getCvLink(), property: 'margin' })).toBe('');
-    });
-
-    it('is hidden on desktop, where the header floats it under the language toggle', () => {
+    it('turns to the accent color and grows on hover on desktop, as the links do', () => {
       renderAt('/', { items });
 
-      const display = declaredStyle({
-        element: getCvLink(),
-        property: 'display',
-        media: DESKTOP_MEDIA_QUERY,
-      });
-      expect(display).toBe('none');
+      expect(desktopStyle({ element: getCvLink(), property: 'color', pseudo: ':hover' })).toBe(
+        serializeCssValue({ property: 'color', value: theme.colors.accent }),
+      );
+      expect(desktopStyle({ element: getCvLink(), property: 'transform', pseudo: ':hover' })).toBe(
+        'scale(1.06)',
+      );
     });
   });
 
   describe('open mobile menu', () => {
-    const getNavigation = () => screen.getByRole('navigation');
-
     it('scrolls when higher than the screen, from its top, without scrolling the page', () => {
       renderAt('/', { items, mobileMenuIsOpen: true });
 
@@ -114,10 +259,7 @@ describe('NavMenu', () => {
       expect(shortScreenStyle({ element: firstItem, property: 'padding' })).toBe(
         `${theme.space[6]} ${theme.space[48]}`,
       );
-      // The gap of the menu alone would leave the tooltip of the CV button over the last link
-      expect(
-        shortScreenStyle({ element: screen.getByRole('list'), property: 'margin-bottom' }),
-      ).toBe(theme.space[20]);
+      expect(shortScreenStyle({ element: screen.getByRole('list'), property: 'gap' })).toBe('0px');
     });
 
     it('keeps the menu as it is on a short screen of the desktop layout', () => {
@@ -126,7 +268,7 @@ describe('NavMenu', () => {
       expect(
         declaredStyle({
           element: screen.getByRole('list', { hidden: true }),
-          property: 'margin-bottom',
+          property: 'gap',
           media: DESKTOP_MEDIA_QUERY,
         }),
       ).toBe('0px');
@@ -170,40 +312,6 @@ describe('NavMenu', () => {
     await userEvent.click(screen.getByText('Projets'));
 
     expect(onClick).toHaveBeenCalledTimes(1);
-  });
-
-  describe('GitHub icon', () => {
-    const getGitHubLink = () =>
-      screen.getByRole('link', { name: 'Profil GitHub d’ADAM Issoufi', hidden: true });
-
-    it('follows the CV button in the mobile menu', () => {
-      renderAt('/', { items, mobileMenuIsOpen: true });
-
-      // After the element that holds the CV button and its tooltip
-      const cvLink = screen.getByText('CV').closest('a');
-      expect(cvLink.parentElement.nextElementSibling).toBe(getGitHubLink());
-      expect(getGitHubLink()).toBeVisible();
-    });
-
-    it('closes the mobile menu when it is clicked', async () => {
-      const onClick = vi.fn(event => event?.preventDefault());
-      renderAt('/', { items, onClick, mobileMenuIsOpen: true });
-
-      await userEvent.click(getGitHubLink());
-
-      expect(onClick).toHaveBeenCalledOnce();
-    });
-
-    it('is hidden on desktop, where the header floats it under the CV button', () => {
-      renderAt('/', { items });
-
-      const display = declaredStyle({
-        element: getGitHubLink(),
-        property: 'display',
-        media: DESKTOP_MEDIA_QUERY,
-      });
-      expect(display).toBe('none');
-    });
   });
 
   it('gives the navigation its id, so a button can name it as the menu it controls', () => {

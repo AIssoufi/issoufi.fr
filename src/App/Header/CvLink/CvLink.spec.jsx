@@ -3,8 +3,6 @@ import userEvent from '@testing-library/user-event';
 
 import i18n from '../../../i18n';
 import { isPublicFile } from '../../../pages/testUtils';
-import { declaredStyle, serializeCssValue } from '../../../styleTestUtils';
-import { theme } from '../../../theme';
 import { CV_URLS } from './constants';
 import CvLink from './CvLink';
 
@@ -14,17 +12,17 @@ const CV_URL = '/CV - Adam Issoufi.pdf';
 /** CV written in English. */
 const ENGLISH_CV_URL = '/CV - Adam Issoufi (EN).pdf';
 
-const getLink = () => screen.getByRole('link', { name: 'Télécharger le CV' });
+const getLink = () => screen.getByRole('link', { name: 'Télécharger CV' });
 
 describe('CvLink', () => {
   afterEach(async () => {
     await act(() => i18n.changeLanguage('fr'));
   });
 
-  it('renders the text "CV" without any props, and no icon', () => {
+  it('renders the text "Télécharger CV" without any props, and no icon', () => {
     render(<CvLink />);
 
-    expect(getLink()).toHaveTextContent(/^CV$/);
+    expect(getLink()).toHaveTextContent(/^Télécharger CV$/);
     expect(getLink().querySelector('svg')).not.toBeInTheDocument();
   });
 
@@ -40,15 +38,14 @@ describe('CvLink', () => {
     expect(isPublicFile(url)).toBe(true);
   });
 
-  it('downloads the CV written in English once English is active', async () => {
+  it('downloads the CV written in English once English is active, and says so in English', async () => {
     render(<CvLink />);
 
     await act(() => i18n.changeLanguage('en'));
 
-    expect(screen.getByRole('link', { name: 'Download the CV' })).toHaveAttribute(
-      'href',
-      ENGLISH_CV_URL,
-    );
+    const link = screen.getByRole('link', { name: 'Download CV' });
+    expect(link).toHaveAttribute('href', ENGLISH_CV_URL);
+    expect(link).toHaveTextContent(/^Download CV$/);
   });
 
   it('goes back to the French CV once French is active again', async () => {
@@ -66,7 +63,7 @@ describe('CvLink', () => {
     const icon = getLink().querySelector('svg');
     expect(icon).toBeInTheDocument();
     expect(getLink().firstChild).toBe(icon);
-    expect(getLink()).toHaveTextContent(/^CV$/);
+    expect(getLink()).toHaveTextContent(/^Télécharger CV$/);
   });
 
   it('calls onClick when it is clicked', async () => {
@@ -108,95 +105,20 @@ describe('CvLink', () => {
     expect(getLink()).toHaveClass('in-menu');
   });
 
-  describe('tooltip', () => {
-    /** The tooltip of the link, found even while it is hidden. */
-    const getTooltip = () => screen.getByRole('tooltip', { hidden: true });
-
-    it('says what the link does while the mouse hovers it', async () => {
-      render(<CvLink />);
-      expect(getTooltip()).not.toBeVisible();
-
-      await userEvent.hover(getLink());
-      expect(getTooltip()).toBeVisible();
-      expect(getTooltip()).toHaveTextContent(/^Télécharger le CV$/);
-
-      await userEvent.unhover(getLink());
-      expect(getTooltip()).not.toBeVisible();
-    });
-
-    it('shows while the keyboard focuses the link, until Escape', async () => {
-      render(<CvLink />);
-
-      await userEvent.tab();
-      expect(getLink()).toHaveFocus();
-      expect(getTooltip()).toBeVisible();
-
-      await userEvent.keyboard('{Escape}');
-      expect(getLink()).toHaveFocus();
-      expect(getTooltip()).not.toBeVisible();
-    });
-
-    it('names the link for screen readers, whether it shows or not, which then read it once', () => {
-      render(<CvLink />);
-      expect(getTooltip()).not.toBeVisible();
-
-      expect(getLink()).toHaveAttribute('aria-labelledby', getTooltip().id);
-      expect(getLink()).toHaveAccessibleName('Télécharger le CV');
-      expect(getLink()).not.toHaveAttribute('aria-label');
-      expect(getLink()).not.toHaveAttribute('aria-describedby');
-      expect(getLink()).not.toHaveAccessibleDescription();
-    });
-
-    it('sits next to the link, outside of it, so the link still reads "CV"', () => {
+  describe('accessibility', () => {
+    it('is named by its text alone, with no tooltip, label or description', () => {
       render(<CvLink hasIcon />);
 
-      expect(getLink()).not.toContainElement(getTooltip());
-      expect(getLink().nextElementSibling).toBe(getTooltip());
-      expect(getLink()).toHaveTextContent(/^CV$/);
+      expect(getLink()).toHaveAccessibleName('Télécharger CV');
+      expect(getLink()).not.toHaveAttribute('aria-label');
+      expect(getLink()).not.toHaveAttribute('aria-labelledby');
+      expect(getLink()).not.toHaveAccessibleDescription();
+      expect(screen.queryByRole('tooltip', { hidden: true })).not.toBeInTheDocument();
     });
 
-    it.each([
-      ['above the link by default', undefined, 'bottom'],
-      ['on the left of the link when asked to', 'left', 'right'],
-      ['above the link when asked to', 'top', 'bottom'],
-    ])('shows %s', (_case, tooltipPlacement, sideTowardsLink) => {
-      render(<CvLink tooltipPlacement={tooltipPlacement} />);
-
-      expect(declaredStyle({ element: getTooltip(), property: sideTowardsLink })).toBe(
-        serializeCssValue({
-          property: sideTowardsLink,
-          value: `calc(100% + ${theme.space['tooltip-gap']})`,
-        }),
-      );
-    });
-
-    it('is written in English once English is active', async () => {
-      render(<CvLink />);
-
-      await act(() => i18n.changeLanguage('en'));
-
-      expect(getTooltip()).toHaveTextContent(/^Download the CV$/);
-      expect(screen.getByRole('link', { name: 'Download the CV' })).toHaveAttribute(
-        'aria-labelledby',
-        getTooltip().id,
-      );
-    });
-  });
-
-  describe('accessibility', () => {
-    it('hides the icon from screen readers, which read the name of the link', () => {
+    it('hides the icon from screen readers, which read the text of the link', () => {
       render(<CvLink hasIcon />);
       expect(getLink().querySelector('svg')).toHaveAttribute('aria-hidden', 'true');
-    });
-
-    it('names the link in English once English is active, still holding the visible "CV"', async () => {
-      render(<CvLink />);
-
-      await act(() => i18n.changeLanguage('en'));
-
-      const link = screen.getByRole('link', { name: 'Download the CV' });
-      expect(link).toHaveAttribute('href', ENGLISH_CV_URL);
-      expect(link).toHaveTextContent(/^CV$/);
     });
   });
 });

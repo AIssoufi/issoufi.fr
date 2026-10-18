@@ -6,17 +6,14 @@ import { fr } from '../src/i18n/fr';
 import { PAGES } from '../src/utils/pages';
 import { waitForEndingAnimations } from './animations';
 import {
-  FLOATING_CONTROLS_SCREEN_WIDTHS_PX,
+  DESKTOP_SCREEN_WIDTHS_PX,
   PAGE_SELECTOR,
   SCREEN_HEIGHT_PX,
   SHOW_ALL_BUTTON_NAME,
 } from './constants';
 import { doBoxesOverlapHorizontally, getCheckedRoutes, type ScreenBox } from './utils';
 
-/**
- * Translations of each language, to find the toggle, the CV button and the GitHub icon by their
- * names.
- */
+/** Translations of each language, to find the language toggle by its name. */
 const TRANSLATIONS = { fr, en };
 
 /** Box of something a visitor reads or uses on a page, with a label that names it in a failure. */
@@ -94,39 +91,38 @@ const listContentBoxes = (container: Element): ContentBox[] => {
   return boxes;
 };
 
-/** Parameters of {@link listContentUnderControls}. */
-interface ListContentUnderControlsParams {
+/** Parameters of {@link listContentUnderToggle}. */
+interface ListContentUnderToggleParams {
   /** Page of the test, opened on the route to check. */
   page: Page;
-  /** Boxes of the controls floating on the right edge of the screen. */
-  controlBoxes: (ScreenBox | null)[];
+  /** Box of the language toggle floating on the right edge of the screen. */
+  toggleBox: ScreenBox | null;
 }
 
 /**
- * Lists the texts and controls of the `<main>` landmark that share some width with one of the
- * floating controls: since the controls are fixed and the page scrolls under them, each passes
- * under a control at some point.
+ * Lists the texts and controls of the `<main>` landmark that share some width with the floating
+ * language toggle: since the toggle is fixed and the page scrolls under it, each passes under it
+ * at some point.
  */
-const listContentUnderControls = async ({ page, controlBoxes }: ListContentUnderControlsParams) => {
+const listContentUnderToggle = async ({ page, toggleBox }: ListContentUnderToggleParams) => {
   const contentBoxes = await page.locator(PAGE_SELECTOR).evaluate(listContentBoxes);
   // Without any, a selector that matches nothing any more would let everything pass
   expect(contentBoxes.length, 'texts and controls found on the page').toBeGreaterThan(0);
 
-  const isUnderControls = (box: ContentBox) =>
-    controlBoxes.some(otherBox => doBoxesOverlapHorizontally({ box, otherBox }));
-  return contentBoxes.filter(isUnderControls).map(({ label }) => label);
+  const isUnderToggle = (box: ContentBox) =>
+    doBoxesOverlapHorizontally({ box, otherBox: toggleBox });
+  return contentBoxes.filter(isUnderToggle).map(({ label }) => label);
 };
 
 // jsdom computes no layout, so only a real browser sees the content of a page reach the column of
-// the language toggle, the CV button and the GitHub icon, which float on the right edge from tablet
-// up
+// the language toggle, which floats on the right edge from tablet up
 for (const language of LANGUAGES) {
-  for (const width of FLOATING_CONTROLS_SCREEN_WIDTHS_PX) {
+  for (const width of DESKTOP_SCREEN_WIDTHS_PX) {
     test.describe(`in ${language}, on a ${width} px wide screen`, () => {
       test.use({ viewport: { width, height: SCREEN_HEIGHT_PX } });
 
       for (const route of getCheckedRoutes({ pages: PAGES, language })) {
-        test(`${route} keeps its content out of the column of the floating controls`, async ({
+        test(`${route} keeps its content out of the column of the floating language toggle`, async ({
           page,
         }) => {
           await page.goto(route);
@@ -138,21 +134,14 @@ for (const language of LANGUAGES) {
             await document.fonts.ready;
           });
 
-          const translations = TRANSLATIONS[language];
-          const controls = [
-            page.getByRole('group', { name: translations.langToggle.label }),
-            page.getByRole('link', { name: translations.cvLink.label }),
-            page.getByRole('link', { name: translations.githubLink.label }),
-          ];
-          const controlBoxes = await Promise.all(controls.map(control => control.boundingBox()));
-          expect(
-            controlBoxes,
-            'boxes of the language toggle, the CV button and the GitHub icon',
-          ).not.toContain(null);
+          const toggleBox = await page
+            .getByRole('group', { name: TRANSLATIONS[language].langToggle.label })
+            .boundingBox();
+          expect(toggleBox, 'box of the language toggle').not.toBeNull();
 
           expect(
-            await listContentUnderControls({ page, controlBoxes }),
-            'texts and controls under the language toggle, the CV button or the GitHub icon',
+            await listContentUnderToggle({ page, toggleBox }),
+            'texts and controls under the language toggle',
           ).toEqual([]);
 
           // "Show all" wraps the cards of a row onto as many rows as they need. A clicked button
@@ -161,8 +150,8 @@ for (const language of LANGUAGES) {
           while ((await showAllButtons.count()) > 0) await showAllButtons.first().click();
           await page.locator(PAGE_SELECTOR).evaluate(waitForEndingAnimations);
           expect(
-            await listContentUnderControls({ page, controlBoxes }),
-            'texts and controls under the floating controls once every row is shown whole',
+            await listContentUnderToggle({ page, toggleBox }),
+            'texts and controls under the language toggle once every row is shown whole',
           ).toEqual([]);
         });
       }

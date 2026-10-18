@@ -86,7 +86,7 @@ const contents = await buildCvContents({
   getPageUrl: sources.pages.getPageUrl,
   homePath: sources.pages.HOME_PAGE.path,
   siteUrl: sources.pages.SITE_URL,
-  gitHubUrl: sources.gitHubLink.GITHUB_PROFILE_URL,
+  gitHubUrl: sources.profileLinks.GITHUB_PROFILE_URL,
   cvData: data.cv.default,
   experiences: data.experiences.default,
   personalProjects: data.personalProjects.default,

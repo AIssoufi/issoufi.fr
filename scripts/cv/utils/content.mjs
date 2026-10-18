@@ -251,7 +251,7 @@ export const buildCvContent = ({
 }) => {
   const texts = isEntry(cvData?.languages?.[language]) ? cvData.languages[language] : {};
   const contact = isEntry(cvData?.contact) ? cvData.contact : {};
-  const documentName = translate('cvLink.text');
+  const documentName = translate('cvLink.documentName');
 
   return {
     language,
