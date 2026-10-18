@@ -118,14 +118,9 @@ export const fr = {
       months_other: '{{count}} mois',
       lessThanAMonth: '< 1 mois',
     },
-    periods: {
-      wibilongStart: 'sept. 2019',
-      wibilongEnd: 'juin 2021',
-      supralogStart: 'juin 2018',
-      supralogEnd: 'sept. 2019',
-      beepeersStart: 'mai 2017',
-      beepeersEnd: 'août 2017',
-    },
+    // Read by screen readers between the start and the end of a period, in place of the arrow or
+    // the dash that the screen shows between them
+    periodTo: 'à',
     sewan: {
       name: 'Sewan Groupe',
       contract: 'CDI',

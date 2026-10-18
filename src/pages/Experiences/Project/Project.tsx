@@ -4,7 +4,7 @@ import { Body, Container, Description, Header, State, Title } from './Project.st
 
 /** Props of {@link Project}. Every part is optional and is not rendered when missing. */
 interface ProjectProps {
-  /** Project name, already translated. */
+  /** Project name, already translated, a `h4` under the `h3` of its job. */
   title?: string;
   /** Short status badge, e.g. "En production" or "Livré dans les délais". */
   state?: string;

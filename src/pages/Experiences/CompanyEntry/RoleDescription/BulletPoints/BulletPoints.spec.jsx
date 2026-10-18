@@ -1,7 +1,11 @@
 import { act, render, screen, within } from '@testing-library/react';
 
 import i18n from '../../../../../i18n';
+import { declaredStyle } from '../../../../../styleTestUtils';
 import BulletPoints from './BulletPoints';
+
+/** A `›` followed by its empty alternative text, the value of `content` after a slash. */
+const ALTERNATIVE_TEXT_CONTENT = /^(['"])›\1\s*\/\s*(['"])\2$/;
 
 describe('BulletPoints', () => {
   afterEach(async () => {
@@ -31,6 +35,24 @@ describe('BulletPoints', () => {
       'Architecture et maquettes des écrans',
       'Maintenance des sites existants en AngularJS',
     ]);
+  });
+
+  it('draws a "›" before each point, with an empty alternative text, so that screen readers skip it', () => {
+    render(<BulletPoints textKeys={['exp.beepeers.proj1B1']} />);
+    const content = declaredStyle({
+      element: screen.getByRole('listitem'),
+      property: 'content',
+      pseudo: '::before',
+    });
+
+    // Stylis drops the optional spaces around the slash
+    expect(content).toMatch(ALTERNATIVE_TEXT_CONTENT);
+  });
+
+  it('keeps the "›" out of the text of the points', () => {
+    render(<BulletPoints textKeys={['exp.beepeers.proj1B1']} />);
+
+    expect(screen.getByRole('listitem').textContent).not.toContain('›');
   });
 
   it('writes the points in the active language', async () => {
