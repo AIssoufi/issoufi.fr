@@ -27,6 +27,12 @@ export const Button = styled.button`
     display: block;
   }
 
+  /* Fits the compact header of a short screen */
+  @media (max-height: ${th('screenHeights.short')}) {
+    width: ${th.size('burger-icon-compact')};
+    height: ${th.size('burger-icon-compact')};
+  }
+
   @media (min-width: ${th('screens.tablet')}) {
     display: none;
   }

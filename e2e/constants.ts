@@ -128,6 +128,100 @@ export const MAX_TOOLTIP_OFFSET_PX = 0.5;
  */
 export const TOOLTIP_GAP_PX = Number.parseFloat(theme.space['tooltip-gap']);
 
+/** Name of the "Show all" buttons of the Projects page, in both languages, whatever their count. */
+export const SHOW_ALL_BUTTON_NAME = /^(Tout afficher|Show all) \(\d+\)$/;
+
+/**
+ * Screen widths, in pixels, at which the sticky header must stay on the screen down to the end of
+ * the long pages: a phone (375), a tablet held upright, still on the mobile layout (768), a tablet
+ * held sideways (1024) and a laptop (1440).
+ */
+export const STICKY_HEADER_SCREEN_WIDTHS_PX = [375, 768, 1024, 1440] as const;
+
+/**
+ * Screen height, in pixels, of the sticky header test: the height left to a page on a 1366 × 768
+ * laptop once the browser shows its bars. The Projects page, the shorter of the long pages, then
+ * scrolls by more than one screen at every width, beyond which a header stuck within one screen
+ * would leave it.
+ */
+export const STICKY_HEADER_SCREEN_HEIGHT_PX = 600;
+
+/**
+ * Largest difference, in pixels, allowed between the blurred band of the header and the header
+ * itself, at the top or in height. Half a pixel lets through subpixel rounding, but not a band
+ * 1 px shorter.
+ */
+export const MAX_BAND_OFFSET_PX = 0.5;
+
+/**
+ * Phones held sideways, on which the open mobile menu must show each of its links whole without
+ * scrolling: the smallest still in use (568 × 320, an iPhone SE of the first generation) and a
+ * common one (667 × 375, an iPhone 8).
+ */
+export const LANDSCAPE_PHONE_SCREENS = [
+  { width: 568, height: 320 },
+  { width: 667, height: 375 },
+] as const;
+
+/**
+ * Short screens, on which the compact header must take at most {@link MAX_HEADER_SCREEN_SHARE} of
+ * the height: the phones held sideways, then a larger one that gets the desktop layout (896 × 414,
+ * an iPhone 11 held sideways).
+ */
+export const SHORT_SCREENS = [...LANDSCAPE_PHONE_SCREENS, { width: 896, height: 414 }] as const;
+
+/** Largest share of the height of a short screen that the header may take: 15 %. */
+export const MAX_HEADER_SCREEN_SHARE = 0.15;
+
+/**
+ * Smallest height, in pixels, of a link that a finger taps: the target size that the Web Content
+ * Accessibility Guidelines 2.2 require at level AA (success criterion 2.5.8).
+ */
+export const MIN_TARGET_SIZE_PX = 24;
+
+/**
+ * Smallest height, in pixels, of the CV button of the mobile menu, compact or not: the
+ * `round-button` size of the theme, the target size that the guidelines recommend for a finger.
+ */
+export const FINGER_TARGET_HEIGHT_PX = Number.parseFloat(theme.sizes['round-button']);
+
+/**
+ * Screen lower than the open mobile menu, even compact, as a phone held sideways with the bars of
+ * its browser shown: the menu must scroll to show each of its links whole.
+ */
+export const SHORTER_THAN_MENU_SCREEN = { width: 568, height: 240 } as const;
+
+/**
+ * Screens below the tablet breakpoint, on which the open mobile menu covers the page: phones held
+ * upright (320 × 568, 375 × 667 and 414 × 896) and sideways ({@link LANDSCAPE_PHONE_SCREENS}), and
+ * a tablet held upright (768 × 1024).
+ */
+export const MOBILE_LAYOUT_SCREENS = [
+  { width: 320, height: 568 },
+  { width: 375, height: 667 },
+  { width: 414, height: 896 },
+  ...LANDSCAPE_PHONE_SCREENS,
+  { width: 768, height: 1024 },
+] as const;
+
+/**
+ * Scroll position of the page, in pixels, when the mobile menu opens over it: the page must still
+ * be there once the menu closes.
+ */
+export const MENU_OPENING_SCROLL_Y_PX = 300;
+
+/**
+ * Distance, in pixels, of each wheel scroll or swipe of the browser tests: more than half a phone
+ * screen, so that a page left free to scroll visibly moves.
+ */
+export const SCROLL_GESTURE_DISTANCE_PX = 600;
+
+/**
+ * Speed of the wheel scrolls and swipes of the browser tests, in pixels per second: fast, so that
+ * each one lasts a fifth of a second.
+ */
+export const SCROLL_GESTURE_SPEED_PX_PER_S = 3000;
+
 /**
  * Domains of Google that no page may request, nor any of their subdomains: the fonts and the APIs,
  * the analytics, the ads, the maps and the videos, YouTube and reCAPTCHA. The country domains of

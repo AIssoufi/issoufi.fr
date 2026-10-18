@@ -8,23 +8,35 @@ export const Container = styled.header`
   justify-content: space-between;
   align-items: center;
   font-size: ${th.fontSize(18)};
-  padding: ${th.space(20)} 0;
+  /* A height rather than a vertical padding, which its blurred band shares: fixed on the screen,
+     the band cannot take the height of the header from it */
+  height: ${th.size('header')};
   position: sticky;
   top: 0;
   z-index: ${th.zIndex('header')};
 
+  /* Blurs what scrolls under the header, over the whole width of the screen */
   &::after {
     content: '';
     position: fixed;
     top: 0;
     left: 0;
     right: 0;
-    height: ${th.size(72)};
+    height: ${th.size('header')};
     backdrop-filter: ${th('blurs.12')};
     -webkit-backdrop-filter: ${th('blurs.12')};
     background: linear-gradient(180deg, ${th.color('shade-a55')} 0%, ${th.color('shade-a0')} 100%);
     z-index: ${th.zIndex('behind')};
     pointer-events: none;
+  }
+
+  /* Leaves most of a short screen to the page, as on a phone held sideways */
+  @media (max-height: ${th('screenHeights.short')}) {
+    height: ${th.size('header-compact')};
+
+    &::after {
+      height: ${th.size('header-compact')};
+    }
   }
 `;
 
@@ -47,6 +59,10 @@ export const Logo = styled.div`
     transform: scale(1.08);
     color: ${th.color('accent')};
   }
+
+  @media (max-height: ${th('screenHeights.short')}) {
+    font-size: ${th.fontSize(28)};
+  }
 `;
 
 export const BuildVersion = styled.span`
@@ -57,11 +73,13 @@ export const BuildVersion = styled.span`
   white-space: nowrap;
 `;
 
-/* Holds the language toggle in the row of the header on mobile, and floats it on the right edge of
+/* Holds the language toggle in the row of the header on mobile, above the open menu like the
+   burger, so the language can change while the menu is open, and floats it on the right edge of
    the screen from tablet up, centered vertically, with the CV button and the GitHub icon under
    it */
 export const FloatingControls = styled.div`
   position: relative;
+  z-index: ${th.zIndex('header')};
 
   @media (min-width: ${th('screens.tablet')}) {
     position: fixed;
@@ -133,20 +151,9 @@ export const Actions = styled.div`
   gap: ${th.space(12)};
 `;
 
-export const Menu = styled.div<MenuProps>`
+/* Stays in the row of the header while the menu is open: the header stays at the top of the
+   screen, so the burger and the language toggle next to it keep their place */
+export const Menu = styled.div`
   display: flex;
   flex-direction: row;
-
-  ${props =>
-    props.$isSticky &&
-    css`
-      position: fixed;
-      top: ${th.space(20)};
-      z-index: ${th.zIndex('raised')};
-      right: ${th.space(20)};
-    `}
 `;
-
-interface MenuProps {
-  $isSticky: boolean;
-}

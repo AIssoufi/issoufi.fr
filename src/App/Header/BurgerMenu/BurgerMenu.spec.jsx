@@ -4,6 +4,8 @@ import lottie from 'lottie-web/build/player/lottie_light';
 import { createRef } from 'react';
 
 import i18n from '../../../i18n';
+import { declaredStyle } from '../../../styleTestUtils';
+import { theme } from '../../../theme';
 import { waitForBurgerIcon } from '../../testUtils';
 import BurgerMenu from './BurgerMenu';
 import { OPEN_ANIMATION } from './constants';
@@ -41,6 +43,19 @@ describe('BurgerMenu', () => {
     // Pressed before lottie-web is loaded, with no animation to play
     expect(() => fireEvent.click(container.firstChild)).not.toThrow();
     await waitForBurgerIcon();
+  });
+
+  it('keeps its size, and a smaller one that fits the compact header of a short screen', async () => {
+    await renderBurgerMenu(<BurgerMenu />);
+    const button = screen.getByRole('button');
+    const shortScreenMedia = `(max-height: ${theme.screenHeights.short})`;
+
+    expect(declaredStyle({ element: button, property: 'height' })).toBe(theme.sizes['burger-icon']);
+    for (const property of ['width', 'height']) {
+      expect(declaredStyle({ element: button, property, media: shortScreenMedia })).toBe(
+        theme.sizes['burger-icon-compact'],
+      );
+    }
   });
 
   it('calls onOpen when clicked while closed', async () => {

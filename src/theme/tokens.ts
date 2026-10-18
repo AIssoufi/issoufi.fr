@@ -95,10 +95,11 @@ export const sizes = {
   32: '32px',
   36: '36px',
   44: '44px',
+  48: '48px',
   50: '50px',
   54: '54px',
-  72: '72px',
   90: '90px',
+  94: '94px',
   222: '222px',
   240: '240px',
   640: '640px',
@@ -255,8 +256,12 @@ export const zIndices = {
   9999: 9999,
 } as const;
 
-/** Viewport widths where the layout changes; keys are em values, which follow the font size. */
+/**
+ * Viewport widths and heights where the layout changes; keys are em values, which follow the font
+ * size.
+ */
 export const breakpoints = {
+  31.25: '31.25em',
   37.5: '37.5em',
   50: '50em',
   57.125: '57.125em',
