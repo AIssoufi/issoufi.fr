@@ -10,8 +10,9 @@ import { Container, GitHubLink, Version } from './SiteBadge.styled';
 interface SiteBadgeProps {
   /**
    * Version of the site shown after its name, as `package.json` writes it, e.g. `1.0.0`. Left out
-   * of the text when empty.
-   * @default the version of the build, which Vite reads from `package.json` (`__APP_VERSION__`)
+   * of the text when empty. Defaults to the version of the build, which Vite reads from
+   * `package.json`.
+   * @default __APP_VERSION__
    */
   version?: string;
 }

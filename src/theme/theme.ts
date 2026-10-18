@@ -155,7 +155,7 @@ export const theme = {
     raised: zIndices[1],
     raisedMore: zIndices[2],
     raisedMost: zIndices[3],
-    /** Full-screen mobile menu and floating language toggle. */
+    /** Full-screen mobile menu, floating language toggle and site badge. */
     overlay: zIndices[9],
     /** Header and burger icon, above the mobile menu. */
     header: zIndices[11],

@@ -292,5 +292,7 @@ export const isInBottomLeftCorner = ({ box, screen }: IsInBottomLeftCornerParams
   const topGap = box.y;
   const bottomGap = screen.height - (box.y + box.height);
   const isWholeOnScreen = [leftGap, rightGap, topGap, bottomGap].every(gap => gap >= 0);
-  return isWholeOnScreen && leftGap < rightGap && bottomGap < topGap;
+  const isNearerLeftEdge = leftGap < rightGap;
+  const isNearerBottomEdge = bottomGap < topGap;
+  return isWholeOnScreen && isNearerLeftEdge && isNearerBottomEdge;
 };

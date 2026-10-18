@@ -23,8 +23,8 @@ interface ContentBox extends ScreenBox {
  * browser, so it uses nothing from outside its own body.
  */
 const listContentBoxes = (container: Element): ContentBox[] => {
-  /** Longest label of a text, in characters, enough to find it in the page. */
-  const LABEL_LENGTH = 40;
+  /** Longest label of a text, enough to find it in the page. */
+  const MAX_LABEL_LENGTH_CHARS = 40;
   const CONTROL_AND_MEDIA_SELECTOR = 'a, button, input, select, textarea, img, svg, video, canvas';
 
   const isFixedOnScreen = (element: Element | null) => {
@@ -52,7 +52,7 @@ const listContentBoxes = (container: Element): ContentBox[] => {
     const range = document.createRange();
     range.selectNodeContents(text);
     for (const rect of range.getClientRects()) {
-      boxes.push(toContentBox(rect, content.slice(0, LABEL_LENGTH)));
+      boxes.push(toContentBox(rect, content.slice(0, MAX_LABEL_LENGTH_CHARS)));
     }
   }
   for (const element of container.querySelectorAll(CONTROL_AND_MEDIA_SELECTOR)) {
