@@ -1,4 +1,4 @@
-import { findRawValues } from './testUtils';
+import { findRawThemeValues, findRawValues } from './testUtils';
 
 /** Values found in a source, as `kind value` strings, to compare them at a glance. */
 const valuesIn = source => findRawValues(source).map(({ kind, value }) => `${kind} ${value}`);
@@ -137,5 +137,148 @@ describe('findRawValues', () => {
     ['an object', { height: '72px' }],
   ])('finds nothing in %s', (_description, source) => {
     expect(findRawValues(source)).toEqual([]);
+  });
+});
+
+/** Values found in a theme source, as `kind value` strings. */
+const themeValuesIn = source =>
+  findRawThemeValues(source).map(({ kind, value }) => `${kind} ${value}`);
+
+describe('findRawThemeValues', () => {
+  it('finds the values written by hand in a theme, with their lines', () => {
+    const source = [
+      "import { radii, sizes } from './tokens';",
+      '',
+      'export const theme = {',
+      "  radii: { sm: '8px', md: radii[12] },",
+      '  borders: {',
+      '    card: `${sizes[1]} solid',
+      '      #fff`,',
+      '  },',
+      '} as const;',
+    ].join('\n');
+
+    expect(findRawThemeValues(source)).toEqual([
+      { line: 4, kind: 'literal', value: "'8px'" },
+      { line: 7, kind: 'color', value: '#fff' },
+    ]);
+  });
+
+  it.each([
+    ['a string', "radii: { sm: '8px' }", ["literal '8px'"]],
+    ['a number', 'fontWeights: { bold: 700 }', ['literal 700']],
+    [
+      'a number with its sign',
+      'zIndices: { behind: -1, raised: +1 }',
+      ['literal -1', 'literal +1'],
+    ],
+    [
+      'a template literal without interpolation',
+      'easings: { standard: `ease` }',
+      ['literal `ease`'],
+    ],
+    [
+      'a raw value before an interpolation',
+      'borders: { card: `1px solid ${colors.accent}` }',
+      ['length 1px'],
+    ],
+    [
+      'raw values after an interpolation',
+      "shadows: { card: `${shadowShapes['4-24']} rgba(0, 0, 0, 0.3)` }",
+      ['color rgba('],
+    ],
+    [
+      'raw values between two interpolations',
+      'shadows: { card: `${a} 0 4px ${b} #000` }',
+      ['length 4px', 'color #000'],
+    ],
+    ['a literal inside an interpolation', "card: `${'1px'} solid`", ["literal '1px'"]],
+    ['a constant', "const RADIUS = '8px';", ["literal '8px'"]],
+    ['an array of values', 'opacities: [10, 20]', ['literal 10', 'literal 20']],
+    ['a spread object', "{ ...{ sm: '8px' } }", ["literal '8px'"]],
+    [
+      'the arguments of a function that is not a primitive builder',
+      'radius: Math.max(8, 12)',
+      ['literal 8', 'literal 12'],
+    ],
+    [
+      'the arguments of a builder imported from another module',
+      "import { alphaVariants } from './colors'; alphaVariants({ name: 'accent' });",
+      ["literal 'accent'"],
+    ],
+    [
+      'the arguments of a method of a primitive',
+      "import { palette } from './tokens'; theme = { a: palette.white.replace('#fff', '#000') };",
+      ["literal '#fff'", "literal '#000'"],
+    ],
+    [
+      'the arguments of a method of a primitive read from a namespace import',
+      "import * as tokens from './tokens'; theme = { a: tokens.radii[12].concat('4px') };",
+      ["literal '4px'"],
+    ],
+    [
+      'the arguments of a builder read with brackets',
+      "import * as tokens from './tokens'; tokens['alphaVariants']({ name: 'accent' });",
+      ["literal 'accent'"],
+    ],
+    [
+      'the values after an import of tokens.ts for its side effects',
+      "import './tokens'; const theme = { raised: 1 };",
+      ['literal 1'],
+    ],
+    ['the values read before a syntax error', "const theme = { sm: '8px', md: ", ["literal '8px'"]],
+  ])('finds %s', (_description, source, expected) => {
+    expect(themeValuesIn(source)).toEqual(expected);
+  });
+
+  it.each([
+    ['references to primitives', 'theme = { space: { page: spacing[24] }, accent: palette.plum };'],
+    [
+      'the keys of element accesses',
+      "theme = { a: colors['accent-a55'], b: zIndices[-2], c: tokens.radii[12] };",
+    ],
+    ['the keys of objects', "theme = { 0: radii[0], 'icon-gap': relativeSpacing[70] };"],
+    ['computed keys', "theme = { ['icon-gap']: relativeSpacing[70] };"],
+    ['shorthand properties and spreads', 'theme = { fontSizes, space: { ...spacing } };'],
+    ['negated references', 'theme = { offset: -spacing[8] };'],
+    [
+      'the modules of imports and exports',
+      "import { palette } from './tokens'; export { theme } from './theme'; export * from './x';",
+    ],
+    ['types', "const accent: 'plum' | 1 = palette.plum; theme = { accent } as const;"],
+    ['comments', "theme = {\n  // '8px' by hand\n  /* #fff, 0.2s ease */\n  sm: radii[8],\n};"],
+    [
+      'the arguments of a builder imported from tokens.ts',
+      "import { alphaVariants, rgb } from './tokens';\n" +
+        "colors = { ...alphaVariants({ name: 'accent', rgb: rgb.plum, opacities: [10, 20] as const }) };",
+    ],
+    [
+      'the arguments of a renamed builder',
+      "import { alphaVariants as variants } from './tokens'; variants({ name: 'accent' });",
+    ],
+    [
+      'the arguments of a builder read from a namespace import',
+      "import * as tokens from './tokens'; tokens.alphaVariants({ name: 'accent' });",
+    ],
+    [
+      'the arguments of a default import of tokens.ts',
+      "import build from './tokens'; build({ name: 'accent' });",
+    ],
+    [
+      'a template that only reads tokens and keywords',
+      "card: `${sizes[1]} solid ${colors['foreground-a10']}`, shadow: `${a}, ${b}`",
+    ],
+  ])('allows %s', (_description, source) => {
+    expect(findRawThemeValues(source)).toEqual([]);
+  });
+
+  it.each([
+    ['an empty source', ''],
+    ['undefined', undefined],
+    ['null', null],
+    ['a number', 72],
+    ['an object', { radii: { sm: '8px' } }],
+  ])('finds nothing in %s', (_description, source) => {
+    expect(findRawThemeValues(source)).toEqual([]);
   });
 });
