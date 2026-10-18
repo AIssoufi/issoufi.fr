@@ -51,6 +51,17 @@ pnpm smoke-test https://issoufi.fr   # Check that a deployed site serves the pag
 
 `pnpm smoke-test <site URL>` requests every page of `dist/` on the site, plus an unknown path, and fails unless each answers with the expected status (200, or 404 for the unknown path) and the title and canonical URL of the build. It retries for about 20 seconds while a new deployment spreads, and fails at once when `dist/` is missing or holds no HTML page.
 
+### Link preview image
+
+```bash
+pnpm exec playwright install --only-shell chromium   # Once, and after a Playwright update
+pnpm og-image        # Regenerate public/og-image.jpg
+```
+
+`public/og-image.jpg` is the 1200×630 image that link previews show for every page (`og:image` in `index.html`). `pnpm og-image` (`scripts/og-image/generate-og-image.mjs`) regenerates it from the repository alone: the French texts of the home page (`src/i18n/fr.ts`), the design tokens (`src/theme/theme.ts`), the background photo and the particle field of the home page, and the domain of `SITE_URL` (`src/utils/pages.ts`), which it reads through Vite. Chromium, from Playwright, renders the page that the script builds in the Google Fonts of `index.html`, so the script needs the network, and it stops when a text, a design token or a particle setting is missing, or when a font does not load in one of the weights the page uses. The screenshot is saved as a JPEG of quality 90 (`OG_IMAGE_JPEG_QUALITY`), about 100 kB where a PNG of the same image weighs 470 kB, and the script fails rather than write an image over 300 kB, above which WhatsApp shows no image. The particles are drawn from a fixed seed (`PARTICLE_SEED`), so two runs on the same machine write the same file. The sizes and spacing of the layout are in `scripts/og-image/constants.mjs`.
+
+Run it after changing the texts, the background photo, the colors or the fonts of the home page, look at the image, then commit it with the change: it runs on demand, not in the build or the CI.
+
 ### Tests
 
 ```bash
@@ -59,7 +70,7 @@ pnpm test:watch      # Watch mode
 pnpm test:coverage   # Single run with coverage, HTML report in coverage/index.html
 ```
 
-Tests are `*.spec.jsx` (components), `*.spec.ts` (helpers and hooks, those of `e2e/` included) and `*.spec.js` (CI helpers and the test helpers of `src/pages/testUtils.js`) files next to the code they test. Every component has one. `vite.config.spec.ts` builds the site in memory, with the real config, and checks the generated pages. `pnpm test:coverage` fails when the coverage of `src/`, of the Vite config helpers (`vite/`), of the browser test helpers (`e2e/`) and of the CI helpers (`scripts/ci/utils/`) drops below the thresholds of `vite.config.ts` (`COVERAGE_THRESHOLDS_PERCENT`).
+Tests are `*.spec.jsx` (components), `*.spec.ts` (helpers and hooks, those of `e2e/` included) and `*.spec.js` (helpers of the scripts of `scripts/` and the test helpers of `src/pages/testUtils.js`) files next to the code they test. Every component has one. `vite.config.spec.ts` builds the site in memory, with the real config, and checks the generated pages. `pnpm test:coverage` fails when the coverage of `src/`, of the Vite config helpers (`vite/`), of the browser test helpers (`e2e/`) and of the script helpers (`scripts/ci/utils/` and `scripts/og-image/utils/`) drops below the thresholds of `vite.config.ts` (`COVERAGE_THRESHOLDS_PERCENT`).
 
 ### Browser tests
 
@@ -76,7 +87,7 @@ Playwright is a dev dependency, but its browsers are downloaded apart from `node
 ### Checks
 
 ```bash
-pnpm typecheck      # Type-check src/, vite/, e2e/, the configs and vite.config.spec.ts, then the CI scripts of scripts/, without building
+pnpm typecheck      # Type-check src/, vite/, e2e/, the configs and vite.config.spec.ts, then the scripts of scripts/, without building
 pnpm lint           # Lint with ESLint
 pnpm format:check   # Check that every file follows the Prettier style
 pnpm format         # Format every file with Prettier
@@ -110,7 +121,7 @@ The site is hosted on [Cloudflare Pages](https://pages.cloudflare.com/), in the 
 | Package manager        | pnpm, detected from `pnpm-lock.yaml`                           |
 | Environment variables  | `PNPM_VERSION=10.34.7` (same major version as the CI, pnpm 10) |
 
-- **One HTML file per page**: at build time, a Vite plugin (`vite.config.ts`) fills the `%PAGE_*%` placeholders of `index.html` and emits `projects.html` and `experiences.html` from the same template. Each page gets its own title, description and canonical URL, taken from the `meta` translations of `src/i18n/fr.ts`, so link previews and search engines get them without running JavaScript. Every page shares the same link preview image, `public/og-image.png` (1200×630, under 300 kB, checked by `src/utils/pages.spec.ts`), composed from the home hero: update it when the hero changes. Cloudflare Pages serves these files at `/projects` and `/experiences`. A new route needs an entry in `PAGES` (`src/utils/pages.ts`), with the `folder` of its page in `src/pages`.
+- **One HTML file per page**: at build time, a Vite plugin (`vite.config.ts`) fills the `%PAGE_*%` placeholders of `index.html` and emits `projects.html` and `experiences.html` from the same template. Each page gets its own title, description and canonical URL, taken from the `meta` translations of `src/i18n/fr.ts`, so link previews and search engines get them without running JavaScript. Every page shares the same link preview image, `public/og-image.jpg` (1200×630, under 300 kB, checked by `src/utils/pages.spec.ts`), generated from the home hero by `pnpm og-image` (see Link preview image): regenerate it when the hero changes. Cloudflare Pages serves these files at `/projects` and `/experiences`. A new route needs an entry in `PAGES` (`src/utils/pages.ts`), with the `folder` of its page in `src/pages`.
 - **Language**: the generated pages are in French, the language of a first visit. The FR / EN toggle stores the visitor's choice in `localStorage` (`language` key, `src/i18n/storage.ts`), and the app reads it before its first render, so a reload or a later visit opens in that language, with the title, `lang` attribute and description to match. When the browser blocks the storage, the site opens in French, and a language chosen with the toggle only lasts until the next reload.
 - **Translations**: `src/i18n/fr.ts` holds the French texts, the default and fallback language, and `en.ts` the English ones, under the same keys: add every new text to both files. `en` is typed with `Translations` (`src/i18n/types.ts`), the keys of `fr` with texts of their own, so `pnpm typecheck` names a key missing from either file, and so does `src/i18n/en.spec.ts` in `pnpm test`. Without them, a key forgotten in English would silently show its French text on the English site.
 - **Not found pages**: the plugin also emits `404.html`, with the "page not found" title and a `noindex` tag. Cloudflare Pages serves it with a real `404` status for any path that matches no file. The URL is kept, with no redirect, and the app shows its NotFound page. Because `404.html` exists, Cloudflare's single-page-app fallback is off, which is why every route needs its own HTML file.
@@ -149,6 +160,9 @@ The version follows the commits: `fix` bumps the patch version, `feat` the minor
 │   ├── ci/               # CI scripts: bundle size, coverage summary, smoke test
 │   │   ├── utils/        # Their helpers, one file per topic, each with its spec
 │   │   └── constants.mjs # Budgets, file patterns and smoke test settings
+│   ├── og-image/         # pnpm og-image: renders public/og-image.jpg from the home page
+│   │   ├── utils/        # Its helpers (texts, template, particles, fonts, HTML, seeded random), each with its spec
+│   │   └── constants.mjs # Size, weight limit, JPEG quality, sources and layout of the image
 │   └── tsconfig.json     # Type-checks the scripts, run by pnpm typecheck
 ├── src/
 │   ├── App/              # Root component, router, layout and the lazy loading of the pages

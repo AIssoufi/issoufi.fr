@@ -1,9 +1,10 @@
 {
-  // Type-checks the CI scripts: JavaScript run by Node.js, typed with JSDoc. The specs stay out,
-  // since they pass bad values on purpose.
+  // Type-checks the scripts: JavaScript run by Node.js, typed with JSDoc. The specs stay out,
+  // since they pass bad values on purpose. The DOM types cover the functions that the Open Graph
+  // image script runs in Chromium.
   "compilerOptions": {
     "target": "ES2023",
-    "lib": ["ES2023"],
+    "lib": ["ES2023", "DOM", "DOM.Iterable"],
     "module": "NodeNext",
     "moduleResolution": "NodeNext",
     "types": ["node"],

@@ -117,9 +117,15 @@ export default defineConfig(({ mode }) => {
       setupFiles: ['./src/setupTests.ts'],
       coverage: {
         provider: 'v8',
-        // The helpers of the CI scripts and of the browser tests are measured, not the scripts and
-        // the Playwright tests that use them
-        include: ['src/**/*.{ts,tsx}', 'vite/**/*.ts', 'e2e/**/*.ts', 'scripts/ci/utils/**/*.mjs'],
+        // The helpers of the scripts and of the browser tests are measured, not the scripts and the
+        // Playwright tests that use them
+        include: [
+          'src/**/*.{ts,tsx}',
+          'vite/**/*.ts',
+          'e2e/**/*.ts',
+          'scripts/ci/utils/**/*.mjs',
+          'scripts/og-image/utils/**/*.mjs',
+        ],
         exclude: [
           '**/*.spec.*',
           // The browser tests run in Playwright, not in Vitest
