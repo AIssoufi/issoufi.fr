@@ -29,6 +29,16 @@ describe('Home', () => {
     expect(screen.getByText('Je vous aide à développer vos applications web')).toBeInTheDocument();
   });
 
+  it('spells the second line of the title right, with UX and UI as animated words', () => {
+    renderHome();
+
+    expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent(
+      'passionné par l’UX et l’UI Design',
+    );
+    expect(screen.getByText('UX')).toBeInTheDocument();
+    expect(screen.getByText('UI')).toBeInTheDocument();
+  });
+
   it('links to the projects and experiences pages', () => {
     renderHome();
 

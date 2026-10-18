@@ -168,7 +168,7 @@ export const en = {
         'Complete design and development of an event website with reservation system and online payment.',
       proj1B1: 'Screen architecture and mockups',
       proj1B2:
-        'React development with ticketing integration (Fasticket) and card payment (WeezeEvent)',
+        'React development with ticketing integration (Fasticket) and card payment (Weezevent)',
       proj1B3: 'Maintenance of existing AngularJS websites',
     },
   },

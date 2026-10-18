@@ -17,9 +17,9 @@ describe('Forbidden', () => {
     expect(screen.getByText('403')).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: 'Accès refusé' })).toBeInTheDocument();
     expect(
-      screen.getByText("Vous n'avez pas l'autorisation d'accéder à cette page."),
+      screen.getByText('Vous n’avez pas l’autorisation d’accéder à cette page.'),
     ).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: "Retour à l'accueil" })).toHaveAttribute('href', '/');
+    expect(screen.getByRole('link', { name: 'Retour à l’accueil' })).toHaveAttribute('href', '/');
   });
 
   it('accepts a custom title and message', () => {
