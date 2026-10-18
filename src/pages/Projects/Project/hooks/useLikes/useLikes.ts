@@ -36,9 +36,10 @@ export function useLikes(): UseLikesResult {
 
   const toggleLike = useCallback(
     (id: number) => {
-      const isLiked = !likedIds.has(id);
-      setLikedIds(setLike({ likedIds, id, isLiked }));
-      storeLike({ id, isLiked });
+      // The state after the click: a project not liked yet becomes liked, and the reverse
+      const isLikedFromNow = !likedIds.has(id);
+      setLikedIds(setLike({ likedIds, id, isLiked: isLikedFromNow }));
+      storeLike({ id, isLiked: isLikedFromNow });
       setAnimatingIds(previous => new Set(previous).add(id));
 
       const timer = setTimeout(() => {

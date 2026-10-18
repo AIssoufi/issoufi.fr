@@ -40,6 +40,15 @@ describe('useLikes', () => {
     expect(likedIdsOf(result)).toEqual([1, 5]);
   });
 
+  it('reads the storage on the first render only, not on the next ones', () => {
+    const { result, rerender } = renderHook(() => useLikes());
+
+    localStorage.setItem(LIKED_PROJECTS_STORAGE_KEY, '[1]');
+    rerender();
+
+    expect(result.current.likedIds.size).toBe(0);
+  });
+
   it('likes nothing when the stored likes are not a list of ids', () => {
     localStorage.setItem(LIKED_PROJECTS_STORAGE_KEY, '{"1":true}');
 
