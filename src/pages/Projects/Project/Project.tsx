@@ -5,13 +5,8 @@ import LikeIcon from './icons/heart.svg?react';
 import NextIcon from './icons/next.svg?react';
 import PreviousIcon from './icons/previous.svg?react';
 
-import {
-  CARD_HOVER_LIFT_PX,
-  CARD_MAX_TILT_DEG,
-  CARD_PERSPECTIVE_PX,
-  NO_LIKE,
-  PAGE_SIZE,
-} from './constants';
+import { NO_LIKE, PAGE_SIZE } from './constants';
+import { useCardTilt } from './hooks/useCardTilt';
 import { useLikes } from './hooks/useLikes';
 import {
   CtrlItem,
@@ -33,7 +28,7 @@ import {
   Thumbnail,
 } from './Project.styled';
 import type { ProjectItemData } from './types';
-import { getCardTilt, getNextPageStart, getPreviousPageStart, getProjectLinkUrl } from './utils';
+import { getNextPageStart, getPreviousPageStart, getProjectLinkUrl } from './utils';
 
 /** Props of {@link Project}. */
 interface ProjectProps {
@@ -84,21 +79,7 @@ const Project = ({ title, projects = NO_PROJECTS }: ProjectProps) => {
     setPageStart(currentStart => getPreviousPageStart({ currentStart, pageSize: PAGE_SIZE }));
   };
 
-  const handleCardMouseMove = (event: React.MouseEvent<HTMLLIElement>) => {
-    const card = event.currentTarget;
-    const { rotateX, rotateY, x, y } = getCardTilt({
-      pointer: { x: event.clientX, y: event.clientY },
-      rect: card.getBoundingClientRect(),
-      maxTilt: CARD_MAX_TILT_DEG,
-    });
-    card.style.setProperty('--mouse-x', `${x}px`);
-    card.style.setProperty('--mouse-y', `${y}px`);
-    card.style.transform = `perspective(${CARD_PERSPECTIVE_PX}px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) translateY(-${CARD_HOVER_LIFT_PX}px)`;
-  };
-
-  const handleCardMouseLeave = (event: React.MouseEvent<HTMLLIElement>) => {
-    event.currentTarget.style.transform = '';
-  };
+  const cardTilt = useCardTilt();
 
   return (
     <Section>
@@ -147,8 +128,7 @@ const Project = ({ title, projects = NO_PROJECTS }: ProjectProps) => {
             <ProjectItem
               key={id}
               $displayAll={isShowingAll}
-              onMouseMove={handleCardMouseMove}
-              onMouseLeave={handleCardMouseLeave}
+              {...cardTilt}
             >
               <ImageContainer>
                 <Thumbnail

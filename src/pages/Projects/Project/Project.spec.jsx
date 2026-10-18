@@ -4,6 +4,7 @@ import userEvent from '@testing-library/user-event';
 import i18n from '../../../i18n';
 import { theme } from '../../../theme';
 import { holdsFunctionSource } from '../../../cssRuleGuard';
+import { stubMatchMedia } from '../../../mediaQueryTestUtils';
 import { declaredStyle, listStyleRules } from '../../../styleTestUtils';
 import { INTERACTIVE_SELECTOR } from '../../testUtils';
 
@@ -113,6 +114,7 @@ const LONG_TECH_LINE_PROJECT = project(5, 'Chess engine', {
 
 describe('Project', () => {
   afterEach(async () => {
+    vi.unstubAllGlobals();
     await act(() => i18n.changeLanguage('fr'));
   });
 
@@ -443,6 +445,22 @@ describe('Project', () => {
 
     fireEvent.mouseLeave(card);
     expect(card.style.transform).toBe('');
+  });
+
+  it('keeps the cards flat with reduced motion, their light still under the pointer', () => {
+    stubMatchMedia({ matches: true });
+    render(<Project projects={projects} />);
+    const card = cardOf('Chess');
+    vi.spyOn(card, 'getBoundingClientRect').mockReturnValue(CARD_BOX);
+
+    fireEvent.mouseMove(card, {
+      clientX: CARD_BOX.left + CARD_POINTER.x,
+      clientY: CARD_BOX.top + CARD_POINTER.y,
+    });
+
+    expect(card.style.transform).toBe('');
+    expect(card.style.getPropertyValue('--mouse-x')).toBe(`${CARD_POINTER.x}px`);
+    expect(card.style.getPropertyValue('--mouse-y')).toBe(`${CARD_POINTER.y}px`);
   });
 
   it('leaves the tech line of a project without tools empty', () => {
