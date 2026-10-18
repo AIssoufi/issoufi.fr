@@ -69,7 +69,7 @@ export const TITLE_TAG_PATTERN = /<title>([^<]*)<\/title>/i;
 export const CANONICAL_LINK_TAG_PATTERN = /<link\s[^>]*rel="canonical"[^>]*>/i;
 
 /** `href` attribute of a tag. Its first group captures the URL, without the quotes. */
-export const HREF_ATTRIBUTE_PATTERN = /href="([^"]*)"/i;
+export const HREF_ATTRIBUTE_PATTERN = /\shref="([^"]*)"/i;
 
 /** Comments of an HTML page, whose tags the browser ignores. */
 export const HTML_COMMENT_PATTERN = /<!--[\s\S]*?-->/g;

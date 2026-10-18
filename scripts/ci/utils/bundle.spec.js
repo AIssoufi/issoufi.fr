@@ -1,15 +1,14 @@
 import {
+  checkBundleBudgets,
   checkScriptBudget,
   findLargeImages,
   findUncountedPaths,
   isBudgetedScript,
   isBuildFile,
-  readInitialLoadPaths,
   renderBundleReport,
   renderLargeImagesSection,
   renderScriptsTable,
   splitInitialLoad,
-  toBuildPath,
 } from './bundle.mjs';
 
 describe('isBuildFile', () => {
@@ -59,137 +58,6 @@ describe('isBudgetedScript', () => {
     'leaves out the invalid path %s',
     path => {
       expect(isBudgetedScript(path)).toBe(false);
-    },
-  );
-});
-
-describe('toBuildPath', () => {
-  it.each([
-    ['/assets/index-abc.js', 'assets/index-abc.js'],
-    ['./assets/index-abc.css', 'assets/index-abc.css'],
-    ['assets/index-abc.js', 'assets/index-abc.js'],
-    ['/assets/index-abc.js?v=2', 'assets/index-abc.js'],
-    ['/assets/index-abc.css#theme', 'assets/index-abc.css'],
-    ['  /assets/index-abc.js\n', 'assets/index-abc.js'],
-  ])('turns %o into %s', (url, path) => {
-    expect(toBuildPath(url)).toBe(path);
-  });
-
-  it.each([
-    'https://fonts.googleapis.com/css2?family=Montserrat',
-    'http://example.com/a.js',
-    'HTTPS://EXAMPLE.COM/A.JS',
-    '//cdn.example.com/a.js',
-    'data:text/css,body{}',
-  ])('gives an empty string for the external URL %s', url => {
-    expect(toBuildPath(url)).toBe('');
-  });
-
-  it.each(['', '   ', '/', './', '?v=2', '#top'])(
-    'gives an empty string for the URL without a path %o',
-    url => {
-      expect(toBuildPath(url)).toBe('');
-    },
-  );
-
-  it.each([undefined, null, 42, {}, ['/assets/a.js']])('gives an empty string for %o', url => {
-    expect(toBuildPath(url)).toBe('');
-  });
-});
-
-describe('readInitialLoadPaths', () => {
-  const homePage = `<!doctype html>
-<html lang="fr">
-  <head>
-    <link
-      rel="icon"
-      href="/favicon.ico"
-    />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Montserrat&display=swap"
-      rel="stylesheet"
-    />
-    <script type="module" crossorigin src="/assets/index-abc.js"></script>
-    <link rel="modulepreload" crossorigin href="/assets/vendor-abc.js">
-    <link rel="stylesheet" crossorigin href="/assets/index-abc.css">
-  </head>
-  <body>
-    <div id="welcome"></div>
-  </body>
-</html>`;
-
-  it('lists the scripts, module preloads and style sheets of the build, scripts first', () => {
-    expect(readInitialLoadPaths(homePage)).toEqual([
-      'assets/index-abc.js',
-      'assets/vendor-abc.js',
-      'assets/index-abc.css',
-    ]);
-  });
-
-  it('reads the attributes in any order and on any number of lines', () => {
-    const html = [
-      '<link\n  href="/assets/a.css"\n  crossorigin\n  rel="stylesheet"\n/>',
-      '<script\n  src="/assets/a.js"\n  type="module"\n></script>',
-    ].join('\n');
-    expect(readInitialLoadPaths(html)).toEqual(['assets/a.js', 'assets/a.css']);
-  });
-
-  it('reads tags, attributes and relations in any case', () => {
-    const html = '<SCRIPT SRC="/assets/a.js"></SCRIPT><LINK REL="StyleSheet" HREF="/assets/a.css">';
-    expect(readInitialLoadPaths(html)).toEqual(['assets/a.js', 'assets/a.css']);
-  });
-
-  it('reads a link that lists several relations', () => {
-    const html = '<link rel="preload  stylesheet" href="/assets/a.css">';
-    expect(readInitialLoadPaths(html)).toEqual(['assets/a.css']);
-  });
-
-  it('lists each file once', () => {
-    const html = [
-      '<script type="module" src="/assets/a.js"></script>',
-      '<link rel="modulepreload" href="/assets/a.js">',
-      '<link rel="modulepreload" href="./assets/a.js?v=2">',
-    ].join('');
-    expect(readInitialLoadPaths(html)).toEqual(['assets/a.js']);
-  });
-
-  it('keeps the valid tags next to malformed ones', () => {
-    const html = [
-      '<script src></script>',
-      '<script src="/assets/a.js"></script>',
-      '<link rel="stylesheet">',
-      '<link rel="stylesheet" href="/assets/a.css">',
-    ].join('');
-    expect(readInitialLoadPaths(html)).toEqual(['assets/a.js', 'assets/a.css']);
-  });
-
-  it.each([
-    ['an inline script', '<script>window.ready = true;</script>'],
-    ['a module script without src', '<script type="module">import "/assets/a.js";</script>'],
-    ['a script with an empty src', '<script src=""></script>'],
-    ['a src without a value', '<script src></script>'],
-    ['a src without quotes', '<script src=/assets/a.js></script>'],
-    ['a src in single quotes', "<script src='/assets/a.js'></script>"],
-    ['a data-src attribute', '<script data-src="/assets/a.js"></script>'],
-    ['an unclosed script tag', '<script src="/assets/a.js"'],
-    ['an external script', '<script src="https://example.com/a.js"></script>'],
-    ['a link without rel', '<link href="/assets/a.css">'],
-    ['a link without href', '<link rel="stylesheet">'],
-    ['a link with an empty rel', '<link rel="" href="/assets/a.css">'],
-    ['an icon', '<link rel="icon" href="/favicon.ico">'],
-    ['a prefetch', '<link rel="prefetch" href="/assets/a.js">'],
-    ['a stylesheet named outside rel', '<link title="stylesheet" href="/assets/a.css">'],
-    ['an external style sheet', '<link rel="stylesheet" href="https://fonts.googleapis.com/css2">'],
-    ['a commented-out script', '<!-- <script src="/assets/a.js"></script> -->'],
-    ['a commented-out link', '<!--\n<link rel="stylesheet" href="/assets/a.css">\n-->'],
-  ])('leaves out %s', (_, html) => {
-    expect(readInitialLoadPaths(html)).toEqual([]);
-  });
-
-  it.each([undefined, null, '', 42, {}, ['<script src="/assets/a.js"></script>']])(
-    'gives an empty list for %o',
-    html => {
-      expect(readInitialLoadPaths(html)).toEqual([]);
     },
   );
 });
@@ -313,6 +181,97 @@ describe('checkScriptBudget', () => {
     'throws for the invalid budget %s',
     budgetBytes => {
       expect(() => checkScriptBudget({ scripts: [], budgetBytes })).toThrow(RangeError);
+    },
+  );
+});
+
+describe('checkBundleBudgets', () => {
+  const main = { path: 'assets/index-abc.js', bytes: 403_180, gzipBytes: 131_860 };
+  const page = { path: 'assets/Projects-abc.js', bytes: 14_140, gzipBytes: 4_520 };
+  const budgets = { budgetBytes: 210_000, initialLoadBudgetBytes: 150_000 };
+
+  it('checks the initial load and all the scripts against their budgets', () => {
+    expect(
+      checkBundleBudgets({ scripts: [page, main], initialPaths: [main.path], ...budgets }),
+    ).toEqual({
+      initialScripts: [main],
+      otherScripts: [page],
+      hasInitialLoad: true,
+      initialLoad: { totalGzipBytes: 131_860, isOverBudget: false },
+      total: { totalGzipBytes: 136_380, isOverBudget: false },
+    });
+  });
+
+  it('fails the initial load over its budget, even with the total within its own', () => {
+    const { initialLoad, total } = checkBundleBudgets({
+      scripts: [page, main],
+      initialPaths: [main.path],
+      budgetBytes: 210_000,
+      initialLoadBudgetBytes: 131_859,
+    });
+    expect(initialLoad.isOverBudget).toBe(true);
+    expect(total.isOverBudget).toBe(false);
+  });
+
+  it('fails the total over its budget, even with the initial load within its own', () => {
+    const { initialLoad, total } = checkBundleBudgets({
+      scripts: [page, main],
+      initialPaths: [main.path],
+      budgetBytes: 136_379,
+      initialLoadBudgetBytes: 150_000,
+    });
+    expect(initialLoad.isOverBudget).toBe(false);
+    expect(total.isOverBudget).toBe(true);
+  });
+
+  it('accepts sizes equal to the budgets', () => {
+    const { initialLoad, total } = checkBundleBudgets({
+      scripts: [page, main],
+      initialPaths: [main.path],
+      budgetBytes: 136_380,
+      initialLoadBudgetBytes: 131_860,
+    });
+    expect(initialLoad.isOverBudget).toBe(false);
+    expect(total.isOverBudget).toBe(false);
+  });
+
+  it.each([undefined, null, {}, [], main.path, ['register-sw.js']])(
+    'has no initial load for the initial paths %o',
+    initialPaths => {
+      expect(checkBundleBudgets({ scripts: [page, main], initialPaths, ...budgets })).toEqual({
+        initialScripts: [],
+        otherScripts: [page, main],
+        hasInitialLoad: false,
+        initialLoad: { totalGzipBytes: 0, isOverBudget: false },
+        total: { totalGzipBytes: 136_380, isOverBudget: false },
+      });
+    },
+  );
+
+  it.each([undefined, null, {}, [], [null, { gzipBytes: 9_000 }, { path: '' }]])(
+    'has no initial load and sizes of 0 for the scripts %o',
+    scripts => {
+      expect(checkBundleBudgets({ scripts, initialPaths: [main.path], ...budgets })).toEqual({
+        initialScripts: [],
+        otherScripts: [],
+        hasInitialLoad: false,
+        initialLoad: { totalGzipBytes: 0, isOverBudget: false },
+        total: { totalGzipBytes: 0, isOverBudget: false },
+      });
+    },
+  );
+
+  it.each([0, -1, NaN, Infinity, undefined, null, '210000'])(
+    'throws for the invalid budget %s',
+    budgetBytes => {
+      expect(() => checkBundleBudgets({ ...budgets, budgetBytes })).toThrow(RangeError);
+    },
+  );
+
+  it.each([0, -1, NaN, Infinity, undefined, null, '150000'])(
+    'throws for the invalid initial load budget %s',
+    initialLoadBudgetBytes => {
+      expect(() => checkBundleBudgets({ ...budgets, initialLoadBudgetBytes })).toThrow(RangeError);
     },
   );
 });
@@ -565,14 +524,15 @@ describe('renderBundleReport', () => {
     expect(report).toBe(renderBundleReport({ scripts, initialPaths, ...limits }));
   });
 
-  it.each([undefined, null, {}, [], main.path])(
-    'reports an initial load of 0 for the initial paths %o',
+  it.each([undefined, null, {}, [], main.path, ['register-sw.js']])(
+    'reports the initial load as not found for the initial paths %o',
     paths => {
       const report = renderBundleReport({ scripts, initialPaths: paths, ...limits });
       expect(report).toContain('| **Initial load** (`index.html`) | | **0.0 kB** |');
       expect(report).toContain(
-        '✅ Initial load within budget: 0.0 kB gzip for a budget of 150.0 kB.',
+        '❌ Initial load not found: `index.html` references no script or style sheet of the build.',
       );
+      expect(report).not.toContain('Initial load within budget');
       expect(report).toContain('✅ Total within budget: 136.4 kB gzip for a budget of 210.0 kB.');
     },
   );
@@ -644,7 +604,7 @@ describe('renderBundleReport', () => {
   );
 
   it.each([undefined, null, {}, 'assets/index.js'])(
-    'reports sizes of 0 and no image for the lists %o',
+    'reports sizes of 0, no initial load and no image for the lists %o',
     list => {
       const report = renderBundleReport({
         scripts: list,
@@ -661,7 +621,7 @@ describe('renderBundleReport', () => {
           '| **Initial load** (`index.html`) | | **0.0 kB** |',
           '| **Total** | | **0.0 kB** |',
           '',
-          '✅ Initial load within budget: 0.0 kB gzip for a budget of 150.0 kB.',
+          '❌ Initial load not found: `index.html` references no script or style sheet of the build.',
           '',
           '✅ Total within budget: 0.0 kB gzip for a budget of 210.0 kB.',
           '',

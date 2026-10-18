@@ -16,14 +16,13 @@ import {
   SCRIPT_BUDGET_GZIP_BYTES,
 } from './constants.mjs';
 import {
-  checkScriptBudget,
+  checkBundleBudgets,
   findLargeImages,
   findUncountedPaths,
   isBudgetedScript,
-  readInitialLoadPaths,
   renderBundleReport,
-  splitInitialLoad,
 } from './utils/bundle.mjs';
+import { readInitialLoadPaths } from './utils/html.mjs';
 import { appendJobSummary } from './utils/job-summary.mjs';
 import { formatKilobytes } from './utils/numbers.mjs';
 
@@ -72,10 +71,14 @@ findUncountedPaths({ scripts, initialPaths }).forEach(path => {
   );
 });
 
-const { initialScripts } = splitInitialLoad({ scripts, initialPaths });
-const hasInitialScripts = initialScripts.length > 0;
-if (!hasInitialScripts) {
-  // The home page always loads the main chunk: finding none means the HTML is no longer read right
+const { hasInitialLoad, initialLoad, total } = checkBundleBudgets({
+  scripts,
+  initialPaths,
+  budgetBytes: SCRIPT_BUDGET_GZIP_BYTES,
+  initialLoadBudgetBytes: INITIAL_LOAD_BUDGET_GZIP_BYTES,
+});
+
+if (!hasInitialLoad) {
   console.log(
     `::error::${HOME_PAGE_FILE} references no script or style sheet of the build, so its initial load cannot be checked.`,
   );
@@ -85,23 +88,19 @@ if (!hasInitialScripts) {
 const budgets = [
   {
     name: `Initial load of ${HOME_PAGE_FILE}`,
-    budgetedScripts: initialScripts,
+    check: initialLoad,
     budgetBytes: INITIAL_LOAD_BUDGET_GZIP_BYTES,
     advice: 'Load what the home page does not need with a lazy import, or remove code,',
   },
   {
     name: 'All scripts and styles',
-    budgetedScripts: scripts,
+    check: total,
     budgetBytes: SCRIPT_BUDGET_GZIP_BYTES,
     advice: 'Split the bundle or remove code',
   },
 ];
 
-budgets.forEach(({ name, budgetedScripts, budgetBytes, advice }) => {
-  const { totalGzipBytes, isOverBudget } = checkScriptBudget({
-    scripts: budgetedScripts,
-    budgetBytes,
-  });
+budgets.forEach(({ name, check: { totalGzipBytes, isOverBudget }, budgetBytes, advice }) => {
   const verdict = `${name}: ${formatKilobytes(totalGzipBytes)} gzip, for a budget of ${formatKilobytes(budgetBytes)}`;
 
   if (isOverBudget) {
