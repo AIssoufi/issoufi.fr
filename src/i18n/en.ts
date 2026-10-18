@@ -58,6 +58,9 @@ export const en = {
     freelance: 'Freelance projects',
     showLess: 'Show less',
     showAll: 'Show all ({{count}})',
+    previousPage: 'Previous page',
+    nextPage: 'Next page',
+    like: 'Like {{name}}',
   },
   exp: {
     pageTitle: 'Experience',
