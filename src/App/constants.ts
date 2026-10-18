@@ -13,3 +13,14 @@ export const STALE_CHUNK_RELOAD_STORAGE_KEY = 'staleChunkReloadAt';
  * reload is missing from the current deployment too: another reload would loop forever.
  */
 export const STALE_CHUNK_RELOAD_COOLDOWN_MS = 60_000;
+
+/**
+ * Width of the small buttons of the floating controls: each button of the language toggle, the
+ * indicator sliding under the active one, and the GitHub button of the site badge.
+ */
+export const BUTTON_WIDTH_PX = 36;
+/**
+ * Height of the small buttons of the floating controls: each button of the language toggle, the
+ * indicator sliding under the active one, and the GitHub button of the site badge.
+ */
+export const BUTTON_HEIGHT_PX = 32;
