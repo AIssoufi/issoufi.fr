@@ -49,7 +49,7 @@ class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
   }
 
   render() {
-    const { children = null, fallback = null } = this.props;
+    const { children, fallback } = this.props;
 
     return this.state.hasError ? fallback : children;
   }
