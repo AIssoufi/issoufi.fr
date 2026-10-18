@@ -142,14 +142,14 @@ The site is hosted on [Cloudflare Pages](https://pages.cloudflare.com/), in the 
 [`CHANGELOG.md`](CHANGELOG.md) is written by [release-please](https://github.com/googleapis/release-please) from the Conventional Commits, never by hand:
 
 1. Each push to `develop` updates a release pull request against `develop` (_chore: release x.y.z_), with the next version in `package.json` and the new `CHANGELOG.md` entry. The workflow `.github/workflows/release.yml` maintains it. GitHub Actions opens it, so GitHub may hold its CI like a first-time contributor's: click _Approve workflows to run_ on the pull request, since its checks are required to merge it.
-2. Merging it tags the version (`vX.Y.Z`) and publishes a GitHub release.
+2. Merging it tags the version (`vX.Y.Z`) and publishes a GitHub release. GitHub attaches the source code to it (zip and tar.gz), and the `standalone-build` job of the same workflow attaches `issoufi.fr-vX.Y.Z.zip`, the standalone build below.
 3. A pull request from `develop` to `main` then puts the release in production.
 
 The version follows the commits: `fix` bumps the patch version, `feat` the minor version, and a breaking change (`feat!:` or a `BREAKING CHANGE:` footer) the major version. The changelog lists features, fixes, performance improvements, reverts, refactors and documentation; `build`, `ci`, `test`, `style` and `chore` commits stay out of it (`release-please-config.json`). It starts with the React 19 and Vite rewrite of March 2026.
 
 ### Standalone build
 
-`pnpm build:standalone` builds to `dist-standalone/` a copy of the site that a visitor opens with a double click on `index.html`, with no server, no Node.js and nothing to install, every page and the language toggle included. Its `README.txt` (`vite/standalone/README.txt`) says so in French and in English. The site requests nothing from issoufi.fr; only the fonts come from Google Fonts, and the browser shows its own offline.
+`issoufi.fr-vX.Y.Z.zip` holds one folder, `issoufi.fr-vX.Y.Z/`, with the site as it was at that version: a visitor unzips it and opens `index.html` with a double click, with no server, no Node.js and nothing to install, every page and the language toggle included. Its `README.txt` (`vite/standalone/README.txt`) says so in French and in English. The site requests nothing from issoufi.fr; only the fonts come from Google Fonts, and the browser shows its own offline.
 
 The production build cannot open from the disk: its URLs are absolute (`/assets/…`), which point to the root of the disk under `file://`, `BrowserRouter` would read the path of the file as the route and show the not found page everywhere, and browsers refuse to load module scripts, such as the chunks of the lazily loaded pages, from `file://`. `pnpm build:standalone` therefore builds it again with `vite.standalone.config.ts`, which takes the config of `vite.config.ts` as it is and adds four plugins:
 
@@ -160,6 +160,8 @@ The production build cannot open from the disk: its URLs are absolute (`/assets/
 
 The production build and its deployment do not change: neither `vite.config.ts` nor the code of the app knows about the standalone build. `vite.standalone.config.spec.ts` builds it in memory and checks that `index.html` is its only page and loads no script from a file, that the app imports the hash router, that no URL of a file of `public/` is absolute and that the `README.txt` is there; the helpers are in `vite/standalone/utils.ts`, with their spec. To try it, run `pnpm build:standalone` and open `dist-standalone/index.html` in a browser.
 
+The job runs only when release-please has just created a release (its `release_created` output), checks out the tagged commit, runs `pnpm build:standalone`, zips `dist-standalone/` under the name of the archive and uploads it with `gh release upload` (`--clobber`, so running the job again replaces it). The release workflow needs no other secret than its own token, which may write the contents of the repository.
+
 ## 📁 Project Structure
 
 ```
@@ -168,7 +170,7 @@ The production build and its deployment do not change: neither `vite.config.ts` 
 │   └── wt.toml           # Worktrunk: installs the dependencies and writes the port of each worktree
 ├── .github/
 │   ├── actions/setup/    # Composite action: pnpm, Node.js and the dependencies, with a cache
-│   ├── workflows/        # ci.yml (checks, build, browser test, deployment, smoke test), release.yml, rebuild.yml
+│   ├── workflows/        # ci.yml (checks, build, browser test, deployment, smoke test), release.yml (release pull request, standalone build of each release), rebuild.yml
 │   └── dependabot.yml    # Weekly dependency updates against develop
 ├── .husky/               # Git hooks: lint-staged before a commit, commitlint on its message
 ├── e2e/                  # Browser tests (*.e2e.ts) run by Playwright on the build, their helpers and constants
