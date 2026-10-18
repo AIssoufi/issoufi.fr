@@ -17,7 +17,7 @@ export const Container = styled.header`
     top: 0;
     left: 0;
     right: 0;
-    height: 72px;
+    height: ${th.size(72)};
     backdrop-filter: ${th('blurs.12')};
     -webkit-backdrop-filter: ${th('blurs.12')};
     background: linear-gradient(180deg, ${th.color('shade-a55')} 0%, ${th.color('shade-a0')} 100%);
@@ -55,9 +55,9 @@ export const Menu = styled.div<MenuProps>`
     props.$isSticky &&
     css`
       position: fixed;
-      top: 20px;
+      top: ${th.space(20)};
       z-index: ${th.zIndex('raised')};
-      right: 20px;
+      right: ${th.space(20)};
     `}
 `;
 

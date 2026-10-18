@@ -1,6 +1,8 @@
 import styled, { css, keyframes, th } from '@xstyled/styled-components';
 
 import List from '../../../components/List';
+import { theme } from '../../../theme';
+import { CARD_PERSPECTIVE_PX } from './constants';
 
 const heartPop = keyframes`
   0%   { transform: scale(1); }
@@ -10,15 +12,19 @@ const heartPop = keyframes`
   100% { transform: scale(1); }
 `;
 
+// Keyframes have no theme context, so they read the theme object rather than the th helpers
 const countBump = keyframes`
   0%   { transform: translateY(0); opacity: 1; }
-  40%  { transform: translateY(-6px); opacity: 0; }
-  41%  { transform: translateY(6px); opacity: 0; }
+  40%  { transform: translateY(-${theme.space[6]}); opacity: 0; }
+  41%  { transform: translateY(${theme.space[6]}); opacity: 0; }
   100% { transform: translateY(0); opacity: 1; }
 `;
 
 // Space around each card, which the "Show all" grid takes off its padding to line the cards up
 const cardMargin = th.space(5);
+
+// Width of a card in the row of three, less the margins on both of its sides
+const cardBasis = css`calc(33.333% - 2 * ${cardMargin})`;
 
 export const Section = styled.section`
   height: max-content;
@@ -68,7 +74,7 @@ export const SectionControls = styled.div`
 
 export const CtrlItem = styled.button`
   order: 3;
-  height: 32px;
+  height: ${th.size(32)};
   border-radius: ${th.radius('pill')};
   padding: 0 ${th.space(14)};
   font-size: ${th.fontSize(13)};
@@ -96,8 +102,8 @@ export const IconBtn = styled.button`
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 36px;
-  height: 36px;
+  width: ${th.size(36)};
+  height: ${th.size(36)};
   padding: 0;
   border: ${th.border('card')};
   border-radius: ${th.radius('circle')};
@@ -111,8 +117,8 @@ export const IconBtn = styled.button`
   cursor: pointer;
 
   > svg {
-    width: 16px;
-    height: 16px;
+    width: ${th.size(16)};
+    height: ${th.size(16)};
     display: block;
   }
 
@@ -159,19 +165,19 @@ export const ProjectItem = styled.li<{ $displayAll?: boolean }>`
   display: flex;
   flex-direction: column;
   margin: ${cardMargin};
-  flex: 0 0 calc(33.333% - 10px);
-  min-width: 260px;
+  flex: 0 0 ${cardBasis};
+  min-width: ${th.size(260)};
   /* Keeps content-box: the 260px minimum and the flex basis leave out the page gutter that pads
      the first and last cards, so the gutter widens them instead of narrowing their content */
   box-sizing: content-box;
   transition:
-    transform 0.15s ease,
-    box-shadow 0.15s ease;
+    transform ${th.duration(150)} ${th.timingFunction('standard')},
+    box-shadow ${th.duration(150)} ${th.timingFunction('standard')};
   will-change: transform;
   transform-style: preserve-3d;
 
   &:not(:hover) {
-    transform: perspective(800px) rotateX(0deg) rotateY(0deg) translateY(0px);
+    transform: perspective(${CARD_PERSPECTIVE_PX}px) rotateX(0deg) rotateY(0deg) translateY(0px);
     transition: transform ${th.duration(400)} ${th.timingFunction('standard')};
   }
 
@@ -184,8 +190,8 @@ export const ProjectItem = styled.li<{ $displayAll?: boolean }>`
   }
 
   @media (min-width: ${th('screens.tablet')}) {
-    flex: ${props => (props.$displayAll ? '1 1 auto' : '0 0 calc(33.333% - 10px)')};
-    min-width: ${props => (props.$displayAll ? 'unset' : '260px')};
+    flex: ${props => (props.$displayAll ? '1 1 auto' : css`0 0 ${cardBasis}`)};
+    min-width: ${props => (props.$displayAll ? 'unset' : th.size(260))};
 
     &:first-child {
       padding-left: 0;
@@ -198,7 +204,7 @@ export const ProjectItem = styled.li<{ $displayAll?: boolean }>`
 `;
 
 export const ImageContainer = styled.header`
-  height: 222px;
+  height: ${th.size(222)};
   border-radius: ${th.radius('md')};
   overflow: hidden;
   position: relative;
@@ -256,8 +262,8 @@ export const Thumbnail = styled.img`
 
 export const LikeButton = styled.button<{ $liked: boolean; $animating: boolean }>`
   position: absolute;
-  top: 10px;
-  right: 10px;
+  top: ${th.space(10)};
+  right: ${th.space(10)};
   z-index: ${th.zIndex('raisedMost')};
   display: flex;
   align-items: center;
@@ -271,19 +277,19 @@ export const LikeButton = styled.button<{ $liked: boolean; $animating: boolean }
   -webkit-backdrop-filter: ${th('blurs.10')};
   cursor: pointer;
   transition:
-    border-color 0.2s,
-    background 0.2s,
-    transform 0.15s;
+    border-color ${th.duration(200)},
+    background ${th.duration(200)},
+    transform ${th.duration(150)};
 
   > svg {
-    width: 15px;
-    height: 15px;
+    width: ${th.size(15)};
+    height: ${th.size(15)};
     flex-shrink: 0;
     stroke: ${props => (props.$liked ? th.color('accent') : th.color('foreground-a85'))};
     fill: ${props => (props.$liked ? th.color('accent') : 'transparent')};
     transition:
-      stroke 0.2s,
-      fill 0.2s;
+      stroke ${th.duration(200)},
+      fill ${th.duration(200)};
     ${props =>
       props.$animating &&
       css`
@@ -311,7 +317,7 @@ export const LikeCount = styled.span<{ $liked: boolean; $animating: boolean }>`
   font-weight: ${th.fontWeight('semibold')};
   color: ${props => (props.$liked ? th.color('accent') : th.color('foreground-a85'))};
   transition: color ${th.duration(200)};
-  min-width: 12px;
+  min-width: ${th.size(12)};
   text-align: center;
   ${props =>
     props.$animating &&

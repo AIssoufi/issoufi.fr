@@ -23,9 +23,6 @@ export const GroupArticle = styled.section`
 /* ── Role list ─────────────────────────────────────────────── */
 
 export const RolesList = styled(List)`
-  list-style: none;
-  margin: 0;
-  padding: 0;
   display: flex;
   flex-direction: column;
   gap: ${th.space(10)};
@@ -44,8 +41,8 @@ export const RoleItem = styled.li`
     left: calc(${mobileLineCenter} - ${mobileContentIndent});
     transform: translateX(-50%);
     top: ${th.space(14)};
-    width: 12px;
-    height: 12px;
+    width: ${th.size(12)};
+    height: ${th.size(12)};
     border-radius: ${th.radius('circle')};
     background: ${th.color('accent-a65')};
     border: ${th.borderWidth('thick')} solid ${th.color('foreground-a50')};

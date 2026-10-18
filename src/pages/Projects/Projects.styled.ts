@@ -16,8 +16,8 @@ export const ProjectsPage = styled(Page)`
 // a box of one pixel, clipped and out of the flow, that changes nothing on screen
 export const PageTitle = styled.h1`
   position: absolute;
-  width: 1px;
-  height: 1px;
+  width: ${th.size(1)};
+  height: ${th.size(1)};
   margin: 0;
   overflow: hidden;
   clip-path: inset(50%);

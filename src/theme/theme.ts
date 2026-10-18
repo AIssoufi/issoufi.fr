@@ -5,8 +5,10 @@ import {
   fontSizes,
   letterSpacings,
   lineHeights,
+  measures,
   palette,
   rgb,
+  sizes,
   spacing,
 } from './tokens';
 
@@ -67,10 +69,13 @@ export const theme = {
     'icon-gap': '0.7em',
   },
   sizes: {
+    ...sizes,
     /** Largest width of the app container. */
-    container: '1440px',
+    container: sizes[1440],
     /** Side of the burger icon of the mobile menu, kept while its animation loads. */
-    'burger-icon': '50px',
+    'burger-icon': sizes[50],
+    /** Largest width of the text of a status message, short enough to read at a glance. */
+    message: measures[40],
   },
   fonts: {
     body: "'Montserrat', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif",

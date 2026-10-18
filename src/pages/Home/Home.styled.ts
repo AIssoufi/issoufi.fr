@@ -1,14 +1,17 @@
 import styled, { css, keyframes, th } from '@xstyled/styled-components';
 
 import Page from '../../components/Page';
+import { theme } from '../../theme';
+import { CURSOR_GLOW_RADIUS_PX } from './constants';
 
+// Keyframes have no theme context, so they read the theme object rather than the th helpers
 const float = keyframes`
   0%, 100% { transform: translateY(0px); }
-  50%       { transform: translateY(-10px); }
+  50%       { transform: translateY(-${theme.space[10]}); }
 `;
 
 const fadeUp = keyframes`
-  from { opacity: 0; transform: translateY(20px); }
+  from { opacity: 0; transform: translateY(${theme.space[20]}); }
   to   { opacity: 1; transform: translateY(0); }
 `;
 
@@ -23,8 +26,8 @@ export const CursorGlow = styled.div`
   position: fixed;
   top: 0;
   left: 0;
-  width: 40px;
-  height: 40px;
+  width: ${CURSOR_GLOW_RADIUS_PX * 2}px;
+  height: ${CURSOR_GLOW_RADIUS_PX * 2}px;
   border-radius: ${th.radius('circle')};
   border: ${th.borderWidth('thin')} solid ${th.color('accent-a65')};
   background: radial-gradient(circle, ${th.color('accent-a10')} 0%, transparent 70%);
@@ -44,7 +47,7 @@ export const Content = styled.div`
 
 export const Intro = styled.div`
   text-align: center;
-  max-width: 640px;
+  max-width: ${th.size(640)};
   animation: ${float} ${th.duration(7000)} ${th.timingFunction('inOut')} infinite;
   animation-delay: ${th.duration(500)};
 `;
@@ -116,8 +119,8 @@ export const Btn = styled.a<{ $callToAction?: boolean }>`
 
   @media (min-width: ${th('screens.tablet')}) {
     width: max-content;
-    /* 240px for the label, plus the 32px side paddings and the 1px borders */
-    min-width: 306px;
+    /* 240px for the label, plus the side paddings and the borders, which border-box includes */
+    min-width: calc(${th.size(240)} + 2 * ${th.space(32)} + 2 * ${th.borderWidth('thin')});
     padding: ${th.space(13)} ${th.space(32)};
   }
 

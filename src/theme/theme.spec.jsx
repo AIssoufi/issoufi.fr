@@ -4,6 +4,7 @@ import { join } from 'node:path';
 import { render } from '@testing-library/react';
 import styled, { th, ThemeProvider } from '@xstyled/styled-components';
 
+import { findRawValues } from './testUtils';
 import { theme } from './theme';
 
 /** Namespace of the theme read by each xstyled `th.*` helper. */
@@ -41,10 +42,15 @@ const tokenUsages = listStyleFiles('src').flatMap(file =>
   ),
 );
 
+/** Helpers whose token xstyled negates when its key starts with a minus sign: `th.space(-8)`. */
+const NEGATABLE_HELPERS = ['space'];
+
 const resolve = ({ helper, key }) => {
   if (!helper) return key.split('.').reduce((node, step) => node?.[step], theme);
   const namespace = NAMESPACE_BY_HELPER[helper];
-  return namespace ? theme[namespace]?.[key] : undefined;
+  const isNegated = NEGATABLE_HELPERS.includes(helper) && key.startsWith('-');
+  const tokenKey = isNegated ? key.slice(1) : key;
+  return namespace ? theme[namespace]?.[tokenKey] : undefined;
 };
 
 const leaves = (node, prefix = '') =>
@@ -60,6 +66,16 @@ describe('theme', () => {
   it('defines every token used in the style files', () => {
     const missing = tokenUsages.filter(usage => resolve(usage) === undefined);
     expect(missing.map(({ file, call }) => `${file}: ${call}`)).toEqual([]);
+  });
+
+  // Zero, percentages, viewport units, angles and unitless numbers may stay raw: see findRawValues
+  it('writes no length, duration, color, easing or scaled value by hand in the style files', () => {
+    const rawValues = listStyleFiles('src').flatMap(file =>
+      findRawValues(readFileSync(file, 'utf8')).map(
+        ({ line, kind, value }) => `${file}:${line}: ${kind} ${value}`,
+      ),
+    );
+    expect(rawValues).toEqual([]);
   });
 
   it('only uses th helpers that map to a theme namespace', () => {
@@ -90,6 +106,9 @@ describe('theme', () => {
       color: ${th.color('accent')};
       background-color: ${th.color('foreground-a10')};
       padding: ${th.space(16)};
+      margin-top: ${th.space(-8)};
+      width: ${th.size(1)};
+      max-width: ${th.size('message')};
       font-size: ${th.fontSize(14)};
       line-height: ${th.lineHeight(150)};
       border-radius: ${th.radius('md')};
@@ -106,6 +125,10 @@ describe('theme', () => {
     expect(style.color).toBe('rgb(139, 49, 104)');
     expect(style.backgroundColor).toBe('rgba(255, 255, 255, 0.1)');
     expect(style.padding).toBe('16px');
+    expect(style.marginTop).toBe('-8px');
+    // Without the theme, xstyled would turn a size of 1 into 100%
+    expect(style.width).toBe('1px');
+    expect(style.maxWidth).toBe('40ch');
     expect(style.fontSize).toBe('14px');
     expect(style.lineHeight).toBe('1.5');
     expect(style.borderRadius).toBe('12px');
