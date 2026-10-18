@@ -170,7 +170,16 @@ export const renderOgImageStyles = theme => {
  * @param {RenderOgImageHtmlParams} params
  * @returns {string} A complete HTML document, sized to the image.
  * @example
- * await page.setContent(renderOgImageHtml({ language: 'en', texts, styles, backgroundImageUrl, fontStylesheetUrl, particlesSvg }));
+ * await page.setContent(
+ *   renderOgImageHtml({
+ *     language: 'en',
+ *     texts,
+ *     styles,
+ *     backgroundImageUrl,
+ *     fontStylesheetUrl,
+ *     particlesSvg,
+ *   }),
+ * );
  */
 export const renderOgImageHtml = ({
   language,

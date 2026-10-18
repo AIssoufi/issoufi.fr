@@ -246,11 +246,11 @@ describe('Open Graph image of index.html', () => {
   const html = readFileSync('index.html', 'utf-8');
 
   it('draws each language in its own image', () => {
-    const images = LANGUAGES.map(language => readFileSync(`public${OG_IMAGE_PATHS[language]}`));
-    const [frenchImage, englishImage] = images;
+    const images = LANGUAGES.map(language =>
+      readFileSync(`public${OG_IMAGE_PATHS[language]}`).toString('base64'),
+    );
 
-    expect(new Set(Object.values(OG_IMAGE_PATHS)).size).toBe(LANGUAGES.length);
-    expect(frenchImage.equals(englishImage)).toBe(false);
+    expect(new Set(images).size).toBe(LANGUAGES.length);
   });
 
   it('describes the image with the French translation, for screen readers', () => {
@@ -261,7 +261,7 @@ describe('Open Graph image of index.html', () => {
     );
   });
 
-  it('is the image of the language of the page, with its description, in every generated page', () => {
+  it('names the image of its language, with its description, in every generated page', () => {
     const translations = { fr, en };
     const generatedPages = [
       ...getPageFiles().map(({ page, language }) => ({
