@@ -3,7 +3,7 @@ import userEvent from '@testing-library/user-event';
 import { ThemeProvider } from '@xstyled/styled-components';
 
 import { theme } from '../../theme';
-import { declaredStyle, isPublicFile } from '../testUtils';
+import { INTERACTIVE_SELECTOR, declaredStyle, isPublicFile } from '../testUtils';
 import { BACKGROUND_IMAGE_URL } from './constants';
 import freelanceProjectsData from './.data/freelance-projects.json';
 import personalProjectsData from './.data/personal-projects.json';
@@ -50,6 +50,18 @@ describe('Projects', () => {
     render(<Projects />);
 
     expect(screen.getByText('Jeu d’échecs')).toBeInTheDocument();
+  });
+
+  it('links every project that has a url, with no interactive element inside a link', async () => {
+    render(<Projects />);
+    for (const showAllButton of screen.getAllByText(/^Tout afficher/)) {
+      await userEvent.click(showAllButton);
+    }
+
+    const links = screen.getAllByRole('link');
+    const linkedProjectNames = allProjects.filter(({ url }) => url).map(({ name }) => name);
+    expect(links.map(link => link.textContent)).toEqual(linkedProjectNames);
+    for (const link of links) expect(link.querySelector(INTERACTIVE_SELECTOR)).toBeNull();
   });
 });
 

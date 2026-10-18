@@ -4,6 +4,7 @@ import { ThemeProvider } from '@xstyled/styled-components';
 
 import i18n from '../../../i18n';
 import { theme } from '../../../theme';
+import { INTERACTIVE_SELECTOR, declaredStyle } from '../../testUtils';
 
 import { CARD_HOVER_LIFT_PX, CARD_MAX_TILT_DEG, CARD_PERSPECTIVE_PX, PAGE_SIZE } from './constants';
 import Project from './Project';
@@ -58,30 +59,41 @@ const renderWithTheme = ui => render(<ThemeProvider theme={theme}>{ui}</ThemePro
 /** Element that lays out the cards: the closest `main` of a card's thumbnail. */
 const gridOf = name => screen.getByRole('img', { name }).closest('main');
 
-/** Every style rule of the document, with the condition of the media query holding it, if any. */
-const listStyleRules = () =>
-  [...document.styleSheets].flatMap(sheet =>
-    [...sheet.cssRules].flatMap(rule =>
-      rule instanceof CSSMediaRule
-        ? [...rule.cssRules].map(innerRule => ({ media: rule.media.mediaText, rule: innerRule }))
-        : [{ media: '', rule }],
-    ),
-  );
+/** Card of a project: the child of the grid that holds its thumbnail. */
+const cardOf = name => screen.getByRole('img', { name }).closest('main > *');
+
+/** Link of a card title, found by the project name. */
+const linkOf = name => screen.getByRole('link', { name });
 
 /**
- * Value that the generated CSS declares for a property on one of the element's classes, outside
- * any media query or inside the given one; the last declaration wins, and `''` means none.
+ * Ways to press a like button: with the mouse, then with each key that presses a focused button.
  */
-const declaredStyle = ({ element, property, media = '' }) => {
-  const classSelectors = [...element.classList].map(className => `.${className}`);
-  const isRuleOfElement = entry => {
-    const isInMedia = entry.media === media;
-    return isInMedia && classSelectors.includes(entry.rule.selectorText);
-  };
-  const values = listStyleRules()
-    .filter(isRuleOfElement)
-    .map(({ rule }) => rule.style.getPropertyValue(property));
-  return values.findLast(Boolean) ?? '';
+const LIKE_PRESSES = [
+  ['a click', button => userEvent.click(button)],
+  [
+    'Enter',
+    async button => {
+      button.focus();
+      await userEvent.keyboard('{Enter}');
+    },
+  ],
+  [
+    'Space',
+    async button => {
+      button.focus();
+      await userEvent.keyboard(' ');
+    },
+  ],
+];
+
+/**
+ * Listens to the clicks on the link of a card title, without letting jsdom follow it, which it
+ * cannot do.
+ */
+const spyOnLinkClicks = name => {
+  const onLinkClick = vi.fn(event => event.preventDefault());
+  linkOf(name).addEventListener('click', onLinkClick);
+  return onLinkClick;
 };
 
 /**
@@ -201,23 +213,64 @@ describe('Project', () => {
     expect(screen.getByText('Afficher moins')).toBeInTheDocument();
   });
 
-  it('links a project to its url when it has one', () => {
+  it('links the title of a project to its url, in a new tab, when it has one', () => {
     render(<Project projects={projects} />);
 
-    expect(screen.getByText('Chess').closest('a')).toHaveAttribute(
-      'href',
-      'https://example.com/chess',
-    );
-    expect(screen.getByText('Calculator').closest('a')).toBeNull();
+    expect(linkOf('Chess')).toHaveAttribute('href', 'https://example.com/chess');
+    expect(linkOf('Chess')).toHaveAttribute('target', '_blank');
+    expect(linkOf('Chess')).toHaveAttribute('rel', 'noreferrer');
+    expect(screen.getAllByRole('link')).toEqual([linkOf('Chess')]);
+    expect(cardOf('Calculator')).toHaveTextContent('Calculator');
   });
 
-  it('does not follow the card link when the like button is clicked', () => {
+  it('keeps the card itself, its thumbnail and its like button out of the link', () => {
     render(<Project projects={projects} />);
 
-    const isDefaultAllowed = fireEvent.click(likeButtonOf('Chess'));
+    expect(cardOf('Chess').tagName).toBe('DIV');
+    expect(cardOf('Chess').closest('a')).toBeNull();
+    expect(screen.getByRole('img', { name: 'Chess' }).closest('a')).toBeNull();
+    expect(likeButtonOf('Chess').closest('a')).toBeNull();
+    expect(linkOf('Chess')).toHaveTextContent(/^Chess$/);
+    expect(linkOf('Chess').querySelector(INTERACTIVE_SELECTOR)).toBeNull();
+  });
 
-    expect(isDefaultAllowed).toBe(false);
+  it.each(LIKE_PRESSES)('likes a card without opening its link on %s', async (_press, press) => {
+    render(<Project projects={projects} />);
+    const onLinkClick = spyOnLinkClicks('Chess');
+
+    await press(likeButtonOf('Chess'));
+
+    expect(likeButtonOf('Chess')).toHaveAttribute('aria-pressed', 'false');
     expect(likeButtonOf('Chess')).toHaveTextContent('1');
+    expect(onLinkClick).not.toHaveBeenCalled();
+  });
+
+  it('opens the project from the keyboard, with the title link reached after the like button', async () => {
+    render(<Project projects={projects} />);
+    const onLinkClick = spyOnLinkClicks('Chess');
+
+    likeButtonOf('Chess').focus();
+    await userEvent.tab();
+    expect(linkOf('Chess')).toHaveFocus();
+
+    await userEvent.keyboard('{Enter}');
+
+    expect(onLinkClick).toHaveBeenCalledOnce();
+    expect(likeButtonOf('Chess')).toHaveTextContent('2');
+  });
+
+  it('still links the card of a project without a name', () => {
+    render(<Project projects={[{ ...NAMELESS_PROJECT, url: 'https://example.com/nameless' }]} />);
+
+    expect(screen.getByRole('link')).toHaveAttribute('href', 'https://example.com/nameless');
+    expect(screen.getByRole('button', { name: 'Aimer' }).closest('a')).toBeNull();
+  });
+
+  it('gives no link to a card whose url is empty', () => {
+    render(<Project projects={[project(9, 'Draft', { url: '' })]} />);
+
+    expect(screen.queryByRole('link')).not.toBeInTheDocument();
+    expect(cardOf('Draft')).toHaveTextContent('Draft');
   });
 
   it('names each like button after its project, and tells its state and count', async () => {
@@ -323,7 +376,7 @@ describe('Project', () => {
 
   it('tilts a card toward the pointer, then flattens it when the pointer leaves', () => {
     render(<Project projects={projects} />);
-    const card = screen.getByText('Chess').closest('a');
+    const card = cardOf('Chess');
     // jsdom lays nothing out: give the card a box so that it can tilt
     vi.spyOn(card, 'getBoundingClientRect').mockReturnValue(CARD_BOX);
 
@@ -354,6 +407,45 @@ describe('Project', () => {
     const THREE_COLUMNS = 'repeat(3, minmax(min-content, 1fr))';
     const TABLET_MEDIA = `(min-width: ${theme.screens.tablet})`;
     const WIDE_MEDIA = `(min-width: ${theme.screens.wide})`;
+
+    it('stretches the title link over its card, above the thumbnail and under the like button', () => {
+      renderWithTheme(<Project projects={projects} />);
+
+      const linkLayer = property =>
+        declaredStyle({ element: linkOf('Chess'), property, pseudo: '::after' });
+      const thumbnailOverlay = screen.getByRole('img', { name: 'Chess' }).parentElement;
+      const thumbnailGradientZIndex = declaredStyle({
+        element: thumbnailOverlay,
+        property: 'z-index',
+        pseudo: '::before',
+      });
+      const likeButtonZIndex = declaredStyle({
+        element: likeButtonOf('Chess'),
+        property: 'z-index',
+      });
+
+      expect(declaredStyle({ element: cardOf('Chess'), property: 'position' })).toBe('relative');
+      expect(linkLayer('position')).toBe('absolute');
+      expect(linkLayer('inset')).toBe('0');
+      expect([thumbnailGradientZIndex, likeButtonZIndex]).not.toContain('');
+      expect(Number(linkLayer('z-index'))).toBeGreaterThan(Number(thumbnailGradientZIndex));
+      expect(Number(linkLayer('z-index'))).toBeLessThan(Number(likeButtonZIndex));
+    });
+
+    it('draws the focus ring of the title link around the whole card, not around its text', () => {
+      renderWithTheme(<Project projects={projects} />);
+
+      const focusedLinkStyle = ({ property, pseudo }) =>
+        declaredStyle({ element: linkOf('Chess'), property, pseudo });
+
+      expect(focusedLinkStyle({ property: 'outline', pseudo: ':focus-visible' })).toBe('none');
+      expect(focusedLinkStyle({ property: 'outline', pseudo: ':focus-visible::after' })).toBe(
+        'auto',
+      );
+      expect(focusedLinkStyle({ property: 'border-radius', pseudo: '::after' })).toBe(
+        theme.radii.md,
+      );
+    });
 
     it('shows the cards of a page in a single row', () => {
       renderWithTheme(<Project projects={projects} />);

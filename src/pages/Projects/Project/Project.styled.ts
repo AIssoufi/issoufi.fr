@@ -152,6 +152,8 @@ export const ProjectGrid = styled.main<{ $displayAll: boolean }>`
 `;
 
 export const ProjectItem = styled.div<{ $displayAll?: boolean }>`
+  /* Box covered by the stretched link of the title */
+  position: relative;
   display: flex;
   flex-direction: column;
   margin: ${cardMargin};
@@ -327,6 +329,28 @@ export const ProjectName = styled.div`
   font-weight: ${th.fontWeight('bold')};
   letter-spacing: ${th.letterSpacing(1)};
   margin-bottom: ${th.space(3)};
+`;
+
+// Its ::after covers the whole card, so that a click anywhere on it opens the project, while the
+// like button stays outside the link
+export const ProjectLink = styled.a`
+  &::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: ${th.radius('md')};
+    /* Above the thumbnail gradient, which would catch the clicks, and under the like button */
+    z-index: ${th.zIndex('raisedMore')};
+  }
+
+  /* The keyboard focus ring goes around the whole card that the link covers, not its text */
+  &:focus-visible {
+    outline: none;
+  }
+
+  &:focus-visible::after {
+    outline: auto;
+  }
 `;
 
 export const ProjectType = styled.div`

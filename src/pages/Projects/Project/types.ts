@@ -8,7 +8,10 @@ export interface ProjectItemData {
   type: string;
   /** Absolute URL of the screenshot in `public/`, e.g. `/chess.webp`. */
   imageUrl: string;
-  /** Page opened in a new tab when the card is clicked. The card is not a link when missing. */
+  /**
+   * Page opened in a new tab by the link of the card title, which covers the whole card. The card
+   * has no link when missing.
+   */
   url?: string;
   /** Technologies, shown under the name separated by ` · `. */
   tools: string[];
