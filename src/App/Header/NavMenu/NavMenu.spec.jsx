@@ -2,9 +2,9 @@ import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router';
 
+import { declaredStyle } from '../../../styleTestUtils';
 import { DESKTOP_MEDIA_QUERY } from '../constants';
 import NavMenu from './NavMenu';
-import { declaredStyle } from '../../../styleTestUtils';
 
 const items = [
   { name: 'Accueil', url: '/', end: true },

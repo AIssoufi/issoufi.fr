@@ -41,8 +41,8 @@ export function getElementsOutside(container: Element): Element[] {
 }
 
 /**
- * Removes the leading `v` of a version written as a tag, as in `v1.0.0`, so the formatted version
- * never gets two.
+ * Removes the leading `v` of a version written as a tag, as in `v1.0.0` or `V1.0.0`, so the
+ * formatted version never gets two.
  */
 const removeVersionPrefix = (version: string): string => {
   const isWrittenAsTag = version.toLowerCase().startsWith(VERSION_PREFIX);

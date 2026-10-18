@@ -18,6 +18,13 @@ interface GitHubLinkProps {
  * it under the language toggle on desktop, and the mobile menu under the CV button.
  *
  * Screen readers announce it by its translated name, since the icon has no text.
+ *
+ * @example
+ * const MenuGitHubLink = styled(GitHubLink)`
+ *   margin-top: ${th.space(28)};
+ * `;
+ *
+ * <MenuGitHubLink onClick={closeMenu} />
  */
 const GitHubLink = ({ onClick, className }: GitHubLinkProps) => {
   const { t } = useTranslation();
