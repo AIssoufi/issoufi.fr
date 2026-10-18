@@ -20,7 +20,7 @@ const countBump = keyframes`
   100% { transform: translateY(0); opacity: 1; }
 `;
 
-// Space around each card, which the "Show all" grid takes off its padding to line the cards up
+// Space around each card, which the "Show all" rows take off their padding to line the cards up
 const cardMargin = th.space(5);
 
 // Width of a card in the row of three, less the margins on both of its sides
@@ -137,24 +137,20 @@ export const ProjectGrid = styled(List)<{ $displayAll: boolean }>`
   max-width: 100vw;
   overflow-x: auto;
 
+  /* "Show all" keeps the cards of the row and wraps them onto as many rows as they need, starting
+     each row on the left so that the last one lines up with the columns above */
   ${props =>
     props.$displayAll &&
     css`
-      display: grid;
-      grid-template-columns: repeat(1, minmax(min-content, 1fr));
-      grid-auto-flow: row;
+      flex-wrap: wrap;
+      justify-content: flex-start;
       row-gap: ${th.space(5)};
       padding-left: calc(${th.space('page')} - ${cardMargin});
       padding-right: calc(${th.space('page')} - ${cardMargin});
 
       @media (min-width: ${th('screens.tablet')}) {
-        grid-template-columns: repeat(2, minmax(min-content, 1fr));
         padding-left: 0;
         padding-right: 0;
-      }
-
-      @media (min-width: ${th('screens.wide')}) {
-        grid-template-columns: repeat(3, minmax(min-content, 1fr));
       }
     `}
 `;
@@ -190,9 +186,6 @@ export const ProjectItem = styled.li<{ $displayAll?: boolean }>`
   }
 
   @media (min-width: ${th('screens.tablet')}) {
-    flex: ${props => (props.$displayAll ? '1 1 auto' : css`0 0 ${cardBasis}`)};
-    min-width: ${props => (props.$displayAll ? 'unset' : th.size(260))};
-
     &:first-child {
       padding-left: 0;
     }
