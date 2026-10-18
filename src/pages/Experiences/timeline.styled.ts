@@ -4,8 +4,8 @@ import { css, th } from '@xstyled/styled-components';
 export const timelineDot = css`
   content: '';
   position: absolute;
-  width: 12px;
-  height: 12px;
+  width: 16px;
+  height: 16px;
   border-radius: ${th.radius('circle')};
   background: ${th.color('accent-a85')};
   border: ${th.borderWidth('thick')} solid ${th.color('foreground-a80')};
@@ -21,7 +21,7 @@ export const companyBlock = css`
 
   &::before {
     ${timelineDot}
-    left: -1px; /* centered on the line at left: 5px (5 - 6 = -1) */
+    left: -2px; /* centered on the 2px line at left: 5px, whose middle is at 6px (6 - 8 = -2) */
     top: ${th.space(18)};
   }
 

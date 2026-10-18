@@ -116,7 +116,8 @@ export const Btn = styled.a<{ $callToAction?: boolean }>`
 
   @media (min-width: ${th('screens.tablet')}) {
     width: max-content;
-    min-width: 240px;
+    /* 240px for the label, plus the 32px side paddings and the 1px borders */
+    min-width: 306px;
     padding: ${th.space(13)} ${th.space(32)};
   }
 
