@@ -35,7 +35,7 @@ export const Title = styled.h1`
 
 export const Message = styled.p`
   margin: 0;
-  max-width: 40ch;
+  max-width: ${th.size('message')};
   color: ${th.color('foreground-secondary')};
   line-height: ${th.lineHeight(150)};
 `;
