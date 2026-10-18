@@ -1,7 +1,8 @@
-import { fireEvent, render, screen, within } from '@testing-library/react';
+import { act, fireEvent, render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { ThemeProvider } from '@xstyled/styled-components';
 
+import i18n from '../../../i18n';
 import { theme } from '../../../theme';
 
 import { CARD_HOVER_LIFT_PX, CARD_MAX_TILT_DEG, CARD_PERSPECTIVE_PX } from './constants';
@@ -28,6 +29,7 @@ const projects = [
 /** Project that is not in the list of the first render. */
 const ADDED_PROJECT = project(6, 'Weather app', { likeCount: 5, isLikedByOwnUser: true });
 const TOOLLESS_PROJECT = project(7, 'Landing page', { tools: undefined });
+const NAMELESS_PROJECT = project(8, undefined);
 
 /** Box of a card in the viewport. */
 const CARD_BOX = { left: 100, top: 100, width: 200, height: 100 };
@@ -37,16 +39,18 @@ const CARD_BOX = { left: 100, top: 100, width: 200, height: 100 };
  */
 const CARD_POINTER = { x: CARD_BOX.width, y: CARD_BOX.height / 4 };
 
-const likeButtonOf = name =>
-  within(screen.getByRole('img', { name }).parentElement).getByRole('button');
+/** Like button of a card, found by its French accessible name, which holds the project name. */
+const likeButtonOf = name => screen.getByRole('button', { name: `Aimer ${name}` });
 
-/** Previous and next page buttons, which have no accessible name to find them by. */
-const pageButtons = () => {
-  const [, previousButton, nextButton] = within(screen.getByRole('navigation')).getAllByRole(
-    'button',
-  );
-  return { previousButton, nextButton };
-};
+/** French accessible names of the previous and next page buttons. */
+const PREVIOUS_PAGE_NAME = 'Page précédente';
+const NEXT_PAGE_NAME = 'Page suivante';
+
+/** Previous and next page buttons, found by their French accessible names. */
+const pageButtons = () => ({
+  previousButton: screen.getByRole('button', { name: PREVIOUS_PAGE_NAME }),
+  nextButton: screen.getByRole('button', { name: NEXT_PAGE_NAME }),
+});
 
 /** Renders with the theme, so that the styles hold the token values instead of their names. */
 const renderWithTheme = ui => render(<ThemeProvider theme={theme}>{ui}</ThemeProvider>);
@@ -98,9 +102,76 @@ const LONG_TECH_LINE_PROJECT = project(5, 'Chess engine', {
 });
 
 describe('Project', () => {
+  afterEach(async () => {
+    await act(() => i18n.changeLanguage('fr'));
+  });
+
   it('renders without any props', () => {
     expect(() => render(<Project />)).not.toThrow();
     expect(screen.getByText('Tout afficher (0)')).toBeInTheDocument();
+    expect(pageButtons().previousButton).toBeInTheDocument();
+    expect(pageButtons().nextButton).toBeInTheDocument();
+    expect(screen.getByRole('group')).toBeInTheDocument();
+  });
+
+  it('groups the section controls under the section title, without a navigation landmark', () => {
+    render(
+      <Project
+        title="Projets personnels"
+        projects={projects}
+      />,
+    );
+
+    const controls = screen.getByRole('group', { name: 'Projets personnels' });
+    expect(within(controls).getByText('Tout afficher (4)')).toBeInTheDocument();
+    expect(within(controls).getByRole('button', { name: PREVIOUS_PAGE_NAME })).toBeInTheDocument();
+    expect(within(controls).getByRole('button', { name: NEXT_PAGE_NAME })).toBeInTheDocument();
+    expect(screen.queryByRole('navigation')).not.toBeInTheDocument();
+  });
+
+  it('labels the controls of each section after its own title', () => {
+    render(
+      <>
+        <Project
+          title="Projets personnels"
+          projects={projects}
+        />
+        <Project
+          title="Projets freelance"
+          projects={projects}
+        />
+      </>,
+    );
+
+    expect(screen.getByRole('group', { name: 'Projets personnels' })).toBeInTheDocument();
+    expect(screen.getByRole('group', { name: 'Projets freelance' })).toBeInTheDocument();
+  });
+
+  it('names the page buttons in English once the language changes', async () => {
+    render(<Project projects={projects} />);
+
+    await act(() => i18n.changeLanguage('en'));
+
+    expect(screen.getByRole('button', { name: 'Previous page' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Next page' })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: PREVIOUS_PAGE_NAME })).not.toBeInTheDocument();
+  });
+
+  it('hides the page button icons from assistive technologies', () => {
+    render(<Project projects={projects} />);
+    const { previousButton, nextButton } = pageButtons();
+
+    for (const button of [previousButton, nextButton]) {
+      expect(button.querySelector('svg')).toHaveAttribute('aria-hidden', 'true');
+    }
+  });
+
+  it('makes the page buttons plain buttons, which submit no form', () => {
+    render(<Project projects={projects} />);
+    const { previousButton, nextButton } = pageButtons();
+
+    expect(previousButton).toHaveAttribute('type', 'button');
+    expect(nextButton).toHaveAttribute('type', 'button');
   });
 
   it('shows the first three projects, then all of them on demand', async () => {
@@ -138,6 +209,58 @@ describe('Project', () => {
 
     expect(isDefaultAllowed).toBe(false);
     expect(likeButtonOf('Chess')).toHaveTextContent('1');
+  });
+
+  it('names each like button after its project, and tells its state and count', async () => {
+    render(<Project projects={projects} />);
+
+    expect(likeButtonOf('Chess')).toHaveAttribute('aria-pressed', 'true');
+    expect(likeButtonOf('Chess')).toHaveAccessibleDescription('2');
+    expect(likeButtonOf('Calculator')).toHaveAttribute('aria-pressed', 'false');
+    expect(likeButtonOf('Calculator')).toHaveAccessibleDescription('0');
+
+    await userEvent.click(likeButtonOf('Calculator'));
+
+    expect(likeButtonOf('Calculator')).toHaveAttribute('aria-pressed', 'true');
+    expect(likeButtonOf('Calculator')).toHaveAccessibleDescription('1');
+  });
+
+  it('names the like buttons in English once the language changes', async () => {
+    render(<Project projects={projects} />);
+
+    await act(() => i18n.changeLanguage('en'));
+
+    expect(screen.getByRole('button', { name: 'Like Chess' })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Aimer Chess' })).not.toBeInTheDocument();
+  });
+
+  it('hides the like icon from assistive technologies, in a plain button', () => {
+    render(<Project projects={projects} />);
+    const likeButton = likeButtonOf('Chess');
+
+    expect(likeButton.querySelector('svg')).toHaveAttribute('aria-hidden', 'true');
+    expect(likeButton).toHaveAttribute('type', 'button');
+  });
+
+  it('describes each like button by the count of its own card, in every section', () => {
+    render(
+      <>
+        <Project projects={projects} />
+        <Project projects={[project(1, 'Chess', { likeCount: 9 })]} />
+      </>,
+    );
+
+    const [firstChessLike, secondChessLike] = screen.getAllByRole('button', {
+      name: 'Aimer Chess',
+    });
+    expect(firstChessLike).toHaveAccessibleDescription('2');
+    expect(secondChessLike).toHaveAccessibleDescription('9');
+  });
+
+  it('still names the like button of a project without a name', () => {
+    render(<Project projects={[NAMELESS_PROJECT]} />);
+
+    expect(screen.getByRole('button', { name: 'Aimer' })).toHaveAccessibleDescription('0');
   });
 
   it('toggles the like count', async () => {
@@ -184,7 +307,9 @@ describe('Project', () => {
 
     await userEvent.click(screen.getByText('Tout afficher (4)'));
 
-    expect(within(screen.getByRole('navigation')).getAllByRole('button')).toHaveLength(1);
+    expect(screen.queryByRole('button', { name: PREVIOUS_PAGE_NAME })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: NEXT_PAGE_NAME })).not.toBeInTheDocument();
+    expect(within(screen.getByRole('group')).getAllByRole('button')).toHaveLength(1);
   });
 
   it('tilts a card toward the pointer, then flattens it when the pointer leaves', () => {

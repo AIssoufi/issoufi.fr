@@ -57,7 +57,7 @@ export const SectionTitle = styled.h1`
   }
 `;
 
-export const NavCtrl = styled.nav`
+export const SectionControls = styled.div`
   display: flex;
   flex-direction: row;
   align-items: center;
