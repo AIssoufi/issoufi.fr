@@ -4,6 +4,7 @@ import lottie from 'lottie-web/build/player/lottie_light';
 import { createRef } from 'react';
 
 import i18n from '../../../i18n';
+import { waitForBurgerIcon } from '../../testUtils';
 import BurgerMenu from './BurgerMenu';
 import { OPEN_ANIMATION } from './constants';
 
@@ -16,16 +17,10 @@ const animationMock = () => ({
   goToAndStop: vi.fn(),
 });
 
-/**
- * Waits for the icon animation, drawn once lottie-web is loaded, so that this update never lands
- * outside `act` after the test.
- */
-const waitForIcon = () => waitFor(() => expect(lottie.loadAnimation).toHaveBeenCalled());
-
 /** Renders the button, then waits for its icon animation. */
 const renderBurgerMenu = async ui => {
   const result = render(ui);
-  await waitForIcon();
+  await waitForBurgerIcon();
   return result;
 };
 
@@ -45,7 +40,7 @@ describe('BurgerMenu', () => {
     expect(container.firstChild).toBeInTheDocument();
     // Pressed before lottie-web is loaded, with no animation to play
     expect(() => fireEvent.click(container.firstChild)).not.toThrow();
-    await waitForIcon();
+    await waitForBurgerIcon();
   });
 
   it('calls onOpen when clicked while closed', async () => {
@@ -62,7 +57,7 @@ describe('BurgerMenu', () => {
 
     expect(onOpen).toHaveBeenCalledTimes(1);
     expect(onClose).not.toHaveBeenCalled();
-    await waitForIcon();
+    await waitForBurgerIcon();
   });
 
   it('calls onClose when clicked while open', async () => {
@@ -80,7 +75,7 @@ describe('BurgerMenu', () => {
 
     expect(onClose).toHaveBeenCalledTimes(1);
     expect(onOpen).not.toHaveBeenCalled();
-    await waitForIcon();
+    await waitForBurgerIcon();
   });
 
   it('plays the icon animation forward on open, once lottie-web is loaded', async () => {
@@ -116,7 +111,7 @@ describe('BurgerMenu', () => {
     vi.spyOn(lottie, 'loadAnimation').mockReturnValue(animation);
     render(<BurgerMenu />);
 
-    await waitFor(() => expect(lottie.loadAnimation).toHaveBeenCalled());
+    await waitForBurgerIcon();
     expect(animation.goToAndStop).not.toHaveBeenCalled();
   });
 
@@ -124,7 +119,7 @@ describe('BurgerMenu', () => {
     const animation = { ...animationMock(), totalFrames: 30 };
     vi.spyOn(lottie, 'loadAnimation').mockReturnValue(animation);
     const { container, rerender } = render(<BurgerMenu />);
-    await waitFor(() => expect(lottie.loadAnimation).toHaveBeenCalled());
+    await waitForBurgerIcon();
     animation.play.mockClear();
 
     fireEvent.click(container.firstChild);

@@ -1,9 +1,10 @@
-import { cleanup, render, screen, waitFor } from '@testing-library/react';
+import { cleanup, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import lottie from 'lottie-web/build/player/lottie_light';
 
 import { LANGUAGE_STORAGE_KEY } from '../i18n/constants';
 import App from './App';
+import { waitForBurgerIcon } from './testUtils';
 
 /** Runs the i18n setup again, as on a new page load. */
 const reloadI18n = async () => {
@@ -16,12 +17,6 @@ const description = () =>
 
 /** Query of the French page title of /projects, which only screen readers announce. */
 const PROJECTS_PAGE_TITLE = { level: 1, name: 'Projets' };
-
-/**
- * Waits for the burger icon animation of the header, drawn once lottie-web is loaded, so that
- * this update never lands outside `act` after the test.
- */
-const waitForBurgerIcon = () => waitFor(() => expect(lottie.loadAnimation).toHaveBeenCalled());
 
 /** Renders the app, or the given version of it, then waits for the burger icon animation. */
 const renderApp = async (app = <App />) => {
