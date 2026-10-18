@@ -107,7 +107,6 @@ export const fr = {
   },
   exp: {
     pageTitle: 'Expériences',
-    today: 'Aujourd’hui',
     duration: {
       years_one: '{{count}} an',
       years_other: '{{count}} ans',
@@ -116,8 +115,6 @@ export const fr = {
       lessThanAMonth: '< 1 mois',
     },
     periods: {
-      sewanStart: 'juin 2021',
-      sewanEnd: 'auj.',
       wibilongStart: 'sept. 2019',
       wibilongEnd: 'juin 2021',
       supralogStart: 'juin 2018',

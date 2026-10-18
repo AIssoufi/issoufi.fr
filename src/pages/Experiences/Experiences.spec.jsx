@@ -21,6 +21,20 @@ const listTranslationKeys = value => {
   );
 };
 
+/** Keys of the exp translations that the page reads itself rather than through its data. */
+const PAGE_TEXT_KEYS = ['exp.pageTitle'];
+
+/** Groups of the exp translations that the page reads itself: the plurals of the durations. */
+const PAGE_TEXT_GROUPS = ['exp.duration'];
+
+/** Lists the key of every text of a group of translations, e.g. `exp.sewan.name`. */
+const listTextKeys = ({ translations, prefix }) =>
+  Object.entries(translations).flatMap(([name, value]) =>
+    typeof value === 'string'
+      ? [`${prefix}.${name}`]
+      : listTextKeys({ translations: value, prefix: `${prefix}.${name}` }),
+  );
+
 /** Reads the text of a translation key in a translations object, `undefined` when it has none. */
 const getText = ({ translations, key }) =>
   key.split('.').reduce((group, part) => group?.[part], translations);
@@ -91,6 +105,24 @@ describe('Experiences', () => {
       );
       expect(missingKeys).toEqual([]);
     });
+
+    it.each([
+      ['French', fr],
+      ['English', en],
+    ])(
+      'uses every text of the %s exp translations, so that none is left behind',
+      (_language, translations) => {
+        const usedKeys = new Set([...translationKeys, ...PAGE_TEXT_KEYS]);
+        const isReadByThePage = key =>
+          usedKeys.has(key) || PAGE_TEXT_GROUPS.some(group => key.startsWith(`${group}.`));
+
+        const unusedKeys = listTextKeys({ translations: translations.exp, prefix: 'exp' }).filter(
+          key => !isReadByThePage(key),
+        );
+
+        expect(unusedKeys).toEqual([]);
+      },
+    );
 
     it('gives every company its own id', () => {
       const ids = experiences.map(({ id }) => id);
