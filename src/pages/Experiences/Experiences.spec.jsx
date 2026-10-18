@@ -35,6 +35,24 @@ describe('Experiences', () => {
     expect(screen.getAllByRole('img', { name }).length).toBeGreaterThan(0);
   });
 
+  it('names the pseudo-element of its timeline line for the browser test of the timeline', () => {
+    const { container } = render(<Experiences />);
+
+    expect(container.querySelectorAll('[data-timeline-line="before"]')).toHaveLength(1);
+  });
+
+  it.each(['Sewan Groupe', 'Wibilong', 'Supralog', 'Beepeers'])(
+    'names the pseudo-element of the dot of the %s experience for the browser test of the timeline',
+    name => {
+      render(<Experiences />);
+
+      // Each company is a child of the timeline, a single job or the group of its roles
+      const [logo] = screen.getAllByRole('img', { name });
+      const company = logo.closest('[data-timeline-line] > *');
+      expect(company).toHaveAttribute('data-timeline-dot', 'before');
+    },
+  );
+
   it('serves its background from public/', () => {
     expect(isPublicFile(BACKGROUND_IMAGE_URL)).toBe(true);
   });

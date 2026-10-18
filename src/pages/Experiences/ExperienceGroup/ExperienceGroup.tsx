@@ -52,7 +52,7 @@ const Role = ({ jobName, startDate, endDate, children }: RoleProps) => {
   const company = React.useContext(CompanyCtx);
 
   return (
-    <RoleItem>
+    <RoleItem data-timeline-dot="before">
       <TimelinePeriod
         variant="role"
         start={startDate}
@@ -109,7 +109,7 @@ const ExperienceGroup = ({
   children,
 }: ExperienceGroupProps) => (
   <CompanyCtx.Provider value={{ entityName, entityLogoUrl, contractType, city }}>
-    <GroupArticle>
+    <GroupArticle data-timeline-dot="before">
       <RolesList>{children}</RolesList>
     </GroupArticle>
   </CompanyCtx.Provider>
