@@ -3,7 +3,8 @@ import userEvent from '@testing-library/user-event';
 
 import i18n from '../../i18n';
 import { theme } from '../../theme';
-import { INTERACTIVE_SELECTOR, declaredStyle, isPublicFile, serializeCssValue } from '../testUtils';
+import { declaredStyle, serializeCssValue } from '../../styleTestUtils';
+import { INTERACTIVE_SELECTOR, isPublicFile } from '../testUtils';
 import { BACKGROUND_IMAGE_URL } from './constants';
 import freelanceProjectsData from './.data/freelance-projects.json';
 import personalProjectsData from './.data/personal-projects.json';

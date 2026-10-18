@@ -2,7 +2,8 @@ import { render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router';
 
 import { theme } from '../../theme';
-import { declaredStyle, isPublicFile, serializeCssValue } from '../testUtils';
+import { declaredStyle, serializeCssValue } from '../../styleTestUtils';
+import { isPublicFile } from '../testUtils';
 import { BACKGROUND_IMAGE_URL } from './constants';
 import { Home } from './Home';
 

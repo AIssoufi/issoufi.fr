@@ -4,7 +4,7 @@ import { join } from 'node:path';
 import { render } from '@testing-library/react';
 import styled, { th, ThemeProvider } from '@xstyled/styled-components';
 
-import { declaredStyle } from '../pages/testUtils';
+import { declaredStyle } from '../styleTestUtils';
 import { findRawValues } from './testUtils';
 import { theme } from './theme';
 

@@ -1,7 +1,7 @@
 import { render, screen } from '@testing-library/react';
 import styled, { ThemeProvider } from '@xstyled/styled-components';
 
-import { listStyleRules } from '../pages/testUtils';
+import { listStyleRules } from '../styleTestUtils';
 import { GlobalStyle } from './GlobalStyle';
 import { theme } from './theme';
 

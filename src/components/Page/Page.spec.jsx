@@ -1,7 +1,7 @@
 import { render, screen } from '@testing-library/react';
 import styled from '@xstyled/styled-components';
 
-import { declaredStyle } from '../../pages/testUtils';
+import { declaredStyle } from '../../styleTestUtils';
 import Page from './Page';
 
 const getMain = () => screen.getByRole('main');
