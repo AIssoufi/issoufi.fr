@@ -93,7 +93,7 @@ interface ChunkNameInfo {
  *
  * @example
  * getChunkName({ name: 'index', facadeModuleId: '/app/src/pages/Projects/index.ts' }); // 'Projects'
- * getChunkName({ name: 'lottie_light', facadeModuleId: '/app/node_modules/lottie_light.js' }); // 'lottie_light'
+ * getChunkName({ name: 'library', facadeModuleId: '/app/node_modules/library/library.js' }); // 'library'
  */
 export const getChunkName = ({ name, facadeModuleId }: ChunkNameInfo = {}): string => {
   const hasName = typeof name === 'string' && name !== '';
