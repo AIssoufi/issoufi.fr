@@ -1,15 +1,27 @@
 import styled, { th } from '@xstyled/styled-components';
 
-import { BUTTON_HEIGHT_PX, BUTTON_WIDTH_PX } from '../../constants';
-import { frostedPill } from '../../frostedPill.styled';
+import { BUTTON_HEIGHT_PX, BUTTON_WIDTH_PX } from './constants';
 
 export const Wrapper = styled.div`
-  ${frostedPill}
   position: relative;
   display: flex;
   flex-direction: row;
   padding: ${th.space(4)};
   gap: ${th.space(4)};
+  border-radius: ${th.radius(30)};
+  border: ${th.borderWidth('thin')} solid ${th.color('foreground-a10')};
+  background: ${th.color('shade-a35')};
+  backdrop-filter: ${th('blurs.14')};
+  -webkit-backdrop-filter: ${th('blurs.14')};
+  box-shadow: ${th.shadow('card')};
+  transition:
+    box-shadow ${th.duration(300)} ${th.timingFunction('standard')},
+    border-color ${th.duration(300)} ${th.timingFunction('standard')};
+
+  &:hover {
+    border-color: ${th.color('accent-a40')};
+    box-shadow: ${th.shadow('accentHalo')};
+  }
 
   @media (min-width: ${th('screens.tablet')}) {
     position: fixed;
