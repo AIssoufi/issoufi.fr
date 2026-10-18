@@ -4,16 +4,16 @@
 
 ## 🛠 Tech Stack
 
-| Category            | Technologies                    |
-| ------------------- | ------------------------------- |
-| **Framework**       | React 19                        |
-| **Build**           | Vite 6                          |
-| **Language**        | TypeScript 5                    |
-| **Styling**         | styled-components 6 + xstyled 4 |
-| **Routing**         | React Router 8                  |
-| **i18n**            | i18next (French and English)    |
-| **Tests**           | Vitest 4 + Testing Library      |
-| **Package Manager** | pnpm                            |
+| Category            | Technologies                                        |
+| ------------------- | --------------------------------------------------- |
+| **Framework**       | React 19                                            |
+| **Build**           | Vite 6                                              |
+| **Language**        | TypeScript 5                                        |
+| **Styling**         | styled-components 6 + xstyled 4                     |
+| **Routing**         | React Router 8                                      |
+| **i18n**            | i18next (French and English)                        |
+| **Tests**           | Vitest 4 + Testing Library, Playwright 1 (Chromium) |
+| **Package Manager** | pnpm                                                |
 
 ## 🚀 Getting Started
 
@@ -36,7 +36,7 @@ pnpm dev
 
 The app will be available at [http://localhost:3000](http://localhost:3000), and opens in the browser unless `BROWSER=none` is set.
 
-**Ports**: `pnpm dev` listens on 3000 and `pnpm preview` on Vite's default port, 4173, unless a `PORT` variable is set, in the environment or in `.env.local`. Then both use it. Each Worktrunk worktree gets its own: when the worktree is created, `.config/wt.toml` writes `PORT=<port>` to its `.env.local` (gitignored), a port between 10000 and 19999 derived from the branch name, so it stays the same for the branch and several worktrees can serve the app at the same time. Read the port of a worktree in its `.env.local`, or override it for one run with `PORT=4000 pnpm dev`. An empty or invalid `PORT` is ignored (`vite/utils.ts`). When the port is taken, `pnpm dev` and `pnpm preview` stop with an error instead of moving to another port (`strictPort`), so a test never reaches the server of another worktree by mistake: stop the server that holds the port, or pick another one with `PORT`.
+**Ports**: `pnpm dev` listens on 3000 and `pnpm preview` on Vite's default port, 4173, unless a `PORT` variable is set, in the environment or in `.env.local`. Then both use it, and so does the preview server of `pnpm test:browser`. Each Worktrunk worktree gets its own: when the worktree is created, `.config/wt.toml` writes `PORT=<port>` to its `.env.local` (gitignored), a port between 10000 and 19999 derived from the branch name, so it stays the same for the branch and several worktrees can serve the app at the same time. Read the port of a worktree in its `.env.local`, or override it for one run with `PORT=4000 pnpm dev`. An empty or invalid `PORT` is ignored (`vite/utils.ts`). When the port is taken, `pnpm dev` and `pnpm preview` stop with an error instead of moving to another port (`strictPort`), so a test never reaches the server of another worktree by mistake: stop the server that holds the port, or pick another one with `PORT`.
 
 ### Production
 
@@ -59,12 +59,24 @@ pnpm test:watch      # Watch mode
 pnpm test:coverage   # Single run with coverage, HTML report in coverage/index.html
 ```
 
-Tests are `*.spec.jsx` (components), `*.spec.ts` (helpers and hooks) and `*.spec.js` (CI helpers and the test helpers of `src/pages/testUtils.js`) files next to the code they test. Every component has one. `pnpm test:coverage` fails when the coverage of `src/`, of the Vite config helpers (`vite/`) and of the CI helpers (`scripts/ci/utils/`) drops below the thresholds of `vite.config.ts` (`COVERAGE_THRESHOLDS_PERCENT`).
+Tests are `*.spec.jsx` (components), `*.spec.ts` (helpers and hooks, those of `e2e/` included) and `*.spec.js` (CI helpers and the test helpers of `src/pages/testUtils.js`) files next to the code they test. Every component has one. `pnpm test:coverage` fails when the coverage of `src/`, of the Vite config helpers (`vite/`), of the browser test helpers (`e2e/`) and of the CI helpers (`scripts/ci/utils/`) drops below the thresholds of `vite.config.ts` (`COVERAGE_THRESHOLDS_PERCENT`).
+
+### Browser tests
+
+```bash
+pnpm exec playwright install --only-shell chromium   # Once, and after a Playwright update
+pnpm build
+pnpm test:browser    # Check in Chromium that no page of the build scrolls sideways
+```
+
+jsdom computes no layout, so the browser tests run in a real browser with [Playwright](https://playwright.dev/): the `*.e2e.ts` files of `e2e/`, configured by `playwright.config.ts`. They test the production build: `pnpm test:browser` serves `dist/` with `pnpm preview` on the port of the worktree (see Ports), with `--strictPort`, and never reuses a server already on that port, so run `pnpm build` first. They open every route of `PAGES` (`src/utils/pages.ts`), so a new page is covered without changing them, and an unknown path for the not found page, on screens 320, 375, 414 and 1440 px wide (`e2e/constants.ts`). A page fails when it is wider than the screen (`document.documentElement.scrollWidth` above its `clientWidth`), and its screenshot is saved in `test-results/`.
+
+Playwright is a dev dependency, but its browsers are downloaded apart from `node_modules`, to a cache shared by every project of the machine (`~/Library/Caches/ms-playwright` on macOS, `~/.cache/ms-playwright` on Linux): the command above installs only the headless shell of Chromium, which is enough to load, measure and screenshot pages. Each Playwright version needs its own browser build, so run it again after a Playwright update; `pnpm test:browser` says so when the browser is missing.
 
 ### Checks
 
 ```bash
-pnpm typecheck      # Type-check src/ and vite/, then the CI scripts of scripts/, without building
+pnpm typecheck      # Type-check src/, vite/, e2e/ and the configs, then the CI scripts of scripts/, without building
 pnpm lint           # Lint with ESLint
 pnpm format:check   # Check that every file follows the Prettier style
 pnpm format         # Format every file with Prettier
@@ -127,6 +139,7 @@ The version follows the commits: `fix` bumps the patch version, `feat` the minor
 │   ├── workflows/        # ci.yml (checks, build, deployment, smoke test), release.yml, rebuild.yml
 │   └── dependabot.yml    # Weekly dependency updates against develop
 ├── .husky/               # Git hooks: lint-staged before a commit, commitlint on its message
+├── e2e/                  # Browser tests (*.e2e.ts) run by Playwright on the build, their helpers and constants
 ├── public/               # Images, link preview image, CV, favicon, manifest and robots.txt, copied as is to dist/
 ├── scripts/
 │   ├── ci/               # CI scripts: bundle size, coverage summary, smoke test
@@ -152,6 +165,7 @@ The version follows the commits: `fix` bumps the patch version, `feat` the minor
 │   └── index.tsx         # Entry point
 ├── vite/                 # Helpers of vite.config.ts: dev and preview ports
 ├── index.html            # HTML template of every page, filled at build time by vite.config.ts
+├── playwright.config.ts  # Playwright: Chromium, on pnpm preview at the port of the worktree
 └── vite.config.ts        # Vite, the plugin that writes one HTML file per page, Vitest and coverage
 ```
 
