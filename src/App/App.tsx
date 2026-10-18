@@ -7,15 +7,17 @@ import { GlobalStyle, theme } from '../theme';
 import DocumentMeta from './DocumentMeta';
 import Header from './Header';
 import { useReloadOnStaleChunk } from './hooks/useReloadOnStaleChunk';
+import { keepPendingWhileReloading } from './utils';
 
 import { WebApp } from './App.styled';
 
 // The other pages are loaded on their first visit, each from its own chunk, so the home page
 // only downloads its own code. Import them from their folder, never through a shared barrel,
-// which would put them back in the main bundle.
-const Projects = lazy(() => import('../pages/Projects'));
-const Experiences = lazy(() => import('../pages/Experiences'));
-const NotFound = lazy(() => import('../pages/NotFound'));
+// which would put them back in the main bundle. A page stays loading while the page reloads for a
+// missing chunk.
+const Projects = lazy(() => import('../pages/Projects').then(keepPendingWhileReloading));
+const Experiences = lazy(() => import('../pages/Experiences').then(keepPendingWhileReloading));
+const NotFound = lazy(() => import('../pages/NotFound').then(keepPendingWhileReloading));
 
 /**
  * Root of the application: the design-token theme and global styles, the router, the header,
