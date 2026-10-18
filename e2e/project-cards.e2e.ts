@@ -1,4 +1,4 @@
-import { expect, test, type Locator } from '@playwright/test';
+import { expect, test, type Locator, type Page } from '@playwright/test';
 
 import { DEFAULT_LANGUAGE } from '../src/i18n/constants';
 import { en } from '../src/i18n/en';
@@ -17,10 +17,10 @@ import { type CardBox, countWholeCards, groupCardsIntoRows } from './utils';
 /** Texts of the Projects page in the language of a first visit, which the tests open it in. */
 const { projects: texts } = { fr, en }[DEFAULT_LANGUAGE];
 
-/** Sections of the Projects page, with the number of projects that "Show all" shows in each. */
+/** Sections of the Projects page, with the projects that each one shows, in order. */
 const SECTIONS = [
-  { title: texts.personal, projectCount: personalProjectsData.projects.length },
-  { title: texts.freelance, projectCount: freelanceProjectsData.projects.length },
+  { title: texts.personal, projects: personalProjectsData.projects },
+  { title: texts.freelance, projects: freelanceProjectsData.projects },
 ];
 
 /** Layout of the list of cards of a section, measured by {@link measureCardList}. */
@@ -67,6 +67,39 @@ const measureCardList = (list: Locator): Promise<CardListLayout> =>
     };
   });
 
+/** Parameters of {@link openSection}. */
+interface OpenSectionParams {
+  /** Browser page of the test. */
+  page: Page;
+  /** Title of the section, as the page shows it. */
+  title: string;
+}
+
+/**
+ * Opens the Projects page and waits until the cards of a section can be measured: shown, in the
+ * web fonts that set where their texts wrap.
+ *
+ * @returns The section, its list of cards and its cards.
+ */
+const openSection = async ({ page, title }: OpenSectionParams) => {
+  await page.goto(PROJECTS_ROUTE);
+  // In another language, the texts of the tests would name no section and no button
+  await expect(page.locator('html')).toHaveAttribute('lang', DEFAULT_LANGUAGE);
+  const section = page.locator('section', {
+    has: page.getByRole('heading', { level: 2, name: title }),
+  });
+  const list = section.getByRole('list');
+  const cards = list.getByRole('listitem');
+  // Measured before the chunk of the page is loaded, there would be no card to measure
+  await expect(cards.first()).toBeVisible();
+  // The web fonts that replace the fallback font change where the text of a card wraps
+  await page.waitForLoadState('networkidle');
+  await page.evaluate(async () => {
+    await document.fonts.ready;
+  });
+  return { section, list, cards };
+};
+
 /** Parameters of {@link expectSameLength}. */
 interface ExpectSameLengthParams {
   /** Measured length, in pixels. */
@@ -93,29 +126,15 @@ for (const width of PROJECT_CARD_SCREEN_WIDTHS_PX) {
   test.describe(`on a ${width} px wide screen`, () => {
     test.use({ viewport: { width, height: SCREEN_HEIGHT_PX } });
 
-    for (const { title, projectCount } of SECTIONS) {
+    for (const { title, projects } of SECTIONS) {
       test(`"Show all" keeps the cards of the row of "${title}", on as many rows as needed`, async ({
         page,
       }) => {
-        await page.goto(PROJECTS_ROUTE);
-        await expect(page.locator('html')).toHaveAttribute('lang', DEFAULT_LANGUAGE);
-        const section = page.locator('section', {
-          has: page.getByRole('heading', { level: 2, name: title }),
-        });
-        const list = section.getByRole('list');
-        const cards = list.getByRole('listitem');
-        // Measured before the chunk of the page is loaded, there would be no card to measure
-        await expect(cards.first()).toBeVisible();
-        // The web fonts that replace the fallback font change where the text of a card wraps
-        await page.waitForLoadState('networkidle');
-        await page.evaluate(async () => {
-          await document.fonts.ready;
-        });
-
+        const { section, list, cards } = await openSection({ page, title });
         const row = await measureCardList(list);
-        const showAllName = texts.showAll.replace('{{count}}', String(projectCount));
+        const showAllName = texts.showAll.replace('{{count}}', String(projects.length));
         await section.getByRole('button', { name: showAllName }).click();
-        await expect(cards, 'cards shown by "Show all"').toHaveCount(projectCount);
+        await expect(cards, 'cards shown by "Show all"').toHaveCount(projects.length);
         const all = await measureCardList(list);
 
         expect(all.scrollWidth, 'width of the cards in px, expected to fit in the list').toBe(
@@ -134,7 +153,7 @@ for (const width of PROJECT_CARD_SCREEN_WIDTHS_PX) {
         const rows = groupCardsIntoRows({ cards: all.cards });
         expect(columnCount, 'cards that the row shows whole').toBeGreaterThan(0);
         expect(rows[0], 'cards on the first row of "Show all"').toHaveLength(columnCount);
-        expect(rows, 'rows of "Show all"').toHaveLength(Math.ceil(projectCount / columnCount));
+        expect(rows, 'rows of "Show all"').toHaveLength(Math.ceil(projects.length / columnCount));
 
         all.cards.forEach((card, index) => {
           expectSameLength({
@@ -163,8 +182,40 @@ for (const width of PROJECT_CARD_SCREEN_WIDTHS_PX) {
         });
 
         await section.getByRole('button', { name: texts.showLess }).click();
-        await expect(cards, 'cards of the row').toHaveCount(Math.min(projectCount, PAGE_SIZE));
+        await expect(cards, 'cards of the row').toHaveCount(Math.min(projects.length, PAGE_SIZE));
         expect(await measureCardList(list), 'row shown again by "Show less"').toEqual(row);
+      });
+
+      test(`the last page of the row of "${title}" starts on the left, like the first one`, async ({
+        page,
+      }) => {
+        const { section, list, cards } = await openSection({ page, title });
+        const firstPage = await measureCardList(list);
+        const pageCount = Math.ceil(projects.length / PAGE_SIZE);
+        const lastPageStart = (pageCount - 1) * PAGE_SIZE;
+        for (let pageIndex = 1; pageIndex < pageCount; pageIndex += 1) {
+          await section.getByRole('button', { name: texts.nextPage }).click();
+        }
+        // A last page as full as the first one would show the same number of cards before the click
+        await expect(cards.first(), 'first card of the last page').toContainText(
+          projects[lastPageStart].name,
+        );
+        await expect(cards, 'cards of the last page').toHaveCount(projects.length - lastPageStart);
+        const lastPage = await measureCardList(list);
+
+        // Each card is where the card of the same column is on the first page, with its width
+        lastPage.cards.forEach((card, column) => {
+          expectSameLength({
+            actual: card.left,
+            expected: firstPage.cards[column].left,
+            name: `left of card ${column + 1} of the last page`,
+          });
+          expectSameLength({
+            actual: card.width,
+            expected: firstPage.cards[column].width,
+            name: `width of card ${column + 1} of the last page`,
+          });
+        });
       });
     }
   });

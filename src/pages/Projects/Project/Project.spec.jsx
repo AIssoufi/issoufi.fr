@@ -545,6 +545,8 @@ describe('Project', () => {
       const grid = gridOf('Chess');
       expect(declaredStyle({ element: grid, property: 'display' })).toBe('flex');
       expect(declaredStyle({ element: grid, property: 'grid-template-columns' })).toBe('');
+      // A last page with fewer cards starts on the left, in the columns of the first page
+      expect(declaredStyle({ element: grid, property: 'justify-content' })).toBe('flex-start');
     });
 
     it('wraps the row of cards onto as many rows as needed after "Show all"', async () => {

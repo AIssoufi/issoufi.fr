@@ -132,18 +132,18 @@ export const IconBtn = styled.button`
 export const ProjectGrid = styled(List)<{ $displayAll: boolean }>`
   display: flex;
   flex-direction: row;
-  justify-content: space-between;
+  /* A full row fills the width anyway: a shorter one, such as the last page of the row or the last
+     row of "Show all", starts on the left, with its cards in the columns of the full ones */
+  justify-content: flex-start;
   align-items: flex-start;
   max-width: 100vw;
   overflow-x: auto;
 
-  /* "Show all" keeps the cards of the row and wraps them onto as many rows as they need, starting
-     each row on the left so that the last one lines up with the columns above */
+  /* "Show all" keeps the cards of the row and wraps them onto as many rows as they need */
   ${props =>
     props.$displayAll &&
     css`
       flex-wrap: wrap;
-      justify-content: flex-start;
       row-gap: ${th.space(5)};
       padding-left: calc(${th.space('page')} - ${cardMargin});
       padding-right: calc(${th.space('page')} - ${cardMargin});
