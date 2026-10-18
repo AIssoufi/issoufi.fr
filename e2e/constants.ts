@@ -17,11 +17,46 @@ export const SCREEN_HEIGHT_PX = 800;
 export const NOT_FOUND_ROUTE = '/browser-test-page-that-does-not-exist';
 
 /**
+ * Unknown path wider than any phone screen, as a link shared by mail can be: percent-encoded words,
+ * which the not found page names decoded, then a word of 64 letters, with no space to wrap at.
+ */
+export const LONG_NOT_FOUND_ROUTE = `/projets/2024/un%20lien%20partag%C3%A9%20tr%C3%A8s%20long%20depuis%20un%20mail/${'a'.repeat(64)}`;
+
+/**
+ * Screens on which the browser tests open the error pages, whose message must be centered in the
+ * height of the page: a phone (375 × 667), a laptop (1440 × 900) and a large desktop screen
+ * (2560 × 1440), where the message once sat near the top.
+ */
+export const ERROR_PAGE_SCREENS = [
+  { width: 375, height: 667 },
+  { width: 1440, height: 900 },
+  { width: 2560, height: 1440 },
+] as const;
+
+/**
+ * Largest distance allowed between the vertical center of the message of an error page and the
+ * center of the page, as a share of the height of the page: 10 %.
+ */
+export const MAX_ERROR_MESSAGE_CENTER_OFFSET_RATIO = 0.1;
+
+/**
+ * Chunks of the Projects page, which the test of the unexpected error keeps from loading, so the
+ * page fails to load (see `getChunkName`, `vite/utils.ts`).
+ */
+export const PROJECTS_CHUNK_PATTERN = '**/assets/Projects-*.js';
+
+/**
  * `<main>` landmark that every page renders, the `Page` of `src/components/Page`, right inside the
  * app grid. The pages other than the home page show it only once their chunk is loaded, after the
  * header.
  */
 export const PAGE_SELECTOR = '[data-testid="app"] > main';
+
+/**
+ * Message of an error page, the `StatusMessage` of `src/components/StatusPage`: the block of the
+ * code, the title, the explanation and the buttons, right inside the `<main>` landmark.
+ */
+export const ERROR_MESSAGE_SELECTOR = `${PAGE_SELECTOR} > section`;
 
 /**
  * Route of the Experiences page, the only page with a timeline. Typed by `PAGES`
