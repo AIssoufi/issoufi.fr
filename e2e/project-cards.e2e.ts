@@ -1,34 +1,54 @@
 import { expect, test, type Locator, type Page } from '@playwright/test';
 
-import { DEFAULT_LANGUAGE } from '../src/i18n/constants';
+import { DEFAULT_LANGUAGE, LANGUAGES } from '../src/i18n/constants';
 import { en } from '../src/i18n/en';
+import type { Language } from '../src/i18n/types';
 import { fr } from '../src/i18n/fr';
+import { localizePath } from '../src/i18n/utils';
 import freelanceProjectsData from '../src/pages/Projects/.data/freelance-projects.json' with { type: 'json' };
 import personalProjectsData from '../src/pages/Projects/.data/personal-projects.json' with { type: 'json' };
-import { PAGE_SIZE } from '../src/pages/Projects/Project/constants';
+import { ROW_CARD_COUNT } from '../src/pages/Projects/Project/constants';
 import {
   MAX_CARD_OFFSET_PX,
   PROJECT_CARD_SCREEN_WIDTHS_PX,
   PROJECTS_ROUTE,
   SCREEN_HEIGHT_PX,
 } from './constants';
-import { type CardBox, countWholeCards, groupCardsIntoRows } from './utils';
+import { type CardBox, countWholeCards, filterWholeCards, groupCardsIntoRows } from './utils';
 
-/** Texts of the Projects page in the language of a first visit, which the tests open it in. */
-const { projects: texts } = { fr, en }[DEFAULT_LANGUAGE];
+/** Texts of the Projects page in each language. */
+const TEXTS = { fr: fr.projects, en: en.projects };
 
-/** Sections of the Projects page, with the projects that each one shows, in order. */
+/** Texts of the Projects page in the language of a first visit, which most tests open it in. */
+const texts = TEXTS[DEFAULT_LANGUAGE];
+
+/**
+ * Sections of the Projects page, with their title in each language and the projects that each one
+ * shows, in order.
+ */
 const SECTIONS = [
-  { title: texts.personal, projects: personalProjectsData.projects },
-  { title: texts.freelance, projects: freelanceProjectsData.projects },
+  {
+    titles: { fr: fr.projects.personal, en: en.projects.personal },
+    projects: personalProjectsData.projects,
+  },
+  {
+    titles: { fr: fr.projects.freelance, en: en.projects.freelance },
+    projects: freelanceProjectsData.projects,
+  },
 ];
+
+/** Box of a card, with the URL of the screenshot it shows, which names its project. */
+interface ProjectCardBox extends CardBox {
+  /** `src` of the screenshot of the card, the `imageUrl` of its project. */
+  imageUrl: string;
+}
 
 /** Layout of the list of cards of a section, measured by {@link measureCardList}. */
 interface CardListLayout {
   /** Box of the list, the part of it that the screen shows. */
   list: CardBox;
   /** Box of each card, in the order of the page. */
-  cards: CardBox[];
+  cards: ProjectCardBox[];
   /** Width of everything the list holds, wider than the list when it scrolls sideways. */
   scrollWidth: number;
   /** Width that the list shows. */
@@ -37,8 +57,7 @@ interface CardListLayout {
 
 /**
  * Measures the list of cards of a section, in page coordinates, so that scrolling to a button
- * moves nothing. The box of a card leaves out its padding: the page gutter that pads the first and
- * the last card of the row on a phone, outside the card that the visitor sees.
+ * moves nothing.
  */
 const measureCardList = (list: Locator): Promise<CardListLayout> =>
   list.evaluate(listElement => {
@@ -48,16 +67,10 @@ const measureCardList = (list: Locator): Promise<CardListLayout> =>
       width,
       height,
     });
-    const cards = [...listElement.children].map(card => {
-      const box = toPageBox(card.getBoundingClientRect());
-      const { paddingLeft, paddingRight } = getComputedStyle(card);
-      const padding = { left: parseFloat(paddingLeft), right: parseFloat(paddingRight) };
-      return {
-        ...box,
-        left: box.left + padding.left,
-        width: box.width - padding.left - padding.right,
-      };
-    });
+    const cards = [...listElement.children].map(card => ({
+      ...toPageBox(card.getBoundingClientRect()),
+      imageUrl: card.querySelector('img')?.getAttribute('src') ?? '',
+    }));
     const { scrollWidth, clientWidth } = listElement;
     return {
       list: toPageBox(listElement.getBoundingClientRect()),
@@ -67,24 +80,32 @@ const measureCardList = (list: Locator): Promise<CardListLayout> =>
     };
   });
 
+/** Lists the screenshots of the cards that the row of a section shows whole, from left to right. */
+const readWholeCardImages = async (list: Locator) => {
+  const { cards, list: container } = await measureCardList(list);
+  return filterWholeCards({ cards, container }).map(({ imageUrl }) => imageUrl);
+};
+
 /** Parameters of {@link openSection}. */
 interface OpenSectionParams {
   /** Browser page of the test. */
   page: Page;
-  /** Title of the section, as the page shows it. */
+  /** Title of the section, as the page shows it in `language`. */
   title: string;
+  /** Language to open the page in, one of `LANGUAGES`. @default DEFAULT_LANGUAGE */
+  language?: Language;
 }
 
 /**
- * Opens the Projects page and waits until the cards of a section can be measured: shown, in the
- * web fonts that set where their texts wrap.
+ * Opens the Projects page in a language and waits until the cards of a section can be measured:
+ * shown, in the web fonts that set where their texts wrap.
  *
  * @returns The section, its list of cards and its cards.
  */
-const openSection = async ({ page, title }: OpenSectionParams) => {
-  await page.goto(PROJECTS_ROUTE);
+const openSection = async ({ page, title, language = DEFAULT_LANGUAGE }: OpenSectionParams) => {
+  await page.goto(localizePath({ path: PROJECTS_ROUTE, language }));
   // In another language, the texts of the tests would name no section and no button
-  await expect(page.locator('html')).toHaveAttribute('lang', DEFAULT_LANGUAGE);
+  await expect(page.locator('html')).toHaveAttribute('lang', language);
   const section = page.locator('section', {
     has: page.getByRole('heading', { level: 2, name: title }),
   });
@@ -120,13 +141,44 @@ const expectSameLength = ({ actual, expected, name }: ExpectSameLengthParams) =>
     .toBeLessThanOrEqual(MAX_CARD_OFFSET_PX);
 };
 
+/** Parameters of {@link collectPageImages}. */
+interface CollectPageImagesParams {
+  /** List of cards of the section. */
+  list: Locator;
+  /** Arrow that moves the row to the next page in the direction of the test. */
+  arrow: Locator;
+  /** Most pages to go through, so that an arrow that never stops fails the test. */
+  maxPageCount: number;
+}
+
+/**
+ * Reads the cards that the row shows whole, then presses the arrow and reads them again, until the
+ * arrow is disabled at the last page in its direction.
+ *
+ * @returns The screenshots of the whole cards of each page, in the order the pages were shown.
+ */
+const collectPageImages = async ({ list, arrow, maxPageCount }: CollectPageImagesParams) => {
+  const pageImages = [await readWholeCardImages(list)];
+  for (let pageIndex = 1; pageIndex < maxPageCount; pageIndex += 1) {
+    const isAtBound = (await arrow.getAttribute('aria-disabled')) === 'true';
+    if (isAtBound) break;
+
+    await arrow.click();
+    pageImages.push(await readWholeCardImages(list));
+  }
+  return pageImages;
+};
+
 // jsdom computes no layout, so only a real browser sees the size and the place of each card. The
-// tests compare the cards of a section with each other, in the same language: one is enough.
+// tests compare the cards of a section with each other, in the same language: one is enough,
+// except for the arrows, which must show every project in each language.
 for (const width of PROJECT_CARD_SCREEN_WIDTHS_PX) {
   test.describe(`on a ${width} px wide screen`, () => {
     test.use({ viewport: { width, height: SCREEN_HEIGHT_PX } });
 
-    for (const { title, projects } of SECTIONS) {
+    for (const { titles, projects } of SECTIONS) {
+      const title = titles[DEFAULT_LANGUAGE];
+
       test(`"Show all" keeps the cards of the row of "${title}", on as many rows as needed`, async ({
         page,
       }) => {
@@ -181,8 +233,20 @@ for (const width of PROJECT_CARD_SCREEN_WIDTHS_PX) {
           });
         });
 
+        // The columns fill the section: they leave as much space on the right of the last one as
+        // on the left of the first, the page gutter on a phone
+        const firstColumn = rows[0][0];
+        const lastColumn = rows[0][rows[0].length - 1];
+        expectSameLength({
+          actual: all.list.left + all.list.width - (lastColumn.left + lastColumn.width),
+          expected: firstColumn.left - all.list.left,
+          name: 'space on the right of the last column',
+        });
+
         await section.getByRole('button', { name: texts.showLess }).click();
-        await expect(cards, 'cards of the row').toHaveCount(Math.min(projects.length, PAGE_SIZE));
+        await expect(cards, 'cards of the row').toHaveCount(
+          Math.min(projects.length, ROW_CARD_COUNT),
+        );
         expect(await measureCardList(list), 'row shown again by "Show less"').toEqual(row);
       });
 
@@ -191,10 +255,13 @@ for (const width of PROJECT_CARD_SCREEN_WIDTHS_PX) {
       }) => {
         const { section, list, cards } = await openSection({ page, title });
         const firstPage = await measureCardList(list);
-        const pageCount = Math.ceil(projects.length / PAGE_SIZE);
+        // The arrows move the row by the cards it shows whole
+        const pageSize = countWholeCards({ cards: firstPage.cards, container: firstPage.list });
+        expect(pageSize, 'cards that the row shows whole').toBeGreaterThan(0);
+        const pageCount = Math.ceil(projects.length / pageSize);
         // With a single page, the test would compare the first page with itself
         expect(pageCount, 'pages of the row').toBeGreaterThan(1);
-        const lastPageStart = (pageCount - 1) * PAGE_SIZE;
+        const lastPageStart = (pageCount - 1) * pageSize;
         for (let pageIndex = 1; pageIndex < pageCount; pageIndex += 1) {
           await section.getByRole('button', { name: texts.nextPage }).click();
         }
@@ -220,6 +287,70 @@ for (const width of PROJECT_CARD_SCREEN_WIDTHS_PX) {
           });
         });
       });
+
+      for (const language of LANGUAGES) {
+        test(`the arrows of "${title}" show every project in turn, in ${language}`, async ({
+          page,
+        }) => {
+          const languageTexts = TEXTS[language];
+          const { section, list } = await openSection({
+            page,
+            title: titles[language],
+            language,
+          });
+          const previousButton = section.getByRole('button', { name: languageTexts.previousPage });
+          const nextButton = section.getByRole('button', { name: languageTexts.nextPage });
+          const showAllButton = section.getByRole('button', {
+            name: languageTexts.showAll.replace('{{count}}', String(projects.length)),
+          });
+          const projectImages = projects.map(({ imageUrl }) => imageUrl);
+
+          // The buttons stand from left to right in the order of the page, which Tab follows
+          const buttons = [previousButton, nextButton, showAllButton];
+          const buttonLefts = await Promise.all(
+            buttons.map(async button => (await button.boundingBox())?.x ?? Number.NaN),
+          );
+          expect(buttonLefts, 'left of each section button').toEqual(
+            [...buttonLefts].sort((left, otherLeft) => left - otherLeft),
+          );
+          await previousButton.focus();
+          await page.keyboard.press('Tab');
+          await expect(nextButton, 'button after "Previous" in the tab order').toBeFocused();
+          await page.keyboard.press('Tab');
+          await expect(showAllButton, 'button after "Next" in the tab order').toBeFocused();
+
+          // At the first page, "Previous" can go nowhere, and shows it
+          await expect(previousButton).toHaveAttribute('aria-disabled', 'true');
+          await expect(nextButton).toHaveAttribute('aria-disabled', 'false');
+          const opacityOf = (button: Locator) =>
+            button.evaluate(element => Number(getComputedStyle(element).opacity));
+          expect(await opacityOf(previousButton), 'opacity of the disabled arrow').toBeLessThan(
+            await opacityOf(nextButton),
+          );
+
+          const forwardPages = await collectPageImages({
+            list,
+            arrow: nextButton,
+            maxPageCount: projects.length,
+          });
+          expect(forwardPages.flat(), 'projects shown whole by "Next", page after page').toEqual(
+            projectImages,
+          );
+          await expect(nextButton).toHaveAttribute('aria-disabled', 'true');
+          await expect(previousButton).toHaveAttribute('aria-disabled', 'false');
+
+          const backwardPages = await collectPageImages({
+            list,
+            arrow: previousButton,
+            maxPageCount: projects.length,
+          });
+          expect(
+            backwardPages.reverse().flat(),
+            'projects shown whole by "Previous", page after page',
+          ).toEqual(projectImages);
+          await expect(previousButton).toHaveAttribute('aria-disabled', 'true');
+        });
+      }
     }
   });
 }
