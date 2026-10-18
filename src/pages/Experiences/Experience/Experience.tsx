@@ -22,7 +22,10 @@ interface ExperienceProps {
    * when both dates are valid.
    */
   startDate?: string;
-  /** End of the job in the same format as `startDate`, or "Aujourd'hui" / "Present". */
+  /**
+   * End of the job in the same format as `startDate`, or "Aujourd'hui" / "Present", shown with
+   * it below the tablet breakpoint.
+   */
   endDate?: string;
   /** Description of the job: text, bullet lists, {@link Project}s and {@link Technologies}. */
   children?: React.ReactNode;

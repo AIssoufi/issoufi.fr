@@ -47,7 +47,10 @@ const WHITE_SPACE_PATTERN = /\s+/g;
  */
 export const getReadText = element => {
   const isElement = element instanceof Element;
-  if (!isElement || element.closest(ARIA_HIDDEN_SELECTOR)) return '';
+  if (!isElement) return '';
+
+  const isHiddenFromScreenReaders = element.closest(ARIA_HIDDEN_SELECTOR) !== null;
+  if (isHiddenFromScreenReaders) return '';
 
   const copy = element.cloneNode(true);
   copy.querySelectorAll(ARIA_HIDDEN_SELECTOR).forEach(hiddenPart => hiddenPart.remove());

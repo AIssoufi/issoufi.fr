@@ -29,13 +29,14 @@ interface TimelinePeriodProps {
 const TimelinePeriod = ({ start, end, variant = 'job' }: TimelinePeriodProps) => {
   const isRole = variant === 'role';
   const PeriodColumn = isRole ? RoleColumn : Column;
+  const periodVariant = isRole ? 'role' : 'job';
 
   return (
     <PeriodColumn data-timeline-dot="after">
       <Period
         start={start}
         end={end}
-        variant={isRole ? 'role' : 'job'}
+        variant={periodVariant}
       />
     </PeriodColumn>
   );

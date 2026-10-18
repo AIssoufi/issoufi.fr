@@ -1,8 +1,7 @@
-import { DEFAULT_VISUALLY_HIDDEN_ELEMENT, VISUALLY_HIDDEN_ELEMENTS } from './constants';
+import { DEFAULT_VISUALLY_HIDDEN_ELEMENT } from './constants';
+import type { VisuallyHiddenElement } from './types';
+import { isVisuallyHiddenElement } from './utils';
 import { Hidden } from './VisuallyHidden.styled';
-
-/** Element that a {@link VisuallyHidden} text can be, one of {@link VISUALLY_HIDDEN_ELEMENTS}. */
-type VisuallyHiddenElement = (typeof VISUALLY_HIDDEN_ELEMENTS)[number];
 
 /** Props of {@link VisuallyHidden}. */
 interface VisuallyHiddenProps {
@@ -15,10 +14,6 @@ interface VisuallyHiddenProps {
   /** Text read by screen readers. An empty element is rendered when it is missing. */
   children?: React.ReactNode;
 }
-
-/** Whether a value is one of the elements that a {@link VisuallyHidden} text can be. */
-const isVisuallyHiddenElement = (value: unknown): value is VisuallyHiddenElement =>
-  VISUALLY_HIDDEN_ELEMENTS.some(element => element === value);
 
 /**
  * Text that screen readers read but the screen does not show: a heading that the design leaves

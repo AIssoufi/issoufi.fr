@@ -49,6 +49,9 @@ const TITLED_PROJECTS = ROLES.flatMap(({ projects = [] }) => projects).filter(
   ({ titleKey }) => titleKey,
 );
 
+/** Whether a job or a project of the data lists technologies. */
+const hasTechnologies = technologies => Array.isArray(technologies) && technologies.length > 0;
+
 /** Level of a heading element, from its tag name: 2 for a `h2`. */
 const getHeadingLevel = heading => Number(heading.tagName.slice(1));
 
@@ -134,9 +137,11 @@ describe('Experiences', () => {
       render(<Experiences />);
 
       const levels = screen.getAllByRole('heading').map(getHeadingLevel);
-      const skippedLevels = levels.filter(
-        (level, index) => index > 0 && level > levels[index - 1] + 1,
-      );
+      const isOneLevelTooDeep = (level, index) => {
+        const isFirstHeading = index === 0;
+        return !isFirstHeading && level > levels[index - 1] + 1;
+      };
+      const skippedLevels = levels.filter(isOneLevelTooDeep);
       expect(levels[0]).toBe(1);
       expect(skippedLevels).toEqual([]);
       expect(new Set(levels)).toEqual(new Set([1, 2, 3, 4]));
@@ -177,7 +182,7 @@ describe('Experiences', () => {
     const technologyLists = [
       ...ROLES.map(({ technologies }) => technologies),
       ...ROLES.flatMap(({ projects = [] }) => projects).map(({ technologies }) => technologies),
-    ].filter(technologies => technologies?.length > 0);
+    ].filter(hasTechnologies);
     const listedTexts = screen
       .getAllByRole('list')
       .map(list => [...list.children].map(({ textContent }) => textContent));

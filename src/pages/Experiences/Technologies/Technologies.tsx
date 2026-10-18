@@ -9,8 +9,7 @@ interface TechnologiesProps {
 /**
  * Row of chips listing the technologies of a job or a project, a list that screen readers
  * announce with its number of items. Renders nothing when the list is empty or missing. Also
- * exposed as `Experience.Technologies` and
- * `ExperienceGroup.Role.Technologies`.
+ * exposed as `Experience.Technologies` and `ExperienceGroup.Role.Technologies`.
  *
  * @example
  * <Technologies technologies={['React.js', 'TypeScript']} />

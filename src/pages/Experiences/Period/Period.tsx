@@ -1,6 +1,7 @@
 import { useTranslation } from 'react-i18next';
 
 import VisuallyHidden from '../../../components/VisuallyHidden';
+import { COLUMN_PERIOD_MARK, DEFAULT_PERIOD_VARIANT, INLINE_PERIOD_MARK } from './constants';
 import {
   End,
   InlineEnd,
@@ -12,23 +13,20 @@ import {
   Separator,
   Start,
 } from './Period.styled';
+import type { PeriodVariant } from './types';
+import { isPeriodVariant } from './utils';
 
 /** Styled parts of each look of a period, with the mark that the screen shows between its dates. */
 const PERIOD_PARTS = {
-  job: { Start, Separator, End, mark: '↓' },
-  role: { Start: RoleStart, Separator: RoleSeparator, End: RoleEnd, mark: '↓' },
-  inline: { Start: InlineStart, Separator: InlineSeparator, End: InlineEnd, mark: '–' },
-};
-
-/** Look of a {@link Period}, one of the keys of {@link PERIOD_PARTS}. */
-type PeriodVariant = keyof typeof PERIOD_PARTS;
-
-/** Looks of a {@link Period}, to check a value given from JavaScript. */
-const PERIOD_VARIANTS = Object.keys(PERIOD_PARTS) as PeriodVariant[];
-
-/** Whether a value is one of the looks of a {@link Period}. */
-const isPeriodVariant = (value: unknown): value is PeriodVariant =>
-  PERIOD_VARIANTS.some(variant => variant === value);
+  job: { Start, Separator, End, mark: COLUMN_PERIOD_MARK },
+  role: { Start: RoleStart, Separator: RoleSeparator, End: RoleEnd, mark: COLUMN_PERIOD_MARK },
+  inline: {
+    Start: InlineStart,
+    Separator: InlineSeparator,
+    End: InlineEnd,
+    mark: INLINE_PERIOD_MARK,
+  },
+} satisfies Record<PeriodVariant, unknown>;
 
 /** Props of {@link Period}. Every part is optional and is not rendered when missing. */
 interface PeriodProps {
@@ -65,7 +63,7 @@ interface PeriodProps {
  */
 const Period = ({ start, end, variant }: PeriodProps) => {
   const { t } = useTranslation();
-  const parts = PERIOD_PARTS[isPeriodVariant(variant) ? variant : 'job'];
+  const parts = PERIOD_PARTS[isPeriodVariant(variant) ? variant : DEFAULT_PERIOD_VARIANT];
   const hasStart = Boolean(start);
   const hasEnd = Boolean(end);
   const hasBothDates = hasStart && hasEnd;

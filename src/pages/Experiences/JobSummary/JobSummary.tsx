@@ -36,7 +36,10 @@ interface JobSummaryProps {
    * active language, only when both dates are valid.
    */
   startDate?: string;
-  /** End of the job in the same format as `startDate`, or "Aujourd'hui" / "Present". */
+  /**
+   * End of the job in the same format as `startDate`, or "Aujourd'hui" / "Present", shown with
+   * it below the tablet breakpoint.
+   */
   endDate?: string;
   /**
    * Look of the job title, a `h3` under the `h2` of its company either way: `'job'` for a job
