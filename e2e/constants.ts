@@ -119,3 +119,44 @@ export const MAX_TOOLTIP_OFFSET_PX = 0.5;
  * theme, which an invisible bridge fills.
  */
 export const TOOLTIP_GAP_PX = Number.parseFloat(theme.space['tooltip-gap']);
+
+/**
+ * Domains of Google that no page may request, nor any of their subdomains: the fonts and the APIs,
+ * the analytics, the ads, the maps and the videos, YouTube and reCAPTCHA. The country domains of
+ * the search engine, such as `google.fr`, are matched by {@link GOOGLE_COUNTRY_HOST_PATTERN}.
+ */
+export const GOOGLE_DOMAINS = [
+  'google.com',
+  'googleapis.com',
+  'gstatic.com',
+  'googleusercontent.com',
+  'googletagmanager.com',
+  'google-analytics.com',
+  'googlesyndication.com',
+  'googleadservices.com',
+  'doubleclick.net',
+  'googlevideo.com',
+  'ggpht.com',
+  'gvt1.com',
+  'gvt2.com',
+  'youtube.com',
+  'youtube-nocookie.com',
+  'ytimg.com',
+  'recaptcha.net',
+  'withgoogle.com',
+  'app-measurement.com',
+  'goo.gl',
+  'g.co',
+] as const;
+
+/**
+ * Host of a country domain of Google, or one of its subdomains: `google.fr`, `www.google.co.uk`,
+ * `google.com.br`.
+ */
+export const GOOGLE_COUNTRY_HOST_PATTERN = /(?:^|\.)google\.(?:[a-z]{2,3}|com?\.[a-z]{2})$/i;
+
+/** Dot that may end a fully qualified host name, such as `google.com.`. */
+export const TRAILING_DOT_PATTERN = /\.$/;
+
+/** Protocols of the requests that go to a host: the others, such as `data:`, go nowhere. */
+export const NETWORK_PROTOCOLS = ['http:', 'https:', 'ws:', 'wss:'] as const;
