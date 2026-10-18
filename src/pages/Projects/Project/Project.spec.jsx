@@ -29,9 +29,13 @@ const projects = [
 const ADDED_PROJECT = project(6, 'Weather app', { likeCount: 5, isLikedByOwnUser: true });
 const TOOLLESS_PROJECT = project(7, 'Landing page', { tools: undefined });
 
-/** Box of a card in the viewport, and its top-right corner, where the tilt is at its maximum. */
+/** Box of a card in the viewport. */
 const CARD_BOX = { left: 100, top: 100, width: 200, height: 100 };
-const CARD_TOP_RIGHT = { x: CARD_BOX.left + CARD_BOX.width, y: CARD_BOX.top };
+/**
+ * Pointer on the right edge of {@link CARD_BOX}, a quarter of the way down: the full tilt around
+ * the vertical axis and half of it around the horizontal one, so the two cannot be mixed up.
+ */
+const CARD_POINTER = { x: CARD_BOX.width, y: CARD_BOX.height / 4 };
 
 const likeButtonOf = name =>
   within(screen.getByRole('img', { name }).parentElement).getByRole('button');
@@ -189,12 +193,15 @@ describe('Project', () => {
     // jsdom lays nothing out: give the card a box so that it can tilt
     vi.spyOn(card, 'getBoundingClientRect').mockReturnValue(CARD_BOX);
 
-    fireEvent.mouseMove(card, { clientX: CARD_TOP_RIGHT.x, clientY: CARD_TOP_RIGHT.y });
+    fireEvent.mouseMove(card, {
+      clientX: CARD_BOX.left + CARD_POINTER.x,
+      clientY: CARD_BOX.top + CARD_POINTER.y,
+    });
     expect(card.style.transform).toBe(
-      `perspective(${CARD_PERSPECTIVE_PX}px) rotateX(${CARD_MAX_TILT_DEG}deg) rotateY(${CARD_MAX_TILT_DEG}deg) translateY(-${CARD_HOVER_LIFT_PX}px)`,
+      `perspective(${CARD_PERSPECTIVE_PX}px) rotateX(${CARD_MAX_TILT_DEG / 2}deg) rotateY(${CARD_MAX_TILT_DEG}deg) translateY(-${CARD_HOVER_LIFT_PX}px)`,
     );
-    expect(card.style.getPropertyValue('--mouse-x')).toBe(`${CARD_BOX.width}px`);
-    expect(card.style.getPropertyValue('--mouse-y')).toBe('0px');
+    expect(card.style.getPropertyValue('--mouse-x')).toBe(`${CARD_POINTER.x}px`);
+    expect(card.style.getPropertyValue('--mouse-y')).toBe(`${CARD_POINTER.y}px`);
 
     fireEvent.mouseLeave(card);
     expect(card.style.transform).toBe('');
