@@ -4,16 +4,16 @@
 
 ## 🛠 Tech Stack
 
-| Category            | Technologies                    |
-| ------------------- | ------------------------------- |
-| **Framework**       | React 19                        |
-| **Build**           | Vite 6                          |
-| **Language**        | TypeScript 5                    |
-| **Styling**         | styled-components 6 + xstyled 4 |
-| **Routing**         | React Router 8                  |
-| **i18n**            | i18next (French and English)    |
-| **Tests**           | Vitest 4 + Testing Library      |
-| **Package Manager** | pnpm                            |
+| Category            | Technologies                                        |
+| ------------------- | --------------------------------------------------- |
+| **Framework**       | React 19                                            |
+| **Build**           | Vite 6                                              |
+| **Language**        | TypeScript 5                                        |
+| **Styling**         | styled-components 6 + xstyled 4                     |
+| **Routing**         | React Router 8                                      |
+| **i18n**            | i18next (French and English)                        |
+| **Tests**           | Vitest 4 + Testing Library, Playwright 1 (Chromium) |
+| **Package Manager** | pnpm                                                |
 
 ## 🚀 Getting Started
 
@@ -36,7 +36,7 @@ pnpm dev
 
 The app will be available at [http://localhost:3000](http://localhost:3000), and opens in the browser unless `BROWSER=none` is set.
 
-**Ports**: `pnpm dev` listens on 3000 and `pnpm preview` on Vite's default port, 4173, unless a `PORT` variable is set, in the environment or in `.env.local`. Then both use it. Each Worktrunk worktree gets its own: when the worktree is created, `.config/wt.toml` writes `PORT=<port>` to its `.env.local` (gitignored), a port between 10000 and 19999 derived from the branch name, so it stays the same for the branch and several worktrees can serve the app at the same time. Read the port of a worktree in its `.env.local`, or override it for one run with `PORT=4000 pnpm dev`. An empty or invalid `PORT` is ignored (`vite/utils.ts`). When the port is taken, `pnpm dev` and `pnpm preview` stop with an error instead of moving to another port (`strictPort`), so a test never reaches the server of another worktree by mistake: stop the server that holds the port, or pick another one with `PORT`.
+**Ports**: `pnpm dev` listens on 3000 and `pnpm preview` on Vite's default port, 4173, unless a `PORT` variable is set, in the environment or in `.env.local`. Then both use it, and so does the preview server of `pnpm test:browser`. Each Worktrunk worktree gets its own: when the worktree is created, `.config/wt.toml` writes `PORT=<port>` to its `.env.local` (gitignored), a port between 10000 and 19999 derived from the branch name, so it stays the same for the branch and several worktrees can serve the app at the same time. Read the port of a worktree in its `.env.local`, or override it for one run with `PORT=4000 pnpm dev`. An empty or invalid `PORT` is ignored (`vite/utils.ts`). When the port is taken, `pnpm dev` and `pnpm preview` stop with an error instead of moving to another port (`strictPort`), so a test never reaches the server of another worktree by mistake: stop the server that holds the port, or pick another one with `PORT`.
 
 ### Production
 
@@ -59,12 +59,24 @@ pnpm test:watch      # Watch mode
 pnpm test:coverage   # Single run with coverage, HTML report in coverage/index.html
 ```
 
-Tests are `*.spec.jsx` (components), `*.spec.ts` (helpers and hooks) and `*.spec.js` (CI helpers and the test helpers of `src/pages/testUtils.js`) files next to the code they test. Every component has one. `pnpm test:coverage` fails when the coverage of `src/`, of the Vite config helpers (`vite/`) and of the CI helpers (`scripts/ci/utils/`) drops below the thresholds of `vite.config.ts` (`COVERAGE_THRESHOLDS_PERCENT`).
+Tests are `*.spec.jsx` (components), `*.spec.ts` (helpers and hooks, those of `e2e/` included) and `*.spec.js` (CI helpers and the test helpers of `src/pages/testUtils.js`) files next to the code they test. Every component has one. `pnpm test:coverage` fails when the coverage of `src/`, of the Vite config helpers (`vite/`), of the browser test helpers (`e2e/`) and of the CI helpers (`scripts/ci/utils/`) drops below the thresholds of `vite.config.ts` (`COVERAGE_THRESHOLDS_PERCENT`).
+
+### Browser tests
+
+```bash
+pnpm exec playwright install --only-shell chromium   # Once, and after a Playwright update
+pnpm build
+pnpm test:browser    # Check in Chromium that no page of the build scrolls sideways
+```
+
+jsdom computes no layout, so the browser tests run in a real browser with [Playwright](https://playwright.dev/): the `*.e2e.ts` files of `e2e/`, configured by `playwright.config.ts`. They test the production build: `pnpm test:browser` serves `dist/` with `pnpm preview` on the port of the worktree (see Ports), with `--strictPort`, and never reuses a server already on that port, so run `pnpm build` first. They open every route of `PAGES` (`src/utils/pages.ts`), so a new page is covered without changing them, and an unknown path for the not found page, in each language of `LANGUAGES` (`src/i18n/constants.ts`), stored in `localStorage` as the language toggle does, on screens 320, 375, 414 and 1440 px wide (`e2e/constants.ts`). A page fails when it is wider than the screen (`document.documentElement.scrollWidth` above its `clientWidth`), and its screenshot is saved in `test-results/`.
+
+Playwright is a dev dependency, but its browsers are downloaded apart from `node_modules`, to a cache shared by every project of the machine (`~/Library/Caches/ms-playwright` on macOS, `~/.cache/ms-playwright` on Linux): the command above installs only the headless shell of Chromium, which is enough to load, measure and screenshot pages. Each Playwright version needs its own browser build, so run it again after a Playwright update; `pnpm test:browser` says so when the browser is missing.
 
 ### Checks
 
 ```bash
-pnpm typecheck      # Type-check src/ and vite/, then the CI scripts of scripts/, without building
+pnpm typecheck      # Type-check src/, vite/, e2e/ and the configs, then the CI scripts of scripts/, without building
 pnpm lint           # Lint with ESLint
 pnpm format:check   # Check that every file follows the Prettier style
 pnpm format         # Format every file with Prettier
@@ -103,7 +115,7 @@ The site is hosted on [Cloudflare Pages](https://pages.cloudflare.com/), in the 
 - **Not found pages**: the plugin also emits `404.html`, with the "page not found" title and a `noindex` tag. Cloudflare Pages serves it with a real `404` status for any path that matches no file. The URL is kept, with no redirect, and the app shows its NotFound page. Because `404.html` exists, Cloudflare's single-page-app fallback is off, which is why every route needs its own HTML file.
 - **Code splitting**: the home page is in the main chunk, and every other page (`Projects`, `Experiences`, `NotFound`) is loaded with `React.lazy` on its first visit, from its own chunk named after its folder (`vite.config.ts`). The header stays on screen while a page loads. The burger icon loads the light build of `lottie-web` (SVG only) after the first render, so the animation never delays a page. Each deployment replaces the chunks of the previous one: a page opened before a deployment reloads once when it cannot load a chunk any more (`useReloadOnStaleChunk`, `src/App/hooks`), at most once a minute so a missing chunk never causes a loop. Import a lazily loaded page from its folder only, never through a shared barrel, which would put it back in the main chunk.
 - **Years of experience**: the number in the generated HTML files is computed at build time from `CAREER_START_DATE` (`src/utils/career.ts`), so it only changes with a new build. The workflow `.github/workflows/rebuild.yml` runs the CI on `main` on the first day of every month, which rebuilds and redeploys production, so the number is right from June 1st, the career anniversary. GitHub disables scheduled workflows after 60 days without activity on the repository: if that happens, re-enable it from the Actions tab. The app itself computes the number at runtime.
-- **Continuous integration**: the GitHub Actions workflow `.github/workflows/ci.yml` checks the formatting, lints, type-checks, tests and builds every push to `main` and `develop` and every pull request. The test job measures the coverage, adds its total to the job summary and keeps the HTML report as the `coverage` artifact for 14 days. The build job runs `pnpm size`, which adds the size of each script to the job summary and annotates the images to compress. The scripts behind these summaries live in `scripts/ci/`. On pull requests, it also checks the commit messages with commitlint (except Dependabot's) and runs GitHub's dependency review, which fails when a change brings in a dependency with a known vulnerability. The jobs that need the dependencies (format, lint, type-check, test, commit messages and build) install pnpm, Node.js and the dependencies with the composite action `.github/actions/setup`, which reads the versions from `package.json` and `.nvmrc` and caches the pnpm store. The other jobs (dependency review, credentials check, deployment and smoke test) do without. When everything passes, it deploys the build (see above).
+- **Continuous integration**: the GitHub Actions workflow `.github/workflows/ci.yml` checks the formatting, lints, type-checks, tests and builds every push to `main` and `develop` and every pull request. The test job measures the coverage, adds its total to the job summary and keeps the HTML report as the `coverage` artifact for 14 days. The build job runs `pnpm size`, which adds the size of each script to the job summary and annotates the images to compress. The scripts behind these summaries live in `scripts/ci/`. The browser test job then runs `pnpm test:browser` (see Browser tests) on the `dist` artifact of the build: it caches the headless shell of Chromium for each Playwright version, installs the system libraries it needs on every run, and keeps the screenshots of the failed pages as the `browser-test-results` artifact for 14 days. On pull requests, it also checks the commit messages with commitlint (except Dependabot's) and runs GitHub's dependency review, which fails when a change brings in a dependency with a known vulnerability. The jobs that need the dependencies (format, lint, type-check, test, commit messages, build and browser test) install pnpm, Node.js and the dependencies with the composite action `.github/actions/setup`, which reads the versions from `package.json` and `.nvmrc` and caches the pnpm store. The other jobs (dependency review, credentials check, deployment and smoke test) do without. When everything passes, the browser test included, it deploys the build (see above).
 - **Dependency updates**: Dependabot (`.github/dependabot.yml`) opens weekly pull requests against `develop`: one for all minor and patch npm updates, one per major version, and one for the GitHub Actions. A release is only proposed once it is 7 days old, and pnpm applies the same rule to every install (`minimumReleaseAge` in `pnpm-workspace.yaml`), so a version published days ago never reaches the lockfile. Security updates target the default branch, `develop`, too.
 - **Former address**: `https://aissoufi.github.io` is served by the [AIssoufi/AIssoufi.github.io](https://github.com/AIssoufi/AIssoufi.github.io) repository, which redirects every path to the same path on `https://issoufi.fr`.
 
@@ -125,9 +137,10 @@ The version follows the commits: `fix` bumps the patch version, `feat` the minor
 │   └── wt.toml           # Worktrunk: installs the dependencies and writes the port of each worktree
 ├── .github/
 │   ├── actions/setup/    # Composite action: pnpm, Node.js and the dependencies, with a cache
-│   ├── workflows/        # ci.yml (checks, build, deployment, smoke test), release.yml, rebuild.yml
+│   ├── workflows/        # ci.yml (checks, build, browser test, deployment, smoke test), release.yml, rebuild.yml
 │   └── dependabot.yml    # Weekly dependency updates against develop
 ├── .husky/               # Git hooks: lint-staged before a commit, commitlint on its message
+├── e2e/                  # Browser tests (*.e2e.ts) run by Playwright on the build, their helpers and constants
 ├── public/               # Images, link preview image, CV, favicon, manifest and robots.txt, copied as is to dist/
 ├── scripts/
 │   ├── ci/               # CI scripts: bundle size, coverage summary, smoke test
@@ -152,8 +165,9 @@ The version follows the commits: `fix` bumps the patch version, `feat` the minor
 │   ├── theme/            # Design tokens (tokens.ts, theme.ts) and global styles
 │   ├── utils/            # Career dates and page metadata helpers
 │   └── index.tsx         # Entry point
-├── vite/                 # Helpers of vite.config.ts: dev and preview ports, chunk names
+├── vite/                 # Helpers of vite.config.ts and playwright.config.ts: dev and preview ports, chunk names
 ├── index.html            # HTML template of every page, filled at build time by vite.config.ts
+├── playwright.config.ts  # Playwright: Chromium, on pnpm preview at the port of the worktree
 └── vite.config.ts        # Vite, the plugin that writes one HTML file per page, Vitest and coverage
 ```
 

@@ -1,4 +1,10 @@
-import { DEFAULT_DEV_PORT, FALLBACK_CHUNK_NAME, MAX_PORT, MIN_PORT } from './constants';
+import {
+  DEFAULT_DEV_PORT,
+  DEFAULT_PREVIEW_PORT,
+  FALLBACK_CHUNK_NAME,
+  MAX_PORT,
+  MIN_PORT,
+} from './constants';
 import { getChunkName, getServerPorts, parsePort } from './utils';
 
 describe('parsePort', () => {
@@ -75,7 +81,7 @@ describe('getServerPorts', () => {
   });
 
   describe('without a valid PORT, as in the main checkout', () => {
-    const defaultPorts = { dev: DEFAULT_DEV_PORT, preview: undefined };
+    const defaultPorts = { dev: DEFAULT_DEV_PORT, preview: DEFAULT_PREVIEW_PORT };
 
     it('keeps the default ports without PORT', () => {
       expect(getServerPorts({})).toEqual(defaultPorts);

@@ -88,10 +88,19 @@ export default defineConfig(({ mode }) => {
       setupFiles: ['./src/setupTests.ts'],
       coverage: {
         provider: 'v8',
-        // The helpers of the CI scripts are measured, not the entry scripts that run them
-        include: ['src/**/*.{ts,tsx}', 'vite/**/*.ts', 'scripts/ci/utils/**/*.mjs'],
-        // The entry point only mounts the app, which App.spec.jsx renders
-        exclude: ['**/*.spec.*', '**/index.ts', '**/*.d.ts', 'src/setupTests.ts', 'src/index.tsx'],
+        // The helpers of the CI scripts and of the browser tests are measured, not the scripts and
+        // the Playwright tests that use them
+        include: ['src/**/*.{ts,tsx}', 'vite/**/*.ts', 'e2e/**/*.ts', 'scripts/ci/utils/**/*.mjs'],
+        exclude: [
+          '**/*.spec.*',
+          // The browser tests run in Playwright, not in Vitest
+          '**/*.e2e.ts',
+          '**/index.ts',
+          '**/*.d.ts',
+          'src/setupTests.ts',
+          // The entry point only mounts the app, which App.spec.jsx renders
+          'src/index.tsx',
+        ],
         reporter: ['text', 'html', 'json-summary'],
         thresholds: COVERAGE_THRESHOLDS_PERCENT,
       },
