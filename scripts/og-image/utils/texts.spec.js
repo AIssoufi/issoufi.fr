@@ -1,5 +1,8 @@
+import { LANGUAGES } from '../../../src/i18n/constants';
+import { en } from '../../../src/i18n/en';
 import { fr } from '../../../src/i18n/fr';
-import { SITE_URL } from '../../../src/utils/pages';
+import { OG_IMAGE_PATHS, SITE_URL } from '../../../src/utils/pages';
+import { TRANSLATION_MODULES } from '../constants.mjs';
 import { findMissingTexts, getAuthorName, getOgImageTexts } from './texts.mjs';
 
 describe('getAuthorName', () => {
@@ -14,6 +17,12 @@ describe('getAuthorName', () => {
 
   it('reads the name in the French title of the home page', () => {
     expect(getAuthorName({ pageTitle: fr.meta.home.title, jobTitle: fr.home.title1 })).toBe(
+      'ADAM Issoufi',
+    );
+  });
+
+  it('reads the name in the English title of the home page', () => {
+    expect(getAuthorName({ pageTitle: en.meta.home.title, jobTitle: en.home.title1 })).toBe(
       'ADAM Issoufi',
     );
   });
@@ -63,6 +72,23 @@ describe('getOgImageTexts', () => {
     });
   });
 
+  it('reads the texts of the home page in the English translations', () => {
+    expect(getOgImageTexts({ translations: en, siteUrl: SITE_URL })).toEqual({
+      logo: 'AI',
+      name: 'ADAM Issoufi',
+      jobTitle: 'Full-stack JavaScript Developer',
+      passion: [
+        { text: 'passionate about ', isHighlighted: false },
+        { text: 'UX', isHighlighted: true },
+        { text: ' and ', isHighlighted: false },
+        { text: 'UI', isHighlighted: true },
+        { text: ' Design', isHighlighted: false },
+      ],
+      subtitle: 'I help you build web applications',
+      site: 'issoufi.fr',
+    });
+  });
+
   it.each([
     ['https://issoufi.fr/', 'issoufi.fr'],
     ['https://www.issoufi.fr/projects', 'www.issoufi.fr'],
@@ -97,8 +123,11 @@ describe('getOgImageTexts', () => {
 describe('findMissingTexts', () => {
   const texts = getOgImageTexts({ translations: fr, siteUrl: SITE_URL });
 
-  it('finds none in the French translations', () => {
-    expect(findMissingTexts(texts)).toEqual([]);
+  it.each([
+    ['French', fr],
+    ['English', en],
+  ])('finds none in the %s translations', (_, translations) => {
+    expect(findMissingTexts(getOgImageTexts({ translations, siteUrl: SITE_URL }))).toEqual([]);
   });
 
   it.each([
@@ -136,4 +165,26 @@ describe('findMissingTexts', () => {
       'passion',
     ]);
   });
+});
+
+describe('TRANSLATION_MODULES', () => {
+  /** Sorts a list of language codes, so lists in another order compare equal. */
+  const sortLanguages = languages => [...languages].sort();
+
+  it('names a module for every language of the site and of the images', () => {
+    const languages = sortLanguages(Object.keys(TRANSLATION_MODULES));
+
+    expect(languages).toEqual(sortLanguages(LANGUAGES));
+    expect(languages).toEqual(sortLanguages(Object.keys(OG_IMAGE_PATHS)));
+  });
+
+  it.each(Object.entries(TRANSLATION_MODULES))(
+    'reads every text of the image in the %s module, under the code of its language',
+    async (language, id) => {
+      const module = await import(/* @vite-ignore */ `../../..${id}`);
+      const texts = getOgImageTexts({ translations: module[language], siteUrl: SITE_URL });
+
+      expect(findMissingTexts(texts)).toEqual([]);
+    },
+  );
 });

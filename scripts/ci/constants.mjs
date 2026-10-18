@@ -150,6 +150,18 @@ export const HTTP_OK = 200;
 /** HTTP status of the not found page. */
 export const HTTP_NOT_FOUND = 404;
 
+/** HTTP statuses of a redirect, whose `Location` header gives the new address. */
+export const REDIRECT_STATUSES = [301, 302, 303, 307, 308];
+
+/** Address of the production site, normalized as `URL` writes it. */
+export const SITE_URL = 'https://issoufi.fr/';
+
+/**
+ * Other addresses of the production site, without HTTPS and with `www`, which must redirect to
+ * {@link SITE_URL}. The redirects are set in Cloudflare, so the CI checks them on `main` only.
+ */
+export const REDIRECTED_SITE_URLS = ['http://issoufi.fr/', 'https://www.issoufi.fr/'];
+
 /** Number of times the smoke test checks the site before failing, while a deployment spreads. */
 export const SMOKE_TEST_ATTEMPTS = 5;
 
@@ -253,6 +265,42 @@ export const MAIN_CI_RUN_LOOKUP_DELAY_MS = 5000;
 
 /** Line break of any platform, which a step output of GitHub Actions cannot hold. */
 export const LINE_BREAK_PATTERN = /[\r\n]/;
+
+/**
+ * Levels of the annotations that the scripts write to the log of GitHub Actions with a workflow
+ * command, such as `::warning::<message>`. Each one has its own icon and color in GitHub.
+ */
+export const ANNOTATION_LEVELS = /** @type {const} */ (['error', 'warning', 'notice']);
+
+/**
+ * Name of a property of an annotation, written as is: a word, like the names that GitHub reads
+ * (`file`, `line`, `endLine`, `col`, `endColumn`, `title`).
+ */
+export const ANNOTATION_PROPERTY_NAME_PATTERN = /^[a-z]+$/i;
+
+/**
+ * Characters that GitHub Actions reads as part of a workflow command, and the percent-encoding
+ * that writes each one as text, which GitHub decodes when it shows the annotation: a line break
+ * would end the command, `%` would start an encoding, and `:` or `,` would end a property, such
+ * as the `file` of an annotation. Each character of {@link WORKFLOW_DATA_ESCAPE_PATTERN} and
+ * {@link WORKFLOW_PROPERTY_ESCAPE_PATTERN} needs its encoding here, which a test checks.
+ */
+export const WORKFLOW_COMMAND_ESCAPES = {
+  '%': '%25',
+  '\r': '%0D',
+  '\n': '%0A',
+  ':': '%3A',
+  ',': '%2C',
+};
+
+/** Characters to escape in the message of a workflow command: `%` and the line breaks. */
+export const WORKFLOW_DATA_ESCAPE_PATTERN = /[%\r\n]/g;
+
+/**
+ * Characters to escape in a property of a workflow command: those of the message, plus `:` and
+ * `,`, which end the properties.
+ */
+export const WORKFLOW_PROPERTY_ESCAPE_PATTERN = /[%\r\n:,]/g;
 
 /** Slash at the end of a URL path, removed before another segment is added. */
 export const TRAILING_SLASH_PATTERN = /\/$/;

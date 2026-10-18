@@ -16,6 +16,7 @@ import {
   PUBLIC_DIR,
   SCRIPT_BUDGET_GZIP_BYTES,
 } from './constants.mjs';
+import { writeAnnotation } from './utils/annotations.mjs';
 import {
   checkBundleBudgets,
   findLargeFiles,
@@ -31,7 +32,7 @@ import { formatKilobytes } from './utils/numbers.mjs';
 const homePage = join(DIST_DIR, HOME_PAGE_FILE);
 
 if (!existsSync(homePage)) {
-  console.log(`::error::${homePage} not found: run pnpm build first`);
+  writeAnnotation({ level: 'error', message: `${homePage} not found: run pnpm build first` });
   process.exit(1);
 }
 
@@ -61,16 +62,19 @@ appendJobSummary({
 largeFiles.forEach(({ path, bytes }) => {
   // Annotate the source file when the file comes from public/
   const source = join(PUBLIC_DIR, path);
-  const location = existsSync(source) ? ` file=${source}` : '';
-  console.log(
-    `::warning${location}::${path} weighs ${formatKilobytes(bytes)}, over ${formatKilobytes(LARGE_FILE_BYTES)}. ${getCompressionAdvice(path)}`,
-  );
+  const isPublicFile = existsSync(source);
+  writeAnnotation({
+    level: 'warning',
+    message: `${path} weighs ${formatKilobytes(bytes)}, over ${formatKilobytes(LARGE_FILE_BYTES)}. ${getCompressionAdvice(path)}`,
+    properties: { file: isPublicFile ? source : undefined },
+  });
 });
 
 findUncountedPaths({ scripts, initialPaths }).forEach(path => {
-  console.log(
-    `::warning::${HOME_PAGE_FILE} loads ${path}, which is not a script or style sheet of ${DIST_DIR}/${ASSETS_SUBDIR}/: the initial load leaves it out.`,
-  );
+  writeAnnotation({
+    level: 'warning',
+    message: `${HOME_PAGE_FILE} loads ${path}, which is not a script or style sheet of ${DIST_DIR}/${ASSETS_SUBDIR}/: the initial load leaves it out.`,
+  });
 });
 
 const { hasInitialLoad, initialLoad, total } = checkBundleBudgets({
@@ -81,9 +85,10 @@ const { hasInitialLoad, initialLoad, total } = checkBundleBudgets({
 });
 
 if (!hasInitialLoad) {
-  console.log(
-    `::error::${HOME_PAGE_FILE} ${MISSING_INITIAL_LOAD_REASON}, so its initial load cannot be checked.`,
-  );
+  writeAnnotation({
+    level: 'error',
+    message: `${HOME_PAGE_FILE} ${MISSING_INITIAL_LOAD_REASON}, so its initial load cannot be checked.`,
+  });
   process.exitCode = 1;
 }
 
@@ -106,7 +111,10 @@ budgets.forEach(({ name, check: { totalGzipBytes, isOverBudget }, budgetBytes, a
   const verdict = `${name}: ${formatKilobytes(totalGzipBytes)} gzip, for a budget of ${formatKilobytes(budgetBytes)}`;
 
   if (isOverBudget) {
-    console.log(`::error::${verdict}. ${advice} before raising the budget.`);
+    writeAnnotation({
+      level: 'error',
+      message: `${verdict}. ${advice} before raising the budget.`,
+    });
     process.exitCode = 1;
   } else {
     console.log(`${verdict}.`);
