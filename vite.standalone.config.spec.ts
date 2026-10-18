@@ -10,7 +10,7 @@ import {
   STANDALONE_PAGE_FILE_NAME,
   STANDALONE_README_FILE_NAME,
 } from './vite/standalone/constants';
-import { listFileNames } from './vite/standalone/utils';
+import { listFileNames } from './vite/standalone/utils/public-files';
 
 /** Longest time the standalone build may take in this test, coverage included. */
 const BUILD_TIMEOUT_MS = 60_000;

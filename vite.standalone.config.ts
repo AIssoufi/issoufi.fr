@@ -13,13 +13,12 @@ import {
 } from './vite/standalone/constants';
 import {
   inlineScript,
-  isAppRouterImport,
   isEntryChunk,
   isServerOnlyPage,
-  listFileNames,
   removePreloadMarkers,
-  toRelativePublicUrls,
-} from './vite/standalone/utils';
+} from './vite/standalone/utils/bundle';
+import { listFileNames, toRelativePublicUrls } from './vite/standalone/utils/public-files';
+import { isAppRouterImport } from './vite/standalone/utils/router';
 
 /**
  * Vite plugin that routes the app on the hash of the URL (`index.html#/projects`): the imports of

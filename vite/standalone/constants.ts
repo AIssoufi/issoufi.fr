@@ -54,3 +54,9 @@ export const PRELOAD_MARKER_PATTERN = /"?__VITE_PRELOAD__"?/g;
 
 /** JavaScript for "no file to preload", which Vite's preload helper accepts in place of a list. */
 export const NO_PRELOAD = 'void 0';
+
+/**
+ * Replacement of {@link INLINE_SCRIPT_BREAKER_PATTERN}: the same sequence with its `<` written
+ * `\x3C`, which means the same in a JavaScript string but ends no tag.
+ */
+export const ESCAPED_INLINE_SCRIPT_BREAKER = '\\x3C$1';
