@@ -1,5 +1,19 @@
 import { css, th } from '@xstyled/styled-components';
 
+/* Width of the timeline line, which Timeline (Experiences.styled.ts) draws. */
+export const lineWidth = '2px';
+
+/* Left edge of the mobile line, from the left edge of the timeline. */
+export const mobileLineLeft = th.space(5);
+
+/* Center of the mobile line, from the left edge of the timeline. The mobile dots center themselves
+   on it with translateX(-50%), so their size and box-sizing do not matter. */
+export const mobileLineCenter = css`calc(${mobileLineLeft} + ${lineWidth} / 2)`;
+
+/* How far the content of the timeline starts from its left edge on mobile, past the line and its
+   dots. Both TimelineContent (a single job) and GroupArticle (a group of roles) indent by it. */
+export const mobileContentIndent = th.space(22);
+
 /* Glowing dot marking an entry on the timeline line. Each caller places it. */
 export const timelineDot = css`
   content: '';
@@ -21,7 +35,8 @@ export const companyBlock = css`
 
   &::before {
     ${timelineDot}
-    left: -2px; /* centered on the 2px line at left: 5px, whose middle is at 6px (6 - 8 = -2) */
+    left: ${mobileLineCenter};
+    transform: translateX(-50%);
     top: ${th.space(18)};
   }
 
@@ -32,11 +47,14 @@ export const companyBlock = css`
   }
 `;
 
-/* Desktop layout of a timeline row: the 90 px period column, then the content. */
+/* Width of the period column of a timeline row on desktop. The line runs along its right edge. */
+export const periodColumnWidth = '90px';
+
+/* Desktop layout of a timeline row: the period column, then the content. */
 export const timelineRow = css`
   @media (min-width: ${th('screens.tablet')}) {
     display: grid;
-    grid-template-columns: 90px 1fr;
+    grid-template-columns: ${periodColumnWidth} 1fr;
   }
 `;
 
