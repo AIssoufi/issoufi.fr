@@ -6,12 +6,22 @@ import { fr } from '../src/i18n/fr';
 import type { Translations } from '../src/i18n/types';
 import { localizePath } from '../src/i18n/utils';
 import { waitForEndingAnimations } from './animations';
-import { LANDSCAPE_PHONE_SCREENS, LONG_PAGE_ROUTE, SHORTER_THAN_MENU_SCREEN } from './constants';
-import { scrollDownWithGesture } from './gestures';
+import {
+  LANDSCAPE_PHONE_SCREENS,
+  LONG_PAGE_ROUTE,
+  MENU_OPENING_SCROLL_Y_PX,
+  MOBILE_LAYOUT_SCREENS,
+  PAGE_SELECTOR,
+  SHORTER_THAN_MENU_SCREEN,
+} from './constants';
+import { scrollDownWithGesture, type ScrollGestureSource } from './gestures';
 import { getScreenBox, isBoxInside } from './utils';
 
 /** Translations of each language, to find the burger button and the links of the menu. */
 const TRANSLATIONS = { fr, en };
+
+/** Devices that scroll the page under the menu: the wheel of a mouse and a finger. */
+const SCROLL_GESTURE_SOURCES: readonly ScrollGestureSource[] = ['mouse', 'touch'];
 
 /** Parameters of {@link openMenu}. */
 interface OpenMenuParams {
@@ -66,7 +76,7 @@ const getScreenCenter = (page: Page) => {
 };
 
 // jsdom computes no layout and scrolls nothing, so only a real browser sees a link of the menu
-// out of the screen, or the menu not scrolling
+// out of the screen, or the page moving behind the menu
 for (const language of LANGUAGES) {
   const translations = TRANSLATIONS[language];
   const route = localizePath({ path: LONG_PAGE_ROUTE, language });
@@ -121,6 +131,49 @@ for (const language of LANGUAGES) {
         'scroll position of the menu after a wheel scroll over it',
       ).toBeGreaterThan(0);
       expect(await page.evaluate(getPageScrollY), 'scroll position of the page behind it').toBe(0);
+    });
+  });
+}
+
+for (const viewport of MOBILE_LAYOUT_SCREENS) {
+  test.describe(`on a ${viewport.width} × ${viewport.height} px touch screen`, () => {
+    test.use({ viewport, hasTouch: true });
+
+    test('the page behind the open mobile menu stays still, and scrolls again from there once it closes', async ({
+      page,
+    }) => {
+      await page.goto(LONG_PAGE_ROUTE);
+      await expect(page.locator(PAGE_SELECTOR)).toBeVisible();
+      await page.evaluate(top => window.scrollTo(0, top), MENU_OPENING_SCROLL_Y_PX);
+      expect(await page.evaluate(getPageScrollY), 'scroll position before the menu opens').toBe(
+        MENU_OPENING_SCROLL_Y_PX,
+      );
+      const session = await page.context().newCDPSession(page);
+      const center = getScreenCenter(page);
+
+      const navigation = await openMenu({ page, translations: fr });
+      for (const source of SCROLL_GESTURE_SOURCES) {
+        await scrollDownWithGesture({ session, ...center, source });
+        expect(
+          await page.evaluate(getPageScrollY),
+          `scroll position of the page after a ${source} scroll over the open menu`,
+        ).toBe(MENU_OPENING_SCROLL_Y_PX);
+      }
+
+      await page.getByRole('button', { name: fr.burgerMenu.close }).click();
+      await expect(navigation).toBeHidden();
+      expect(await page.evaluate(getPageScrollY), 'scroll position once the menu closes').toBe(
+        MENU_OPENING_SCROLL_Y_PX,
+      );
+
+      // Chrome may drop a wheel scroll that starts before it has drawn the page unlocked
+      await expect(async () => {
+        await scrollDownWithGesture({ session, ...center, source: 'mouse' });
+        expect(
+          await page.evaluate(getPageScrollY),
+          'scroll position after a wheel scroll once the menu is closed',
+        ).toBeGreaterThan(MENU_OPENING_SCROLL_Y_PX);
+      }).toPass();
     });
   });
 }

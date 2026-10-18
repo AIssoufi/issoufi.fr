@@ -162,6 +162,26 @@ export const LANDSCAPE_PHONE_SCREENS = [
 export const SHORTER_THAN_MENU_SCREEN = { width: 568, height: 240 } as const;
 
 /**
+ * Screens below the tablet breakpoint, on which the open mobile menu covers the page: phones held
+ * upright (320 × 568, 375 × 667 and 414 × 896) and sideways (568 × 320 and 667 × 375), and a tablet
+ * held upright (768 × 1024).
+ */
+export const MOBILE_LAYOUT_SCREENS = [
+  { width: 320, height: 568 },
+  { width: 375, height: 667 },
+  { width: 414, height: 896 },
+  { width: 568, height: 320 },
+  { width: 667, height: 375 },
+  { width: 768, height: 1024 },
+] as const;
+
+/**
+ * Scroll position of the page, in pixels, when the mobile menu opens over it: the page must still
+ * be there once the menu closes.
+ */
+export const MENU_OPENING_SCROLL_Y_PX = 300;
+
+/**
  * Distance, in pixels, of each wheel scroll or swipe of the browser tests: more than half a phone
  * screen, so that a page left free to scroll visibly moves.
  */

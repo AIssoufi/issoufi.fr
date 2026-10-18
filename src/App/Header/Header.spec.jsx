@@ -108,6 +108,9 @@ const desktopStyle = ({ element, property }) =>
 /** The link of the page under the header, covered by the open mobile menu. */
 const getPageLink = () => screen.getByRole('link', { name: 'Page link' });
 
+/** Inline overflow of the root element, which locks the page while the mobile menu covers it. */
+const getRootOverflow = () => document.documentElement.style.overflow;
+
 /** Elements of the page that the open mobile menu covers: the logo, the language toggle, the page. */
 const getCoveredElements = () => [
   screen.getByRole('link', { name: 'AI' }),
@@ -394,6 +397,26 @@ describe('Header', () => {
       expect(getComputedStyle(getMenu()).position).toBe('fixed');
     });
 
+    it('locks the page behind it while open, and lets it scroll again once closed', async () => {
+      await renderHeader();
+      expect(getRootOverflow()).toBe('');
+
+      await userEvent.click(getBurgerButton());
+      expect(getRootOverflow()).toBe('hidden');
+
+      await userEvent.click(getBurgerButton());
+      expect(getRootOverflow()).toBe('');
+    });
+
+    it('lets the page scroll again when one of its links is chosen', async () => {
+      await renderHeader();
+      await userEvent.click(getBurgerButton());
+
+      await userEvent.click(screen.getByRole('link', { name: 'Projets' }));
+
+      expect(getRootOverflow()).toBe('');
+    });
+
     it('closes with the burger button', async () => {
       await renderHeader();
 
@@ -427,6 +450,7 @@ describe('Header', () => {
       expect(getComputedStyle(getMenu()).position).not.toBe('fixed');
       expect(getComputedStyle(getNavigation()).position).not.toBe('fixed');
       getCoveredElements().forEach(element => expect(element.closest('[inert]')).toBeNull());
+      expect(getRootOverflow()).toBe('');
 
       setDesktop(false);
 
@@ -626,6 +650,7 @@ describe('Header', () => {
       await userEvent.click(getBurgerButton());
 
       getCoveredElements().forEach(element => expect(element.closest('[inert]')).toBeNull());
+      expect(getRootOverflow()).toBe('');
       act(() => getPageLink().focus());
       await userEvent.keyboard('{Escape}');
       expect(getPageLink()).toHaveFocus();
