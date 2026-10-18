@@ -259,11 +259,11 @@ describe('Project', () => {
     expect(likeButtonOf('Chess')).toHaveTextContent('2');
   });
 
-  it('still links the card of a project without a name', () => {
+  it('gives no link to a project without a name, which would leave the link unnamed', () => {
     render(<Project projects={[{ ...NAMELESS_PROJECT, url: 'https://example.com/nameless' }]} />);
 
-    expect(screen.getByRole('link')).toHaveAttribute('href', 'https://example.com/nameless');
-    expect(screen.getByRole('button', { name: 'Aimer' }).closest('a')).toBeNull();
+    expect(screen.queryByRole('link')).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Aimer' })).toHaveAccessibleDescription('0');
   });
 
   it('gives no link to a card whose url is empty', () => {

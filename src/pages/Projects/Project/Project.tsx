@@ -33,7 +33,7 @@ import {
   Thumbnail,
 } from './Project.styled';
 import type { ProjectItemData } from './types';
-import { getCardTilt, getNextPageStart, getPreviousPageStart } from './utils';
+import { getCardTilt, getNextPageStart, getPreviousPageStart, getProjectLinkUrl } from './utils';
 
 /** Props of {@link Project}. */
 interface ProjectProps {
@@ -53,8 +53,8 @@ const NO_PROJECTS: ProjectItemData[] = [];
  * buttons, named for screen readers, or showing all cards after "Show all". These controls form
  * a group labelled by the title, rather than a navigation landmark. Cards tilt toward the mouse,
  * and have a like button, named after the project and described by its count, whose state is
- * kept in memory only. When the project has a `url`, the card title is a link to it, stretched
- * over the whole card; the like button sits beside that link, never inside it.
+ * kept in memory only. When the project has a `url` and a name, the card title is a link to it,
+ * stretched over the whole card; the like button sits beside that link, never inside it.
  */
 const Project = ({ title, projects = NO_PROJECTS }: ProjectProps) => {
   const { t } = useTranslation();
@@ -136,6 +136,7 @@ const Project = ({ title, projects = NO_PROJECTS }: ProjectProps) => {
           const { count, liked } = likes[id] ?? NO_LIKE;
           const isAnimating = animatingIds.has(id);
           const likeCountId = `${sectionId}-like-count-${id}`;
+          const linkUrl = getProjectLinkUrl({ url, name });
 
           return (
             <ProjectItem
@@ -170,9 +171,9 @@ const Project = ({ title, projects = NO_PROJECTS }: ProjectProps) => {
               </ImageContainer>
               <ProjectInfo>
                 <ProjectName>
-                  {url ? (
+                  {linkUrl ? (
                     <ProjectLink
-                      href={url}
+                      href={linkUrl}
                       target="_blank"
                       rel="noreferrer"
                     >

@@ -10,7 +10,7 @@ export interface ProjectItemData {
   imageUrl: string;
   /**
    * Page opened in a new tab by the link of the card title, which covers the whole card. The card
-   * has no link when missing.
+   * has no link when it is missing, or when the project has no name to label the link with.
    */
   url?: string;
   /** Technologies, shown under the name separated by ` · `. */
