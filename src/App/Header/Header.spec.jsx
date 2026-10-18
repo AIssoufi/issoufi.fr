@@ -274,6 +274,35 @@ describe('Header', () => {
       expect(getBurgerButton()).toHaveFocus();
     });
 
+    it('gives the focus back to the burger when a link is chosen with Enter', async () => {
+      await renderHeader();
+      await userEvent.click(getBurgerButton());
+      await userEvent.tab();
+      await userEvent.tab();
+      expect(screen.getByRole('link', { name: 'Projets' })).toHaveFocus();
+
+      await userEvent.keyboard('{Enter}');
+
+      expect(getBurgerButton()).toHaveAttribute('aria-expanded', 'false');
+      expect(getBurgerButton()).toHaveFocus();
+      expect(document.body).not.toHaveFocus();
+    });
+
+    it('gives the focus back to the burger when the CV link opens its new tab', async () => {
+      // jsdom cannot open a new tab: the link only closes the menu here
+      const preventNavigation = event => event.preventDefault();
+      window.addEventListener('click', preventNavigation, { capture: true });
+      await renderHeader();
+      await userEvent.click(getBurgerButton());
+      act(() => getCvLink().focus());
+
+      await userEvent.keyboard('{Enter}');
+
+      window.removeEventListener('click', preventNavigation, { capture: true });
+      expect(getBurgerButton()).toHaveAttribute('aria-expanded', 'false');
+      expect(getBurgerButton()).toHaveFocus();
+    });
+
     it('closes with Escape and gives the focus back to the burger', async () => {
       await renderHeader();
       await userEvent.click(getBurgerButton());
@@ -306,6 +335,17 @@ describe('Header', () => {
 
       expect(getPageLink()).toHaveFocus();
       expect(getBurgerButton()).toHaveAttribute('aria-expanded', 'false');
+    });
+
+    it('leaves the focus on a link chosen on the desktop layout', async () => {
+      stubScreen({ isDesktop: true });
+      await renderHeader();
+      const projectsLink = screen.getByRole('link', { name: 'Projets', hidden: true });
+      act(() => projectsLink.focus());
+
+      await userEvent.keyboard('{Enter}');
+
+      expect(projectsLink).toHaveFocus();
     });
 
     it('changes nothing on the desktop layout, where the menu is a bar of the page', async () => {

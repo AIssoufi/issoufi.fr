@@ -21,8 +21,9 @@ import { Actions, Container, Logo, Menu } from './Header.styled';
  * The burger button comes before the links in the page, so once a keyboard user opens the menu,
  * the next `Tab` reaches its first link. While open, the mobile menu acts as a modal dialog: the
  * rest of the page is inert, so `Tab` and `Shift+Tab` only reach the burger and the links, and
- * `Escape` closes it and gives the focus back to the burger. None of this applies to the desktop
- * layout, where the links are a bar of the page.
+ * `Escape` or a click on one of its links closes it and gives the focus back to the burger,
+ * rather than leaving it on a hidden link. None of this applies to the desktop layout, where the
+ * links are a bar of the page.
  */
 const Header = ({ testId }: HeaderProps) => {
   const [mobileMenuIsOpen, setMobileMenuIsOpen] = useState(false);
@@ -43,14 +44,15 @@ const Header = ({ testId }: HeaderProps) => {
   // never covers the page there
   const isMenuCoveringPage = mobileMenuIsOpen && !isDesktop;
 
+  // Closing hides the links, and the focus would fall back to the body from a hidden one: the
+  // burger takes it back, and a navigation then moves it on to the new page
+  const closeMobileMenu = () => {
+    setMobileMenuIsOpen(false);
+    if (isMenuCoveringPage) burgerRef.current?.focus();
+  };
+
   useInertOutside({ containerRef: menuRef, isActive: isMenuCoveringPage });
-  useEscapeKey({
-    isActive: isMenuCoveringPage,
-    onEscape: () => {
-      setMobileMenuIsOpen(false);
-      burgerRef.current?.focus();
-    },
-  });
+  useEscapeKey({ isActive: isMenuCoveringPage, onEscape: closeMobileMenu });
 
   const items = [
     { name: t('nav.home'), url: '/', end: true },
@@ -80,7 +82,7 @@ const Header = ({ testId }: HeaderProps) => {
             id={navMenuId}
             items={items}
             mobileMenuIsOpen={mobileMenuIsOpen}
-            onClick={() => setMobileMenuIsOpen(false)}
+            onClick={closeMobileMenu}
           />
         </Menu>
       </Actions>
