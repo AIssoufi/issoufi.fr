@@ -20,11 +20,8 @@ const countBump = keyframes`
   100% { transform: translateY(0); opacity: 1; }
 `;
 
-// Space around each card, which the "Show all" rows take off their padding to line the cards up
-const cardMargin = th.space(5);
-
-// Width of a card in the row of three, less the margins on both of its sides
-const cardBasis = css`calc(33.333% - 2 * ${cardMargin})`;
+// Space around each card, which the list takes off the page gutter to line the cards up with it
+const cardMargin = th.space('project-card-margin');
 
 export const Section = styled.section`
   height: max-content;
@@ -73,7 +70,6 @@ export const SectionControls = styled.div`
 `;
 
 export const CtrlItem = styled.button`
-  order: 3;
   height: ${th.size(32)};
   border-radius: ${th.radius('pill')};
   padding: 0 ${th.space(14)};
@@ -122,7 +118,13 @@ export const IconBtn = styled.button`
     display: block;
   }
 
-  &:hover {
+  /* At the first or the last page, the button stays focusable but does nothing, and shows it */
+  &[aria-disabled='true'] {
+    opacity: 0.4;
+    cursor: default;
+  }
+
+  &:hover:not([aria-disabled='true']) {
     background-color: ${th.color('accent')};
     border-color: ${th.color('accent')};
     transform: none;
@@ -138,6 +140,15 @@ export const ProjectGrid = styled(List)<{ $displayAll: boolean }>`
   align-items: flex-start;
   max-width: 100vw;
   overflow-x: auto;
+  /* The page gutter less the margin of the cards, in the row as in "Show all", so that the cards
+     have the same width in both. The row scrolls across it, up to the edges of the screen. */
+  padding-left: calc(${th.space('page')} - ${cardMargin});
+  padding-right: calc(${th.space('page')} - ${cardMargin});
+
+  @media (min-width: ${th('screens.tablet')}) {
+    padding-left: 0;
+    padding-right: 0;
+  }
 
   /* "Show all" keeps the cards of the row and wraps them onto as many rows as they need */
   ${props =>
@@ -145,27 +156,18 @@ export const ProjectGrid = styled(List)<{ $displayAll: boolean }>`
     css`
       flex-wrap: wrap;
       row-gap: ${th.space(5)};
-      padding-left: calc(${th.space('page')} - ${cardMargin});
-      padding-right: calc(${th.space('page')} - ${cardMargin});
-
-      @media (min-width: ${th('screens.tablet')}) {
-        padding-left: 0;
-        padding-right: 0;
-      }
     `}
 `;
 
-export const ProjectItem = styled.li<{ $displayAll?: boolean }>`
+export const ProjectItem = styled.li`
   /* Box covered by the stretched link of the title */
   position: relative;
   display: flex;
   flex-direction: column;
   margin: ${cardMargin};
-  flex: 0 0 ${cardBasis};
-  min-width: ${th.size(260)};
-  /* Keeps content-box: the 260px minimum and the flex basis leave out the page gutter that pads
-     the first and last cards, so the gutter widens them instead of narrowing their content */
-  box-sizing: content-box;
+  /* One column on a phone: the card fills the width between the page gutters, and the next card of
+     the row starts in the right one, which shows that the row scrolls */
+  flex: 0 0 calc(100% - 2 * ${cardMargin});
   transition:
     transform ${th.duration(150)} ${th.timingFunction('standard')},
     box-shadow ${th.duration(150)} ${th.timingFunction('standard')};
@@ -177,22 +179,15 @@ export const ProjectItem = styled.li<{ $displayAll?: boolean }>`
     transition: transform ${th.duration(400)} ${th.timingFunction('standard')};
   }
 
-  &:first-child {
-    padding-left: ${props => (props.$displayAll ? '0' : th.space('page'))};
+  /* Then as many columns as fit, which share the width of the section, in the row as in "Show
+     all": the next card of the row is out of view once the section has no gutter on the right */
+  @media (min-width: ${th('screens.two-project-columns')}) {
+    flex: 0 0 calc(50% - 2 * ${cardMargin});
   }
 
-  &:last-child {
-    padding-right: ${props => (props.$displayAll ? '0' : th.space('page'))};
-  }
-
-  @media (min-width: ${th('screens.tablet')}) {
-    &:first-child {
-      padding-left: 0;
-    }
-
-    &:last-child {
-      padding-right: 0;
-    }
+  /* A third less a hair, so that rounding never pushes the third card onto a new row */
+  @media (min-width: ${th('screens.three-project-columns')}) {
+    flex: 0 0 calc(33.333% - 2 * ${cardMargin});
   }
 `;
 

@@ -92,6 +92,8 @@ export const theme = {
     'tooltip-gap': spacing[8],
     /** Distance between the centers of two bars of the burger icon of the mobile menu. */
     'burger-bar-gap': spacing[9],
+    /** Space around each project card, so two cards side by side stand twice as far apart. */
+    'project-card-margin': spacing[5],
     /** Gap between an icon and its label, relative to the font size. */
     'icon-gap': relativeSpacing[70],
   },
@@ -181,8 +183,20 @@ export const theme = {
   },
   /** Breakpoints, in `em` so they follow the browser's font size. */
   screens: {
+    /**
+     * From this width, the project sections show two columns of cards instead of one: 600 px, past
+     * the 578 px where two cards with their margins fit between the page gutters without getting
+     * narrower than 260 px.
+     */
+    'two-project-columns': breakpoints[37.5],
     /** From this width, the desktop layout is used. */
     tablet: breakpoints[50],
+    /**
+     * From this width, the project sections show three columns of cards instead of two: 914 px,
+     * where three cards with their margins fit between the left padding of the page and the room
+     * of the floating controls without getting narrower than 260 px.
+     */
+    'three-project-columns': breakpoints['57.125'],
     /** Wide screens. */
     wide: breakpoints[100],
   },
