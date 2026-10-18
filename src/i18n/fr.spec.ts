@@ -1,7 +1,7 @@
 import { fr } from './fr';
 
-/** A colon, semicolon, question or exclamation mark without a no-break space before it. */
-const PUNCTUATION_WITHOUT_NO_BREAK_SPACE = /(^|[^\u00a0\u202f])[:;?!]/;
+/** A colon, semicolon, question or exclamation mark without a no-break space before it (or another mark, as in "?!"). */
+const PUNCTUATION_WITHOUT_NO_BREAK_SPACE = /(^|[^\u00a0\u202f:;?!])[:;?!]/;
 /** A colon after a narrow no-break space, instead of the full-width one French puts there. */
 const NARROW_SPACE_BEFORE_COLON = /\u202f:/;
 /** A semicolon, question or exclamation mark after a full-width no-break space, not a narrow one. */

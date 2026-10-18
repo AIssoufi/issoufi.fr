@@ -7,6 +7,8 @@ import personalProjectsData from './.data/personal-projects.json';
 import { Projects } from './Projects';
 
 const allProjects = [...personalProjectsData.projects, ...freelanceProjectsData.projects];
+/** The straight apostrophe, which French text replaces with the typographic one (’). */
+const STRAIGHT_APOSTROPHE = "'";
 
 describe('Projects', () => {
   it('renders the personal and freelance sections', () => {
@@ -30,10 +32,14 @@ describe('Projects', () => {
   it('writes the project names and types with typographic apostrophes', () => {
     const textsWithStraightApostrophe = allProjects
       .flatMap(({ name, type }) => [name, type])
-      .filter(text => text.includes("'"));
+      .filter(text => text.includes(STRAIGHT_APOSTROPHE));
 
     expect(textsWithStraightApostrophe).toEqual([]);
+  });
+
+  it('shows the chess game with its French name', () => {
     render(<Projects />);
+
     expect(screen.getByText('Jeu d’échecs')).toBeInTheDocument();
   });
 });
