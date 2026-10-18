@@ -18,6 +18,12 @@ export const waitForEndingAnimations = async (container: Element): Promise<void>
   await Promise.all(animations.filter(isEnding).map(({ finished }) => finished.catch(() => {})));
 };
 
+/** Options of {@link listLastingAnimations}, the argument that `locator.evaluate` passes to it. */
+interface ListLastingAnimationsOptions {
+  /** Longest time an animation may last, from its start to its end, its delay included, in ms. */
+  maxDurationMs: number;
+}
+
 /**
  * Describes each animation and transition of an element and its content, pseudo-elements
  * included, that lasts longer than the given time, its delay included, such as one that loops
@@ -26,15 +32,18 @@ export const waitForEndingAnimations = async (container: Element): Promise<void>
  * it uses nothing from outside its own body.
  *
  * @param root - Element whose animations and those of its descendants are listed, such as `html`.
- * @param maxDurationMs - Longest time an animation may last, from its start to its end, in ms.
+ * @param options - The argument that `locator.evaluate` passes after the element.
  * @returns One description per animation that ends later, in the order of the document; empty
  * when every animation ends in time, as with reduced motion.
  *
  * @example
- * await page.locator('html').evaluate(listLastingAnimations, 1);
+ * await page.locator('html').evaluate(listLastingAnimations, { maxDurationMs: 1 });
  * // ['textFlow on <span>, ends after Infinity ms']
  */
-export const listLastingAnimations = (root: Element, maxDurationMs: number): string[] =>
+export const listLastingAnimations = (
+  root: Element,
+  { maxDurationMs }: ListLastingAnimationsOptions,
+): string[] =>
   root.getAnimations({ subtree: true }).flatMap(animation => {
     const effect = animation.effect as KeyframeEffect | null;
     const endTime = Number(effect?.getComputedTiming().endTime ?? 0);

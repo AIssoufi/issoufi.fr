@@ -31,10 +31,10 @@ const renderWithGlobalStyle = children =>
   );
 
 /**
- * Style rules of the document whose selector lists all the given ones, outside any media query by
- * default, or in the media query of the given condition.
+ * Style rules of the document whose selector lists all the given `selectors`, outside any media
+ * query by default, or in the media query whose condition is `media`.
  */
-const findRulesSelecting = (selectors, media = '') =>
+const findRulesSelecting = ({ selectors, media = '' }) =>
   listStyleRules()
     .filter(rule => rule.media === media)
     .map(({ rule }) => rule)
@@ -91,14 +91,14 @@ describe('GlobalStyle', () => {
   it('sizes the ::before and ::after pseudo-elements with border-box', () => {
     renderWithGlobalStyle();
 
-    const rules = findRulesSelecting(['*', '*::before', '*::after']);
+    const rules = findRulesSelecting({ selectors: ['*', '*::before', '*::after'] });
     expect(rules).toHaveLength(1);
     expect(rules[0].style.getPropertyValue('box-sizing')).toBe('border-box');
   });
 
   it('lets a component that sets its own box sizing keep it', () => {
     renderWithGlobalStyle(<ContentBox data-testid="content-box" />);
-    const [universalRule] = findRulesSelecting(['*']);
+    const [universalRule] = findRulesSelecting({ selectors: ['*'] });
 
     // The class of a component outweighs the universal selector, unless the latter is important
     expect(universalRule.style.getPropertyPriority('box-sizing')).toBe('');
@@ -109,7 +109,10 @@ describe('GlobalStyle', () => {
     it('makes every animation and transition instant, on the elements and pseudo-elements', () => {
       renderWithGlobalStyle();
 
-      const rules = findRulesSelecting(['*', '*::before', '*::after'], REDUCED_MOTION_QUERY);
+      const rules = findRulesSelecting({
+        selectors: ['*', '*::before', '*::after'],
+        media: REDUCED_MOTION_QUERY,
+      });
       expect(rules).toHaveLength(1);
       const [rule] = rules;
       for (const [property, value] of Object.entries(REDUCED_MOTION_VALUES)) {
@@ -122,7 +125,7 @@ describe('GlobalStyle', () => {
     it('leaves the animations and transitions alone without the preference', () => {
       renderWithGlobalStyle();
 
-      const universalRules = findRulesSelecting(['*']);
+      const universalRules = findRulesSelecting({ selectors: ['*'] });
       const motionProperties = universalRules.flatMap(rule =>
         Object.keys(REDUCED_MOTION_VALUES).filter(
           property => rule.style.getPropertyValue(property) !== '',

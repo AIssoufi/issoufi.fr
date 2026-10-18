@@ -39,7 +39,7 @@ const openPage = async ({ page, route }: OpenPageParams) => {
 
 /** Describes the animations and transitions of the page that last longer than an instant. */
 const listPageLastingAnimations = (page: Page) =>
-  page.locator('html').evaluate(listLastingAnimations, INSTANT_ANIMATION_MAX_MS);
+  page.locator('html').evaluate(listLastingAnimations, { maxDurationMs: INSTANT_ANIMATION_MAX_MS });
 
 /** Tells whether two screenshots of the screen, {@link STILLNESS_DELAY_MS} apart, are identical. */
 const isScreenStill = async (page: Page) => {

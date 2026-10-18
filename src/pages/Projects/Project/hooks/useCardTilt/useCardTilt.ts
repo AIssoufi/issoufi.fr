@@ -6,7 +6,10 @@ import { getCardTilt } from '../../utils';
 
 /** Mouse handlers returned by {@link useCardTilt}, to spread on the card. */
 interface CardTiltHandlers {
-  /** Tilts the card toward the pointer and moves its light under it. */
+  /**
+   * Tilts the card toward the pointer and moves its light under it; with reduced motion, only
+   * moves its light.
+   */
   onMouseMove: (event: MouseEvent<HTMLElement>) => void;
   /** Flattens the card. */
   onMouseLeave: (event: MouseEvent<HTMLElement>) => void;

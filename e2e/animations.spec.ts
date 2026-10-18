@@ -131,7 +131,7 @@ describe('listLastingAnimations', () => {
   it('lists every animation of the element and of its content', () => {
     const { container, getAnimations } = fakeContainer([]);
 
-    expect(listLastingAnimations(container, MAX_DURATION_MS)).toEqual([]);
+    expect(listLastingAnimations(container, { maxDurationMs: MAX_DURATION_MS })).toEqual([]);
     expect(getAnimations).toHaveBeenCalledWith({ subtree: true });
   });
 
@@ -140,7 +140,7 @@ describe('listLastingAnimations', () => {
       fakeTimedAnimation({ endTime: Number.POSITIVE_INFINITY, animationName: 'textFlow' }),
     ]);
 
-    expect(listLastingAnimations(container, MAX_DURATION_MS)).toEqual([
+    expect(listLastingAnimations(container, { maxDurationMs: MAX_DURATION_MS })).toEqual([
       'textFlow on <span>, ends after Infinity ms',
     ]);
   });
@@ -155,7 +155,7 @@ describe('listLastingAnimations', () => {
       }),
     ]);
 
-    expect(listLastingAnimations(container, MAX_DURATION_MS)).toEqual([
+    expect(listLastingAnimations(container, { maxDurationMs: MAX_DURATION_MS })).toEqual([
       'transform on <li>::after, ends after 250 ms',
     ]);
   });
@@ -169,7 +169,7 @@ describe('listLastingAnimations', () => {
       fakeTimedAnimation({ endTime: MAX_DURATION_MS + 0.001, animationName: 'late' }),
     ]);
 
-    expect(listLastingAnimations(container, MAX_DURATION_MS)).toEqual([
+    expect(listLastingAnimations(container, { maxDurationMs: MAX_DURATION_MS })).toEqual([
       `late on <span>, ends after ${MAX_DURATION_MS + 0.001} ms`,
     ]);
   });
@@ -179,7 +179,7 @@ describe('listLastingAnimations', () => {
       fakeTimedAnimation({ endTime: 900, animationName: '', tagName: null }),
     ]);
 
-    expect(listLastingAnimations(container, MAX_DURATION_MS)).toEqual([
+    expect(listLastingAnimations(container, { maxDurationMs: MAX_DURATION_MS })).toEqual([
       'animation on <no element>, ends after 900 ms',
     ]);
   });
@@ -187,6 +187,6 @@ describe('listLastingAnimations', () => {
   it('leaves out an animation without an effect, which has nothing to show', () => {
     const { container } = fakeContainer([{ effect: null }]);
 
-    expect(listLastingAnimations(container, MAX_DURATION_MS)).toEqual([]);
+    expect(listLastingAnimations(container, { maxDurationMs: MAX_DURATION_MS })).toEqual([]);
   });
 });

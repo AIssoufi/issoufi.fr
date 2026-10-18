@@ -22,14 +22,16 @@ const createCard = () => {
   return card;
 };
 
-/** A mouse event on the card, with the pointer at the given point of the card. */
-const mouseEventOn = ({
-  card,
-  pointer = CARD_POINTER,
-}: {
+/** Parameters of {@link mouseEventOn}. */
+interface MouseEventOnParams {
+  /** Card the event happens on. */
   card: HTMLElement;
+  /** Pointer position from the card's top-left corner. @default CARD_POINTER */
   pointer?: { x: number; y: number };
-}) =>
+}
+
+/** A mouse event on the card, with the pointer at the given point of the card. */
+const mouseEventOn = ({ card, pointer = CARD_POINTER }: MouseEventOnParams) =>
   ({
     currentTarget: card,
     clientX: CARD_BOX.left + pointer.x,
