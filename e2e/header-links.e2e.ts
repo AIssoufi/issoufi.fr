@@ -23,9 +23,9 @@ import {
   getBoxCenterDistanceX,
   getBoxCenterDistanceY,
   getBoxRight,
+  getRowBox,
   getScreenBox,
   isBoxInside,
-  type ScreenBox,
 } from './utils';
 
 /** Translations of each language, to find the links of the header by their names. */
@@ -119,10 +119,6 @@ interface GetBoxesParams {
 const getBoxes = ({ navigation, names }: GetBoxesParams) =>
   Promise.all(names.map(name => navigation.getByRole('link', { name, exact: true }).boundingBox()));
 
-/** Box that spans two boxes of the same row, from the left of the first to the right of the last. */
-const getRowBox = (first: ScreenBox | null, last: ScreenBox | null): ScreenBox | null =>
-  first && last ? { ...first, width: getBoxRight(last) - first.x } : null;
-
 // jsdom computes no layout, so only a real browser sees the items of the header out of their line
 // or their order, and only it downloads a file or opens a new tab
 for (const language of LANGUAGES) {
@@ -166,9 +162,12 @@ for (const language of LANGUAGES) {
         items.forEach(([label, box], index) => {
           expect(box?.width, `width of the ${label}`).toBeGreaterThan(0);
           expect(
-            isBoxInside({ box, container: headerBox }) &&
-              isBoxInside({ box, container: screenBox }),
-            `${label} whole in the header, on the screen: ${JSON.stringify(box)}`,
+            isBoxInside({ box, container: headerBox }),
+            `${label} whole in the header: ${JSON.stringify(box)}`,
+          ).toBe(true);
+          expect(
+            isBoxInside({ box, container: screenBox }),
+            `${label} whole on the screen: ${JSON.stringify(box)}`,
           ).toBe(true);
           expect(
             getBoxCenterDistanceY({ box, referenceBox: home }),
@@ -250,7 +249,7 @@ for (const language of LANGUAGES) {
           Math.max(getBoxBottom(gitHub), getBoxBottom(linkedIn)),
         );
         const centeredItems = [
-          ['row of icons', getRowBox(gitHub, linkedIn)],
+          ['row of icons', getRowBox({ first: gitHub, last: linkedIn })],
           ['CV link', cv],
         ] as const;
         for (const [label, box] of centeredItems) {

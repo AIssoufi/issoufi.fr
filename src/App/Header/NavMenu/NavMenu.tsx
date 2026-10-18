@@ -54,6 +54,9 @@ const NO_ITEMS: Item[] = [];
  * a router, because the links are `NavLink`s.
  */
 const NavMenu = ({ id, items = NO_ITEMS, onClick, mobileMenuIsOpen = false }: NavMenuProps) => {
+  // Without links, the bar starts with the icons, and no line stands before them
+  const hasItems = items.length > 0;
+
   return (
     <Nav
       id={id || undefined}
@@ -73,7 +76,7 @@ const NavMenu = ({ id, items = NO_ITEMS, onClick, mobileMenuIsOpen = false }: Na
           </NavItem>
         ))}
       </NavList>
-      <Separator aria-hidden />
+      {hasItems && <Separator aria-hidden />}
       <MenuProfileLinks onClick={onClick} />
       <Separator aria-hidden />
       <MenuCvLink

@@ -15,7 +15,8 @@ const items = [
 /** Media query of the short screens, on which the open mobile menu is compact. */
 const SHORT_SCREEN_MEDIA_QUERY = `(max-height: ${theme.screenHeights.short})`;
 
-const renderAt = (path, props) =>
+/** Renders the navigation with its props in a router at a path, the home page by default. */
+const renderNavMenu = ({ path = '/', ...props } = {}) =>
   render(
     <MemoryRouter initialEntries={[path]}>
       <NavMenu {...props} />
@@ -51,14 +52,26 @@ const getNavigation = () => screen.getByRole('navigation', { hidden: true });
 
 describe('NavMenu', () => {
   it('renders the profile icons and the CV link without any props', () => {
-    renderAt('/');
+    renderNavMenu();
 
     expect(getCvLink()).toHaveAttribute('href', '/CV - Adam Issoufi.pdf');
     expect(getProfileLinks()).toHaveLength(PROFILE_LINK_NAMES.length);
   });
 
+  it('starts with the profile icons, after no line, without links', () => {
+    renderNavMenu();
+
+    expect(getSeparators()).toHaveLength(1);
+    expect([...getNavigation().children]).toEqual([
+      screen.getByRole('list', { hidden: true }),
+      getProfileRow(),
+      getSeparators()[0],
+      getCvLink(),
+    ]);
+  });
+
   it('puts the links, a line, the profile icons, a line, then the CV link, in this order', () => {
-    renderAt('/', { items });
+    renderNavMenu({ items });
 
     const [firstSeparator, secondSeparator] = getSeparators();
     expect([...getNavigation().children]).toEqual([
@@ -71,7 +84,7 @@ describe('NavMenu', () => {
   });
 
   it('goes through the links, the profile icons, then the CV link with Tab', async () => {
-    renderAt('/', { items, mobileMenuIsOpen: true });
+    renderNavMenu({ items, mobileMenuIsOpen: true });
 
     for (const name of ['Accueil', 'Projets', ...PROFILE_LINK_NAMES, CV_LINK_NAME]) {
       await userEvent.tab();
@@ -81,7 +94,7 @@ describe('NavMenu', () => {
 
   describe('separators', () => {
     it('hides them from screen readers, as they only decorate the bar', () => {
-      renderAt('/', { items });
+      renderNavMenu({ items });
 
       expect(getSeparators()).toHaveLength(2);
       getSeparators().forEach(separator => {
@@ -91,7 +104,7 @@ describe('NavMenu', () => {
     });
 
     it('leaves them out of the open mobile menu, which spaces its groups with its gap', () => {
-      renderAt('/', { items, mobileMenuIsOpen: true });
+      renderNavMenu({ items, mobileMenuIsOpen: true });
 
       getSeparators().forEach(separator =>
         expect(getComputedStyle(separator).display).toBe('none'),
@@ -99,7 +112,7 @@ describe('NavMenu', () => {
     });
 
     it('draws each one on desktop as a faint line, as high as the text of the links', () => {
-      renderAt('/', { items });
+      renderNavMenu({ items });
 
       getSeparators().forEach(element => {
         expect(desktopStyle({ element, property: 'display' })).toBe('block');
@@ -114,7 +127,7 @@ describe('NavMenu', () => {
     });
 
     it('stands halfway between its neighbours, which keep 16 px on each side as the links do', () => {
-      renderAt('/', { items });
+      renderNavMenu({ items });
       const [firstItem] = screen.getAllByRole('listitem', { hidden: true });
 
       expect(desktopStyle({ element: firstItem, property: 'padding' })).toBe(
@@ -134,7 +147,7 @@ describe('NavMenu', () => {
 
   describe('profile icons', () => {
     it('follow the links in the open mobile menu, on one row', () => {
-      renderAt('/', { items, mobileMenuIsOpen: true });
+      renderNavMenu({ items, mobileMenuIsOpen: true });
 
       getProfileLinks().forEach(link => expect(link).toBeVisible());
       expect(getProfileRow().previousElementSibling.previousElementSibling).toContainElement(
@@ -145,7 +158,7 @@ describe('NavMenu', () => {
 
     it.each(PROFILE_LINK_NAMES)('close the mobile menu when %s is clicked', async name => {
       const onClick = vi.fn(event => event?.preventDefault());
-      renderAt('/', { items, onClick, mobileMenuIsOpen: true });
+      renderNavMenu({ items, onClick, mobileMenuIsOpen: true });
 
       await userEvent.click(screen.getByRole('link', { name }));
 
@@ -153,7 +166,7 @@ describe('NavMenu', () => {
     });
 
     it('stay shown on desktop, in the bar of the header', () => {
-      renderAt('/', { items });
+      renderNavMenu({ items });
 
       expect(desktopStyle({ element: getProfileRow(), property: 'display' })).not.toBe('none');
       expect(desktopStyle({ element: getProfileRow(), property: 'animation' })).toBe('none');
@@ -162,7 +175,7 @@ describe('NavMenu', () => {
 
   describe('CV link', () => {
     it('follows the profile icons in the open mobile menu, as a pill with its download icon', () => {
-      renderAt('/', { items, mobileMenuIsOpen: true });
+      renderNavMenu({ items, mobileMenuIsOpen: true });
 
       expect(getCvLink()).toBeVisible();
       expect(getCvLink().previousElementSibling.previousElementSibling).toBe(getProfileRow());
@@ -172,7 +185,7 @@ describe('NavMenu', () => {
     });
 
     it('gets smaller on a short screen, as the links do, to stay clear of the language toggle', () => {
-      renderAt('/', { items, mobileMenuIsOpen: true });
+      renderNavMenu({ items, mobileMenuIsOpen: true });
       const shortScreenStyle = property =>
         declaredStyle({ element: getCvLink(), property, media: SHORT_SCREEN_MEDIA_QUERY });
 
@@ -181,7 +194,7 @@ describe('NavMenu', () => {
     });
 
     it('is big enough for a finger in the mobile menu, even on a short screen', () => {
-      renderAt('/', { items, mobileMenuIsOpen: true });
+      renderNavMenu({ items, mobileMenuIsOpen: true });
 
       expect(getComputedStyle(getCvLink()).minHeight).toBe(theme.sizes['finger-target']);
       expect(
@@ -195,7 +208,7 @@ describe('NavMenu', () => {
 
     it('closes the mobile menu when it is clicked', async () => {
       const onClick = vi.fn(event => event?.preventDefault());
-      renderAt('/', { items, onClick, mobileMenuIsOpen: true });
+      renderNavMenu({ items, onClick, mobileMenuIsOpen: true });
 
       await userEvent.click(getCvLink());
 
@@ -203,7 +216,7 @@ describe('NavMenu', () => {
     });
 
     it('is a text link like the others in the bar of the header on desktop, without its icon', () => {
-      renderAt('/', { items });
+      renderNavMenu({ items });
       const [firstItem] = screen.getAllByRole('listitem', { hidden: true });
 
       expect(desktopStyle({ element: getCvLink(), property: 'display' })).not.toBe('none');
@@ -221,7 +234,7 @@ describe('NavMenu', () => {
     });
 
     it('turns to the accent color and grows on hover on desktop, as the links do', () => {
-      renderAt('/', { items });
+      renderNavMenu({ items });
 
       expect(desktopStyle({ element: getCvLink(), property: 'color', pseudo: ':hover' })).toBe(
         serializeCssValue({ property: 'color', value: theme.colors.accent }),
@@ -234,7 +247,7 @@ describe('NavMenu', () => {
 
   describe('open mobile menu', () => {
     it('scrolls when higher than the screen, from its top, without scrolling the page', () => {
-      renderAt('/', { items, mobileMenuIsOpen: true });
+      renderNavMenu({ items, mobileMenuIsOpen: true });
 
       expect(getComputedStyle(getNavigation()).overflowY).toBe('auto');
       expect(declaredStyle({ element: getNavigation(), property: 'overscroll-behavior' })).toBe(
@@ -247,7 +260,7 @@ describe('NavMenu', () => {
     });
 
     it('gets more compact on a short screen, as on a phone held sideways', () => {
-      renderAt('/', { items, mobileMenuIsOpen: true });
+      renderNavMenu({ items, mobileMenuIsOpen: true });
       const shortScreenStyle = ({ element, property }) =>
         declaredStyle({ element, property, media: SHORT_SCREEN_MEDIA_QUERY });
       const [firstItem] = screen.getAllByRole('listitem');
@@ -263,7 +276,7 @@ describe('NavMenu', () => {
     });
 
     it('keeps the menu as it is on a short screen of the desktop layout', () => {
-      renderAt('/', { items });
+      renderNavMenu({ items });
 
       expect(
         declaredStyle({
@@ -283,14 +296,14 @@ describe('NavMenu', () => {
   });
 
   it('renders the links and highlights the active one', () => {
-    renderAt('/projects', { items });
+    renderNavMenu({ path: '/projects', items });
 
     expect(screen.getByText('Projets').closest('a')).toHaveClass('active');
     expect(screen.getByText('Accueil').closest('a')).not.toHaveClass('active');
   });
 
   it('lists the links with an explicit list role, which Safari drops from lists without bullets', () => {
-    renderAt('/', { items });
+    renderNavMenu({ items });
     const list = screen.getByRole('list', { hidden: true });
 
     expect(list).toHaveAttribute('role', 'list');
@@ -298,7 +311,7 @@ describe('NavMenu', () => {
   });
 
   it('keeps the list role without any items', () => {
-    renderAt('/');
+    renderNavMenu();
     const list = screen.getByRole('list', { hidden: true });
 
     expect(list).toHaveAttribute('role', 'list');
@@ -307,7 +320,7 @@ describe('NavMenu', () => {
 
   it('calls onClick when a link is clicked', async () => {
     const onClick = vi.fn();
-    renderAt('/', { items, onClick });
+    renderNavMenu({ items, onClick });
 
     await userEvent.click(screen.getByText('Projets'));
 
@@ -315,7 +328,7 @@ describe('NavMenu', () => {
   });
 
   it('gives the navigation its id, so a button can name it as the menu it controls', () => {
-    renderAt('/', { id: 'mobile-menu' });
+    renderNavMenu({ id: 'mobile-menu' });
 
     expect(screen.getByRole('navigation', { hidden: true })).toHaveAttribute('id', 'mobile-menu');
   });
@@ -324,7 +337,7 @@ describe('NavMenu', () => {
     ['without one', {}],
     ['when it is empty', { id: '' }],
   ])('gives the navigation no id %s', (_case, props) => {
-    renderAt('/', props);
+    renderNavMenu(props);
 
     expect(screen.getByRole('navigation', { hidden: true })).not.toHaveAttribute('id');
   });

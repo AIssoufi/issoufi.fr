@@ -106,6 +106,20 @@ const getPageLink = () => screen.getByRole('link', { name: 'Page link' });
 /** Inline overflow of the root element, which locks the page while the mobile menu covers it. */
 const getRootOverflow = () => document.documentElement.style.overflow;
 
+/**
+ * Runs the steps of a test while every click is kept from navigating, since jsdom can neither
+ * download a file nor open a new tab, then lets clicks navigate again, even when a step fails.
+ */
+const withoutNavigation = async steps => {
+  const preventNavigation = event => event.preventDefault();
+  window.addEventListener('click', preventNavigation, { capture: true });
+  try {
+    await steps();
+  } finally {
+    window.removeEventListener('click', preventNavigation, { capture: true });
+  }
+};
+
 /** Elements of the page that the open mobile menu covers: the logo and the page. */
 const getCoveredElements = () => [screen.getByRole('link', { name: 'AI' }), getPageLink()];
 
@@ -571,16 +585,15 @@ describe('Header', () => {
     });
 
     it('gives the focus back to the burger when the CV link downloads the CV', async () => {
-      // jsdom cannot download a file: the link only closes the menu here
-      const preventNavigation = event => event.preventDefault();
-      window.addEventListener('click', preventNavigation, { capture: true });
-      renderHeader();
-      await userEvent.click(getBurgerButton());
-      act(() => getCvLink().focus());
+      // The link only closes the menu here
+      await withoutNavigation(async () => {
+        renderHeader();
+        await userEvent.click(getBurgerButton());
+        act(() => getCvLink().focus());
 
-      await userEvent.keyboard('{Enter}');
+        await userEvent.keyboard('{Enter}');
+      });
 
-      window.removeEventListener('click', preventNavigation, { capture: true });
       expect(getBurgerButton()).toHaveAttribute('aria-expanded', 'false');
       expect(getBurgerButton()).toHaveFocus();
     });
@@ -600,16 +613,15 @@ describe('Header', () => {
     });
 
     it('gives the focus back to the burger when a profile icon opens its profile', async () => {
-      // A new tab would be a navigation, which jsdom does not do: the link only closes the menu
-      const preventNavigation = event => event.preventDefault();
-      window.addEventListener('click', preventNavigation, { capture: true });
-      renderHeader();
-      await userEvent.click(getBurgerButton());
-      act(() => getLinkedInLink().focus());
+      // The link only closes the menu here
+      await withoutNavigation(async () => {
+        renderHeader();
+        await userEvent.click(getBurgerButton());
+        act(() => getLinkedInLink().focus());
 
-      await userEvent.keyboard('{Enter}');
+        await userEvent.keyboard('{Enter}');
+      });
 
-      window.removeEventListener('click', preventNavigation, { capture: true });
       expect(getBurgerButton()).toHaveAttribute('aria-expanded', 'false');
       expect(getBurgerButton()).toHaveFocus();
     });
