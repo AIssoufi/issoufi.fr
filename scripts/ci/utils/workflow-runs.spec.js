@@ -562,6 +562,15 @@ describe('the API calls on runs', () => {
       );
     });
 
+    it('resolves to undefined when the only answer was not a run and the other reads failed', async () => {
+      const answers = [new Response('{}', { status: 500 }), new Response('{}')];
+      vi.stubGlobal(
+        'fetch',
+        vi.fn(async () => answers.shift() ?? new Response('{}', { status: 500 })),
+      );
+      await expect(waitForRun({ runId: 123, attempts: 3, delayMs: 0 })).resolves.toBeUndefined();
+    });
+
     it('throws the error of the last read when every read failed', async () => {
       const fetch = vi.fn(async () => new Response('{}', { status: 500 }));
       vi.stubGlobal('fetch', fetch);

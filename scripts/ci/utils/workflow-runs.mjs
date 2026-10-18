@@ -259,6 +259,15 @@ export const fetchLatestRun = async ({
 };
 
 /**
+ * Checks the identifier of a run before the API is asked for it.
+ * @param {unknown} runId - Identifier to check.
+ * @throws {Error} When it is not a positive integer.
+ */
+const assertRunId = runId => {
+  if (!isPositiveInteger(runId)) throw new Error(`Invalid workflow run "${runId ?? ''}"`);
+};
+
+/**
  * Parameters of {@link fetchRun}.
  * @typedef {object} FetchRunParams
  * @property {number} runId - Identifier of the run, e.g. from {@link dispatchWorkflow}.
@@ -280,7 +289,7 @@ export const fetchLatestRun = async ({
  * await fetchRun({ runId: 123 }); // { sha, status: 'in_progress', conclusion: null, url }
  */
 export const fetchRun = async ({ runId, ...api }) => {
-  if (!isPositiveInteger(runId)) throw new Error(`Invalid workflow run "${runId ?? ''}"`);
+  assertRunId(runId);
 
   return readRun(await requestRepositoryApi({ ...api, path: `/actions/runs/${runId}` }));
 };
@@ -369,7 +378,8 @@ export const dispatchWorkflow = async ({ workflow, ref, ...api }) => {
  * such as an error of the API, is tried again at the next attempt.
  * @param {WaitForRunParams} params
  * @returns {Promise<WorkflowRun | undefined>} The run once completed, or as last read when it was
- * still going after every attempt, or `undefined` when it could never be read.
+ * still going after every attempt, or `undefined` when no answer of the API could be read as a
+ * run, or when `attempts` is not above 0.
  * @throws {Error} At once when the identifier is not a positive integer, and when every read
  * failed, with the error of the last one.
  * @example
@@ -381,9 +391,7 @@ export const waitForRun = async ({
   delayMs = RUN_WAIT_DELAY_MS,
   ...params
 }) => {
-  if (!isPositiveInteger(params.runId)) {
-    throw new Error(`Invalid workflow run "${params.runId ?? ''}"`);
-  }
+  assertRunId(params.runId);
 
   /** @type {WorkflowRun | undefined} */
   let run;
