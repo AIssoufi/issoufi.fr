@@ -163,6 +163,38 @@ interface GetPageUrlParams {
 export const getPageUrl = ({ path, language }: GetPageUrlParams): string =>
   `${SITE_URL}${localizePath({ path, language })}`;
 
+/** `hreflang` of the version of a page shown to the visitors of no listed language. */
+export const DEFAULT_HREFLANG = 'x-default';
+
+/** Translation of a page, as the HTML of the page and the sitemap link to it. */
+export interface PageAlternate {
+  /** Language of the translation, or {@link DEFAULT_HREFLANG}. */
+  hreflang: string;
+  /** Absolute URL of the translation. */
+  href: string;
+}
+
+/**
+ * Lists the translations of a page, which search engines use to show each visitor the page in
+ * their language: its URL in every language of `LANGUAGES`, the page itself included, then its URL
+ * in the default language as {@link DEFAULT_HREFLANG}. The HTML file of each page links to them
+ * (`renderPageHtml`), and so does the sitemap (`renderSitemap`), so both list the same ones.
+ *
+ * @param path - Path of the page in the default language, e.g. `/projects`.
+ *
+ * @example
+ * getPageAlternates('/projects');
+ * // [
+ * //   { hreflang: 'fr', href: 'https://issoufi.fr/projects' },
+ * //   { hreflang: 'en', href: 'https://issoufi.fr/en/projects' },
+ * //   { hreflang: 'x-default', href: 'https://issoufi.fr/projects' },
+ * // ]
+ */
+export const getPageAlternates = (path: string): PageAlternate[] => [
+  ...LANGUAGES.map(language => ({ hreflang: language, href: getPageUrl({ path, language }) })),
+  { hreflang: DEFAULT_HREFLANG, href: getPageUrl({ path, language: DEFAULT_LANGUAGE }) },
+];
+
 /**
  * Name of the file that Cloudflare Pages and GitHub Pages serve, with a 404 status, for any path
  * that matches no file. Its presence turns off the single-page-app fallback of Cloudflare Pages,

@@ -165,4 +165,21 @@ describe('requestRepositoryApi', () => {
     );
     expect(fetch).not.toHaveBeenCalled();
   });
+
+  it('throws without asking the API when no repository is set', async () => {
+    vi.stubEnv('GITHUB_REPOSITORY', undefined);
+    const fetch = stubFetch();
+    await expect(requestRepositoryApi({ path: '/pulls' })).rejects.toThrow(
+      'Cannot reach the GitHub API of the repository ""',
+    );
+    expect(fetch).not.toHaveBeenCalled();
+  });
+
+  it('throws without asking the API for a null repository', async () => {
+    const fetch = stubFetch();
+    await expect(requestRepositoryApi({ repository: null, path: '/pulls' })).rejects.toThrow(
+      'Cannot reach the GitHub API of the repository ""',
+    );
+    expect(fetch).not.toHaveBeenCalled();
+  });
 });
