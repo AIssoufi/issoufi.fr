@@ -4,6 +4,7 @@ import lottie from 'lottie-web/build/player/lottie_light';
 import { createRef } from 'react';
 
 import i18n from '../../../i18n';
+import { waitForBurgerIcon } from '../../testUtils';
 import BurgerMenu from './BurgerMenu';
 import { OPEN_ANIMATION } from './constants';
 
@@ -16,20 +17,33 @@ const animationMock = () => ({
   goToAndStop: vi.fn(),
 });
 
+/** Renders the button, then waits for its icon animation. */
+const renderBurgerMenu = async ui => {
+  const result = render(ui);
+  await waitForBurgerIcon();
+  return result;
+};
+
 describe('BurgerMenu', () => {
+  beforeEach(() => {
+    vi.spyOn(lottie, 'loadAnimation');
+  });
+
   afterEach(async () => {
     vi.restoreAllMocks();
     await act(() => i18n.changeLanguage('fr'));
   });
 
-  it('renders without any props', () => {
+  it('renders without any props', async () => {
     const { container } = render(<BurgerMenu />);
 
     expect(container.firstChild).toBeInTheDocument();
+    // Pressed before lottie-web is loaded, with no animation to play
     expect(() => fireEvent.click(container.firstChild)).not.toThrow();
+    await waitForBurgerIcon();
   });
 
-  it('calls onOpen when clicked while closed', () => {
+  it('calls onOpen when clicked while closed', async () => {
     const onOpen = vi.fn();
     const onClose = vi.fn();
     const { container } = render(
@@ -43,9 +57,10 @@ describe('BurgerMenu', () => {
 
     expect(onOpen).toHaveBeenCalledTimes(1);
     expect(onClose).not.toHaveBeenCalled();
+    await waitForBurgerIcon();
   });
 
-  it('calls onClose when clicked while open', () => {
+  it('calls onClose when clicked while open', async () => {
     const onOpen = vi.fn();
     const onClose = vi.fn();
     const { container } = render(
@@ -60,6 +75,7 @@ describe('BurgerMenu', () => {
 
     expect(onClose).toHaveBeenCalledTimes(1);
     expect(onOpen).not.toHaveBeenCalled();
+    await waitForBurgerIcon();
   });
 
   it('plays the icon animation forward on open, once lottie-web is loaded', async () => {
@@ -95,7 +111,7 @@ describe('BurgerMenu', () => {
     vi.spyOn(lottie, 'loadAnimation').mockReturnValue(animation);
     render(<BurgerMenu />);
 
-    await waitFor(() => expect(lottie.loadAnimation).toHaveBeenCalled());
+    await waitForBurgerIcon();
     expect(animation.goToAndStop).not.toHaveBeenCalled();
   });
 
@@ -103,7 +119,7 @@ describe('BurgerMenu', () => {
     const animation = { ...animationMock(), totalFrames: 30 };
     vi.spyOn(lottie, 'loadAnimation').mockReturnValue(animation);
     const { container, rerender } = render(<BurgerMenu />);
-    await waitFor(() => expect(lottie.loadAnimation).toHaveBeenCalled());
+    await waitForBurgerIcon();
     animation.play.mockClear();
 
     fireEvent.click(container.firstChild);
@@ -115,14 +131,14 @@ describe('BurgerMenu', () => {
   });
 
   describe('accessibility', () => {
-    it('renders a plain button, so it never submits a form', () => {
-      render(<BurgerMenu />);
+    it('renders a plain button, so it never submits a form', async () => {
+      await renderBurgerMenu(<BurgerMenu />);
 
       expect(screen.getByRole('button')).toHaveAttribute('type', 'button');
     });
 
-    it('is named "Ouvrir le menu" and collapsed while the menu is closed', () => {
-      render(<BurgerMenu />);
+    it('is named "Ouvrir le menu" and collapsed while the menu is closed', async () => {
+      await renderBurgerMenu(<BurgerMenu />);
 
       expect(screen.getByRole('button', { name: 'Ouvrir le menu' })).toHaveAttribute(
         'aria-expanded',
@@ -130,8 +146,8 @@ describe('BurgerMenu', () => {
       );
     });
 
-    it('is named "Fermer le menu" and expanded while the menu is open', () => {
-      render(<BurgerMenu isOpen />);
+    it('is named "Fermer le menu" and expanded while the menu is open', async () => {
+      await renderBurgerMenu(<BurgerMenu isOpen />);
 
       expect(screen.getByRole('button', { name: 'Fermer le menu' })).toHaveAttribute(
         'aria-expanded',
@@ -141,7 +157,7 @@ describe('BurgerMenu', () => {
 
     it('is named "Open menu" and collapsed while the menu is closed, in English', async () => {
       await act(() => i18n.changeLanguage('en'));
-      render(<BurgerMenu />);
+      await renderBurgerMenu(<BurgerMenu />);
 
       expect(screen.getByRole('button', { name: 'Open menu' })).toHaveAttribute(
         'aria-expanded',
@@ -151,7 +167,7 @@ describe('BurgerMenu', () => {
 
     it('is named "Close menu" and expanded while the menu is open, in English', async () => {
       await act(() => i18n.changeLanguage('en'));
-      render(<BurgerMenu isOpen />);
+      await renderBurgerMenu(<BurgerMenu isOpen />);
 
       expect(screen.getByRole('button', { name: 'Close menu' })).toHaveAttribute(
         'aria-expanded',
@@ -159,23 +175,23 @@ describe('BurgerMenu', () => {
       );
     });
 
-    it('names the menu it controls', () => {
-      render(<BurgerMenu menuId="mobile-menu" />);
+    it('names the menu it controls', async () => {
+      await renderBurgerMenu(<BurgerMenu menuId="mobile-menu" />);
 
       expect(screen.getByRole('button')).toHaveAttribute('aria-controls', 'mobile-menu');
     });
 
-    it('names no menu without a menu id, or with an empty one', () => {
-      const { rerender } = render(<BurgerMenu />);
+    it('names no menu without a menu id, or with an empty one', async () => {
+      const { rerender } = await renderBurgerMenu(<BurgerMenu />);
       expect(screen.getByRole('button')).not.toHaveAttribute('aria-controls');
 
       rerender(<BurgerMenu menuId="" />);
       expect(screen.getByRole('button')).not.toHaveAttribute('aria-controls');
     });
 
-    it('gives its button to the ref, so the parent can focus it', () => {
+    it('gives its button to the ref, so the parent can focus it', async () => {
       const ref = createRef();
-      render(<BurgerMenu ref={ref} />);
+      await renderBurgerMenu(<BurgerMenu ref={ref} />);
 
       act(() => ref.current.focus());
 
@@ -184,7 +200,7 @@ describe('BurgerMenu', () => {
     });
 
     it('is reached with Tab', async () => {
-      render(<BurgerMenu />);
+      await renderBurgerMenu(<BurgerMenu />);
 
       await userEvent.tab();
 
@@ -197,7 +213,7 @@ describe('BurgerMenu', () => {
     ])('calls onOpen when %s is pressed while the menu is closed', async (_key, keys) => {
       const onOpen = vi.fn();
       const onClose = vi.fn();
-      render(
+      await renderBurgerMenu(
         <BurgerMenu
           onOpen={onOpen}
           onClose={onClose}
@@ -217,7 +233,7 @@ describe('BurgerMenu', () => {
     ])('calls onClose when %s is pressed while the menu is open', async (_key, keys) => {
       const onOpen = vi.fn();
       const onClose = vi.fn();
-      render(
+      await renderBurgerMenu(
         <BurgerMenu
           isOpen
           onOpen={onOpen}
