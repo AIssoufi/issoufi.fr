@@ -38,7 +38,7 @@ describe('NavMenu', () => {
     expect(within(list).getAllByRole('listitem', { hidden: true })).toHaveLength(items.length);
   });
 
-  it('keeps the list role without any links', () => {
+  it('keeps the list role without any items', () => {
     renderAt('/');
     const list = screen.getByRole('list', { hidden: true });
 

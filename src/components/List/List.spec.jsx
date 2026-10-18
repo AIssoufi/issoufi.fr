@@ -7,6 +7,10 @@ import List from './List';
 const getList = () => screen.getByRole('list');
 
 describe('List', () => {
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
   it('renders a ul with an explicit list role, which Safari drops from lists without bullets', () => {
     render(
       <List>
@@ -62,11 +66,13 @@ describe('List', () => {
     const GridList = styled(List)`
       display: ${props => (props.$isGrid ? 'grid' : 'flex')};
     `;
+    // React never sets a $ attribute but logs it as invalid, so the console tells whether it leaked
+    const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {});
     render(<GridList $isGrid />);
     const list = getList();
 
     expect(list).toHaveAttribute('role', 'list');
     expect(getComputedStyle(list).display).toBe('grid');
-    expect(list).not.toHaveAttribute('$isGrid');
+    expect(consoleError).not.toHaveBeenCalled();
   });
 });
