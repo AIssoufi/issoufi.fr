@@ -7,7 +7,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ```bash
 pnpm dev          # Start dev server on port 3000, or on PORT (.env.local in a worktree)
 pnpm build        # Type-check + production build (tsc && vite build)
-pnpm size         # After a build: fails over the gzip budget of scripts/ci/constants.mjs
+pnpm size         # After a build: fails over the gzip budgets of scripts/ci/constants.mjs (home page first load, all chunks)
 pnpm smoke-test <url> # After a build: checks that a deployed site serves the pages of dist/
 pnpm preview      # Preview production build on port 4173, or on PORT
 pnpm typecheck    # Type-check only: src/, vite/, e2e/ and the configs, then scripts/ (scripts/tsconfig.json)

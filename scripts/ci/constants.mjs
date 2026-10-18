@@ -20,6 +20,15 @@ export const PUBLIC_DIR = 'public';
  */
 export const SCRIPT_BUDGET_GZIP_BYTES = 210_000;
 
+/**
+ * Maximum gzip size, in bytes, of the scripts and style sheets that the home page loads before it
+ * renders: those that its HTML file ({@link HOME_PAGE_FILE}) references. Tighter than
+ * {@link SCRIPT_BUDGET_GZIP_BYTES}, so that code added to the main chunk fails the build even
+ * when the total stays under its budget. In October 2026 the home page loaded the main chunk
+ * alone, 131.9 kB; the margin leaves room for React 19.3, which adds about 9.3 kB.
+ */
+export const INITIAL_LOAD_BUDGET_GZIP_BYTES = 150_000;
+
 /** Size, in bytes, above which an image of the build is reported as worth compressing. */
 export const LARGE_IMAGE_BYTES = 500_000;
 
@@ -61,6 +70,42 @@ export const CANONICAL_LINK_TAG_PATTERN = /<link\s[^>]*rel="canonical"[^>]*>/i;
 
 /** `href` attribute of a tag. Its first group captures the URL, without the quotes. */
 export const HREF_ATTRIBUTE_PATTERN = /href="([^"]*)"/i;
+
+/** Comments of an HTML page, whose tags the browser ignores. */
+export const HTML_COMMENT_PATTERN = /<!--[\s\S]*?-->/g;
+
+/**
+ * Opening tags of the scripts of an HTML page, with their attributes in any order and on any
+ * number of lines. A script without attributes, written inline, does not match.
+ */
+export const SCRIPT_TAG_PATTERN = /<script\s[^>]*>/gi;
+
+/** Link tags of an HTML page, with their attributes in any order and on any number of lines. */
+export const LINK_TAG_PATTERN = /<link\s[^>]*>/gi;
+
+/** `src` attribute of a tag. Its first group captures the URL, without the quotes. */
+export const SRC_ATTRIBUTE_PATTERN = /\ssrc="([^"]*)"/i;
+
+/** `rel` attribute of a link tag. Its first group captures the relations, without the quotes. */
+export const REL_ATTRIBUTE_PATTERN = /\srel="([^"]*)"/i;
+
+/** Separator of the relations listed in a `rel` attribute: any run of spaces. */
+export const LINK_RELATION_SEPARATOR_PATTERN = /\s+/;
+
+/**
+ * Relations of a link tag whose file the browser loads with the page, before it renders: the
+ * modules that Vite preloads and the style sheets.
+ */
+export const INITIAL_LOAD_LINK_RELATIONS = ['modulepreload', 'stylesheet'];
+
+/** Start of a URL served by another site: a scheme (`https:`, `data:`…) or `//`. */
+export const EXTERNAL_URL_PATTERN = /^([a-z][a-z\d+.-]*:|\/\/)/i;
+
+/** Query string and fragment at the end of a URL, which do not change the file it serves. */
+export const URL_QUERY_AND_HASH_PATTERN = /[?#].*$/;
+
+/** Start of a URL relative to the root of the site, `/` or `./`. */
+export const ROOT_URL_PREFIX_PATTERN = /^\.?\//;
 
 /** Path that no page uses, requested to check the not found page. */
 export const MISSING_PAGE_ROUTE = '/smoke-test-page-that-does-not-exist';

@@ -1,5 +1,21 @@
 // @ts-check
-import { ASSETS_SUBDIR, IMAGE_FILE_PATTERN, SCRIPT_FILE_PATTERN } from '../constants.mjs';
+import {
+  ASSETS_SUBDIR,
+  EXTERNAL_URL_PATTERN,
+  HOME_PAGE_FILE,
+  HREF_ATTRIBUTE_PATTERN,
+  HTML_COMMENT_PATTERN,
+  IMAGE_FILE_PATTERN,
+  INITIAL_LOAD_LINK_RELATIONS,
+  LINK_RELATION_SEPARATOR_PATTERN,
+  LINK_TAG_PATTERN,
+  REL_ATTRIBUTE_PATTERN,
+  ROOT_URL_PREFIX_PATTERN,
+  SCRIPT_FILE_PATTERN,
+  SCRIPT_TAG_PATTERN,
+  SRC_ATTRIBUTE_PATTERN,
+  URL_QUERY_AND_HASH_PATTERN,
+} from '../constants.mjs';
 import { toList } from './lists.mjs';
 import { formatKilobytes, isPositiveNumber, toNonNegativeNumber } from './numbers.mjs';
 
@@ -44,6 +60,137 @@ export const isBudgetedScript = path => {
 
   const isInAssets = path.startsWith(`${ASSETS_SUBDIR}/`);
   return isInAssets && SCRIPT_FILE_PATTERN.test(path);
+};
+
+/**
+ * Turns a URL that a page of the build references into the path of the file it serves, relative
+ * to the build folder, as the build files name it.
+ * @param {unknown} url - URL of a `src` or `href` attribute, e.g. `/assets/index-B7cJ.js`.
+ * @returns {string} The path without its query string or fragment, e.g. `assets/index-B7cJ.js`,
+ * or an empty string for a URL of another site, a `data:` URL, a URL without a path and a value
+ * that is not a string.
+ * @example
+ * toBuildPath('/assets/index-B7cJ.js?v=2'); // 'assets/index-B7cJ.js'
+ * toBuildPath('https://fonts.googleapis.com/css2'); // ''
+ */
+export const toBuildPath = url => {
+  if (typeof url !== 'string') return '';
+
+  const trimmedUrl = url.trim();
+  const isExternal = EXTERNAL_URL_PATTERN.test(trimmedUrl);
+  if (isExternal) return '';
+
+  return trimmedUrl.replace(URL_QUERY_AND_HASH_PATTERN, '').replace(ROOT_URL_PREFIX_PATTERN, '');
+};
+
+/**
+ * Tells whether a link tag makes the browser load its file with the page: a module preload or a
+ * style sheet ({@link INITIAL_LOAD_LINK_RELATIONS}), whatever the other relations it lists.
+ * @param {string} tag - Link tag, from `<link` to `>`.
+ * @returns {boolean} False for a tag without a `rel` attribute, or with other relations only, such
+ * as `icon` or `preconnect`.
+ */
+const isInitialLoadLink = tag => {
+  const relations = tag.match(REL_ATTRIBUTE_PATTERN)?.[1] ?? '';
+  return relations
+    .toLowerCase()
+    .split(LINK_RELATION_SEPARATOR_PATTERN)
+    .some(relation => INITIAL_LOAD_LINK_RELATIONS.includes(relation));
+};
+
+/**
+ * Lists the files of the build that an HTML page makes the browser load before it renders: the
+ * scripts of its `script` tags, and the module preloads and style sheets of its `link` tags.
+ * Tags in comments, inline scripts, tags without a URL and files of other sites are left out, like
+ * attributes without double quotes, which Vite never writes.
+ * @param {unknown} html - Content of the page, e.g. `dist/index.html`.
+ * @returns {string[]} The paths relative to the build folder (see {@link toBuildPath}), each one
+ * once, scripts first. Empty for a value that is not a string.
+ * @example
+ * readInitialLoadPaths(
+ *   '<script type="module" src="/assets/index-B7cJ.js"></script>' +
+ *     '<link rel="stylesheet" href="https://fonts.googleapis.com/css2">',
+ * ); // ['assets/index-B7cJ.js']
+ */
+export const readInitialLoadPaths = html => {
+  const text = typeof html === 'string' ? html.replace(HTML_COMMENT_PATTERN, '') : '';
+  const scriptUrls = (text.match(SCRIPT_TAG_PATTERN) ?? []).map(
+    tag => tag.match(SRC_ATTRIBUTE_PATTERN)?.[1],
+  );
+  const linkUrls = (text.match(LINK_TAG_PATTERN) ?? [])
+    .filter(isInitialLoadLink)
+    .map(tag => tag.match(HREF_ATTRIBUTE_PATTERN)?.[1]);
+
+  const paths = [...scriptUrls, ...linkUrls].map(toBuildPath).filter(path => path !== '');
+  return [...new Set(paths)];
+};
+
+/**
+ * Parameters of {@link splitInitialLoad} and {@link findUncountedPaths}.
+ * @typedef {object} InitialLoadParams
+ * @property {BuildFile[]} [scripts] - Scripts and style sheets of the build. Any value that is
+ * not an array counts as none.
+ * @property {string[]} [initialPaths] - Files the home page loads before it renders, from
+ * {@link readInitialLoadPaths}. Any value that is not an array counts as none.
+ */
+
+/**
+ * Scripts and style sheets of the build, split by {@link splitInitialLoad}.
+ * @typedef {object} InitialLoadSplit
+ * @property {BuildFile[]} initialScripts - Those the home page loads before it renders.
+ * @property {BuildFile[]} otherScripts - The others, loaded later or by other pages.
+ */
+
+/**
+ * Splits the scripts and style sheets of the build into those of the initial load, which the
+ * home page references, and the others, each in the order of the list. Entries that are not build
+ * files (see {@link isBuildFile}) are left out of both.
+ * @param {InitialLoadParams} params
+ * @returns {InitialLoadSplit} The scripts of the initial load and the others.
+ * @example
+ * splitInitialLoad({
+ *   scripts: [
+ *     { path: 'assets/index.js', bytes: 403_180, gzipBytes: 131_860 },
+ *     { path: 'assets/Projects.js', bytes: 14_140, gzipBytes: 4_520 },
+ *   ],
+ *   initialPaths: ['assets/index.js'],
+ * });
+ * // { initialScripts: [{ path: 'assets/index.js', … }], otherScripts: [{ path: 'assets/Projects.js', … }] }
+ */
+export const splitInitialLoad = ({ scripts, initialPaths }) => {
+  const paths = toList(initialPaths);
+  const listedScripts = toList(scripts).filter(isBuildFile);
+  const isInitialScript = (/** @type {BuildFile} */ file) => paths.includes(file.path);
+
+  return {
+    initialScripts: listedScripts.filter(isInitialScript),
+    otherScripts: listedScripts.filter(file => !isInitialScript(file)),
+  };
+};
+
+/**
+ * Lists the files that the home page loads before it renders but that the initial load cannot
+ * count, since they are not among the scripts and style sheets of the build (see
+ * {@link isBudgetedScript}): a file outside the assets folder, or missing from the build.
+ * @param {InitialLoadParams} params
+ * @returns {string[]} The paths left out of the initial load, empty when every one is counted.
+ * Entries that are not paths are ignored.
+ * @example
+ * findUncountedPaths({
+ *   scripts: [{ path: 'assets/index.js', bytes: 403_180, gzipBytes: 131_860 }],
+ *   initialPaths: ['assets/index.js', 'register-sw.js'],
+ * }); // ['register-sw.js']
+ */
+export const findUncountedPaths = ({ scripts, initialPaths }) => {
+  const scriptPaths = toList(scripts)
+    .filter(isBuildFile)
+    .map(({ path }) => path);
+  const isUncountedPath = (/** @type {unknown} */ path) => {
+    const isPath = typeof path === 'string' && path !== '';
+    return isPath && !scriptPaths.includes(path);
+  };
+
+  return toList(initialPaths).filter(isUncountedPath);
 };
 
 /**
@@ -125,45 +272,67 @@ export const findLargeImages = ({ files, limitBytes }) => {
 };
 
 /**
- * Parameters of {@link renderScriptsTable}.
- * @typedef {object} RenderScriptsTableParams
- * @property {BuildFile[]} [scripts] - Scripts and style sheets of the build. Any value that is
- * not an array counts as none.
- * @property {number} [totalGzipBytes] - Total gzip size shown on the last row, from
- * {@link checkScriptBudget}. Defaults to 0, and an invalid size is shown as 0.
+ * Writes the Markdown rows of scripts and style sheets of the build, with the size and the gzip
+ * size of each one. Entries that are not build files (see {@link isBuildFile}) are left out.
+ * @param {BuildFile[]} [scripts] - Scripts and style sheets to list. Any value that is not an
+ * array counts as none.
+ * @returns {string[]} One row per file.
  */
-
-/**
- * Writes the Markdown table of the scripts and style sheets of the build: the size and the gzip
- * size of each one, then the total. Entries that are not build files (see {@link isBuildFile})
- * are left out.
- * @param {RenderScriptsTableParams} params
- * @returns {string} The table, without a final line break.
- * @example
- * renderScriptsTable({
- *   scripts: [{ path: 'assets/index.js', bytes: 788_320, gzipBytes: 224_940 }],
- *   totalGzipBytes: 224_940,
- * });
- * // | File | Size | Gzip |
- * // | --- | ---: | ---: |
- * // | `assets/index.js` | 788.3 kB | 224.9 kB |
- * // | **Total** | | **224.9 kB** |
- */
-export const renderScriptsTable = ({ scripts, totalGzipBytes = 0 }) => {
-  const rows = toList(scripts)
+const renderScriptRows = scripts =>
+  toList(scripts)
     .filter(isBuildFile)
     .map(
       ({ path, bytes, gzipBytes }) =>
         `| \`${path}\` | ${formatKilobytes(bytes)} | ${formatKilobytes(gzipBytes)} |`,
     );
 
-  return [
+/**
+ * Parameters of {@link renderScriptsTable}.
+ * @typedef {object} RenderScriptsTableParams
+ * @property {BuildFile[]} [initialScripts] - Scripts and style sheets of the initial load, from
+ * {@link splitInitialLoad}. Any value that is not an array counts as none.
+ * @property {BuildFile[]} [otherScripts] - The other scripts and style sheets of the build, from
+ * {@link splitInitialLoad}. Any value that is not an array counts as none.
+ * @property {number} [initialLoadGzipBytes] - Gzip size of the initial load, shown on the row after
+ * its files, from {@link checkScriptBudget}. Defaults to 0, and an invalid size is shown as 0.
+ * @property {number} [totalGzipBytes] - Total gzip size shown on the last row, from
+ * {@link checkScriptBudget}. Defaults to 0, and an invalid size is shown as 0.
+ */
+
+/**
+ * Writes the Markdown table of the scripts and style sheets of the build: the size and the gzip
+ * size of each one, the files of the initial load first, followed by their subtotal, then the
+ * others and the total. Entries that are not build files (see {@link isBuildFile}) are left out.
+ * @param {RenderScriptsTableParams} params
+ * @returns {string} The table, without a final line break.
+ * @example
+ * renderScriptsTable({
+ *   initialScripts: [{ path: 'assets/index.js', bytes: 403_180, gzipBytes: 131_860 }],
+ *   otherScripts: [{ path: 'assets/Projects.js', bytes: 14_140, gzipBytes: 4_520 }],
+ *   initialLoadGzipBytes: 131_860,
+ *   totalGzipBytes: 136_380,
+ * });
+ * // | File | Size | Gzip |
+ * // | --- | ---: | ---: |
+ * // | `assets/index.js` | 403.2 kB | 131.9 kB |
+ * // | **Initial load** (`index.html`) | | **131.9 kB** |
+ * // | `assets/Projects.js` | 14.1 kB | 4.5 kB |
+ * // | **Total** | | **136.4 kB** |
+ */
+export const renderScriptsTable = ({
+  initialScripts,
+  otherScripts,
+  initialLoadGzipBytes = 0,
+  totalGzipBytes = 0,
+}) =>
+  [
     '| File | Size | Gzip |',
     '| --- | ---: | ---: |',
-    ...rows,
+    ...renderScriptRows(initialScripts),
+    `| **Initial load** (\`${HOME_PAGE_FILE}\`) | | **${formatKilobytes(initialLoadGzipBytes)}** |`,
+    ...renderScriptRows(otherScripts),
     `| **Total** | | **${formatKilobytes(totalGzipBytes)}** |`,
   ].join('\n');
-};
 
 /**
  * Parameters of {@link renderLargeImagesSection}.
@@ -211,11 +380,36 @@ export const renderLargeImagesSection = ({ largeImages, largeImageBytes }) => {
 };
 
 /**
+ * Parameters of {@link renderBudgetVerdict}.
+ * @typedef {object} RenderBudgetVerdictParams
+ * @property {string} name - Name of the budget, e.g. `Total`.
+ * @property {number} totalGzipBytes - Gzip size checked, from {@link checkScriptBudget}.
+ * @property {boolean} isOverBudget - Whether the size exceeds the budget, from
+ * {@link checkScriptBudget}.
+ * @property {number} budgetBytes - Budget the size was checked against.
+ */
+
+/**
+ * Writes the verdict of a script budget, for the job summary.
+ * @param {RenderBudgetVerdictParams} params
+ * @returns {string} The verdict, e.g. `✅ Total within budget: 188.9 kB gzip for a budget of
+ * 210.0 kB.`
+ */
+const renderBudgetVerdict = ({ name, totalGzipBytes, isOverBudget, budgetBytes }) => {
+  const verdict = isOverBudget ? `❌ ${name} over budget` : `✅ ${name} within budget`;
+  return `${verdict}: ${formatKilobytes(totalGzipBytes)} gzip for a budget of ${formatKilobytes(budgetBytes)}.`;
+};
+
+/**
  * Parameters of {@link renderBundleReport}.
  * @typedef {object} RenderBundleReportParams
  * @property {BuildFile[]} [scripts] - Scripts and style sheets of the build. Any value that is
  * not an array counts as none.
+ * @property {string[]} [initialPaths] - Files the home page loads before it renders, from
+ * {@link readInitialLoadPaths}. Any value that is not an array counts as none.
  * @property {number} budgetBytes - Maximum total gzip size of the scripts.
+ * @property {number} initialLoadBudgetBytes - Maximum gzip size of the scripts of the initial
+ * load.
  * @property {BuildFile[]} [largeImages] - Images over the limit, from {@link findLargeImages}.
  * Any value that is not an array counts as none.
  * @property {number} largeImageBytes - Size limit used to find the large images.
@@ -223,38 +417,60 @@ export const renderLargeImagesSection = ({ largeImages, largeImageBytes }) => {
 
 /**
  * Writes the size report of the build as Markdown, for the job summary: the table of the scripts
- * and style sheets ({@link renderScriptsTable}), the total against the budget, and the images
- * over the size limit ({@link renderLargeImagesSection}). Entries that are not build files (see
- * {@link isBuildFile}) are left out, of the total too.
+ * and style sheets ({@link renderScriptsTable}), the initial load and the total against their
+ * budgets, and the images over the size limit ({@link renderLargeImagesSection}). Entries that
+ * are not build files (see {@link isBuildFile}) are left out, of the sizes too.
  * @param {RenderBundleReportParams} params
  * @returns {string} The Markdown report.
- * @throws {RangeError} When the budget or the image size limit is not a finite number above 0, like
+ * @throws {RangeError} When a budget or the image size limit is not a finite number above 0, like
  * {@link checkScriptBudget} and {@link findLargeImages}.
  * @example
  * renderBundleReport({
- *   scripts: [{ path: 'assets/index.js', bytes: 788_320, gzipBytes: 224_940 }],
- *   budgetBytes: 250_000,
+ *   scripts: [{ path: 'assets/index.js', bytes: 403_180, gzipBytes: 131_860 }],
+ *   initialPaths: ['assets/index.js'],
+ *   budgetBytes: 210_000,
+ *   initialLoadBudgetBytes: 150_000,
  *   largeImages: [{ path: 'chess.png', bytes: 928_988 }],
  *   largeImageBytes: 500_000,
  * });
- * // A table with the row '| `assets/index.js` | 788.3 kB | 224.9 kB |' and the total, then
- * // '✅ Within budget: 224.9 kB gzip for a budget of 250.0 kB.', then the images over 500.0 kB
+ * // A table with the row '| `assets/index.js` | 403.2 kB | 131.9 kB |', the initial load and
+ * // the total, then '✅ Initial load within budget: 131.9 kB gzip for a budget of 150.0 kB.',
+ * // '✅ Total within budget: 131.9 kB gzip for a budget of 210.0 kB.', then the images over
+ * // 500.0 kB
  */
-export const renderBundleReport = ({ scripts, budgetBytes, largeImages, largeImageBytes }) => {
+export const renderBundleReport = ({
+  scripts,
+  initialPaths,
+  budgetBytes,
+  initialLoadBudgetBytes,
+  largeImages,
+  largeImageBytes,
+}) => {
   const imagesSection = renderLargeImagesSection({ largeImages, largeImageBytes });
-  const listedScripts = toList(scripts).filter(isBuildFile);
-  const { totalGzipBytes, isOverBudget } = checkScriptBudget({
-    scripts: listedScripts,
-    budgetBytes,
+  const { initialScripts, otherScripts } = splitInitialLoad({ scripts, initialPaths });
+  const initialLoad = checkScriptBudget({
+    scripts: initialScripts,
+    budgetBytes: initialLoadBudgetBytes,
   });
-  const verdict = isOverBudget ? '❌ Over budget' : '✅ Within budget';
+  const total = checkScriptBudget({ scripts: [...initialScripts, ...otherScripts], budgetBytes });
 
   const lines = [
     '## Bundle size',
     '',
-    renderScriptsTable({ scripts: listedScripts, totalGzipBytes }),
+    renderScriptsTable({
+      initialScripts,
+      otherScripts,
+      initialLoadGzipBytes: initialLoad.totalGzipBytes,
+      totalGzipBytes: total.totalGzipBytes,
+    }),
     '',
-    `${verdict}: ${formatKilobytes(totalGzipBytes)} gzip for a budget of ${formatKilobytes(budgetBytes)}.`,
+    renderBudgetVerdict({
+      ...initialLoad,
+      name: 'Initial load',
+      budgetBytes: initialLoadBudgetBytes,
+    }),
+    '',
+    renderBudgetVerdict({ ...total, name: 'Total', budgetBytes }),
   ];
 
   const hasImagesSection = imagesSection !== '';
