@@ -101,7 +101,6 @@ export const sizes = {
   90: '90px',
   222: '222px',
   240: '240px',
-  260: '260px',
   640: '640px',
   1440: '1440px',
 } as const;
@@ -257,6 +256,8 @@ export const zIndices = {
 
 /** Viewport widths where the layout changes; keys are em values, which follow the font size. */
 export const breakpoints = {
+  37.5: '37.5em',
   50: '50em',
+  57.125: '57.125em',
   100: '100em',
 } as const;
