@@ -17,7 +17,6 @@ export const Title = styled.h3`
   margin: 0;
   flex: 1;
   line-height: ${th.lineHeight(140)};
-  transition: color ${th.duration(150)};
 `;
 
 export const State = styled.span`
