@@ -23,10 +23,11 @@ interface StatusMessageProps {
 }
 
 /**
- * Full-page message for error states such as a missing page or a forbidden access: a large
- * status code, a title, an explanation, an action button and a link back to the home page.
- * Renders an empty container when no prop is provided. Needs a router when `homeLinkLabel`
- * is set, because the home link is a router link, to the home page in the language of the URL.
+ * Message of a status page, such as a missing page or a forbidden access: a large status code, a
+ * title, an explanation, an action button and a link back to the home page, stacked and centered
+ * across. `StatusPage` centers it in the height of the page. Renders an empty container when no
+ * prop is provided. Needs a router when `homeLinkLabel` is set, because the home link is a router
+ * link, to the home page in the language of the URL.
  *
  * @example
  * <StatusMessage

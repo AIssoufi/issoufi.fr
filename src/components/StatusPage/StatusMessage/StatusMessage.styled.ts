@@ -1,14 +1,12 @@
 import styled, { css, th } from '@xstyled/styled-components';
 
-import LocalizedLink from '../LocalizedLink';
+import LocalizedLink from '../../LocalizedLink';
 
 export const Container = styled.section`
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
   gap: ${th.space(16)};
-  min-height: 60vh;
   text-align: center;
 `;
 
@@ -39,6 +37,8 @@ export const Message = styled.p`
   max-width: ${th.size('message')};
   color: ${th.color('foreground-secondary')};
   line-height: ${th.lineHeight(150)};
+  /* A path or a URL quoted in the message has no space to wrap at, and would widen the page */
+  overflow-wrap: anywhere;
 `;
 
 /* Outlined pill shared by the home link and the action button, so both look the same. */
