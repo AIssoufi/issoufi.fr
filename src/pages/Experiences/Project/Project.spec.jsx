@@ -24,4 +24,12 @@ describe('Project', () => {
     expect(screen.getByText('React.js')).toBeInTheDocument();
     expect(screen.getByText('NestJS')).toBeInTheDocument();
   });
+
+  it('shows no toggle arrow, since the description is always shown', () => {
+    render(<Project title="MyFFBaD">Espace licencié de la FFBaD</Project>);
+
+    expect(screen.queryByText('▾')).not.toBeInTheDocument();
+    expect(screen.queryByRole('button')).not.toBeInTheDocument();
+    expect(screen.getByText('Espace licencié de la FFBaD')).toBeVisible();
+  });
 });
