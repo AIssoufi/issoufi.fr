@@ -7,6 +7,11 @@ settings:
 overrides:
   postcss: ^8.5.25
 
+patchedDependencies:
+  '@asamuzakjp/dom-selector':
+    hash: 26ddee9f3357ba744bc18adaf3a6ea019f6a9fb62bd03d2bcb850118802895bd
+    path: patches/@asamuzakjp__dom-selector.patch
+
 importers:
 
   .:
@@ -2411,7 +2416,7 @@ snapshots:
       '@csstools/css-tokenizer': 4.0.2
       lru-cache: 11.5.3
 
-  '@asamuzakjp/dom-selector@9.2.4':
+  '@asamuzakjp/dom-selector@9.2.4(patch_hash=26ddee9f3357ba744bc18adaf3a6ea019f6a9fb62bd03d2bcb850118802895bd)':
     dependencies:
       bidi-js: 1.1.0
       css-tree: 3.2.1
@@ -3854,7 +3859,7 @@ snapshots:
   jsdom@30.1.2:
     dependencies:
       '@asamuzakjp/css-color': 7.1.5
-      '@asamuzakjp/dom-selector': 9.2.4
+      '@asamuzakjp/dom-selector': 9.2.4(patch_hash=26ddee9f3357ba744bc18adaf3a6ea019f6a9fb62bd03d2bcb850118802895bd)
       '@bramus/specificity': 2.4.3
       '@csstools/css-syntax-patches-for-csstree': 1.1.15(css-tree@3.2.1)
       '@exodus/bytes': 1.16.0

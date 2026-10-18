@@ -15,3 +15,11 @@ overrides:
   # references it from its unused React Native build — safe to override to
   # close GHSA path-traversal/file-read alerts not covered by any Dependabot PR.
   postcss: ^8.5.25
+
+patchedDependencies:
+  # The selector engine of jsdom keeps the last element that matched :focus-visible for the whole
+  # test file, and refuses :focus-visible to an element that Tab reaches from another one unless
+  # that last element is none or the one reached: after the first Tab of a file, the CV tooltip no
+  # longer showed. The patch counts such a Tab as a keyboard focus, as browsers do. Remove it once
+  # fixed upstream (asamuzaK/domSelector).
+  '@asamuzakjp/dom-selector': patches/@asamuzakjp__dom-selector.patch
