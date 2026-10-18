@@ -20,7 +20,7 @@
     },
     {
       "id": 3,
-      "name": "Trouillet Decors",
+      "name": "Trouillet Décors",
       "type": "Site vitrine",
       "imageUrl": "/trouillet-decors.jpeg",
       "tools": ["HTML 5", "CSS 3", "WordPress"],

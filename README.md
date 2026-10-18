@@ -112,6 +112,26 @@ The site is hosted on [Cloudflare Pages](https://pages.cloudflare.com/), in the 
 - **Deploy job**: uploads the `dist` artifact of the build job with `cloudflare/wrangler-action`. It needs the `CLOUDFLARE_API_TOKEN` (permission _Account → Cloudflare Pages → Edit_) and `CLOUDFLARE_ACCOUNT_ID` repository secrets, and is skipped with a notice without them. Pull requests from forks and from Dependabot get no secrets, so no preview.
 - **Smoke test job**: runs `node scripts/ci/smoke-test.mjs` (the script behind `pnpm smoke-test`) on the new deployment. The script needs no dependency, so the job only sets up Node.js and downloads the `dist` artifact. For production, it also checks [issoufi.fr](https://issoufi.fr/) itself, and that `http://issoufi.fr` and `https://www.issoufi.fr` redirect to `https://issoufi.fr/`.
 - **Manual deployment**: _Actions → CI → Run workflow_ rebuilds and redeploys a branch.
+- **Daily production deploy**: every morning at 6:00, Paris time, the workflow `.github/workflows/deploy-production.yml` merges `develop` into `main`, and the push to `main` starts the CI, which tests, builds, deploys and smoke-tests production. So a change merged into `develop` is online the next morning, with no pull request to `main`. The workflow:
+
+  1. **Runs once a day**: GitHub schedules run in UTC, so it has two crons, `0 4 * * *` (6:00 in Paris in summer, UTC+2) and `0 5 * * *` (winter, UTC+1). Both run every day, and only the one that matches the current offset of Paris goes on (`scripts/ci/check-deploy-schedule.mjs`), whatever the delay of GitHub's scheduler. The crons are also in `DEPLOY_CRON_BY_UTC_OFFSET_MINUTES` (`scripts/ci/constants.mjs`), and a test fails when the two differ.
+  2. **Fails without the deploy key**, with an error naming the missing `DEPLOY_KEY` secret.
+  3. **Stops with a notice when there is nothing to deploy**: `main` holds merge commits that `develop` lacks but no content of its own, so the same tree on both branches means that production already serves `develop`.
+  4. **Only deploys a tested commit**: it stops with a notice unless the last push run of `ci.yml` on `develop` for that exact commit succeeded (`scripts/ci/check-develop-ci.mjs`), for example while that run is still going or after it failed. The next morning, or a manual run, deploys it once the CI passes.
+  5. **Promotes it**: it checks out `main` with the deploy key, merges the tested commit (even when `develop` moved since) with a merge commit, `chore: deploy develop to production`, and fails unless the result has exactly the tree of that commit, which happens when `main` holds a change that `develop` lacks: merge `main` into `develop` first. It then pushes to `main`. A push made with the `GITHUB_TOKEN` would start no workflow, while one made with a deploy key does, so the CI deploys production.
+  6. **Reports** in its job summary the commits deployed, one per pull request merged into `develop` (first parents only), and links the CI run of `main` (`scripts/ci/write-deploy-report.mjs`).
+
+  Runs never overlap (`concurrency`), and the `GITHUB_TOKEN` of the workflow only reads (`contents: read`, `actions: read`). _Actions → Deploy to production → Run workflow_ deploys at once; with **dry_run** checked, it runs every check and the merge, connects with the deploy key (`git push --dry-run`), and says in its summary what would be deployed, without pushing. Being scheduled, the workflow only runs from the default branch, `develop`, and GitHub disables it after 60 days without activity on the repository: re-enable it from the Actions tab then.
+
+  **Setup**, done by the site owner in the repository settings, never by the workflow or an agent:
+
+  - **Deploy key**: _Daily production deploy_ (_Settings → Deploy keys_), **with write access**. Its private key is the `DEPLOY_KEY` repository secret (_Settings → Secrets and variables → Actions_). To replace it, create a key pair (`ssh-keygen -t ed25519 -f deploy_key -N ''`), add the public key as a deploy key with write access, store the private key in `DEPLOY_KEY`, then delete the old key and both local files.
+  - **Rulesets** (_Settings → Rules → Rulesets_), one per branch, each refusing deletions and force pushes and requiring a pull request whose status checks pass:
+    - _Protect main (daily deploy from develop)_, on `main` alone, with _Deploy keys_ as bypass actors (always), so that the push of the workflow goes through without a pull request;
+    - _Protect develop_, on `develop` alone, with no bypass.
+
+  On a personal repository, GitHub refuses the GitHub Actions app as a bypass actor, which is why the push uses a deploy key.
+
 - **Cloudflare builds**: the project stays connected to the repository, but its automatic builds are paused (_Settings → Build → Branch control_), so Cloudflare does not build the site a second time. The settings below only apply to a build started from the Cloudflare dashboard.
 
 | Setting                | Value                                                          |
@@ -144,7 +164,7 @@ The site is hosted on [Cloudflare Pages](https://pages.cloudflare.com/), in the 
 
 1. Each push to `develop` updates a release pull request against `develop` (_chore: release x.y.z_), with the next version in `package.json` and the new `CHANGELOG.md` entry. The workflow `.github/workflows/release.yml` maintains it. GitHub Actions opens it, so GitHub may hold its CI like a first-time contributor's: click _Approve workflows to run_ on the pull request, since its checks are required to merge it.
 2. Merging it tags the version (`vX.Y.Z`) and publishes a GitHub release.
-3. A pull request from `develop` to `main` then puts the release in production.
+3. The next daily production deploy (see Deployment) puts the release in production with the rest of `develop`.
 
 The version follows the commits: `fix` bumps the patch version, `feat` the minor version, and a breaking change (`feat!:` or a `BREAKING CHANGE:` footer) the major version. The changelog lists features, fixes, performance improvements, reverts, refactors and documentation; `build`, `ci`, `test`, `style` and `chore` commits stay out of it (`release-please-config.json`). It starts with the React 19 and Vite rewrite of March 2026.
 
@@ -156,15 +176,15 @@ The version follows the commits: `fix` bumps the patch version, `feat` the minor
 │   └── wt.toml           # Worktrunk: installs the dependencies and writes the port of each worktree
 ├── .github/
 │   ├── actions/setup/    # Composite action: pnpm, Node.js and the dependencies, with a cache
-│   ├── workflows/        # ci.yml (checks, build, browser test, deployment, smoke test), release.yml, rebuild.yml
+│   ├── workflows/        # ci.yml (checks, build, browser test, deployment, smoke test), deploy-production.yml, release.yml, rebuild.yml
 │   └── dependabot.yml    # Weekly dependency updates against develop
 ├── .husky/               # Git hooks: lint-staged before a commit, commitlint on its message
 ├── e2e/                  # Browser tests (*.e2e.ts) run by Playwright on the build, their helpers and constants
 ├── public/               # Images, link preview image, CV, favicon, manifest and robots.txt, copied as is to dist/
 ├── scripts/
-│   ├── ci/               # CI scripts: bundle size, coverage summary, smoke test
+│   ├── ci/               # CI scripts: bundle size, coverage summary, smoke test, daily production deploy
 │   │   ├── utils/        # Their helpers, one file per topic, each with its spec
-│   │   └── constants.mjs # Budgets, file patterns and smoke test settings
+│   │   └── constants.mjs # Budgets, file patterns, smoke test and production deploy settings
 │   ├── og-image/         # pnpm og-image: renders public/og-image.jpg from the home page
 │   │   ├── utils/        # Its helpers (texts, template, particles, fonts, HTML, seeded random), each with its spec
 │   │   └── constants.mjs # Size, weight limit, JPEG quality, sources and layout of the image
@@ -207,7 +227,7 @@ The version follows the commits: `fix` bumps the patch version, `feat` the minor
 
 ## 📝 Conventions
 
-- **Branches**: `main` is production and `develop`, the default branch, the integration branch. A ruleset protects both: changes go through a pull request whose CI checks pass, and force pushes and deletions are refused. The `production` environment only accepts deployments from `main`. Each ticket is worked on in its own [Worktrunk](https://worktrunk.dev) worktree next to the repository (`AIssoufi.github.io.ISF-35`), on a branch named after its reference: the `ISF-` autolink turns `ISF-35` into a link to issue #35. The branch starts from `develop` (`wt switch --create ISF-35 --base develop`) and goes back into it through a pull request that says `Closes #35`, once the CI passes. `.config/wt.toml` installs the dependencies of each new worktree and writes its port to `.env.local` (see Development). A release is a pull request from `develop` to `main`.
+- **Branches**: `main` is production and `develop`, the default branch, the integration branch. A ruleset protects each of them (_Protect main (daily deploy from develop)_ and _Protect develop_): changes go through a pull request whose CI checks pass, and force pushes and deletions are refused. The one exception is the daily production deploy: every morning, its deploy key pushes the merge of `develop` into `main`, which the ruleset of `main` lets through (see Deployment). The `production` environment only accepts deployments from `main`. Each ticket is worked on in its own [Worktrunk](https://worktrunk.dev) worktree next to the repository (`AIssoufi.github.io.ISF-35`), on a branch named after its reference: the `ISF-` autolink turns `ISF-35` into a link to issue #35. The branch starts from `develop` (`wt switch --create ISF-35 --base develop`) and goes back into it through a pull request that says `Closes #35`, once the CI passes. `.config/wt.toml` installs the dependencies of each new worktree and writes its port to `.env.local` (see Development). No pull request targets `main`: `develop` reaches it every morning once its CI passed.
 - **Commits**: [Conventional Commits](https://www.conventionalcommits.org/) enforced via commitlint. They also set the next version and the changelog (see Releases).
 - **Linting**: ESLint (`eslint.config.js`) with the recommended rules of ESLint and typescript-eslint, React Hooks (including the React Compiler rules) and React Refresh. It also forbids importing `styled-components` directly, importing the style file of a component (`Name.styled`) from outside its folder, and rendering a `ul` other than through `List`.
 - **Formatting**: Prettier (via lint-staged + husky)
