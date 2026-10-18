@@ -1,6 +1,6 @@
 import styled, { th } from '@xstyled/styled-components';
 
-import { Page } from '../../App/App.styled';
+import Page from '../../components/Page';
 
 import { companyBlock, timelineRow } from './timeline.styled';
 

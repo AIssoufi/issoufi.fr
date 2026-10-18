@@ -6,7 +6,7 @@ import globals from 'globals';
 import tseslint from 'typescript-eslint';
 
 export default defineConfig([
-  globalIgnores(['dist', 'coverage']),
+  globalIgnores(['dist', 'coverage', 'test-results', 'playwright-report']),
   {
     files: ['**/*.{ts,tsx}'],
     extends: [
@@ -38,6 +38,16 @@ export default defineConfig([
               name: 'styled-components',
               message:
                 'Import styled, css, keyframes, th and the other styled-components APIs from @xstyled/styled-components.',
+            },
+          ],
+          patterns: [
+            {
+              // A component's style file (Name.styled), anywhere but in the importing folder.
+              // Shared style modules (timeline.styled) at the root of a parent stay allowed.
+              regex: String.raw`^(?!\./[^/]*$)(.*/)?[A-Z][^/]*\.styled$`,
+              caseSensitive: true,
+              message:
+                'Only a component imports its own styles: move what several components share to the root of their parent, or to src/components/ when pages share it.',
             },
           ],
         },
