@@ -12,6 +12,7 @@
 
 # production
 /build
+/dist-standalone
 
 # misc
 .DS_Store
