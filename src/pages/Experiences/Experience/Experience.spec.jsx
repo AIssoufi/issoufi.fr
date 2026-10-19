@@ -1,7 +1,7 @@
 import { act, render, screen, within } from '@testing-library/react';
 
 import i18n from '../../../i18n';
-import { declaredStyle } from '../../../styleTestUtils';
+import { declaredStyle, serializeCssValue } from '../../../styleTestUtils';
 import { theme } from '../../../theme';
 import Experience from './Experience';
 
@@ -67,6 +67,15 @@ describe('Experience', () => {
     const technologies = screen.getByRole('list');
 
     expect(wideStyle({ element: screen.getByRole('article'), property: 'display' })).toBe('grid');
+    // The description column is as wide as its lines, and the summary column takes the rest
+    expect(
+      wideStyle({ element: screen.getByRole('article'), property: 'grid-template-columns' }),
+    ).toBe(
+      serializeCssValue({
+        property: 'grid-template-columns',
+        value: `minmax(${theme.sizes[240]}, 1fr) auto`,
+      }),
+    );
     expect(wideStyle({ element: details, property: 'grid-column' })).toBe('2');
     // styled-components writes the slash without spaces
     expect(wideStyle({ element: details, property: 'grid-row' })).toMatch(/^1 ?\/ ?span 2$/);

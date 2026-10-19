@@ -255,7 +255,9 @@ export const findRawThemeValues = source => {
   return rawValues;
 };
 
-/** A length in pixels at the start of a font size, alone or as the smallest value of a `clamp()`. */
+/**
+ * A length in pixels at the start of a font size, alone or as the smallest value of a `clamp()`.
+ */
 const SMALLEST_PIXEL_SIZE_PATTERN = /^(?:clamp\(\s*)?(\d+(?:\.\d+)?)px(?:$|\s*,)/;
 
 /**
