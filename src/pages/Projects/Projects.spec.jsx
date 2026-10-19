@@ -189,7 +189,7 @@ describe('Projects', () => {
     expect(otherThumbnails).toHaveLength(2 * ROW_CARD_COUNT - 1);
     otherThumbnails.forEach(thumbnail => {
       expect(thumbnail).toHaveAttribute('loading', 'lazy');
-      expect(thumbnail).not.toHaveAttribute('fetchpriority');
+      expect(thumbnail).toHaveAttribute('fetchpriority', 'low');
     });
   });
 

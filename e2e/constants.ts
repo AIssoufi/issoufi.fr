@@ -203,12 +203,45 @@ export const PHOTO_SCREENS: readonly PhotoScreen[] = [
 ];
 
 /**
- * `initiatorType` values of the resource timing of a background photo requested before the app
- * draws the page: by the style of the page that the build rendered (`css`), or by the `<link>` that
- * the main script of the app adds (`link`, see `src/preloadBackgroundPhoto.ts`), whichever the
- * browser reaches first, which depends on the speed of the machine.
+ * Screens at which the browser test of the download priorities opens every page, with the version
+ * of the background photo that each one downloads: the phone that Lighthouse emulates (412 × 823),
+ * which shows the portrait version and one project card of each row, and a laptop, which shows the
+ * whole photo and three cards of each row.
  */
-export const EARLY_PHOTO_INITIATOR_TYPES: readonly string[] = ['css', 'link'];
+export const PRIORITY_SCREENS = [
+  { width: 412, height: 823, version: 'portraitUrl' },
+  { width: 1440, height: 800, version: 'url' },
+] as const satisfies readonly PhotoScreen[];
+
+/** Round trip time of the slow 4G network of Lighthouse for a phone, in milliseconds. */
+const SLOW_4G_LATENCY_MS = 150;
+
+/** Download throughput of the slow 4G network of Lighthouse, in bytes per second (1.6 Mbit/s). */
+const SLOW_4G_DOWNLOAD_BYTES_PER_SECOND = 204_800;
+
+/** Upload throughput of the slow 4G network of Lighthouse, in bytes per second (750 kbit/s). */
+const SLOW_4G_UPLOAD_BYTES_PER_SECOND = 96_000;
+
+/**
+ * Parameters of `Network.emulateNetworkConditions` that give a page the slow 4G network of the
+ * phone that Lighthouse emulates. Chromium raises the priority of an image that shows on the screen
+ * while it still downloads, which a local server answers before the first layout: the browser test
+ * of the download priorities needs the delays of a real network to see it.
+ */
+export const SLOW_4G_NETWORK = {
+  offline: false,
+  latency: SLOW_4G_LATENCY_MS,
+  downloadThroughput: SLOW_4G_DOWNLOAD_BYTES_PER_SECOND,
+  uploadThroughput: SLOW_4G_UPLOAD_BYTES_PER_SECOND,
+} as const;
+
+/**
+ * `initiatorType` of the resource timing of a background photo requested before the app draws the
+ * page: by the `<link rel="preload">` that the build writes in the HTML of the page (see
+ * `addPrerenderedPage`), which the style of the page reuses. A photo that the style requested
+ * itself (`css`) would download at a high priority, next to what the first paint needs.
+ */
+export const PHOTO_PRELOAD_INITIATOR_TYPE = 'link';
 
 /**
  * Route of the Projects page, whose sections show the project cards. Typed by `PAGES`

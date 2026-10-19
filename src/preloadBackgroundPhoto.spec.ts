@@ -55,6 +55,39 @@ describe('preloadBackgroundPhoto', () => {
     expect(getImagePreloads()).toEqual([link]);
   });
 
+  describe('in a page that the build rendered', () => {
+    /** Adds to the head the link that preloads an image, as the build writes it. */
+    const addBuildPreload = (href: string) => {
+      const link = document.createElement('link');
+      link.setAttribute('rel', 'preload');
+      link.setAttribute('as', 'image');
+      link.setAttribute('href', href);
+      link.setAttribute('fetchpriority', 'low');
+      document.head.append(link);
+      return link;
+    };
+
+    it('adds nothing where the head already preloads the photo of the screen', async () => {
+      window.history.replaceState(null, '', '/en/projects');
+      const buildPreload = addBuildPreload('/projects.webp');
+      const { preloadBackgroundPhoto } = await importModule();
+
+      expect(preloadBackgroundPhoto()).toBeNull();
+      expect(getImagePreloads()).toEqual([buildPreload]);
+    });
+
+    it('preloads the photo of the screen where the head preloads another file', async () => {
+      window.history.replaceState(null, '', '/projects');
+      addBuildPreload('/projects-portrait.webp');
+      await importModule();
+
+      expect(getImagePreloads().map(link => link.getAttribute('href'))).toEqual([
+        '/projects-portrait.webp',
+        '/projects.webp',
+      ]);
+    });
+  });
+
   describe('edge cases', () => {
     it.each(['/skills', '/en/does-not-exist', '/Users/adam/site/index.html'])(
       'preloads nothing at %s, the path of no page',

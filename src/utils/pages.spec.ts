@@ -7,6 +7,7 @@ import {
   EXPERIENCES_PAGE,
   getBackgroundPhotoUrl,
   HOME_PAGE,
+  LANDSCAPE_PHOTO_MEDIA_QUERY,
   NOT_FOUND_FOLDER,
   OG_IMAGE_PATHS,
   PAGES,
@@ -332,6 +333,10 @@ describe('background photos', () => {
     expect(PORTRAIT_PHOTO_MEDIA_QUERY).toBe(
       `(orientation: portrait) and (width < ${theme.screens.tablet})`,
     );
+  });
+
+  it('shows the whole photos on every other screen', () => {
+    expect(LANDSCAPE_PHOTO_MEDIA_QUERY).toBe(`not all and ${PORTRAIT_PHOTO_MEDIA_QUERY}`);
   });
 });
 

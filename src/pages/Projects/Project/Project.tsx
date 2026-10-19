@@ -54,8 +54,9 @@ interface ProjectProps {
   projects?: ProjectItemData[];
   /**
    * Whether the section is the first of the page, whose first thumbnail is the largest image that
-   * the page paints first: it is downloaded at once, before the other images. Every other
-   * thumbnail is downloaded once the screen nears it.
+   * the page paints first: it is downloaded at once, at a high priority, before the other images.
+   * Every other thumbnail is downloaded once the screen nears it, at a low priority, so that it
+   * never shares the bandwidth with that one, even when it shows at the same time.
    * @default false
    */
   priority?: boolean;
@@ -82,7 +83,8 @@ const NO_PROJECTS: ProjectItemData[] = [];
  * without a title, the section has no heading and its controls have no name. The thumbnail is
  * decorative, with an empty alt text, since the name follows it, and a card without a valid file
  * shows none. Each thumbnail downloads the file of its `srcset` that its width needs on the
- * screen, once the screen nears it, but the first one of a `priority` section, at once; hovering
+ * screen, once the screen nears it and at a low priority, but the first one of a `priority`
+ * section, at once and at a high priority, the only one of the page; hovering
  * or focusing an arrow downloads the thumbnails of the page it would show, so that they never
  * show empty.
  */
@@ -205,7 +207,7 @@ const Project = ({ title, projects = NO_PROJECTS, priority = false }: ProjectPro
                   <Thumbnail
                     alt=""
                     loading={isPriorityThumbnail ? 'eager' : 'lazy'}
-                    fetchPriority={isPriorityThumbnail ? 'high' : undefined}
+                    fetchPriority={isPriorityThumbnail ? 'high' : 'low'}
                     decoding="async"
                     sizes={THUMBNAIL_SIZES}
                     srcSet={thumbnail.srcSet}

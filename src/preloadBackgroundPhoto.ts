@@ -7,12 +7,18 @@ import { getBackgroundPhotoUrl, PORTRAIT_PHOTO_MEDIA_QUERY } from './utils/pages
 const isPortraitScreen = () =>
   typeof window.matchMedia === 'function' && window.matchMedia(PORTRAIT_PHOTO_MEDIA_QUERY).matches;
 
+/** Tells whether a link of the head of the document already preloads the image at `href`. */
+const isImagePreloaded = (href: string) =>
+  [...document.head.querySelectorAll('link[rel="preload"][as="image"]')].some(
+    link => link.getAttribute('href') === href,
+  );
+
 /**
  * Starts downloading the background photo of the page at the current URL, in the version that
  * the screen shows (see `getBackgroundPhotoUrl`), by adding to the head of the document a
- * `<link rel="preload" as="image">`, whose download the style of `Page` then reuses. In a page that
- * the build rendered, the style may request it first, and the link then reuses that download.
- * Adds nothing at a path of no page of `PAGES`, such as an unknown path.
+ * `<link rel="preload" as="image">`, whose download the style of `Page` then reuses. Adds nothing
+ * where the head already preloads it, as in a page that the build rendered (see
+ * `addPrerenderedPage`), nor at a path of no page of `PAGES`, such as an unknown path.
  *
  * @returns The link it added, or `null` when it added none.
  */
@@ -21,7 +27,7 @@ export const preloadBackgroundPhoto = (): HTMLLinkElement | null => {
     pathname: window.location.pathname,
     isPortraitScreen: isPortraitScreen(),
   });
-  if (!href) return null;
+  if (!href || isImagePreloaded(href)) return null;
 
   const link = document.createElement('link');
   link.setAttribute('rel', 'preload');
