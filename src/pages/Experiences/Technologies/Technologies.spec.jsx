@@ -35,6 +35,26 @@ describe('Technologies', () => {
     );
   });
 
+  it.each([
+    ['a name written without its brackets', 'React.js'],
+    ['an object', { name: 'React.js' }],
+    ['null', null],
+    ['a list without any name', ['', 42]],
+  ])('renders nothing for %s, without crashing', (_case, technologies) => {
+    const { container } = render(<Technologies technologies={technologies} />);
+
+    expect(container).toBeEmptyDOMElement();
+  });
+
+  it('shows each name once, leaving out the entries that are not names', () => {
+    render(<Technologies technologies={['React.js', 42, 'Vite', 'React.js']} />);
+
+    expect(screen.getAllByRole('listitem').map(({ textContent }) => textContent)).toEqual([
+      'React.js',
+      'Vite',
+    ]);
+  });
+
   it('renders one chip per technology', () => {
     render(<Technologies technologies={['React.js', 'TypeScript']} />);
 
