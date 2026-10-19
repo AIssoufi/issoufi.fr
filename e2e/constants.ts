@@ -1,6 +1,6 @@
 import type { Language } from '../src/i18n/types';
 import { theme } from '../src/theme/theme';
-import type { Page } from '../src/utils/pages';
+import type { BackgroundPhoto, Page } from '../src/utils/pages';
 
 /**
  * Screen widths, in pixels, at which the browser tests open the pages, and every page must fit
@@ -113,6 +113,37 @@ export const DECORATION_PATTERN = /[↓–›]/;
 
 /** Number of coordinates in a quad of the DevTools protocol: the x and the y of its 4 corners. */
 export const QUAD_COORDINATE_COUNT = 8;
+
+/** Screen of the browser test of the background photos, with the version of the photo it shows. */
+interface PhotoScreen {
+  /** Width of the screen, in pixels. */
+  width: number;
+  /** Height of the screen, in pixels. */
+  height: number;
+  /** Version of the background photo that the screen downloads and shows. */
+  version: keyof BackgroundPhoto;
+}
+
+/**
+ * Screens at which the browser test of the background photos opens every page, with the version
+ * that each one downloads (`PORTRAIT_PHOTO_MEDIA_QUERY`, `src/utils/pages.ts`): two phones and a
+ * tablet in portrait, just under the tablet breakpoint (799), get the portrait version; a tablet
+ * in portrait at the breakpoint (800), a phone in landscape and a laptop, the whole photo.
+ */
+export const PHOTO_SCREENS: readonly PhotoScreen[] = [
+  { width: 375, height: 812, version: 'portraitUrl' },
+  { width: 414, height: 896, version: 'portraitUrl' },
+  { width: 799, height: 1024, version: 'portraitUrl' },
+  { width: 800, height: 1024, version: 'url' },
+  { width: 667, height: 375, version: 'url' },
+  { width: 1440, height: 800, version: 'url' },
+];
+
+/**
+ * `initiatorType` of the resource timing of a file that a `<link>` loaded, such as a background
+ * photo preloaded by the app when it starts, rather than by the style that shows it (`css`).
+ */
+export const LINK_INITIATOR_TYPE = 'link';
 
 /**
  * Route of the Projects page, whose sections show the project cards. Typed by `PAGES`
@@ -327,3 +358,48 @@ export const INSTANT_ANIMATION_MAX_MS = 1;
  * reduced motion: long enough for the dots, the glow or a pushed word to move.
  */
 export const STILLNESS_DELAY_MS = 1000;
+
+/**
+ * Screens on which the home page must show its title and both of its buttons without scrolling: a
+ * small phone held upright (320 × 568), phones held sideways (568 × 320 and 667 × 375, then
+ * 844 × 390 and 896 × 414, which get the desktop layout), a tablet held upright (768 × 1024), a
+ * laptop (1440 × 900) and a large desktop screen (2560 × 1440).
+ */
+export const HERO_SCREENS = [
+  { width: 320, height: 568 },
+  { width: 568, height: 320 },
+  { width: 667, height: 375 },
+  { width: 844, height: 390 },
+  { width: 896, height: 414 },
+  { width: 768, height: 1024 },
+  { width: 1440, height: 900 },
+  { width: 2560, height: 1440 },
+] as const;
+
+/**
+ * Screens on which aiming at a button of the home page with the mouse must move no word of its
+ * title: two laptops (1280 × 800 and 1440 × 900) and a desktop screen (1920 × 1080), then short
+ * screens (568 × 320, 844 × 390 and 896 × 414), where the buttons stand within the push radius of
+ * the closest words, so only the rule that a mouse over a control pushes nothing keeps them still.
+ */
+export const HERO_POINTER_SCREENS = [
+  { width: 1280, height: 800 },
+  { width: 1440, height: 900 },
+  { width: 1920, height: 1080 },
+  { width: 568, height: 320 },
+  { width: 844, height: 390 },
+  { width: 896, height: 414 },
+] as const;
+
+/**
+ * Largest distance, in pixels, that a word of the home title may move while the pointer rests on a
+ * button of the page: a few pixels, far from the 30 px that "UX" once jumped by.
+ */
+export const MAX_WORD_SHIFT_PX = 2;
+
+/**
+ * Time, in milliseconds, that the pointer rests at a point before the words of the home title are
+ * measured: about 30 frames, in which a word within reach of the pointer moves by far more than
+ * {@link MAX_WORD_SHIFT_PX}.
+ */
+export const POINTER_REST_MS = 500;

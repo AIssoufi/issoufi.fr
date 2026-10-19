@@ -358,6 +358,23 @@ describe('renderPageHtml edge cases', () => {
   });
 });
 
+describe('background photo', () => {
+  const html = readFileSync('index.html', 'utf-8');
+
+  it.each([
+    ...getPageFiles().map(({ page, language, fileName }) => ({
+      fileName,
+      render: () => renderPageHtml({ template: html, page, language, years: 8 }),
+    })),
+    ...getNotFoundFiles().map(({ language, fileName }) => ({
+      fileName,
+      render: () => renderNotFoundHtml({ template: html, language, years: 8 }),
+    })),
+  ])('is not preloaded by $fileName, so that it never delays the text', ({ render }) => {
+    expect(render()).not.toMatch(/<link[^>]*\sas="image"/);
+  });
+});
+
 describe('addModulePreload', () => {
   const href = '/assets/Projects-1a2b3c.js';
   const link = `<link rel="modulepreload" crossorigin href="${href}" />`;

@@ -2,9 +2,9 @@ import { useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import LocalizedLink from '../../components/LocalizedLink';
+import { HOME_PAGE } from '../../utils/pages';
 import { ParticleField } from './ParticleField';
 import { SplitWords } from './SplitWords';
-import { BACKGROUND_IMAGE_URL } from './constants';
 import { useCursorFollower } from './hooks/useCursorFollower';
 import { useMagneticHover } from './hooks/useMagneticHover';
 import { useParallax } from './hooks/useParallax';
@@ -40,7 +40,7 @@ export const Home = () => {
   const jobTitleWordCount = jobTitle.split(' ').length;
 
   return (
-    <HomePage backgroundImage={BACKGROUND_IMAGE_URL}>
+    <HomePage backgroundPhoto={HOME_PAGE.backgroundPhoto}>
       <ParticleField />
       <CursorGlow ref={cursorRef} />
       <Content ref={contentRef}>

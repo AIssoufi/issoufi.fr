@@ -137,7 +137,15 @@ describe('standalone build', () => {
 
     expect(fileNames.length).toBeGreaterThan(0);
     expect(absoluteUrls).toEqual([]);
-    ['home.webp', 'projects.webp', 'experiences.webp', 'favicon.ico'].forEach(name => {
+    [
+      'home.webp',
+      'home-portrait.webp',
+      'projects.webp',
+      'projects-portrait.webp',
+      'experiences.webp',
+      'experiences-portrait.webp',
+      'favicon.ico',
+    ].forEach(name => {
       expect(html).toContain(`"./${name}"`);
     });
   });
