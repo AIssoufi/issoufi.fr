@@ -1,8 +1,8 @@
 import styled, { th } from '@xstyled/styled-components';
 
-import { HOVER_POINTER_QUERY } from '../../../theme/constants.ts';
+import { FULL_MOTION_QUERY, HOVER_POINTER_QUERY } from '../../../theme/constants.ts';
 import { fingerTarget } from '../../../theme/targets.styled.ts';
-import { LOGO_OUTLINE } from './constants.ts';
+import { LOGO_HOVER_SCALE, LOGO_OUTLINE } from './constants.ts';
 
 export const Container = styled.div`
   font-size: ${th.fontSize(34)};
@@ -12,6 +12,8 @@ export const Container = styled.div`
   > a {
     display: inline-block;
     position: relative;
+    transition-property: color, transform;
+    transition-duration: ${th.duration('base')};
     ${fingerTarget}
   }
 
@@ -19,6 +21,14 @@ export const Container = styled.div`
   @media ${HOVER_POINTER_QUERY} {
     > a:hover {
       color: ${th.color('accent-foreground')};
+    }
+  }
+
+  /* Grows from its center, but not with reduced motion, where GlobalStyle would only make it
+     jump */
+  @media ${HOVER_POINTER_QUERY} and ${FULL_MOTION_QUERY} {
+    > a:hover {
+      transform: scale(${LOGO_HOVER_SCALE});
     }
   }
 

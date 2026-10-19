@@ -1,10 +1,10 @@
 import { render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router';
 
-import { declaredStyle, serializeCssValue } from '../../../styleTestUtils.js';
+import { declaredStyle, listStyleRules, serializeCssValue } from '../../../styleTestUtils.js';
 import { theme } from '../../../theme/index.ts';
-import { HOVER_POINTER_QUERY } from '../../../theme/constants.ts';
-import { LOGO_OUTLINE } from './constants.ts';
+import { FULL_MOTION_QUERY, HOVER_POINTER_QUERY } from '../../../theme/constants.ts';
+import { LOGO_HOVER_SCALE, LOGO_OUTLINE } from './constants.ts';
 import Logo from './Logo.tsx';
 
 /**
@@ -112,21 +112,57 @@ describe('Logo', () => {
     expect(linkStyle({ property: 'position', pseudo: ' > a::after' })).toBe('absolute');
   });
 
-  // The other links take the accent from tablet up only (GlobalStyle)
-  it('takes the accent under a pointer that hovers, at any width, without moving', () => {
-    renderAt();
-    const hoverStyle = property =>
+  describe('hover', () => {
+    /** Query of a pointer that hovers, for a visitor who did not ask to reduce motion. */
+    const fullMotionHoverQuery = `${HOVER_POINTER_QUERY} and ${FULL_MOTION_QUERY}`;
+
+    // The rule styles the link itself: a nested `:hover` without `&` once matched a descendant
+    const hoverStyle = ({ property, media }) =>
       declaredStyle({
         element: getLink().parentElement,
         property,
         pseudo: ' > a:hover',
-        media: HOVER_POINTER_QUERY,
+        media,
       });
 
-    expect(hoverStyle('color')).toBe(
-      serializeCssValue({ property: 'color', value: theme.colors['accent-foreground'] }),
-    );
-    expect(hoverStyle('transform')).toBe('');
+    // The other links take the accent from tablet up only (GlobalStyle)
+    it('takes the accent under a pointer that hovers, at any width', () => {
+      renderAt();
+
+      expect(hoverStyle({ property: 'color', media: HOVER_POINTER_QUERY })).toBe(
+        serializeCssValue({ property: 'color', value: theme.colors['accent-foreground'] }),
+      );
+    });
+
+    it('grows under a pointer that hovers, with a transition', () => {
+      renderAt();
+      const linkStyle = property =>
+        declaredStyle({ element: getLink().parentElement, property, pseudo: ' > a' });
+
+      expect(hoverStyle({ property: 'transform', media: fullMotionHoverQuery })).toBe(
+        `scale(${LOGO_HOVER_SCALE})`,
+      );
+      // Stylis drops the spaces of a list
+      expect(linkStyle('transition-property').split(',')).toEqual(['color', 'transform']);
+      expect(linkStyle('transition-duration')).toBe(theme.durations.base);
+    });
+
+    it('does not grow on a touch screen', () => {
+      renderAt();
+
+      expect(hoverStyle({ property: 'transform', media: '' })).toBe('');
+    });
+
+    // GlobalStyle makes the transition instant with reduced motion: the logo would jump
+    it('grows in no other media query, so not with reduced motion', () => {
+      renderAt();
+      const allMedia = new Set(listStyleRules().map(({ media }) => media));
+      const scalingMedia = [...allMedia].filter(
+        media => hoverStyle({ property: 'transform', media }) !== '',
+      );
+
+      expect(scalingMedia).toEqual([fullMotionHoverQuery]);
+    });
   });
 
   it('gets smaller on a short screen', () => {

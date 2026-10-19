@@ -11,8 +11,9 @@ import { Container, Outline } from './Logo.styled.ts';
  * two letters: the SVG takes the place and the size of their text, on its baseline, at any font
  * size, and fills them with the color of the link, which the hover and forced colors mode change
  * as they would change the text. Screen readers read the initials, hidden from the screen, rather
- * than the drawing. It takes the accent under a pointer that hovers, at any width, and gets
- * smaller on a short screen. Must be rendered inside a router.
+ * than the drawing. It takes the accent under a pointer that hovers, at any width, and grows a
+ * little (`LOGO_HOVER_SCALE`) unless the visitor asked to reduce motion. It gets smaller on
+ * a short screen. Must be rendered inside a router.
  */
 const Logo = () => (
   <Container>

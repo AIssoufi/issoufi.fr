@@ -28,5 +28,11 @@ export interface HeaderLogo {
  */
 export const LOGO_OUTLINE: HeaderLogo = outline;
 
+/**
+ * Scale of the logo under a pointer that hovers it, unless the visitor asked to reduce motion: a
+ * little larger than the 1.06 of a hovered button, as the logo is a smaller target.
+ */
+export const LOGO_HOVER_SCALE = 1.08;
+
 /** Text of the logo, the initials that it draws, which screen readers read as its name. */
 export const LOGO_TEXT = 'AI';
