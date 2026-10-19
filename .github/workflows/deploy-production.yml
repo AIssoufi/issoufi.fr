@@ -51,9 +51,10 @@ jobs:
     needs: schedule
     if: needs.schedule.outputs.due == 'true'
     runs-on: ubuntu-latest
-    # Two runs of the CI, each waited for up to 20 minutes (RUN_WAIT_ATTEMPTS), and up to 5 minutes
-    # for the release pull request to become mergeable (MERGEABLE_WAIT_ATTEMPTS)
-    timeout-minutes: 50
+    # Two attempts on the release pull request (RELEASE_MERGE_ATTEMPTS), each looking for its run
+    # for up to a minute, waiting for it up to 20 minutes (RUN_WAIT_ATTEMPTS) and up to 5 minutes
+    # for the pull request to become mergeable (MERGEABLE_WAIT_ATTEMPTS), then the CI of develop
+    timeout-minutes: 75
     permissions:
       # Merges the release pull request
       contents: write

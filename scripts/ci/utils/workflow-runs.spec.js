@@ -14,6 +14,7 @@ import {
   readRun,
   readRuns,
   shortenSha,
+  waitForLatestRun,
   waitForRun,
 } from './workflow-runs.mjs';
 
@@ -513,6 +514,50 @@ describe('the API calls on runs', () => {
         expect(fetch).not.toHaveBeenCalled();
       },
     );
+  });
+
+  describe('waitForLatestRun', () => {
+    const filters = { branch: 'release', event: 'pull_request', sha: SHA };
+
+    it('looks for the run until GitHub created it', async () => {
+      const fetch = stubFetch({ workflow_runs: [] }, { workflow_runs: [apiRun()] });
+      await expect(waitForLatestRun({ ...filters, delayMs: 0 })).resolves.toEqual(run());
+      expect(fetch).toHaveBeenCalledTimes(2);
+      expect(fetch.mock.calls[0][0]).toBe(
+        `${RUNS_API_URL}/workflows/ci.yml/runs?branch=release&event=pull_request&head_sha=${SHA}&per_page=1`,
+      );
+    });
+
+    it('resolves to undefined when the run never appears, and asks nothing for no attempt', async () => {
+      const fetch = stubFetch({ workflow_runs: [] });
+      await expect(
+        waitForLatestRun({ ...filters, attempts: 2, delayMs: 0 }),
+      ).resolves.toBeUndefined();
+      await expect(
+        waitForLatestRun({ ...filters, attempts: 0, delayMs: 0 }),
+      ).resolves.toBeUndefined();
+      expect(fetch).toHaveBeenCalledTimes(2);
+    });
+
+    it('waits between two lookups', async () => {
+      vi.useFakeTimers();
+      const fetch = stubFetch({ workflow_runs: [] }, { workflow_runs: [apiRun()] });
+      const promise = waitForLatestRun(filters);
+      await vi.advanceTimersByTimeAsync(9_999);
+      expect(fetch).toHaveBeenCalledTimes(1);
+      await vi.advanceTimersByTimeAsync(1);
+      await expect(promise).resolves.toEqual(run());
+    });
+
+    it('throws when a lookup fails', async () => {
+      vi.stubGlobal(
+        'fetch',
+        vi.fn(async () => new Response('{}', { status: 500 })),
+      );
+      await expect(waitForLatestRun({ ...filters, delayMs: 0 })).rejects.toThrow(
+        'The GitHub API answered 500',
+      );
+    });
   });
 
   describe('approveRun', () => {

@@ -5,6 +5,8 @@ import {
   DEFAULT_GITHUB_API_URL,
   DEVELOP_BRANCH,
   LATEST_RUN_PAGE_SIZE,
+  PULL_REQUEST_RUN_LOOKUP_ATTEMPTS,
+  PULL_REQUEST_RUN_LOOKUP_DELAY_MS,
   PUSH_EVENT,
   RUN_ACTION_REQUIRED_CONCLUSION,
   RUN_COMPLETED_STATUS,
@@ -313,6 +315,43 @@ export const fetchLatestRun = async ({
   }
 
   return readLatestRun(await requestGitHub({ url, token }));
+};
+
+/**
+ * How long {@link waitForLatestRun} looks for a run.
+ * @typedef {object} RunLookupOptions
+ * @property {number} [attempts] - Number of times the runs are listed. Defaults to
+ * {@link PULL_REQUEST_RUN_LOOKUP_ATTEMPTS}.
+ * @property {number} [delayMs] - Pause between two lookups, in milliseconds. Defaults to
+ * {@link PULL_REQUEST_RUN_LOOKUP_DELAY_MS}.
+ */
+
+/**
+ * Parameters of {@link waitForLatestRun}: those of {@link fetchLatestRun}, and how long to look.
+ * @typedef {FetchLatestRunParams & RunLookupOptions} WaitForLatestRunParams
+ */
+
+/**
+ * Looks for the latest run of a workflow on a branch and a commit, listing the runs again at
+ * regular intervals while there is none: GitHub creates a run a few seconds after its event.
+ * @param {WaitForLatestRunParams} params
+ * @returns {Promise<WorkflowRun | undefined>} The run once found, or `undefined` when the workflow
+ * has not run on that commit after every attempt, or when `attempts` is not above 0.
+ * @throws {Error} When {@link fetchLatestRun} throws, at the attempt that failed.
+ * @example
+ * await waitForLatestRun({ branch, event: 'pull_request', sha }); // { id: 501, sha, … }
+ */
+export const waitForLatestRun = async ({
+  attempts = PULL_REQUEST_RUN_LOOKUP_ATTEMPTS,
+  delayMs = PULL_REQUEST_RUN_LOOKUP_DELAY_MS,
+  ...params
+}) => {
+  for (let attempt = 1; attempt <= attempts; attempt += 1) {
+    const run = await fetchLatestRun(params);
+    if (run) return run;
+    if (attempt < attempts) await new Promise(resolve => setTimeout(resolve, delayMs));
+  }
+  return undefined;
 };
 
 /**

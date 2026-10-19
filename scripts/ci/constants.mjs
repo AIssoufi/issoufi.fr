@@ -385,6 +385,26 @@ export const MERGEABLE_WAIT_ATTEMPTS = 30;
 /** Pause between two reads of the release pull request that waits to merge, in milliseconds. */
 export const MERGEABLE_WAIT_DELAY_MS = 10_000;
 
+/**
+ * Number of times the daily release tries to merge the release pull request: release-please
+ * rewrites its branch on each push to develop, which cancels the CI of the old head or makes
+ * GitHub refuse its merge (409, _Head branch was modified_), as on 2026-10-19. The next attempt
+ * starts again from the new head. Each attempt waits up to 26 minutes, which the timeout of the
+ * release job of `deploy-production.yml` covers.
+ */
+export const RELEASE_MERGE_ATTEMPTS = 2;
+
+/**
+ * Number of times the daily release looks for the run of the CI that the pull request event
+ * started on the head of the release pull request, every
+ * {@link PULL_REQUEST_RUN_LOOKUP_DELAY_MS}: GitHub creates it a few seconds after release-please
+ * pushed.
+ */
+export const PULL_REQUEST_RUN_LOOKUP_ATTEMPTS = 6;
+
+/** Pause between two lookups of the run of the CI of the release pull request, in milliseconds. */
+export const PULL_REQUEST_RUN_LOOKUP_DELAY_MS = 10_000;
+
 /** Type of the rule of a ruleset that names the status checks required to merge. */
 export const REQUIRED_STATUS_CHECKS_RULE = 'required_status_checks';
 

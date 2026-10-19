@@ -7,7 +7,11 @@ const REPOSITORY = 'AIssoufi/issoufi.fr';
 const BRANCH = 'release-please--branches--develop--components--issoufi-v3';
 const PULL_REQUEST_URL = `https://github.com/${REPOSITORY}/pull/162`;
 const RUNS_URL = `https://github.com/${REPOSITORY}/actions/runs`;
-const WAITS = { runWait: { attempts: 3, delayMs: 0 }, mergeableWait: { attempts: 3, delayMs: 0 } };
+const WAITS = {
+  runLookup: { attempts: 3, delayMs: 0 },
+  runWait: { attempts: 3, delayMs: 0 },
+  mergeableWait: { attempts: 3, delayMs: 0 },
+};
 
 /** A run of the CI, as the REST API writes it, by default the passed pull request run. */
 const apiRun = ({ id = 501, ...fields } = {}) => ({
@@ -261,7 +265,85 @@ describe('releaseVersionOfTheDay', () => {
     });
   });
 
-  it('stops when release-please moved the pull request after its CI ran', async () => {
+  /**
+   * The routes of a release whose branch release-please moves from SHA to OTHER_SHA during the
+   * first attempt: the second attempt finds the new head and its run, 502, which passed.
+   */
+  const movedReleaseRoutes = () => {
+    const routes = releaseRoutes();
+    routes['GET /pulls'] = [
+      { body: [apiReleasePullRequest] },
+      {
+        body: [
+          { ...apiReleasePullRequest, head: { ...apiReleasePullRequest.head, sha: OTHER_SHA } },
+        ],
+      },
+    ];
+    routes['GET /actions/workflows/ci.yml/runs'] = [
+      { body: { workflow_runs: [apiRun()] } },
+      { body: { workflow_runs: [apiRun({ id: 502, head_sha: OTHER_SHA })] } },
+    ];
+    routes['GET /actions/runs/502'] = [{ body: apiRun({ id: 502, head_sha: OTHER_SHA }) }];
+    return routes;
+  };
+
+  /** The commits that the release asked GitHub to merge, in their order. */
+  const mergedShasOf = requests =>
+    requests.filter(({ route }) => route === 'PUT /pulls/162/merge').map(({ body }) => body.sha);
+
+  it('starts again from the new head when release-please moved the branch after the CI', async () => {
+    const routes = movedReleaseRoutes();
+    routes['GET /pulls/162'] = [
+      { body: apiPullRequestState({ mergeableState: 'blocked', sha: OTHER_SHA }) },
+      { body: apiPullRequestState({ mergeableState: 'clean', sha: OTHER_SHA }) },
+    ];
+    const requests = stubGitHub(routes);
+
+    await expect(releaseVersionOfTheDay(WAITS)).resolves.toMatchObject({
+      level: 'notice',
+      message: expect.stringMatching(/^Released the release pull request #162/),
+    });
+    expect(mergedShasOf(requests)).toEqual([OTHER_SHA]);
+    expect(console.log).toHaveBeenCalledWith(
+      'release-please moved the release pull request #162 away from 58ff9ea.',
+    );
+  });
+
+  it('starts again when GitHub refuses the merge because the head was modified', async () => {
+    const routes = movedReleaseRoutes();
+    routes['GET /pulls/162'] = [
+      // The wait of the first attempt, then the read after the refused merge, then the second wait
+      { body: apiPullRequestState({ mergeableState: 'clean' }) },
+      { body: apiPullRequestState({ mergeableState: 'blocked', sha: OTHER_SHA }) },
+      { body: apiPullRequestState({ mergeableState: 'clean', sha: OTHER_SHA }) },
+    ];
+    routes['PUT /pulls/162/merge'] = [
+      {
+        status: 409,
+        body: { message: 'Head branch was modified. Review and try the merge again.' },
+      },
+      { body: { sha: MERGE_SHA, merged: true } },
+    ];
+    const requests = stubGitHub(routes);
+
+    await expect(releaseVersionOfTheDay(WAITS)).resolves.toMatchObject({ level: 'notice' });
+    expect(mergedShasOf(requests)).toEqual([SHA, OTHER_SHA]);
+  });
+
+  it('starts again when a newer push of release-please cancelled the CI', async () => {
+    const routes = movedReleaseRoutes();
+    routes['GET /actions/runs/501'] = [{ body: apiRun({ conclusion: 'cancelled' }) }];
+    routes['GET /pulls/162'] = [
+      { body: apiPullRequestState({ mergeableState: 'blocked', sha: OTHER_SHA }) },
+      { body: apiPullRequestState({ mergeableState: 'clean', sha: OTHER_SHA }) },
+    ];
+    const requests = stubGitHub(routes);
+
+    await expect(releaseVersionOfTheDay(WAITS)).resolves.toMatchObject({ level: 'notice' });
+    expect(mergedShasOf(requests)).toEqual([OTHER_SHA]);
+  });
+
+  it('gives up when release-please moves the branch at every attempt', async () => {
     const routes = releaseRoutes();
     routes['GET /pulls/162'] = [
       { body: apiPullRequestState({ mergeableState: 'blocked', sha: OTHER_SHA }) },
@@ -270,9 +352,40 @@ describe('releaseVersionOfTheDay', () => {
 
     await expect(releaseVersionOfTheDay(WAITS)).resolves.toEqual({
       level: 'notice',
-      message: `No release today: release-please moved the release pull request #162 to 9ff31f7 after its CI ran on 58ff9ea, and the next run releases it: ${PULL_REQUEST_URL}`,
+      message:
+        'No release today: release-please moved the release pull request 2 times while its CI ran, so the next run releases it.',
     });
+    expect(routesOf(requests).filter(route => route === 'GET /pulls')).toHaveLength(2);
     expect(routesOf(requests)).not.toContain('PUT /pulls/162/merge');
+  });
+
+  it('keeps the reason of a refused merge when the head did not move', async () => {
+    const routes = releaseRoutes();
+    routes['PUT /pulls/162/merge'] = [
+      { status: 409, body: { message: 'Head branch was modified' } },
+    ];
+    routes['GET /pulls/162'] = [
+      { body: apiPullRequestState({ mergeableState: 'clean' }) },
+      { status: 500, body: { message: 'Server Error' } },
+    ];
+    stubGitHub(routes);
+
+    await expect(releaseVersionOfTheDay(WAITS)).resolves.toMatchObject({
+      level: 'warning',
+      message: expect.stringContaining('GitHub refused to merge the release pull request #162'),
+    });
+  });
+
+  it('waits for the run that GitHub creates after a push of release-please', async () => {
+    const routes = releaseRoutes();
+    routes['GET /actions/workflows/ci.yml/runs'] = [
+      { body: { workflow_runs: [] } },
+      { body: { workflow_runs: [apiRun()] } },
+    ];
+    const requests = stubGitHub(routes);
+
+    await expect(releaseVersionOfTheDay(WAITS)).resolves.toMatchObject({ level: 'notice' });
+    expect(mergedShasOf(requests)).toEqual([SHA]);
   });
 
   it('stops without a release pull request', async () => {
@@ -315,7 +428,8 @@ describe('releaseVersionOfTheDay', () => {
       level: 'notice',
       message: `No release today: the CI of the release pull request #162 ${outcome}`,
     });
-    expect(routesOf(requests)).not.toContain('GET /pulls/162');
+    expect(routesOf(requests).filter(route => route === 'GET /pulls')).toHaveLength(1);
+    expect(routesOf(requests)).not.toContain('PUT /pulls/162/merge');
   });
 
   it('warns when the approved CI still waits for approval after every read', async () => {
