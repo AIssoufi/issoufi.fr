@@ -23,6 +23,7 @@ import {
 import {
   ALL_ENV_VARIABLES_PREFIX,
   ASSETS_DIR,
+  CODE_SPLITTING_GROUPS,
   HEADERS_FILE_NAME,
   SECURITY_HEADERS,
 } from './vite/constants';
@@ -189,9 +190,10 @@ const TEST_TIMEOUT_MS = 10_000;
 
 /**
  * Vite and Vitest configuration: React with SVG components, the web fonts, page metadata, sitemap,
- * web app manifests and HTTP headers plugins, the dev and preview servers on the port of the
- * worktree (see {@link getServerPorts}), which fail when it is taken, the preview server with the
- * security headers of the site, and the tests in jsdom with coverage.
+ * web app manifests and HTTP headers plugins, a chunk per lazy page and named chunks for the
+ * libraries and the shared modules (see {@link CODE_SPLITTING_GROUPS}), the dev and preview
+ * servers on the port of the worktree (see {@link getServerPorts}), which fail when it is taken,
+ * the preview server with the security headers of the site, and the tests in jsdom with coverage.
  * @see https://vitejs.dev/config/
  */
 export default defineConfig(({ mode }) => {
@@ -205,8 +207,12 @@ export default defineConfig(({ mode }) => {
     define: { __APP_VERSION__: JSON.stringify(packageJson.version) },
     build: {
       rolldownOptions: {
-        // The chunk of each lazily loaded page is named after its folder, not after its index file
-        output: { chunkFileNames: chunk => `${ASSETS_DIR}/${getChunkName(chunk)}-[hash].js` },
+        output: {
+          // The chunk of each lazily loaded page is named after its folder, not its index file
+          chunkFileNames: chunk => `${ASSETS_DIR}/${getChunkName(chunk)}-[hash].js`,
+          // The libraries and the modules that the pages share get chunks named after them
+          codeSplitting: { groups: CODE_SPLITTING_GROUPS },
+        },
       },
     },
     // A taken port stops the server instead of moving it to the next free port, so a test never
