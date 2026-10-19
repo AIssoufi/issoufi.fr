@@ -55,7 +55,7 @@ export const Logo = styled.div`
 
   :hover {
     transform: scale(1.08);
-    color: ${th.color('accent')};
+    color: ${th.color('accent-foreground')};
   }
 
   @media (max-height: ${th('screenHeights.short')}) {
@@ -64,7 +64,7 @@ export const Logo = styled.div`
 `;
 
 export const BuildVersion = styled.span`
-  font-size: ${th.fontSize(11)};
+  font-size: ${th.fontSize(12)};
   font-weight: ${th.fontWeight('medium')};
   letter-spacing: ${th.letterSpacing(4)};
   color: ${th.color('foreground-a65')};

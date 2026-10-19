@@ -4,6 +4,13 @@ import { MemoryRouter, useLocation } from 'react-router';
 
 import i18n from '../../../i18n';
 import { LANGUAGE_STORAGE_KEY } from '../../../i18n/constants';
+import {
+  declaredStyle,
+  FORCED_COLORS_MEDIA,
+  getContrastRatio,
+  MIN_TEXT_CONTRAST_RATIO,
+} from '../../../styleTestUtils';
+import { theme } from '../../../theme';
 import UrlLanguage from '../../UrlLanguage';
 import LangToggle from './LangToggle';
 
@@ -135,6 +142,27 @@ describe('LangToggle', () => {
     const wrapperStyle = getComputedStyle(screen.getByRole('group'));
     expect(wrapperStyle.position).toBe('relative');
     expect(wrapperStyle.flexDirection).toBe('row');
+  });
+
+  it('keeps the inactive language at 4.5:1 on the dark background, hovered or not', () => {
+    renderAt();
+    const inactiveColor = pseudo =>
+      declaredStyle({ element: getEnglishButton(), property: 'color', pseudo });
+
+    for (const color of [inactiveColor(''), inactiveColor(':hover')]) {
+      expect(
+        getContrastRatio({ foreground: color, background: theme.colors.background }),
+      ).toBeGreaterThanOrEqual(MIN_TEXT_CONTRAST_RATIO);
+    }
+  });
+
+  it('marks the active language with a border of the color of a selection in forced colors mode', () => {
+    renderAt();
+
+    // Forced colors mode removes the fill and the glow of the indicator
+    expect(
+      declaredStyle({ element: getIndicator(), property: 'border', media: FORCED_COLORS_MEDIA }),
+    ).toBe(`${theme.borderWidths.thick} solid highlight`);
   });
 
   describe('accessibility', () => {

@@ -36,7 +36,7 @@ export const rgb = {
   green: '50, 180, 100',
 } as const;
 
-/** Solid colors of the palette. */
+/** Colors of the palette, solid or translucent; the alpha of a translucent one ends its name. */
 export const palette = {
   white: '#ffffff',
   gray200: '#e5e5e5',
@@ -47,6 +47,16 @@ export const palette = {
   lavenderGray60: 'rgba(210, 208, 220, 0.6)',
   mint85: 'rgba(130, 210, 150, 0.85)',
   deepViolet92: 'rgba(10, 6, 18, 0.92)',
+  darkPlum80: 'rgba(40, 14, 30, 0.8)',
+} as const;
+
+/**
+ * CSS system colors, which forced colors mode, such as a contrast theme of Windows, sets to the
+ * colors of its own palette, the only ones it keeps.
+ */
+export const systemColors = {
+  highlight: 'Highlight',
+  buttonText: 'ButtonText',
 } as const;
 
 /** Spacing scale; keys are pixel values. */
@@ -124,6 +134,7 @@ export const relativeSizes = {
 /** Line lengths of text blocks; keys are numbers of characters. */
 export const measures = {
   40: '40ch',
+  52: '52ch',
 } as const;
 
 /** Corner radii; keys are pixel values, except `half`, which rounds a square into a circle. */
@@ -161,10 +172,11 @@ export const fontFamilies = {
   sourceCodePro: "source-code-pro, Menlo, Monaco, Consolas, 'Courier New', monospace",
 } as const;
 
-/** Font sizes; keys are pixel values. */
+/**
+ * Font sizes; keys are pixel values. None is under 12 px, the smallest size that stays readable
+ * for the metadata of the site (dates, badges, tags), which `theme.spec.jsx` checks.
+ */
 export const fontSizes = {
-  10: '10px',
-  11: '11px',
   12: '12px',
   13: '13px',
   14: '14px',
@@ -293,5 +305,6 @@ export const breakpoints = {
   37.5: '37.5em',
   50: '50em',
   53.625: '53.625em',
+  64: '64em',
   100: '100em',
 } as const;

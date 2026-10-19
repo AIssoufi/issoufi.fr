@@ -1,5 +1,5 @@
 /**
- * Looks of a `Period`: `job` for the period column of a job, `role` for the smaller and dimmer one
+ * Looks of a `Period`: `job` for the period column of a job, `role` for the dimmer one
  * of several roles at the same company, and `inline` for the header of a card, on one line.
  */
 export const PERIOD_VARIANTS = ['job', 'role', 'inline'] as const;

@@ -10,7 +10,7 @@ interface TimelinePeriodProps {
   end?: string;
   /**
    * Look of the period: `'job'` for a job's row, or `'role'` for one of several roles at the
-   * same company, smaller and dimmer. Any other value falls back to `'job'`.
+   * same company, dimmer. Any other value falls back to `'job'`.
    * @default 'job'
    */
   variant?: 'job' | 'role';

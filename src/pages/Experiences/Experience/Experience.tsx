@@ -1,8 +1,7 @@
 import JobSummary from '../JobSummary';
 import Project from '../Project';
-import Technologies from '../Technologies';
 
-import { Article, Details } from './Experience.styled';
+import { Article, Details, JobTechnologies } from './Experience.styled';
 
 /** Props of {@link Experience}. Every part is optional and is not rendered when missing. */
 interface ExperienceProps {
@@ -27,14 +26,22 @@ interface ExperienceProps {
    * it below the tablet breakpoint.
    */
   endDate?: string;
-  /** Description of the job: text, bullet lists, {@link Project}s and {@link Technologies}. */
+  /**
+   * Technologies of the job, in display order, shown after its description, and under its summary
+   * from the `two-job-columns` breakpoint. None are shown when the list is empty or missing.
+   */
+  technologies?: string[];
+  /** Description of the job: text, bullet lists and {@link Project}s. */
   children?: React.ReactNode;
 }
 
 /**
  * `article` card for one job at one company: its {@link JobSummary} (logo, job title as a `h3`,
- * company details, period below the tablet breakpoint, computed duration) and a free-form
- * description. For several successive roles at the same company, use `ExperienceGroup` instead.
+ * company details, period below the tablet breakpoint, computed duration), a free-form
+ * description and the technologies of the job. Below the `two-job-columns` breakpoint they
+ * follow each other; from it, the summary and the technologies stand on the left of the
+ * description, whose lines stay short however wide the card. For several successive roles at the
+ * same company, use `ExperienceGroup` instead.
  *
  * @example
  * <Experience
@@ -42,8 +49,9 @@ interface ExperienceProps {
  *   entityName="Wibilong"
  *   startDate="sept. 2019"
  *   endDate="juin 2021"
+ *   technologies={['React.js', 'Node.js']}
  * >
- *   <Experience.Technologies technologies={['React.js', 'Node.js']} />
+ *   Full-stack development of the Wibilong SaaS solutions.
  * </Experience>
  */
 const Experience = ({
@@ -54,6 +62,7 @@ const Experience = ({
   city,
   startDate,
   endDate,
+  technologies,
   children,
 }: ExperienceProps) => (
   <Article>
@@ -67,10 +76,10 @@ const Experience = ({
       endDate={endDate}
     />
     <Details>{children}</Details>
+    <JobTechnologies technologies={technologies} />
   </Article>
 );
 
-Experience.Technologies = Technologies;
 Experience.Project = Project;
 
 export default Experience;
