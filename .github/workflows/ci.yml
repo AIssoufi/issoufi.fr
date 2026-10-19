@@ -120,10 +120,18 @@ jobs:
           path: dist/
           retention-days: 7
 
-  browser-test:
+  # Splits the Playwright tests over parallel jobs, each running a slice of them on its own runner,
+  # so the wall time stays well under the timeout as the suite grows
+  browser-test-shard:
     needs: build
+    name: browser-test (${{ matrix.shard }}/${{ strategy.job-total }})
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    strategy:
+      # Every shard runs to its end, so one run lists all the failed tests
+      fail-fast: false
+      matrix:
+        shard: [1, 2, 3]
     steps:
       - uses: actions/checkout@v7
       - uses: ./.github/actions/setup
@@ -141,17 +149,37 @@ jobs:
           path: ~/.cache/ms-playwright
           key: playwright-${{ runner.os }}-${{ steps.playwright.outputs.version }}
       - run: pnpm exec playwright install --with-deps --only-shell chromium
-      - run: pnpm test:browser
+      # Playwright splits the tests in file order into slices of the same number of tests
+      - run: pnpm test:browser --shard="$SHARD"
+        env:
+          SHARD: ${{ matrix.shard }}/${{ strategy.job-total }}
       # Fails once Chromium prints the same CV twice with other bytes than its dates, which would
-      # make every run of pnpm cv change the PDFs in git
-      - run: pnpm cv:check
+      # make every run of pnpm cv change the PDFs in git. It needs the browser but not the build, so
+      # one shard runs it
+      - if: matrix.shard == 1
+        run: pnpm cv:check
       # Holds a screenshot of each page that failed
       - if: failure()
         uses: actions/upload-artifact@v7
         with:
-          name: browser-test-results
+          name: browser-test-results-${{ matrix.shard }}
           path: test-results/
           retention-days: 14
+
+  # The required check of both rulesets, which name it: it passes once every shard passed, and fails
+  # when one failed or was skipped, since a skipped required check would let a pull request merge
+  browser-test:
+    needs: browser-test-shard
+    if: ${{ !cancelled() }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - if: needs.browser-test-shard.result != 'success'
+        run: |
+          echo "::error::The browser tests did not pass: their shards ended with '${SHARDS_RESULT}'."
+          exit 1
+        env:
+          SHARDS_RESULT: ${{ needs.browser-test-shard.result }}
 
   credentials:
     # Pull requests from forks and from Dependabot get no repository secrets
