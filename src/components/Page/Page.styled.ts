@@ -7,11 +7,6 @@ export const Main = styled.main<{ $backgroundImage: string; $portraitBackgroundI
   position: relative;
   grid-area: main;
 
-  /* The language toggle, the CV button and the GitHub icon float on the right edge from tablet up */
-  @media (min-width: ${th('screens.tablet')}) {
-    padding-right: ${th.space('floating-controls-room')};
-  }
-
   &::before {
     content: '';
     display: block;

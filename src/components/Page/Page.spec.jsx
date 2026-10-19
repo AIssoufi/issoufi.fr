@@ -83,13 +83,14 @@ describe('Page', () => {
     },
   );
 
-  it('leaves room on the right for the controls floating on the right edge from tablet up', () => {
+  it('keeps the same gutter on the right as on the left, on every screen', () => {
     render(<Page />);
 
     expect(declaredStyle({ element: getMain(), property: 'padding-right' })).toBe(theme.space.page);
+    expect(declaredStyle({ element: getMain(), property: 'padding-left' })).toBe(theme.space.page);
     expect(
       declaredStyle({ element: getMain(), property: 'padding-right', media: TABLET_MEDIA }),
-    ).toBe(theme.space['floating-controls-room']);
+    ).toBe('');
   });
 
   it('keeps the class name it receives', () => {

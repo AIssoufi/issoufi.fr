@@ -24,6 +24,7 @@ import { buildCvContent } from './content.mjs';
  * @property {string} homePath - Path of the home page, whose URL in each language the CV links
  * to.
  * @property {string} siteUrl - Origin of the site, `SITE_URL`, whose domain the CV writes.
+ * @property {string} linkedInUrl - LinkedIn profile of the site owner, `LINKEDIN_PROFILE_URL`.
  * @property {string} gitHubUrl - GitHub profile of the site owner, `GITHUB_PROFILE_URL`.
  * @property {any} cvData - Data of the CV, `scripts/cv/.data/cv.json`.
  * @property {any} experiences - Companies of `src/pages/Experiences/.data/experiences.json`.
@@ -51,6 +52,7 @@ export const buildCvContents = ({
   getPageUrl,
   homePath,
   siteUrl,
+  linkedInUrl,
   gitHubUrl,
   cvData,
   experiences,
@@ -81,6 +83,7 @@ export const buildCvContents = ({
         personalProjects: translateProjects({ projects: personalProjects?.projects, t }),
         freelanceProjects: translateProjects({ projects: freelanceProjects?.projects, t }),
         siteUrl: getPageUrl({ path: homePath, language }),
+        linkedInUrl,
         gitHubUrl,
       });
     }),

@@ -2,7 +2,7 @@ import { buildCvContent, buildExperiences, buildProjectItems } from './content.m
 
 /** Translations of a tiny site, by key. */
 const TEXTS = {
-  'cvLink.text': 'CV',
+  'cvLink.documentName': 'CV',
   'exp.pageTitle': 'Expériences',
   'projects.pageTitle': 'Projets',
   'projects.freelance': 'Projets freelance',
@@ -66,7 +66,6 @@ const CV_DATA = {
   contact: {
     email: 'adam@example.com',
     phoneUrl: 'tel:+33600000000',
-    linkedInUrl: 'https://www.linkedin.com/in/adam/',
   },
   languages: {
     fr: {
@@ -97,6 +96,7 @@ const PARAMS = {
     { id: 2, name: 'Study SARL', type: 'Site web', tools: ['PHP'], url: 'https://study.fr/' },
   ],
   siteUrl: 'https://issoufi.fr/',
+  linkedInUrl: 'https://www.linkedin.com/in/adam/',
   gitHubUrl: 'https://github.com/AIssoufi',
 };
 
@@ -262,13 +262,14 @@ describe('buildCvContent', () => {
   });
 
   it.each([undefined, null, {}, { languages: { en: {} } }, { contact: 'adam@example.com' }])(
-    'gives empty texts, but the links of the site and GitHub, for the data %j',
+    'gives empty texts, but the links of the site, LinkedIn and GitHub, for the data %j',
     cvData => {
       const content = buildCvContent({ ...PARAMS, cvData });
 
       expect(content.contacts).toEqual([]);
       expect(content.profiles).toEqual([
         { text: 'issoufi.fr', url: 'https://issoufi.fr/' },
+        { text: 'linkedin.com/in/adam', url: 'https://www.linkedin.com/in/adam/' },
         { text: 'github.com/AIssoufi', url: 'https://github.com/AIssoufi' },
       ]);
       expect(content.skills).toEqual({ title: '', items: [] });
@@ -295,6 +296,15 @@ describe('buildCvContent', () => {
     },
   );
 
+  it.each([undefined, null, 42, '', 'linkedin.com/in/adam', 'javascript:alert(1)'])(
+    'leaves out the LinkedIn profile when its URL is %j',
+    linkedInUrl => {
+      const texts = buildCvContent({ ...PARAMS, linkedInUrl }).profiles.map(({ text }) => text);
+
+      expect(texts).toEqual(['issoufi.fr', 'github.com/AIssoufi']);
+    },
+  );
+
   it('writes the email address without a link when it is not one', () => {
     const cvData = { ...CV_DATA, contact: { email: 'adam at example' } };
 
@@ -307,7 +317,7 @@ describe('buildCvContent', () => {
   it('names the document after its author alone when the CV has no name', () => {
     const content = buildCvContent({
       ...PARAMS,
-      translate: key => (key === 'cvLink.text' ? '' : translate(key)),
+      translate: key => (key === 'cvLink.documentName' ? '' : translate(key)),
     });
 
     expect(content.title).toBe('ADAM Issoufi');

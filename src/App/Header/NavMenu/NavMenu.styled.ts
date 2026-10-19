@@ -2,8 +2,8 @@ import styled, { css, keyframes, th } from '@xstyled/styled-components';
 
 import List from '../../../components/List';
 import { theme } from '../../../theme';
-import CvLink from '../CvLink';
-import GitHubLink from '../GitHubLink';
+import CvLink from './CvLink';
+import ProfileLinks from './ProfileLinks';
 
 // Keyframes have no theme context, so they read the theme object rather than the th helpers
 const fadeSlideIn = keyframes`
@@ -38,8 +38,7 @@ export const Nav = styled.nav<{ $mobileMenuIsOpen: boolean }>`
       /* A scroll that reaches an end of the menu stops there, rather than scrolling the page */
       overscroll-behavior: contain;
       padding: ${th.space(20)} 0;
-      /* Spaces the links, the CV button and the GitHub icon: a margin on the CV button would move
-         its tooltip away from it */
+      /* Spaces the links, the profile icons and the CV link */
       gap: ${th.space(28)};
       background: ${th.color('overlay-mobile-menu')};
       backdrop-filter: ${th('blurs.20')};
@@ -71,18 +70,15 @@ export const NavList = styled(List)`
   align-items: center;
   gap: ${th.space(8)};
 
-  /* Closer links on a short screen, with room left under the last one for the tooltip that shows
-     above the CV button, which the smaller gap of the menu no longer leaves */
+  /* Closer links on a short screen */
   @media (max-height: ${th('screenHeights.short')}) {
     gap: 0;
-    margin-bottom: ${th.space(20)};
   }
 
   @media (min-width: ${th('screens.tablet')}) {
     flex-direction: row;
     align-items: center;
     gap: 0;
-    margin-bottom: 0;
   }
 `;
 
@@ -158,12 +154,38 @@ export const NavItem = styled.li`
   }
 `;
 
-/* The pill of the mobile menu, hidden on desktop, where the header floats a round CV button
-   between the language toggle and the GitHub icon */
+/* A line between two groups of the bar on desktop, as high as the text of its links. The mobile
+   menu spaces its groups with its gap instead */
+export const Separator = styled.span`
+  display: none;
+
+  @media (min-width: ${th('screens.tablet')}) {
+    display: block;
+    height: ${th.size(16)};
+    border-left: ${th.borderWidth('thin')} solid ${th.color('foreground-a25')};
+  }
+`;
+
+/* Each item of the bar has 16 px on each side, as the route links do, so the lines stand halfway
+   between their neighbours */
+export const MenuProfileLinks = styled(ProfileLinks)`
+  animation: ${fadeSlideIn} ${th.duration(300)} ${th.timingFunction('standard')} ${th.duration(200)}
+    both;
+
+  @media (min-width: ${th('screens.tablet')}) {
+    padding: 0 ${th.space(16)};
+    animation: none;
+  }
+`;
+
+/* A pill with a download icon in the mobile menu, and a text link like the route links in the bar
+   of the header on desktop */
 export const MenuCvLink = styled(CvLink)`
   border-radius: ${th.radius('pill')};
   width: max-content;
   height: max-content;
+  /* The smallest target recommended for a finger, still on a short screen */
+  min-height: ${th.size('finger-target')};
   transition-property: border-color, background-color;
   transition-duration: ${th.duration('base')};
   padding: ${th.space(14)} ${th.space(36)};
@@ -171,7 +193,7 @@ export const MenuCvLink = styled(CvLink)`
   border: ${th.borderWidth('thin')} solid ${th.color('foreground-a50')};
   font-size: ${th.fontSize(18)};
   letter-spacing: ${th.letterSpacing(6)};
-  animation: ${fadeSlideIn} ${th.duration(300)} ${th.timingFunction('standard')} ${th.duration(200)}
+  animation: ${fadeSlideIn} ${th.duration(300)} ${th.timingFunction('standard')} ${th.duration(300)}
     both;
 
   &:active {
@@ -179,23 +201,36 @@ export const MenuCvLink = styled(CvLink)`
     border-color: ${th.color('accent-a60')};
   }
 
-  /* Still 44 px high on a short screen, the smallest target recommended for a finger */
+  /* Smaller on a short screen, as on a phone held sideways, as the links are, which keeps it out
+     of the column of the language toggle above the menu */
   @media (max-height: ${th('screenHeights.short')}) {
-    padding: ${th.space(10)} ${th.space(36)};
+    padding: ${th.space(10)} ${th.space(24)};
+    font-size: ${th.fontSize(16)};
   }
 
   @media (min-width: ${th('screens.tablet')}) {
-    display: none;
-  }
-`;
+    min-height: 0;
+    padding: ${th.space(10)} ${th.space(16)};
+    border: none;
+    border-radius: 0;
+    font-size: ${th.fontSize(15)};
+    letter-spacing: ${th.letterSpacing(3)};
+    animation: none;
+    transform: scale(1);
+    transition-property: transform, color;
 
-/* Shown in the mobile menu only: on desktop, the header floats the GitHub icon under the CV
-   button */
-export const MenuGitHubLink = styled(GitHubLink)`
-  animation: ${fadeSlideIn} ${th.duration(300)} ${th.timingFunction('standard')} ${th.duration(300)}
-    both;
+    &:hover {
+      color: ${th.color('accent')};
+      transform: scale(1.06);
+    }
 
-  @media (min-width: ${th('screens.tablet')}) {
-    display: none;
+    &:active {
+      background-color: transparent;
+    }
+
+    /* The text says what the link does: the bar shows no icon */
+    svg {
+      display: none;
+    }
   }
 `;

@@ -285,7 +285,7 @@ describe('Projects layout on mobile', () => {
     },
   );
 
-  it('leaves room on the right for the controls floating on the right edge from the tablet width', () => {
+  it('gives the page the gutters of the other pages from the tablet width', () => {
     render(<Projects />);
 
     const page = screen.getByRole('main');
@@ -293,7 +293,7 @@ describe('Projects layout on mobile', () => {
       theme.space.page,
     );
     expect(declaredStyle({ element: page, property: 'padding-right', media: TABLET_MEDIA })).toBe(
-      theme.space['floating-controls-room'],
+      theme.space.page,
     );
   });
 

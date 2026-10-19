@@ -62,9 +62,12 @@ export const en = {
   githubLink: {
     label: "ADAM Issoufi's GitHub profile",
   },
+  linkedInLink: {
+    label: "ADAM Issoufi's LinkedIn profile",
+  },
   cvLink: {
-    text: 'CV',
-    label: 'Download the CV',
+    text: 'Download CV',
+    documentName: 'CV',
   },
   home: {
     title1: 'Full-stack JavaScript Developer',

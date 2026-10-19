@@ -1,12 +1,13 @@
 // @ts-check
 // Generates the CV of each language, a PDF of public/ (`CV_URLS` of
-// src/App/Header/CvLink/constants.ts), from the content of the site in that language: the name and
-// the job title of the home page, the experiences of the Experiences page, the projects of the
-// Projects page, and the contact details, the skills and the education of scripts/cv/.data/cv.json,
-// which the site does not show. Run `pnpm cv` after changing one of them, then commit the PDFs and
-// the fingerprints of their content (scripts/cv/fingerprints.json): scripts/cv/cvs.spec.js fails
-// while a CV no longer says what the site says. Chromium, from Playwright, prints each CV, in the
-// font and colors of the site: the static font files of scripts/cv/fonts, so it needs no network.
+// src/App/Header/NavMenu/CvLink/constants.ts), from the content of the site in that language: the
+// name and the job title of the home page, the experiences of the Experiences page, the projects of
+// the Projects page, and the contact details, the skills and the education of
+// scripts/cv/.data/cv.json, which the site does not show. Run `pnpm cv` after changing one of them,
+// then commit the PDFs and the fingerprints of their content (scripts/cv/fingerprints.json):
+// scripts/cv/cvs.spec.js fails while a CV no longer says what the site says. Chromium, from
+// Playwright, prints each CV, in the font and colors of the site: the static font files of
+// scripts/cv/fonts, so it needs no network.
 import { readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 
@@ -86,7 +87,8 @@ const contents = await buildCvContents({
   getPageUrl: sources.pages.getPageUrl,
   homePath: sources.pages.HOME_PAGE.path,
   siteUrl: sources.pages.SITE_URL,
-  gitHubUrl: sources.gitHubLink.GITHUB_PROFILE_URL,
+  linkedInUrl: sources.profileLinks.LINKEDIN_PROFILE_URL,
+  gitHubUrl: sources.profileLinks.GITHUB_PROFILE_URL,
   cvData: data.cv.default,
   experiences: data.experiences.default,
   personalProjects: data.personalProjects.default,
