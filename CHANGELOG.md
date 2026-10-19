@@ -1,5 +1,70 @@
 # Changelog
 
+## [1.3.0](https://github.com/AIssoufi/issoufi.fr/compare/v1.2.0...v1.3.0) (2026-10-19)
+
+
+### Features
+
+* add a skip link to the content of every page ([ad1ff57](https://github.com/AIssoufi/issoufi.fr/commit/ad1ff57509021e0288a8cf294f20917d424ed6e1))
+* enlarge the buttons of the home page on wide screens ([1a7e884](https://github.com/AIssoufi/issoufi.fr/commit/1a7e884595a3faa1148f1679cb8aabc834ce5f23))
+* make the project cards and the links to a new tab read well with a screen reader ([cbc1b21](https://github.com/AIssoufi/issoufi.fr/commit/cbc1b21cd7ad73a6106b9da660155ac27e312918)), closes [#233](https://github.com/AIssoufi/issoufi.fr/issues/233)
+* read the English job titles of the French page in English ([ae733aa](https://github.com/AIssoufi/issoufi.fr/commit/ae733aab30cb485d17c8894cc0b250f3d3af5ef6))
+* scale the Experiences page up on wide screens ([019a8c3](https://github.com/AIssoufi/issoufi.fr/commit/019a8c3010b44380bbb1ef7203a5d067b28ee791))
+* scale the project cards up on wide screens ([3db82bc](https://github.com/AIssoufi/issoufi.fr/commit/3db82bc90a0e94dd5257817aef91200d8d388c73))
+* widen the app container on wide screens ([25de33c](https://github.com/AIssoufi/issoufi.fr/commit/25de33c97e3647f7f530053364d88ec996a8288b))
+
+
+### Bug Fixes
+
+* balance the lines of headings and of the home title ([588e484](https://github.com/AIssoufi/issoufi.fr/commit/588e484cd7e4f39a2628c732a36ad65d1b8fae30))
+* give every control a target as large as a finger ([0a42d05](https://github.com/AIssoufi/issoufi.fr/commit/0a42d0528406834aae8389bbc2f3f3963bfe230c))
+* hold words that belong together with no-break spaces ([0c572dc](https://github.com/AIssoufi/issoufi.fr/commit/0c572dcc0db4502cc2c9f99097129055ae864d9e))
+* keep a project card flat after a tap on its like button ([4726ee1](https://github.com/AIssoufi/issoufi.fr/commit/4726ee107d765e42d6874cac33fe3722273bde78))
+* keep no hover style on a control after a tap ([eef5f7d](https://github.com/AIssoufi/issoufi.fr/commit/eef5f7d45834eddd1f44bad0d0515e5d5a83a950))
+* keep the dates of the timeline inside their column ([745d06c](https://github.com/AIssoufi/issoufi.fr/commit/745d06cb6cccbaf1c0b62a504258601fa6f63c42))
+* keep untrusted values out of i18next nesting ([d89d5d8](https://github.com/AIssoufi/issoufi.fr/commit/d89d5d8c3ba2c9e03bc74831a5c948dff28bf170))
+* leave the effects of the home page in place after a tap ([89ea87a](https://github.com/AIssoufi/issoufi.fr/commit/89ea87a7cdc6387c7a554c6cba14deee1a45cda6))
+* make the tab order of the header follow the screen ([1c3a396](https://github.com/AIssoufi/issoufi.fr/commit/1c3a396c9c635ff5ce8ec0b97be31ab916bf6696))
+* stack the job cards of the Experiences page at every width ([83a112b](https://github.com/AIssoufi/issoufi.fr/commit/83a112b58aab3b87f452d28c9c211853c145b150))
+
+
+### Performance
+
+* preload the chunks that a page chunk imports ([a2ca2c2](https://github.com/AIssoufi/issoufi.fr/commit/a2ca2c28986e0a24f41af92051ca4fbb640535b8))
+
+
+### Code Refactoring
+
+* drop the fallbacks that a text node never needs in e2e/text.ts ([4be90ca](https://github.com/AIssoufi/issoufi.fr/commit/4be90cab803b0ed34aefddd29474bdad3f501b9c))
+* drop the fallbacks that readGlyphOutlines never needs ([62f7686](https://github.com/AIssoufi/issoufi.fr/commit/62f76867ab995bd28739b4cf7ef7284c85b1f184))
+* keep the list helper of the pages in the main chunk ([c5d9951](https://github.com/AIssoufi/issoufi.fr/commit/c5d99512bd0486ce694bd57066dc5b8e77f8db24))
+* leave the marked-content items out of the text of the CV PDFs ([54db731](https://github.com/AIssoufi/issoufi.fr/commit/54db7311ff3e152a85542a5073400eec9f1b8f25))
+* pass named parameters to the spec helpers ([e017060](https://github.com/AIssoufi/issoufi.fr/commit/e017060dbf0492142fb37cfce58ded63ecd6a083))
+* read non-blank strings with isNonBlankString everywhere ([020e05d](https://github.com/AIssoufi/issoufi.fr/commit/020e05db1b74a2863edd17e35aeb372839815832))
+* render no new tab link without an address ([9c77a2f](https://github.com/AIssoufi/issoufi.fr/commit/9c77a2fc6305a4dbe8f082d0dbc0fe47e704a4c9))
+* render the hidden heading of the Projects page with VisuallyHidden ([6ef1593](https://github.com/AIssoufi/issoufi.fr/commit/6ef159342faef8ac83e4bea857fbf6666b27e5ca)), closes [#220](https://github.com/AIssoufi/issoufi.fr/issues/220)
+* replace the Rollup options and types that Vite 8 deprecates ([4d85044](https://github.com/AIssoufi/issoufi.fr/commit/4d850445fa61c9f509d266b2ed1d769d6ab26179))
+* share listTechnologyNames between the pages ([bc4baff](https://github.com/AIssoufi/issoufi.fr/commit/bc4baff034a8db4d60db0bbc1dedfad18910f182))
+* share the check of a finger pointer ([62a8328](https://github.com/AIssoufi/issoufi.fr/commit/62a83287127e4668cfdcea0b921a30ce404e60c4))
+* share the focus of the page heading at the root of the app ([bc804b8](https://github.com/AIssoufi/issoufi.fr/commit/bc804b8da96eff7da65acb12c5b703e4471f0290))
+
+
+### Documentation
+
+* add the new tab link and lang convention to CLAUDE.md ([f44441d](https://github.com/AIssoufi/issoufi.fr/commit/f44441dfab6f95534ff694c5d29bcb50bcf2d808))
+* correct two comments about the wide breakpoint ([9710e9a](https://github.com/AIssoufi/issoufi.fr/commit/9710e9aaeb8b58ba6d4714bafb3891fb39d9807e))
+* cut the project CLAUDE.md to the rules an agent cannot guess ([d75c747](https://github.com/AIssoufi/issoufi.fr/commit/d75c747e8b50722f35edf54873ade81ab83c3a76))
+* describe the screenshot comparison ([1efb469](https://github.com/AIssoufi/issoufi.fr/commit/1efb4692edfdb50baeeb0dfacb65d4d7c491c19e))
+* move the testing pitfalls and checklists that only CLAUDE.md held ([c72301c](https://github.com/AIssoufi/issoufi.fr/commit/c72301c776e93ef79c4e513b53c3b63ab2f5c937))
+* move the topics of the README to one short guide each ([db03281](https://github.com/AIssoufi/issoufi.fr/commit/db03281928c77b1e66fbd2f29403a0788900289b))
+* point the project CLAUDE.md to the docs files ([943a647](https://github.com/AIssoufi/issoufi.fr/commit/943a647959ce0b2c25b2345831d5d7f681aed58f))
+* reflow the JSDoc of the project section ([35a52a3](https://github.com/AIssoufi/issoufi.fr/commit/35a52a3b45a5a215a850247a911f2280307e352c))
+* remove the duplicated entries of the changelog ([ed8e8e9](https://github.com/AIssoufi/issoufi.fr/commit/ed8e8e9f70cf5b7ba3a2b5e5bac832095299a41f))
+* rewrap the JSDoc of the not found page ([8702df7](https://github.com/AIssoufi/issoufi.fr/commit/8702df7f2ce151784e849c8b266e8a10dddc0f78))
+* rewrite the README as a one-page introduction ([d5ba852](https://github.com/AIssoufi/issoufi.fr/commit/d5ba852a15d85673b93c6be613f87381fd7bbd9d))
+* say that the modules of the Vite configs name the .ts file of their imports ([0065239](https://github.com/AIssoufi/issoufi.fr/commit/0065239d232cf981924242deadeaa6e7d1b60e25))
+* wrap the comment lines wider than 100 characters ([09a8125](https://github.com/AIssoufi/issoufi.fr/commit/09a8125272f632b68ccfa6b92adf0b2af7e234a6))
+
 ## [1.2.0](https://github.com/AIssoufi/issoufi.fr/compare/v1.1.0...v1.2.0) (2026-10-19)
 
 
