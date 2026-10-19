@@ -126,6 +126,26 @@ export const MAX_TEXT_OVERFLOW_PX = 0.5;
 export const EXPERIENCES_SCREEN_WIDTHS_PX = [320, 375, 414, 768, 1440] as const;
 
 /**
+ * Screen widths, in pixels, at which each job card of the Experiences page must stack its summary,
+ * its description and its technologies, as a tablet does: a small laptop (1024), common desktop
+ * widths (1280 and 1440), then screens past the `wide` breakpoint (1920 and 2560), where the cards
+ * are widest.
+ */
+export const STACKED_JOB_CARD_SCREEN_WIDTHS_PX = [1024, 1280, 1440, 1920, 2560] as const;
+
+/**
+ * Card of each job of the Experiences page, an `article` that holds its summary, its description
+ * and its technologies, in this order.
+ */
+export const JOB_CARD_SELECTOR = `${PAGE_SELECTOR} article`;
+
+/**
+ * Largest difference, in pixels, between the width of a part of a job card and that of its
+ * summary: each part spans the whole card, and half a pixel lets through subpixel rounding.
+ */
+export const MAX_CARD_PART_WIDTH_OFFSET_PX = 0.5;
+
+/**
  * Row of each job of the timeline of the Experiences page, a job alone at its company or one of
  * the roles of a company: the list item that holds its period column, the only element whose
  * `::after` draws a dot ({@link TIMELINE_DOT_ATTRIBUTE}).

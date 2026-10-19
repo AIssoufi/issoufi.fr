@@ -422,6 +422,30 @@ export const isBoxInside = ({ box, container }: IsBoxInsideParams = {}): boolean
   return isInsideHorizontally && isInsideVertically;
 };
 
+/** Parameters of {@link isBoxBelow}. */
+interface IsBoxBelowParams {
+  /** Box that should start lower, such as the description of a job card. */
+  box?: ScreenBox | null;
+  /** Box that it should follow, such as the summary of the card. */
+  reference?: ScreenBox | null;
+}
+
+/**
+ * Tells whether a box starts below another, as blocks stacked one after the other do: its top
+ * edge is at the bottom edge of the reference or lower. A box beside the reference, which starts
+ * higher than its bottom, is not below it.
+ *
+ * @returns `false` when either box is missing or holds a value that is not a finite number.
+ *
+ * @example
+ * isBoxBelow({
+ *   box: { x: 16, y: 72, width: 520, height: 300 },
+ *   reference: { x: 16, y: 16, width: 900, height: 44 },
+ * }); // true
+ */
+export const isBoxBelow = ({ box, reference }: IsBoxBelowParams = {}): boolean =>
+  isScreenBox(box) && box.y >= getBoxBottom(reference);
+
 /** Size of the screen of a page, as `page.viewportSize()` of Playwright returns it. */
 interface ViewportSize {
   /** Width of the screen, in CSS pixels. */

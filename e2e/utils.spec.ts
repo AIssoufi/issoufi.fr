@@ -19,6 +19,7 @@ import {
   getScreenBox,
   getScreenCenter,
   groupCardsIntoRows,
+  isBoxBelow,
   isBoxInside,
   isGoogleHost,
   isGoogleUrl,
@@ -721,6 +722,50 @@ describe('isBoxInside', () => {
 
     it('returns false without any parameters', () => {
       expect(isBoxInside()).toBe(false);
+    });
+  });
+});
+
+describe('isBoxBelow', () => {
+  const reference = { x: 16, y: 16, width: 900, height: 44 };
+
+  it.each([
+    ['a box under it, past a margin', { x: 16, y: 72, width: 520, height: 300 }],
+    ['a box whose top touches its bottom edge', { x: 16, y: 60, width: 520, height: 300 }],
+    ['a box without any size under it', { x: 400, y: 80, width: 0, height: 0 }],
+  ])('finds %s below it', (_name, box) => {
+    expect(isBoxBelow({ box, reference })).toBe(true);
+  });
+
+  it.each([
+    ['beside it, at the same top', { x: 940, y: 16, width: 520, height: 300 }],
+    [
+      'beside it, starting half a pixel above its bottom',
+      { x: 940, y: 59.5, width: 520, height: 300 },
+    ],
+    ['above it', { x: 16, y: 0, width: 520, height: 10 }],
+  ])('finds a box %s not below it', (_name, box) => {
+    expect(isBoxBelow({ box, reference })).toBe(false);
+  });
+
+  describe('edge cases', () => {
+    const box = { x: 16, y: 72, width: 520, height: 300 };
+
+    it.each([
+      undefined,
+      null,
+      {},
+      'box',
+      { x: 0, y: Number.NaN, width: 10, height: 10 },
+      { x: 0, y: 0, width: 10, height: Number.POSITIVE_INFINITY },
+      { x: 0, y: '72', width: 10, height: 10 },
+    ])('returns false for the box %j', invalidBox => {
+      expect(isBoxBelow({ box: invalidBox as never, reference })).toBe(false);
+      expect(isBoxBelow({ box, reference: invalidBox as never })).toBe(false);
+    });
+
+    it('returns false without any parameters', () => {
+      expect(isBoxBelow()).toBe(false);
     });
   });
 });
