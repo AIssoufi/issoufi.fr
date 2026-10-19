@@ -14,7 +14,12 @@ import {
   NOT_FOUND_FOLDER,
 } from './src/utils/pages';
 import { renderSitemap, SITEMAP_FILE_NAME } from './src/utils/sitemap';
-import { ALL_ENV_VARIABLES_PREFIX, ASSETS_DIR, HEADERS_FILE_NAME } from './vite/constants';
+import {
+  ALL_ENV_VARIABLES_PREFIX,
+  ASSETS_DIR,
+  HEADERS_FILE_NAME,
+  SECURITY_HEADERS,
+} from './vite/constants';
 import {
   getChunkName,
   getFontFaceTags,
@@ -118,9 +123,10 @@ const sitemap = (): Plugin => ({
 
 /**
  * Vite plugin that emits `_headers` at the root of the build, the HTTP headers that Cloudflare
- * Pages adds to the files it serves, by path (see {@link renderHeaderRules}): browsers keep the
- * hashed files of `assets/` a year, and revalidate every other file, as Cloudflare Pages does by
- * default.
+ * Pages adds to the files it serves, by path (see {@link renderHeaderRules}): the security headers
+ * of every file, such as its Content Security Policy, then the cache policy, under which browsers
+ * keep the hashed files of `assets/` a year, and revalidate every other file, as Cloudflare Pages
+ * does by default.
  */
 const httpHeaders = (): Plugin => ({
   name: 'http-headers',
@@ -142,7 +148,8 @@ const COVERAGE_THRESHOLDS_PERCENT = { lines: 97, statements: 97, branches: 96, f
 /**
  * Vite and Vitest configuration: React with SVG components, the web fonts, page metadata, sitemap
  * and HTTP headers plugins, the dev and preview servers on the port of the worktree (see
- * {@link getServerPorts}), which fail when it is taken, and the tests in jsdom with coverage.
+ * {@link getServerPorts}), which fail when it is taken, the preview server with the security
+ * headers of the site, and the tests in jsdom with coverage.
  * @see https://vitejs.dev/config/
  */
 export default defineConfig(({ mode }) => {
@@ -171,6 +178,9 @@ export default defineConfig(({ mode }) => {
     preview: {
       port: ports.preview,
       strictPort: true,
+      // The security headers of Cloudflare Pages, so the browser tests run under the same Content
+      // Security Policy. The dev server sends none: its inline scripts reload the modules
+      headers: SECURITY_HEADERS,
     },
     test: {
       globals: true,

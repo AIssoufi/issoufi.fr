@@ -360,6 +360,22 @@ export const INSTANT_ANIMATION_MAX_MS = 1;
 export const STILLNESS_DELAY_MS = 1000;
 
 /**
+ * Message of the browser console about a security policy of the page: Chrome writes one for each
+ * resource or inline code that the Content Security Policy blocks ("Loading the script '…'
+ * violates the following Content Security Policy directive: …"), for a directive it cannot read,
+ * and for a feature that the Permissions-Policy header denies or does not know.
+ */
+export const SECURITY_POLICY_MESSAGE_PATTERN =
+  /content[ -]security[ -]policy|permissions[ -]policy/i;
+
+/**
+ * Function that the browser tests add to each page, through which the page reports to them each
+ * `securitypolicyviolation` event, a resource or inline code that its Content Security Policy
+ * blocked.
+ */
+export const REPORT_POLICY_VIOLATION_FUNCTION = 'reportSecurityPolicyViolation';
+
+/**
  * Screens on which the home page must show its title and both of its buttons without scrolling: a
  * small phone held upright (320 × 568), phones held sideways (568 × 320 and 667 × 375, then
  * 844 × 390 and 896 × 414, which get the desktop layout), a tablet held upright (768 × 1024), a
