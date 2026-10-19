@@ -14,7 +14,7 @@ const BODY_FONT_FILE = readFileSync('public/fonts/montserrat-latin.woff2');
 const encodeUIntBase128 = value => {
   const bytes = [value % 128];
   for (let rest = Math.floor(value / 128); rest > 0; rest = Math.floor(rest / 128)) {
-    bytes.unshift(rest % 128 | 0x80);
+    bytes.unshift((rest % 128) | 0x80);
   }
   return bytes;
 };

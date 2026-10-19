@@ -245,6 +245,16 @@ export default defineConfig(({ mode }) => {
       // its text to a <style>, which jsdom parses again whole on every change: a quadratic cost
       // that made the tests several times slower since jsdom 29
       env: { SC_DISABLE_SPEEDY: 'false' },
+      // Vite resolves styled-components to its browser build, as in the app, instead of Node.js
+      // loading its server build, whose createGlobalStyle injects nothing in jsdom in 6.5. xstyled
+      // goes through Vite too, so that the app and xstyled share one copy of styled-components
+      alias: [
+        {
+          find: /^styled-components$/,
+          replacement: 'styled-components/dist/styled-components.browser.esm.js',
+        },
+      ],
+      server: { deps: { inline: ['styled-components', '@xstyled/styled-components'] } },
       coverage: {
         provider: 'v8',
         // The helpers of the scripts and of the browser tests are measured, not the scripts and the

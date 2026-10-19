@@ -1,10 +1,15 @@
-import { render, screen } from '@testing-library/react';
+import { screen } from '@testing-library/react';
 import styled, { ThemeProvider } from '@xstyled/styled-components';
 
 import { listStyleRules, serializeCssValue } from '../styleTestUtils';
 import { HOVER_POINTER_QUERY, REDUCED_MOTION_QUERY } from './constants';
 import { GlobalStyle } from './GlobalStyle';
 import { theme } from './theme';
+
+// The render of src/setupTests.ts adds the global styles already, and in styled-components 6.5 each
+// mounted copy of a global style adds its own rules: Testing Library's own render keeps the global
+// styles of the spec alone in the document
+const { render } = await vi.importActual('@testing-library/react');
 
 /**
  * Properties that the reduced motion rule sets, with the value it gives each one: a single

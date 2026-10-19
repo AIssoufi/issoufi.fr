@@ -8,10 +8,10 @@ minimumReleaseAgeExclude:
   - '@pnpm/*'
 
 overrides:
-  # styled-components pins postcss at an exact version (8.4.49), but only
-  # references it from its unused React Native build — safe to override to
-  # close GHSA path-traversal/file-read alerts not covered by any Dependabot PR.
-  postcss: ^8.5.25
+  # Keeps every copy of postcss, which only Vite uses since styled-components 6.5, at a version
+  # without the GHSA path-traversal/file-read alerts that no Dependabot PR covered, and within
+  # the range of Vite
+  postcss: ^8.5.29
 
 # A patch that no longer applies, after an update changed the code it patches, fails the install
 # instead of a warning, so an update never drops it silently. A patch whose package left the

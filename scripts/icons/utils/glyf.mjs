@@ -82,7 +82,7 @@ export const decodeTriplet = ({ flag, reader }) => {
     const high = flag - TRIPLET_ONE_BYTE_END;
     return {
       dx: xSign * (1 + (Math.floor(high / 12) << 8) + reader.u8()),
-      dy: ySign * (1 + ((high % 12 >> 2) << 8) + reader.u8()),
+      dy: ySign * (1 + (((high % 12) >> 2) << 8) + reader.u8()),
     };
   }
   if (flag < TRIPLET_THREE_BYTES_END) {
