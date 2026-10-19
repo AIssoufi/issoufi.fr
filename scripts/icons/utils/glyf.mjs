@@ -17,6 +17,7 @@ import {
   TRANSFORMED_GLYF_GLYPH_COUNT_OFFSET,
   TRANSFORMED_GLYF_HEADER_BYTES,
   TRIPLET_ONE_BYTE_END,
+  TRIPLET_THREE_BYTE_LENGTH,
   TRIPLET_THREE_BYTES_END,
   TRIPLET_TWO_BYTES_END,
   TRIPLET_X_ONLY_END,
@@ -85,7 +86,7 @@ export const decodeTriplet = ({ flag, reader }) => {
     };
   }
   if (flag < TRIPLET_THREE_BYTES_END) {
-    const [first, second, third] = reader.bytes(3);
+    const [first, second, third] = reader.bytes(TRIPLET_THREE_BYTE_LENGTH);
     return {
       dx: xSign * ((first << 4) + (second >> 4)),
       dy: ySign * (((second & 0x0f) << 8) + third),

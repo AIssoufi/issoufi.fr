@@ -135,7 +135,7 @@ describe('readGlyphOutlines', () => {
   });
 
   it('throws on a file that is not a WOFF2 font', () => {
-    expect(() => readGlyphOutlines({ file: Buffer.from('wOF2'), text: 'AI' })).toThrow();
+    expect(() => readGlyphOutlines({ file: Buffer.from('wOF2'), text: 'AI' })).toThrow(RangeError);
   });
 
   describe('fonts that it does not read', () => {

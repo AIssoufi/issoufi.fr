@@ -83,7 +83,8 @@ export const readIcoImages = ico =>
     const entry = ICO_HEADER_BYTES + index * ICO_ENTRY_BYTES;
     const offset = ico.readUInt32LE(entry + ICO_ENTRY_IMAGE_OFFSET);
     const length = ico.readUInt32LE(entry + ICO_ENTRY_LENGTH_OFFSET);
-    if (offset + length > ico.length) throw new RangeError(`ICO image ${index} past the end`);
+    const isPastEnd = offset + length > ico.length;
+    if (isPastEnd) throw new RangeError(`ICO image ${index} past the end`);
 
     return {
       size: ico.readUInt8(entry + ICO_ENTRY_WIDTH_OFFSET) || MAX_ICO_IMAGE_SIZE_PX,

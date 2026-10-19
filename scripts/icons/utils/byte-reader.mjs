@@ -41,7 +41,8 @@ export const createByteReader = buffer => {
    */
   const advance = length => {
     const start = position;
-    if (start + length > buffer.length) {
+    const isPastEnd = start + length > buffer.length;
+    if (isPastEnd) {
       throw new RangeError(`Read of ${length} bytes at ${start}, past the end (${buffer.length})`);
     }
     position += length;
@@ -81,7 +82,7 @@ export const readUIntBase128 = reader => {
     const isLastByte = (byte & UINT_BASE_128_CONTINUATION_BIT) === 0;
     if (isLastByte) return value;
   }
-  throw new RangeError('UIntBase128 number longer than 5 bytes');
+  throw new RangeError(`UIntBase128 number longer than ${UINT_BASE_128_MAX_BYTES} bytes`);
 };
 
 /**

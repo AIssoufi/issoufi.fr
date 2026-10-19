@@ -30,10 +30,16 @@ export const UINT_BASE_128_MAX_BYTES = 5;
  */
 export const UINT_BASE_128_MAX_PREFIX = 0x1ffffff;
 
-/** Codes of the 255UInt16 numbers of the transformed glyf table. */
+/** First byte of a 255UInt16 number written in the two bytes that follow it. */
 export const UINT_255_WORD_CODE = 253;
+
+/** First byte of a 255UInt16 number whose next byte counts from twice the lowest code. */
 export const UINT_255_ONE_MORE_BYTE_CODE_2 = 254;
+
+/** First byte of a 255UInt16 number whose next byte counts from the lowest code. */
 export const UINT_255_ONE_MORE_BYTE_CODE_1 = 255;
+
+/** Lowest value that a 255UInt16 number does not write in its first byte alone. */
 export const UINT_255_LOWEST_U_CODE = 253;
 
 /** First four bytes of a WOFF2 file: `wOF2`. */
@@ -86,8 +92,10 @@ export const HHEA_METRIC_COUNT_OFFSET = 34;
 /** Size of a long horizontal metric of the hmtx table: an advance width and a side bearing. */
 export const LONG_HOR_METRIC_BYTES = 4;
 
-/** Platform and encoding of the cmap subtable of the Unicode BMP characters on Windows. */
+/** Platform of the cmap subtable of the Unicode BMP characters on Windows. */
 export const WINDOWS_PLATFORM_ID = 3;
+
+/** Encoding of the cmap subtable of the Unicode BMP characters on Windows. */
 export const WINDOWS_UNICODE_BMP_ENCODING_ID = 1;
 
 /** Offset of the subtable count in the cmap table, after its version, in bytes. */
@@ -120,64 +128,106 @@ export const TRANSFORMED_GLYF_HEADER_BYTES = 36;
 /** Number of contours that marks a composite glyph. */
 export const COMPOSITE_GLYPH_CONTOUR_COUNT = -1;
 
-/** Flags of a component of a composite glyph that tell the size of its data. */
+/** Flag of a component of a composite glyph whose offset is two words rather than two bytes. */
 export const ARG_1_AND_2_ARE_WORDS = 0x0001;
+
+/** Flag of a component of a composite glyph scaled by one number, the same both ways. */
 export const WE_HAVE_A_SCALE = 0x0008;
+
+/** Flag of a component of a composite glyph followed by another component. */
 export const MORE_COMPONENTS = 0x0020;
+
+/** Flag of a component of a composite glyph scaled by two numbers, one per axis. */
 export const WE_HAVE_AN_X_AND_Y_SCALE = 0x0040;
+
+/** Flag of a component of a composite glyph transformed by a matrix of four numbers. */
 export const WE_HAVE_A_TWO_BY_TWO = 0x0080;
+
+/** Flag of a component of a composite glyph whose glyph has hinting instructions. */
 export const WE_HAVE_INSTRUCTIONS = 0x0100;
 
-/**
- * Sizes of the fields of a component of a composite glyph, in bytes: its offset as two bytes or as
- * two words, then its scale, one, two or four 2.14 numbers.
- */
+/** Size of the offset of a component of a composite glyph written as two bytes, in bytes. */
 export const COMPONENT_BYTE_ARGUMENTS_BYTES = 2;
+
+/** Size of the offset of a component of a composite glyph written as two words, in bytes. */
 export const COMPONENT_WORD_ARGUMENTS_BYTES = 4;
+
+/** Size of the scale of a component of a composite glyph, one 2.14 number, in bytes. */
 export const COMPONENT_SCALE_BYTES = 2;
+
+/** Size of the scale of a component of a composite glyph per axis, two numbers, in bytes. */
 export const COMPONENT_X_AND_Y_SCALE_BYTES = 4;
+
+/** Size of the matrix of a component of a composite glyph, four numbers, in bytes. */
 export const COMPONENT_TWO_BY_TWO_BYTES = 8;
 
 /** Bit of the flag of a point of the transformed glyf table set for an off-curve point. */
 export const OFF_CURVE_FLAG = 0x80;
 
 /**
- * Ends of the ranges of the flags of the triplet encoding, each excluded: below the first one, a
- * point moves vertically, by a delta of one byte; then horizontally, by one byte; then both ways,
- * by one byte, two bytes and three bytes; past the last one, by four bytes.
+ * End, excluded, of the flags of the triplet encoding whose point moves vertically only, by a
+ * delta of one byte.
  */
 export const TRIPLET_Y_ONLY_END = 10;
+
+/**
+ * End, excluded, of the flags of the triplet encoding whose point moves horizontally only, by a
+ * delta of one byte.
+ */
 export const TRIPLET_X_ONLY_END = 20;
+
+/** End, excluded, of the flags of the triplet encoding whose two deltas share one byte. */
 export const TRIPLET_ONE_BYTE_END = 84;
+
+/** End, excluded, of the flags of the triplet encoding whose two deltas take a byte each. */
 export const TRIPLET_TWO_BYTES_END = 120;
+
+/**
+ * End, excluded, of the flags of the triplet encoding whose two deltas share three bytes, 12 bits
+ * each; past it, they take two bytes each.
+ */
 export const TRIPLET_THREE_BYTES_END = 124;
+
+/** Number of bytes of the two deltas of a point whose flag is a three-byte triplet. */
+export const TRIPLET_THREE_BYTE_LENGTH = 3;
 
 /** Size of the header of an ICO file, in bytes: a reserved word, its type and its image count. */
 export const ICO_HEADER_BYTES = 6;
 
-/** Offsets of the type and of the image count in the header of an ICO file, in bytes. */
+/** Offset of the type in the header of an ICO file, in bytes. */
 export const ICO_TYPE_OFFSET = 2;
+
+/** Offset of the image count in the header of an ICO file, in bytes. */
 export const ICO_IMAGE_COUNT_OFFSET = 4;
 
 /** Size of the directory entry of each image of an ICO file, in bytes. */
 export const ICO_ENTRY_BYTES = 16;
 
-/**
- * Offsets of the fields of a directory entry of an ICO file, in bytes: the width and the height of
- * the image, its color planes, its bits per pixel, its length and its offset in the file.
- */
+/** Offset of the width of the image in a directory entry of an ICO file, in bytes. */
 export const ICO_ENTRY_WIDTH_OFFSET = 0;
+
+/** Offset of the height of the image in a directory entry of an ICO file, in bytes. */
 export const ICO_ENTRY_HEIGHT_OFFSET = 1;
+
+/** Offset of the color planes of the image in a directory entry of an ICO file, in bytes. */
 export const ICO_ENTRY_PLANES_OFFSET = 4;
+
+/** Offset of the bits per pixel of the image in a directory entry of an ICO file, in bytes. */
 export const ICO_ENTRY_BITS_PER_PIXEL_OFFSET = 6;
+
+/** Offset of the length of the image in a directory entry of an ICO file, in bytes. */
 export const ICO_ENTRY_LENGTH_OFFSET = 8;
+
+/** Offset of the position of the image in the file in its directory entry, in bytes. */
 export const ICO_ENTRY_IMAGE_OFFSET = 12;
 
 /** Type of an ICO file in its header, as opposed to a cursor. */
 export const ICON_RESOURCE_TYPE = 1;
 
-/** Color planes and bits per pixel of a 32-bit PNG image, as its directory entry states them. */
+/** Color planes of a PNG image, as its directory entry in an ICO file states them. */
 export const COLOR_PLANES = 1;
+
+/** Bits per pixel of a 32-bit PNG image, as its directory entry in an ICO file states them. */
 export const BITS_PER_PIXEL = 32;
 
 /** Largest width and height of an image of an ICO file, which its entry writes as 0. */
