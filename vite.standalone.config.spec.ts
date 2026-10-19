@@ -1,6 +1,6 @@
 // @vitest-environment node
 import { resolve } from 'node:path';
-import { build, normalizePath, type Plugin, type Rollup } from 'vite';
+import { build, normalizePath, type Plugin, type Rolldown } from 'vite';
 
 import { isGoogleHost } from './e2e/utils';
 import { FONT_FACES } from './src/theme/constants';
@@ -62,7 +62,7 @@ const hasQuotedUrl = ({ html, url }: HasQuotedUrlParams) => {
 };
 
 /** File of the build: a chunk of scripts or an asset, such as an HTML page. */
-type OutputFile = Rollup.OutputChunk | Rollup.OutputAsset;
+type OutputFile = Rolldown.OutputChunk | Rolldown.OutputAsset;
 
 /** Files of the build, written in memory only. */
 let output: OutputFile[] = [];
@@ -87,7 +87,7 @@ beforeAll(async () => {
     plugins: [recordAppImports()],
     build: { write: false },
   });
-  output = (Array.isArray(result) ? result[0] : (result as Rollup.RollupOutput)).output;
+  output = (Array.isArray(result) ? result[0] : (result as Rolldown.RolldownOutput)).output;
 }, BUILD_TIMEOUT_MS);
 
 afterAll(() => {
@@ -95,7 +95,7 @@ afterAll(() => {
 });
 
 /** Tells whether a file of the build is an asset, such as an HTML page. */
-const isAsset = (file: OutputFile): file is Rollup.OutputAsset => file.type === 'asset';
+const isAsset = (file: OutputFile): file is Rolldown.OutputAsset => file.type === 'asset';
 
 /** Reads an asset of the build, or an empty string when the build has no such asset. */
 const getSource = (fileName: string) =>

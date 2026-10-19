@@ -116,7 +116,7 @@ const embeddedFonts = (): Plugin => {
  * runs after the `page-meta`, `web-manifests` and `http-headers` plugins of `vite.config.ts`, which
  * emit those files and that link: the first one also uses `enforce: 'post'`, in the order of the
  * plugins, and the others run before the `post` plugins. The build has a single chunk, its dynamic
- * imports inlined (`inlineDynamicImports`).
+ * imports inlined (`codeSplitting: false`).
  */
 const standalonePage = (): Plugin => {
   let readmeSource = '';
@@ -175,7 +175,7 @@ export default defineConfig(env =>
       outDir: STANDALONE_OUT_DIR,
       // Nothing is left to preload once the whole app is in the page
       modulePreload: false,
-      rollupOptions: { output: { inlineDynamicImports: true } },
+      rolldownOptions: { output: { codeSplitting: false } },
     },
   }),
 );

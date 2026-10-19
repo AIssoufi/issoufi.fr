@@ -149,10 +149,10 @@ export const LINE_BREAK_PATTERN = /[\r\n]/;
 /** Indent of each header under the path of its rule, in {@link HEADERS_FILE_NAME}. */
 export const HEADER_INDENT = '  ';
 
-/** Name that Rollup gives to the chunk of an `index` module, after its file name. */
+/** Name that Rolldown gives to the chunk of an `index` module, after its file name. */
 export const INDEX_CHUNK_NAME = 'index';
 
-/** Name of a chunk when Rollup gives it none. */
+/** Name of a chunk when Rolldown gives it none. */
 export const FALLBACK_CHUNK_NAME = 'chunk';
 
 /** Separators of the folders in a module path, on every system. */

@@ -204,7 +204,7 @@ export default defineConfig(({ mode }) => {
     // (src/App/Header) and typed in src/vite-env.d.ts; the tests read it too
     define: { __APP_VERSION__: JSON.stringify(packageJson.version) },
     build: {
-      rollupOptions: {
+      rolldownOptions: {
         // The chunk of each lazily loaded page is named after its folder, not after its index file
         output: { chunkFileNames: chunk => `${ASSETS_DIR}/${getChunkName(chunk)}-[hash].js` },
       },
