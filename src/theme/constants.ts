@@ -70,8 +70,15 @@ export const LOGO_FONT_FACE: FontFaceDeclaration = {
 export const REDUCED_MOTION_QUERY = '(prefers-reduced-motion: reduce)';
 
 /**
+ * Media query of the visitors who did not ask to reduce motion, the opposite of
+ * {@link REDUCED_MOTION_QUERY}: an effect that would still move them, made instant, such as a
+ * control that grows under the pointer, sits in a block of it, so that the others never see it.
+ */
+export const FULL_MOTION_QUERY = '(prefers-reduced-motion: no-preference)';
+
+/**
  * Media query of the screens whose main pointer hovers, precisely, such as a mouse or a trackpad.
- * Every `:hover` of the styles sits in a block of it, alone or after other conditions
+ * Every `:hover` of the styles sits in a block of it, alone or joined to other conditions by `and`
  * (`@media (min-width: …) and ${HOVER_POINTER_QUERY}`), which `theme.spec.jsx` checks: a touch
  * screen keeps the hover style of the last control tapped until the next tap elsewhere, so it
  * gets none, and keeps the `:active` and `:focus-visible` styles.
