@@ -6,7 +6,7 @@
   "packageManager": "pnpm@10.34.7",
   "dependencies": {
     "@xstyled/styled-components": "4.1.1",
-    "i18next": "^26.4.3",
+    "i18next": "^26.4.4",
     "react": "^19.2.8",
     "react-dom": "^19.2.8",
     "react-i18next": "^17.0.16",
