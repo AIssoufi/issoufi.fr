@@ -86,7 +86,7 @@ jobs:
     steps:
       - uses: actions/checkout@v7
         with:
-          # The trees of main and develop are compared below, once the release merged into develop
+          # The trees of main and develop are compared below
           fetch-depth: 0
       - uses: actions/setup-node@v7
         with:
@@ -102,11 +102,14 @@ jobs:
             exit 1
           fi
 
-      # main holds merge commits that develop lacks, but no content of its own: the same tree
-      # means that main already serves develop
+      # actions/checkout sets origin/develop back to the commit that started the run, which lacks
+      # the release that the release job merged since: the fetch reads both branches as they are
+      # now. main holds merge commits that develop lacks, but no content of its own: the same tree
+      # means that main already serves develop. deploy-production.spec.js runs this step
       - id: trees
         name: Compare develop with main
         run: |
+          git fetch --no-tags origin +refs/heads/develop:refs/remotes/origin/develop +refs/heads/main:refs/remotes/origin/main
           if [ "$(git rev-parse 'origin/develop^{tree}')" = "$(git rev-parse 'origin/main^{tree}')" ]; then
             echo "::notice::Nothing to deploy: main already holds the content of develop."
           else
