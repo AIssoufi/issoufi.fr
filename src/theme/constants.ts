@@ -72,6 +72,13 @@ export const REDUCED_MOTION_QUERY = '(prefers-reduced-motion: reduce)';
 export const HOVER_POINTER_QUERY = '(hover: hover) and (pointer: fine)';
 
 /**
+ * Media query of forced colors mode, such as a contrast theme of Windows, which draws the texts and
+ * the borders in the colors of its palette and removes the backgrounds and the shadows: a state
+ * that only they show gets a system color in a block of it (`forced-active`, `forced-icon`).
+ */
+export const FORCED_COLORS_QUERY = '(forced-colors: active)';
+
+/**
  * Smallest font size of the site, in pixels: the size of its metadata (dates, badges, tags, the
  * version of the build), under which a text gets hard to read. `theme.spec.jsx` checks every font
  * size of the theme against it, and `readable-text.e2e.ts` every text that a page shows.

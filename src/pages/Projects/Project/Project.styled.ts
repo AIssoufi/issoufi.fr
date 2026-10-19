@@ -2,7 +2,7 @@ import styled, { css, keyframes, th } from '@xstyled/styled-components';
 
 import List from '../../../components/List/index.ts';
 import NewTabLink from '../../../components/NewTabLink/index.ts';
-import { HOVER_POINTER_QUERY } from '../../../theme/constants.ts';
+import { FORCED_COLORS_QUERY, HOVER_POINTER_QUERY } from '../../../theme/constants.ts';
 import { fingerTarget } from '../../../theme/targets.styled.ts';
 import { CARD_PERSPECTIVE_PX, LIKE_ANIMATION_MS } from './constants.ts';
 
@@ -337,13 +337,13 @@ export const LikeButton = styled.button<{ $liked: boolean; $animating: boolean }
   /* Forced colors mode turns the background of the button into the color of the page, and keeps
      the colors of the heart, which could then vanish: it draws the heart in the colors of its
      palette, filled in the color of a selection once liked, hovered or not */
-  @media (forced-colors: active) {
+  @media ${FORCED_COLORS_QUERY} {
     > svg {
       ${forcedColorsHeart}
     }
   }
 
-  @media (forced-colors: active) and ${HOVER_POINTER_QUERY} {
+  @media ${FORCED_COLORS_QUERY} and ${HOVER_POINTER_QUERY} {
     &:hover > svg {
       ${forcedColorsHeart}
     }

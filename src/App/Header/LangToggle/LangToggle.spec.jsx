@@ -6,13 +6,12 @@ import i18n from '../../../i18n/index.ts';
 import { LANGUAGE_STORAGE_KEY } from '../../../i18n/constants.ts';
 import {
   declaredStyle,
-  FORCED_COLORS_MEDIA,
   getContrastRatio,
   MIN_TEXT_CONTRAST_RATIO,
   serializeCssValue,
 } from '../../../styleTestUtils.js';
 import { theme } from '../../../theme/index.ts';
-import { HOVER_POINTER_QUERY } from '../../../theme/constants.ts';
+import { FORCED_COLORS_QUERY, HOVER_POINTER_QUERY } from '../../../theme/constants.ts';
 import UrlLanguage from '../../UrlLanguage/index.ts';
 import LangToggle from './LangToggle.tsx';
 
@@ -198,7 +197,7 @@ describe('LangToggle', () => {
 
     // Forced colors mode removes the fill and the glow of the indicator
     expect(
-      declaredStyle({ element: getIndicator(), property: 'border', media: FORCED_COLORS_MEDIA }),
+      declaredStyle({ element: getIndicator(), property: 'border', media: FORCED_COLORS_QUERY }),
     ).toBe(`${theme.borderWidths.thick} solid highlight`);
   });
 
