@@ -26,6 +26,9 @@ const EXTENSION_RESTRICTIONS = [
     'Name the file of a relative import, with its extension (./utils.ts, ./List/index.ts): Node.js loads the Vite configs as they are, and resolves no other path.',
 }));
 
+/** The widest comment line, in characters: the `printWidth` of `.prettierrc`. */
+const COMMENT_MAX_LENGTH = 100;
+
 export default defineConfig([
   globalIgnores([
     'dist',
@@ -81,6 +84,12 @@ export default defineConfig([
         },
       ],
       'no-restricted-syntax': ['error', ...EXTENSION_RESTRICTIONS],
+      // Prettier wraps the code at its printWidth, but never a comment. The core rule, deprecated
+      // for ESLint Stylistic, still works until ESLint 11; `code` leaves the code to Prettier.
+      'max-len': [
+        'error',
+        { code: Number.MAX_SAFE_INTEGER, comments: COMMENT_MAX_LENGTH, ignoreUrls: true },
+      ],
     },
   },
   {

@@ -59,7 +59,9 @@ export function isStaleChunkReloadAllowed({
  * @returns The module itself, or a promise that never settles when it is `undefined` or `null`.
  *
  * @example
- * const Projects = lazy(() => import('../pages/Projects/index.ts').then(keepPendingWhileReloading));
+ * const Projects = lazy(() =>
+ *   import('../pages/Projects/index.ts').then(keepPendingWhileReloading),
+ * );
  */
 export function keepPendingWhileReloading<Module>(
   module: Module | null | undefined,
