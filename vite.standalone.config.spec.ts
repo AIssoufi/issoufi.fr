@@ -42,22 +42,23 @@ const INLINE_SCRIPT_CODE_PATTERN = /(<script[^>]*>)[\s\S]*?(<\/script>)/g;
 /** HTML of a page without the code of its inline scripts, which may name tags in strings. */
 const stripInlineScripts = (html: string) => html.replace(INLINE_SCRIPT_CODE_PATTERN, '$1$2');
 
-/** Parameters of {@link hasAbsoluteUrl}. */
-interface HasAbsoluteUrlParams {
+/** Parameters of {@link hasQuotedUrl}. */
+interface HasQuotedUrlParams {
   /** HTML of a page of the build. */
   html: string;
-  /** Name of a file of `public/`, e.g. `home.webp`. */
-  fileName: string;
+  /** URL of a file of `public/`, absolute or relative, e.g. `/home.webp` or `./home.webp`. */
+  url: string;
 }
 
 /**
- * Tells whether a page names a file of `public/` with an absolute URL, between any quotes, escaped
- * or not, as `toRelativePublicUrls` finds them.
+ * Tells whether a page names a URL as a whole string, between any quotes, escaped or not, as
+ * `toRelativePublicUrls` finds them: the HTML writes its attributes between double quotes, and the
+ * minifier the strings of the code between back quotes.
  */
-const hasAbsoluteUrl = ({ html, fileName }: HasAbsoluteUrlParams) => {
-  const name = fileName.replace(REGEXP_SPECIAL_CHARACTERS, '\\$&');
-  const url = `${QUOTE_PATTERN}/${name}${OPTIONAL_ESCAPE_PATTERN}${QUOTE_PATTERN}`;
-  return new RegExp(url).test(html);
+const hasQuotedUrl = ({ html, url }: HasQuotedUrlParams) => {
+  const escapedUrl = url.replace(REGEXP_SPECIAL_CHARACTERS, '\\$&');
+  const pattern = `${QUOTE_PATTERN}${escapedUrl}${OPTIONAL_ESCAPE_PATTERN}${QUOTE_PATTERN}`;
+  return new RegExp(pattern).test(html);
 };
 
 /** File of the build: a chunk of scripts or an asset, such as an HTML page. */
@@ -141,7 +142,7 @@ describe('standalone build', () => {
   it('refers to the files of public/ with URLs relative to the page', () => {
     const html = getSource(STANDALONE_PAGE_FILE_NAME);
     const fileNames = listFileNames(resolve('public'));
-    const absoluteUrls = fileNames.filter(fileName => hasAbsoluteUrl({ html, fileName }));
+    const absoluteUrls = fileNames.filter(fileName => hasQuotedUrl({ html, url: `/${fileName}` }));
 
     expect(fileNames.length).toBeGreaterThan(0);
     expect(absoluteUrls).toEqual([]);
@@ -156,7 +157,7 @@ describe('standalone build', () => {
       'favicon.svg',
       'apple-touch-icon.png',
     ].forEach(name => {
-      expect(html).toContain(`"./${name}"`);
+      expect(hasQuotedUrl({ html, url: `./${name}` }), name).toBe(true);
     });
   });
 

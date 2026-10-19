@@ -109,7 +109,11 @@ const getSource = (fileName: string) =>
 const getFileNameTemplate = (file: OutputFile) => {
   if (isAsset(file)) {
     const template = outputOptions?.assetFileNames;
-    return typeof template === 'function' ? template(file) : template;
+    if (typeof template !== 'function') return template;
+
+    // The function reads the asset as Rolldown passes it before naming it
+    const { type, names, originalFileNames, source } = file;
+    return template({ type, names, originalFileNames, source });
   }
 
   const template = file.isEntry ? outputOptions?.entryFileNames : outputOptions?.chunkFileNames;
