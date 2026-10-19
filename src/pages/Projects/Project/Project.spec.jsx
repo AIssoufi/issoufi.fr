@@ -15,6 +15,7 @@ import {
   LIKE_ANIMATION_MS,
   LIKED_PROJECTS_STORAGE_KEY,
   ROW_CARD_COUNT,
+  THUMBNAIL_SIZES,
 } from './constants';
 import { useWholeCardCount } from './hooks/useWholeCardCount';
 import Project from './Project';
@@ -31,11 +32,20 @@ const showWholeCards = count => {
   vi.mocked(useWholeCardCount).mockReturnValue({ listRef: () => {}, wholeCardCount: count });
 };
 
+/** Files of the screenshot of the project `id`, at two widths, the narrowest first. */
+const thumbnailsOf = id => [
+  { url: `/${id}-480.webp`, width: 480, height: 300 },
+  { url: `/${id}-960.webp`, width: 960, height: 600 },
+];
+
+/** `srcset` of the thumbnail of the project `id`. */
+const srcSetOf = id => `/${id}-480.webp 480w, /${id}-960.webp 960w`;
+
 const project = (id, name, extra = {}) => ({
   id,
   name,
   type: 'Application web',
-  imageUrl: `/${id}.png`,
+  thumbnails: thumbnailsOf(id),
   tools: ['HTML 5', 'CSS 3'],
   ...extra,
 });
@@ -81,6 +91,9 @@ const pageButtons = () => ({
   previousButton: screen.getByRole('button', { name: PREVIOUS_PAGE_NAME }),
   nextButton: screen.getByRole('button', { name: NEXT_PAGE_NAME }),
 });
+
+/** Thumbnail of a card, found by the project name. */
+const thumbnailOf = name => screen.getByRole('img', { name });
 
 /** Element that lays out the cards: the list holding a card's thumbnail. */
 const gridOf = name => screen.getByRole('img', { name }).closest('ul');
@@ -480,6 +493,32 @@ describe('Project', () => {
 
     await userEvent.click(likeButtonOf(ADDED_PROJECT.name));
     expect(likeButtonOf(ADDED_PROJECT.name)).toHaveAttribute('aria-pressed', 'false');
+  });
+
+  describe('thumbnails', () => {
+    it('gives each thumbnail the files of its screenshot, for the browser to pick from', () => {
+      render(<Project projects={projects} />);
+      const thumbnail = thumbnailOf('Chess');
+
+      expect(thumbnail).toHaveAttribute('srcset', srcSetOf(1));
+      expect(thumbnail).toHaveAttribute('sizes', THUMBNAIL_SIZES);
+      expect(thumbnail).toHaveAttribute('src', '/1-960.webp');
+      expect(thumbnail).toHaveAttribute('width', '960');
+      expect(thumbnail).toHaveAttribute('height', '600');
+      expect(thumbnail).toHaveAttribute('decoding', 'async');
+    });
+
+    it.each([undefined, null, [], [{ url: '', width: 480, height: 300 }], 'chess.webp'])(
+      'leaves a thumbnail without source for the files %j, still named after its project',
+      thumbnails => {
+        render(<Project projects={[project(1, 'Chess', { thumbnails })]} />);
+        const thumbnail = thumbnailOf('Chess');
+
+        ['src', 'srcset', 'sizes', 'width', 'height'].forEach(attribute =>
+          expect(thumbnail).not.toHaveAttribute(attribute),
+        );
+      },
+    );
   });
 
   it('pages through the projects, without going past the first or the last page', async () => {

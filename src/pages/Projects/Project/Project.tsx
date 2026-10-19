@@ -5,7 +5,7 @@ import LikeIcon from './icons/heart.svg?react';
 import NextIcon from './icons/next.svg?react';
 import PreviousIcon from './icons/previous.svg?react';
 
-import { ROW_CARD_COUNT } from './constants';
+import { ROW_CARD_COUNT, THUMBNAIL_SIZES } from './constants';
 import { useCardTilt } from './hooks/useCardTilt';
 import { useLikes } from './hooks/useLikes';
 import { useWholeCardCount } from './hooks/useWholeCardCount';
@@ -33,6 +33,7 @@ import {
   getNextPageStart,
   getPreviousPageStart,
   getProjectLinkUrl,
+  getThumbnailSources,
 } from './utils';
 
 /** Props of {@link Project}. */
@@ -64,7 +65,8 @@ const NO_PROJECTS: ProjectItemData[] = [];
  * by {@link useLikes}: no project is liked on a first visit. When the project has a `url` and a
  * name, the card title is a link to it, stretched over the whole card; the like button sits
  * beside that link, never inside it. The title is a level 2 heading, under the `h1` of the page;
- * without a title, the section has no heading and its controls have no name.
+ * without a title, the section has no heading and its controls have no name. Each thumbnail
+ * downloads the file of its `srcset` that its width needs on the screen.
  */
 const Project = ({ title, projects = NO_PROJECTS }: ProjectProps) => {
   const { t } = useTranslation();
@@ -144,10 +146,11 @@ const Project = ({ title, projects = NO_PROJECTS }: ProjectProps) => {
         ref={listRef}
         $displayAll={isShowingAll}
       >
-        {visibleProjects.map(({ id, name, type, imageUrl, url, tools }) => {
+        {visibleProjects.map(({ id, name, type, thumbnails, url, tools }) => {
           const isLiked = likedIds.has(id);
           const isAnimating = animatingIds.has(id);
           const linkUrl = getProjectLinkUrl({ url, name });
+          const thumbnail = getThumbnailSources(thumbnails);
 
           return (
             <ProjectItem
@@ -156,8 +159,13 @@ const Project = ({ title, projects = NO_PROJECTS }: ProjectProps) => {
             >
               <ImageContainer>
                 <Thumbnail
-                  src={imageUrl}
                   alt={name}
+                  decoding="async"
+                  sizes={thumbnail ? THUMBNAIL_SIZES : undefined}
+                  srcSet={thumbnail?.srcSet}
+                  src={thumbnail?.src}
+                  width={thumbnail?.width}
+                  height={thumbnail?.height}
                 />
                 <LikeButton
                   type="button"
