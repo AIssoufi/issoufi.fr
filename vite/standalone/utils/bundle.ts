@@ -8,30 +8,35 @@ import {
   NO_PRELOAD,
   PRELOAD_MARKER_PATTERN,
   STANDALONE_PAGE_FILE_NAME,
+  WEB_MANIFEST_FILE_PATTERN,
 } from '../constants';
 import { escapeRegExp, isFileName } from './strings';
 
 /**
  * Tells whether a file of the build is one that only a web server needs: every HTML page but
- * `index.html`, such as `projects.html` or `404.html`, and the `_headers` of Cloudflare Pages at
- * its root. Opened from the disk, the standalone build shows every route from `index.html`, and no
- * server reads its headers.
+ * `index.html`, such as `projects.html` or `404.html`, the web app manifests, such as
+ * `en/manifest.webmanifest`, and the `_headers` of Cloudflare Pages at its root. Opened from the
+ * disk, the standalone build shows every route from `index.html`, no browser installs it as an app,
+ * and no server reads its headers.
  *
  * @param fileName - Path of the file in the build, e.g. `projects.html`.
- * @returns `true` for an HTML page other than `index.html` and for `_headers`, `false` otherwise,
- * and when the name is missing or not a string.
+ * @returns `true` for an HTML page other than `index.html`, for a web app manifest and for
+ * `_headers`, `false` otherwise, and when the name is missing or not a string.
  *
  * @example
  * isServerOnlyFile('404.html'); // true
+ * isServerOnlyFile('manifest.webmanifest'); // true
  * isServerOnlyFile('_headers'); // true
  * isServerOnlyFile('index.html'); // false
  */
 export const isServerOnlyFile = (fileName?: unknown): boolean => {
-  const isHtmlFile = typeof fileName === 'string' && HTML_FILE_PATTERN.test(fileName);
+  const isName = typeof fileName === 'string';
+  const isHtmlFile = isName && HTML_FILE_PATTERN.test(fileName);
   const isStandalonePage = fileName === STANDALONE_PAGE_FILE_NAME;
   const isServerOnlyPage = isHtmlFile && !isStandalonePage;
+  const isWebManifest = isName && WEB_MANIFEST_FILE_PATTERN.test(fileName);
   const isHeadersFile = fileName === HEADERS_FILE_NAME;
-  return isServerOnlyPage || isHeadersFile;
+  return isServerOnlyPage || isWebManifest || isHeadersFile;
 };
 
 /**

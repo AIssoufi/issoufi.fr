@@ -10,6 +10,7 @@ import {
   type PageAlternate,
 } from './pages';
 import { isNonBlankString } from './strings';
+import { getWebManifestUrl } from './webManifest';
 
 /** Escapes a value for use inside a double-quoted HTML attribute or a text node. */
 const escapeHtml = (value: string) =>
@@ -23,10 +24,10 @@ const META_TRANSLATIONS: Record<Language, Translations['meta']> = { fr: fr.meta,
 
 /**
  * Key of a page's title and description in the `meta` translations: every key but those that all
- * pages share, `ogImageAlt`, the description of the link preview image, and `noScript`, the
- * message shown without JavaScript.
+ * pages share, `ogImageAlt`, the description of the link preview image, `noScript`, the message
+ * shown without JavaScript, and `webApp`, the texts of the web app manifest.
  */
-type PageMetaKey = Exclude<keyof Translations['meta'], 'ogImageAlt' | 'noScript'>;
+type PageMetaKey = Exclude<keyof Translations['meta'], 'ogImageAlt' | 'noScript' | 'webApp'>;
 
 /** A `%PAGE_*%` placeholder of `index.html`. Its first group captures its name. */
 const PLACEHOLDER_PATTERN = /%(PAGE_[A-Z_]+)%/g;
@@ -113,6 +114,13 @@ const renderAlternateTags = ({ path, language }: RenderAlternateTagsParams): str
   return [...alternateLinks, ...localeTags];
 };
 
+/**
+ * Renders the link to the web app manifest of a language (see {@link getWebManifestUrl}), so a
+ * page installs as the site in its own language, opening on the home page of that language.
+ */
+const renderManifestLink = (language: Language) =>
+  `<link rel="manifest" href="${escapeHtml(getWebManifestUrl(language))}" />`;
+
 /** Parameters of {@link renderPageHtml}. */
 interface RenderPageHtmlParams {
   /** Content of `index.html`, with its placeholders. */
@@ -128,8 +136,8 @@ interface RenderPageHtmlParams {
 /**
  * Fills the `%PAGE_*%` placeholders of `index.html` with the metadata of a page in a language
  * (see {@link fillPlaceholders}), its URL in that language as the canonical URL, and adds to its
- * head the links to its translations (see {@link renderAlternateTags}). Used by the Vite plugin at
- * build time.
+ * head the links to its translations (see {@link renderAlternateTags}) and to the web app manifest
+ * of its language (see {@link renderManifestLink}). Used by the Vite plugin at build time.
  *
  * @returns The HTML with every placeholder replaced and HTML-escaped.
  */
@@ -141,7 +149,11 @@ export function renderPageHtml({
 }: RenderPageHtmlParams): string {
   const url = getPageUrl({ path: page.path, language });
   const html = fillPlaceholders({ template, meta: page.meta, language, url, years });
-  return addToHead({ html, tags: renderAlternateTags({ path: page.path, language }) });
+  const tags = [
+    ...renderAlternateTags({ path: page.path, language }),
+    renderManifestLink(language),
+  ];
+  return addToHead({ html, tags });
 }
 
 const CANONICAL_TAG = /<link\s+rel="canonical"[^>]*>\s*/;
@@ -161,8 +173,8 @@ interface RenderNotFoundHtmlParams {
 /**
  * Builds a not found page from the `index.html` template: the "page not found" title and
  * description in its language, no canonical URL, `og:url` or translations (the page has no
- * address of its own), and a `noindex` robots tag. The app loads normally and shows its NotFound
- * page at the requested URL.
+ * address of its own), a `noindex` robots tag, and the link to the web app manifest of its
+ * language. The app loads normally and shows its NotFound page at the requested URL.
  *
  * @returns The HTML of the not found page, with every placeholder replaced.
  */
@@ -174,7 +186,7 @@ export function renderNotFoundHtml({
   const html = fillPlaceholders({ template, meta: 'notFound', language, url: '', years })
     .replace(CANONICAL_TAG, '')
     .replace(OG_URL_TAG, '');
-  return addToHead({ html, tags: [NO_INDEX_TAG] });
+  return addToHead({ html, tags: [NO_INDEX_TAG, renderManifestLink(language)] });
 }
 
 /** Parameters of {@link addModulePreload}. */

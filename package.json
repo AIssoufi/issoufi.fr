@@ -50,6 +50,7 @@
     "size": "node scripts/ci/check-bundle-size.mjs",
     "smoke-test": "node scripts/ci/smoke-test.mjs",
     "og-image": "node scripts/og-image/generate-og-image.mjs",
+    "icons": "node scripts/icons/generate-icons.mjs",
     "cv": "node scripts/cv/generate-cv.mjs",
     "cv:check": "node scripts/cv/generate-cv.mjs --check",
     "preview": "vite preview",
