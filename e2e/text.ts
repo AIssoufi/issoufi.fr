@@ -14,18 +14,21 @@ export interface DrawnText {
  * `<noscript>` or the closed mobile menu, are left out. Runs in the browser, passed to
  * `locator.evaluate`, so it uses nothing from outside its own body.
  *
- * @param root - Element whose texts are listed, such as `body`.
+ * @param root - Node whose texts are listed, such as `body`. A text right under a root that
+ * is not an element, such as a fragment, has no element to measure, and is left out.
  * @returns The texts in the order of the document.
  *
  * @example
  * await page.locator('body').evaluate(listDrawnTexts);
  * // [{ text: 'build v1.1.0', fontSizePx: 12 }, …]
  */
-export const listDrawnTexts = (root: Element): DrawnText[] => {
+export const listDrawnTexts = (root: Node): DrawnText[] => {
   const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+  // A walker of SHOW_TEXT returns text nodes only, whose data is always a string
+  const nextTextNode = () => walker.nextNode() as Text | null;
   const texts: DrawnText[] = [];
-  for (let node = walker.nextNode(); node; node = walker.nextNode()) {
-    const text = node.textContent?.trim() ?? '';
+  for (let node = nextTextNode(); node; node = nextTextNode()) {
+    const text = node.data.trim();
     const element = node.parentElement;
     const isShown = Boolean(element?.checkVisibility({ visibilityProperty: true }));
     if (!text || !element || !isShown) continue;
@@ -92,13 +95,14 @@ export interface DrawnCharacter {
  * one before it or the text of a hidden element, is left out. Runs in the browser, passed to
  * `locator.evaluate`, so it uses nothing from outside its own body.
  *
- * @param root - Element whose characters are listed, such as the `<main>` of a page.
+ * @param root - Node whose characters are listed, such as the `<main>` of a page. A text right
+ * under a root that is not an element, such as a fragment, belongs to no block, and is left out.
  * @returns The characters in the order of the document.
  *
  * @example
  * const characters = await page.locator('main').evaluate(listDrawnCharacters);
  */
-export const listDrawnCharacters = (root: Element): DrawnCharacter[] => {
+export const listDrawnCharacters = (root: Node): DrawnCharacter[] => {
   const blockIndexes = new Map<Element, number>();
   // An inline element belongs to the lines of its parent, up to the root
   const belongsToParentLines = (
@@ -114,15 +118,17 @@ export const listDrawnCharacters = (root: Element): DrawnCharacter[] => {
   };
   const range = document.createRange();
   const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+  // A walker of SHOW_TEXT returns text nodes only, whose data is always a string
+  const nextTextNode = () => walker.nextNode() as Text | null;
   const characters: DrawnCharacter[] = [];
-  for (let node = walker.nextNode(); node; node = walker.nextNode()) {
+  for (let node = nextTextNode(); node; node = nextTextNode()) {
     const element = node.parentElement;
     if (!element) continue;
 
     const block = findBlock(element);
-    if (!blockIndexes.has(block)) blockIndexes.set(block, blockIndexes.size);
-    const blockIndex = blockIndexes.get(block) ?? 0;
-    const text = node.textContent ?? '';
+    const blockIndex = blockIndexes.get(block) ?? blockIndexes.size;
+    blockIndexes.set(block, blockIndex);
+    const text = node.data;
     for (let index = 0; index < text.length; index += 1) {
       range.setStart(node, index);
       range.setEnd(node, index + 1);
