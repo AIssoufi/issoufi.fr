@@ -150,6 +150,13 @@ export const theme = {
      * the size that the Web Content Accessibility Guidelines recommend.
      */
     'finger-target': sizes[44],
+    /** Height of the thumbnail of a project card, its border included. */
+    'project-thumbnail': sizes[222],
+    /**
+     * Height of the thumbnail of a project card from the `wide` breakpoint, as much higher as the
+     * cards get wider with the app container, so they keep their shape.
+     */
+    'project-thumbnail-wide': sizes[248],
     /** Largest width of the text of a status message, short enough to read at a glance. */
     message: measures[40],
     /**

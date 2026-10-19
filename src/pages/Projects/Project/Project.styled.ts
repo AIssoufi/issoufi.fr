@@ -203,7 +203,7 @@ export const ProjectItem = styled.li`
 `;
 
 export const ImageContainer = styled.header`
-  height: ${th.size(222)};
+  height: ${th.size('project-thumbnail')};
   border-radius: ${th.radius('md')};
   overflow: hidden;
   position: relative;
@@ -211,7 +211,7 @@ export const ImageContainer = styled.header`
 
   /* As much higher as the cards get wider with the app container, so they keep their shape */
   @media (min-width: ${th('screens.wide')}) {
-    height: ${th.size(248)};
+    height: ${th.size('project-thumbnail-wide')};
   }
 
   &::before {

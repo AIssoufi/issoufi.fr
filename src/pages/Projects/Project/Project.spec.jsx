@@ -1013,8 +1013,8 @@ describe('Project', () => {
       });
 
       expect(sizesOf({ element: thumbnailOf('Chess').parentElement, property: 'height' })).toEqual({
-        belowWide: theme.sizes[222],
-        wide: theme.sizes[248],
+        belowWide: theme.sizes['project-thumbnail'],
+        wide: theme.sizes['project-thumbnail-wide'],
       });
       expect(
         sizesOf({ element: card.getByRole('heading', { level: 3 }), property: 'font-size' }),
