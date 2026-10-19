@@ -8,6 +8,7 @@ import PreviousIcon from './icons/previous.svg?react';
 import { ROW_CARD_COUNT, THUMBNAIL_SIZES } from './constants';
 import { useCardTilt } from './hooks/useCardTilt';
 import { useLikes } from './hooks/useLikes';
+import { usePreloadThumbnails } from './hooks/usePreloadThumbnails';
 import { useWholeCardCount } from './hooks/useWholeCardCount';
 import {
   CtrlItem,
@@ -31,6 +32,7 @@ import type { ProjectItemData } from './types';
 import {
   getLastPageStart,
   getNextPageStart,
+  getPageProjects,
   getPreviousPageStart,
   getProjectLinkUrl,
   getThumbnailSources,
@@ -48,6 +50,13 @@ interface ProjectProps {
    * all". @default []
    */
   projects?: ProjectItemData[];
+  /**
+   * Whether the section is the first of the page, whose first thumbnail is the largest image that
+   * the page paints first: it is downloaded at once, before the other images. Every other
+   * thumbnail is downloaded once the screen nears it.
+   * @default false
+   */
+  priority?: boolean;
 }
 
 const NO_PROJECTS: ProjectItemData[] = [];
@@ -66,9 +75,11 @@ const NO_PROJECTS: ProjectItemData[] = [];
  * name, the card title is a link to it, stretched over the whole card; the like button sits
  * beside that link, never inside it. The title is a level 2 heading, under the `h1` of the page;
  * without a title, the section has no heading and its controls have no name. Each thumbnail
- * downloads the file of its `srcset` that its width needs on the screen.
+ * downloads the file of its `srcset` that its width needs on the screen, once the screen nears it,
+ * but the first one of a `priority` section, at once; hovering or focusing an arrow downloads the
+ * thumbnails of the page it would show, so that they never show empty.
  */
-const Project = ({ title, projects = NO_PROJECTS }: ProjectProps) => {
+const Project = ({ title, projects = NO_PROJECTS, priority = false }: ProjectProps) => {
   const { t } = useTranslation();
   // Prefix of the element ids, unique to each section since a page shows several of them
   const sectionId = useId();
@@ -86,21 +97,36 @@ const Project = ({ title, projects = NO_PROJECTS }: ProjectProps) => {
   const pageStart = Math.min(requestedPageStart, lastPageStart);
   const isFirstPage = pageStart === 0;
   const isLastPage = pageStart === lastPageStart;
+  const nextPageStart = getNextPageStart({
+    currentStart: pageStart,
+    total,
+    pageSize: wholeCardCount,
+  });
+  const previousPageStart = getPreviousPageStart({
+    currentStart: pageStart,
+    pageSize: wholeCardCount,
+  });
+  // Its thumbnail is the largest image that the page paints first, which nothing should delay
+  const priorityProject = priority ? projects[0] : undefined;
 
-  const visibleProjects = isShowingAll
-    ? projects
-    : projects.slice(pageStart, pageStart + ROW_CARD_COUNT);
+  const visibleProjects = isShowingAll ? projects : getPageProjects({ projects, pageStart });
+
+  const preloadThumbnails = usePreloadThumbnails();
+  const preloadNextPage = () =>
+    preloadThumbnails(getPageProjects({ projects, pageStart: nextPageStart }));
+  const preloadPreviousPage = () =>
+    preloadThumbnails(getPageProjects({ projects, pageStart: previousPageStart }));
 
   const handleNextPage = () => {
     if (isLastPage) return;
 
-    setPageStart(getNextPageStart({ currentStart: pageStart, total, pageSize: wholeCardCount }));
+    setPageStart(nextPageStart);
   };
 
   const handlePreviousPage = () => {
     if (isFirstPage) return;
 
-    setPageStart(getPreviousPageStart({ currentStart: pageStart, pageSize: wholeCardCount }));
+    setPageStart(previousPageStart);
   };
 
   const cardTilt = useCardTilt();
@@ -121,6 +147,8 @@ const Project = ({ title, projects = NO_PROJECTS }: ProjectProps) => {
                 aria-label={t('projects.previousPage')}
                 aria-disabled={isFirstPage}
                 onClick={handlePreviousPage}
+                onPointerEnter={preloadPreviousPage}
+                onFocus={preloadPreviousPage}
               >
                 <PreviousIcon aria-hidden />
               </IconBtn>
@@ -129,6 +157,8 @@ const Project = ({ title, projects = NO_PROJECTS }: ProjectProps) => {
                 aria-label={t('projects.nextPage')}
                 aria-disabled={isLastPage}
                 onClick={handleNextPage}
+                onPointerEnter={preloadNextPage}
+                onFocus={preloadNextPage}
               >
                 <NextIcon aria-hidden />
               </IconBtn>
@@ -146,11 +176,13 @@ const Project = ({ title, projects = NO_PROJECTS }: ProjectProps) => {
         ref={listRef}
         $displayAll={isShowingAll}
       >
-        {visibleProjects.map(({ id, name, type, thumbnails, url, tools }) => {
+        {visibleProjects.map(project => {
+          const { id, name, type, thumbnails, url, tools } = project;
           const isLiked = likedIds.has(id);
           const isAnimating = animatingIds.has(id);
           const linkUrl = getProjectLinkUrl({ url, name });
           const thumbnail = getThumbnailSources(thumbnails);
+          const isPriorityThumbnail = project === priorityProject;
 
           return (
             <ProjectItem
@@ -160,6 +192,8 @@ const Project = ({ title, projects = NO_PROJECTS }: ProjectProps) => {
               <ImageContainer>
                 <Thumbnail
                   alt={name}
+                  loading={isPriorityThumbnail ? 'eager' : 'lazy'}
+                  fetchPriority={isPriorityThumbnail ? 'high' : undefined}
                   decoding="async"
                   sizes={thumbnail ? THUMBNAIL_SIZES : undefined}
                   srcSet={thumbnail?.srcSet}

@@ -8,7 +8,11 @@ import { theme } from '../../theme';
 import { declaredStyle, serializeCssValue } from '../../styleTestUtils';
 import { INTERACTIVE_SELECTOR, isPublicFile, readPublicWebpSize } from '../testUtils';
 import { BACKGROUND_IMAGE_URL } from './constants';
-import { MAX_THUMBNAIL_ASPECT_RATIO, THUMBNAIL_FILE_WIDTHS_PX } from './Project/constants';
+import {
+  MAX_THUMBNAIL_ASPECT_RATIO,
+  ROW_CARD_COUNT,
+  THUMBNAIL_FILE_WIDTHS_PX,
+} from './Project/constants';
 import { getThumbnailSources } from './Project/utils';
 import freelanceProjectsData from './.data/freelance-projects.json';
 import personalProjectsData from './.data/personal-projects.json';
@@ -158,6 +162,21 @@ describe('Projects', () => {
       });
     },
   );
+
+  it('downloads the first thumbnail at once, before the others, which wait for the screen', () => {
+    render(<Projects />);
+    const [firstThumbnail, ...otherThumbnails] = document.querySelectorAll('img');
+
+    expect(firstThumbnail).toHaveAccessibleName('Jeu d’échecs');
+    expect(firstThumbnail).toHaveAttribute('loading', 'eager');
+    expect(firstThumbnail).toHaveAttribute('fetchpriority', 'high');
+    // The first page of the personal section, then of the freelance one
+    expect(otherThumbnails).toHaveLength(2 * ROW_CARD_COUNT - 1);
+    otherThumbnails.forEach(thumbnail => {
+      expect(thumbnail).toHaveAttribute('loading', 'lazy');
+      expect(thumbnail).not.toHaveAttribute('fetchpriority');
+    });
+  });
 
   it('serves its background from public/', () => {
     expect(isPublicFile(BACKGROUND_IMAGE_URL)).toBe(true);

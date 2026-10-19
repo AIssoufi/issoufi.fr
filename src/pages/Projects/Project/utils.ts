@@ -1,4 +1,4 @@
-import { WHOLE_CARD_TOLERANCE_PX } from './constants';
+import { ROW_CARD_COUNT, WHOLE_CARD_TOLERANCE_PX } from './constants';
 import type { ProjectItemData, RowMeasures, ThumbnailFile, ThumbnailSources } from './types';
 
 /** Parameters of {@link getLastPageStart}. */
@@ -240,6 +240,28 @@ export function getProjectLinkUrl(
   const { url, name } = project ?? {};
   const canLink = isFilledString(url) && isFilledString(name);
   return canLink ? url : undefined;
+}
+
+/** Parameters of {@link getPageProjects}. */
+interface GetPageProjectsParams {
+  /** Every project of the section, in their order. */
+  projects: readonly ProjectItemData[];
+  /** Index of the first card of the page. */
+  pageStart: number;
+}
+
+/**
+ * Returns the projects that the row shows from a page: {@link ROW_CARD_COUNT} cards from its
+ * first one, those it shows whole and the next ones, which it scrolls to.
+ *
+ * @returns Fewer cards on the last page, and none past the last project.
+ *
+ * @example
+ * getPageProjects({ projects: [chess, calculator, store, connectFour], pageStart: 1 });
+ * // [calculator, store, connectFour]
+ */
+export function getPageProjects({ projects, pageStart }: GetPageProjectsParams): ProjectItemData[] {
+  return projects.slice(pageStart, pageStart + ROW_CARD_COUNT);
 }
 
 /** Any white space character, which would split a URL of a `srcset` in two. */

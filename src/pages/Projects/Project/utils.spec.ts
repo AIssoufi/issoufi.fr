@@ -1,8 +1,11 @@
+import { ROW_CARD_COUNT } from './constants';
+import type { ProjectItemData } from './types';
 import {
   countWholeCards,
   getCardTilt,
   getLastPageStart,
   getNextPageStart,
+  getPageProjects,
   getPreviousPageStart,
   getProjectLinkUrl,
   getThumbnailSources,
@@ -282,6 +285,39 @@ describe('getProjectLinkUrl', () => {
     ['a null project', null],
   ])('gives no link to a card with %s', (_case, project) => {
     expect(getProjectLinkUrl(project as Parameters<typeof getProjectLinkUrl>[0])).toBeUndefined();
+  });
+});
+
+describe('getPageProjects', () => {
+  /** Project of the id `id`, the only field that the pages read. */
+  const projectOf = (id: number) => ({ id }) as ProjectItemData;
+  const PROJECTS = [1, 2, 3, 4, 5].map(projectOf);
+
+  it.each([
+    [0, [1, 2, 3]],
+    [1, [2, 3, 4]],
+    [2, [3, 4, 5]],
+    [3, [4, 5]],
+    [4, [5]],
+    [5, []],
+  ])('shows the row from the card %i: the projects %j', (pageStart, ids) => {
+    expect(getPageProjects({ projects: PROJECTS, pageStart }).map(({ id }) => id)).toEqual(ids);
+  });
+
+  it('holds as many cards as the row', () => {
+    expect(getPageProjects({ projects: PROJECTS, pageStart: 0 })).toHaveLength(ROW_CARD_COUNT);
+  });
+
+  it('shows nothing without projects', () => {
+    expect(getPageProjects({ projects: [], pageStart: 0 })).toEqual([]);
+  });
+
+  it('leaves the projects unchanged', () => {
+    const projects = [1, 2, 3, 4].map(projectOf);
+
+    getPageProjects({ projects, pageStart: 1 });
+
+    expect(projects.map(({ id }) => id)).toEqual([1, 2, 3, 4]);
   });
 });
 

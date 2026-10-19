@@ -92,6 +92,23 @@ const pageButtons = () => ({
   nextButton: screen.getByRole('button', { name: NEXT_PAGE_NAME }),
 });
 
+/**
+ * Makes `new Image()` record the images that the code creates, with the attributes it gives them,
+ * in place of downloading them.
+ */
+const stubImages = () => {
+  const images = [];
+  vi.stubGlobal(
+    'Image',
+    class {
+      constructor() {
+        images.push(this);
+      }
+    },
+  );
+  return images;
+};
+
 /** Thumbnail of a card, found by the project name. */
 const thumbnailOf = name => screen.getByRole('img', { name });
 
@@ -519,6 +536,114 @@ describe('Project', () => {
         );
       },
     );
+
+    it('downloads every thumbnail once the screen nears it, by default', () => {
+      render(<Project projects={projects} />);
+
+      within(screen.getByRole('list'))
+        .getAllByRole('img')
+        .forEach(thumbnail => {
+          expect(thumbnail).toHaveAttribute('loading', 'lazy');
+          expect(thumbnail).not.toHaveAttribute('fetchpriority');
+        });
+    });
+
+    it('downloads the first thumbnail of a priority section at once, before the others', () => {
+      render(
+        <Project
+          priority
+          projects={projects}
+        />,
+      );
+      const [first, ...others] = within(screen.getByRole('list')).getAllByRole('img');
+
+      expect(first).toHaveAccessibleName('Chess');
+      expect(first).toHaveAttribute('loading', 'eager');
+      expect(first).toHaveAttribute('fetchpriority', 'high');
+      others.forEach(thumbnail => {
+        expect(thumbnail).toHaveAttribute('loading', 'lazy');
+        expect(thumbnail).not.toHaveAttribute('fetchpriority');
+      });
+    });
+
+    it('keeps the priority for the first project, not the first card of a later page', async () => {
+      showWholeCards(1);
+      render(
+        <Project
+          priority
+          projects={projects}
+        />,
+      );
+
+      await userEvent.click(pageButtons().nextButton);
+      expect(thumbnailOf('Calculator')).toHaveAttribute('loading', 'lazy');
+      expect(thumbnailOf('Calculator')).not.toHaveAttribute('fetchpriority');
+
+      await userEvent.click(screen.getByRole('button', { name: 'Tout afficher (4)' }));
+      expect(thumbnailOf('Chess')).toHaveAttribute('fetchpriority', 'high');
+    });
+
+    it('downloads the thumbnails of the next page once the pointer is over its arrow', async () => {
+      showWholeCards(1);
+      const images = stubImages();
+      render(<Project projects={projects} />);
+
+      await userEvent.hover(pageButtons().nextButton);
+
+      expect(images.map(({ srcset }) => srcset)).toEqual([srcSetOf(2), srcSetOf(3), srcSetOf(4)]);
+      images.forEach(image => {
+        expect(image.sizes).toBe(THUMBNAIL_SIZES);
+        expect(image.decoding).toBe('async');
+      });
+    });
+
+    it('downloads the thumbnails of the next page once its arrow gets the focus', () => {
+      showWholeCards(2);
+      const images = stubImages();
+      render(<Project projects={projects} />);
+
+      act(() => pageButtons().nextButton.focus());
+
+      expect(images.map(({ srcset }) => srcset)).toEqual([srcSetOf(3), srcSetOf(4)]);
+    });
+
+    it('downloads each thumbnail of the previous page once, even after the next ones', async () => {
+      showWholeCards(1);
+      const images = stubImages();
+      render(<Project projects={projects} />);
+      const { previousButton, nextButton } = pageButtons();
+
+      await userEvent.click(nextButton);
+      await userEvent.hover(previousButton);
+      act(() => previousButton.focus());
+      await userEvent.hover(nextButton);
+
+      // The previous page, from Chess, adds only Chess to the next one, from Calculator
+      expect(images.map(({ srcset }) => srcset)).toEqual([
+        srcSetOf(2),
+        srcSetOf(3),
+        srcSetOf(4),
+        srcSetOf(1),
+      ]);
+    });
+
+    it('downloads nothing for the projects of the next page without a valid file', async () => {
+      showWholeCards(1);
+      const images = stubImages();
+      render(
+        <Project
+          projects={[
+            project(1, 'Chess'),
+            project(2, 'Calculator', { thumbnails: undefined }),
+            project(3, 'Plugin store', { thumbnails: [{ url: '/3.webp' }] }),
+          ]}
+        />,
+      );
+
+      await userEvent.hover(pageButtons().nextButton);
+
+      expect(images).toEqual([]);
+    });
   });
 
   it('pages through the projects, without going past the first or the last page', async () => {
