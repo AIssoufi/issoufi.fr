@@ -1,5 +1,5 @@
+import { listTechnologyNames } from '../../../utils/technologies';
 import { TechChip, TechList } from './Technologies.styled';
-import { listTechnologyNames } from './utils';
 
 /** Props of {@link Technologies}. */
 interface TechnologiesProps {

@@ -1,4 +1,4 @@
-import { listTechnologyNames } from './utils';
+import { listTechnologyNames } from './technologies';
 
 describe('listTechnologyNames', () => {
   it('keeps the names in order', () => {
@@ -9,7 +9,7 @@ describe('listTechnologyNames', () => {
     ]);
   });
 
-  it('keeps each name once, so the keys of the chips stay unique', () => {
+  it('keeps each name once, so the keys of their items stay unique', () => {
     expect(listTechnologyNames(['React.js', 'Vite', 'React.js'])).toEqual(['React.js', 'Vite']);
   });
 
