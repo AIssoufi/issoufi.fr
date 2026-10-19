@@ -54,7 +54,10 @@ export const readPdf = async data => {
     for (let pageNumber = 1; pageNumber <= document.numPages; pageNumber += 1) {
       const page = await document.getPage(pageNumber);
       const { items } = await page.getTextContent();
-      texts.push(items.map(item => ('str' in item ? item.str : '')).join(' '));
+      // readPdf asks for no marked-content item, such as the start of a tagged paragraph, which
+      // holds no text: the filter keeps the text items alone, should pdf.js list one
+      const textItems = items.filter(item => 'str' in item);
+      texts.push(textItems.map(({ str }) => str).join(' '));
 
       const annotations = await page.getAnnotations();
       links.push(...annotations.map(({ url }) => url).filter(url => typeof url === 'string'));
