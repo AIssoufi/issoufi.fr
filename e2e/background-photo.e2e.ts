@@ -3,7 +3,7 @@ import { expect, test } from '@playwright/test';
 import { LANGUAGES } from '../src/i18n/constants.ts';
 import { localizePath } from '../src/i18n/utils.ts';
 import { PAGES } from '../src/utils/pages.ts';
-import { EARLY_PHOTO_INITIATOR_TYPES, PAGE_SELECTOR, PHOTO_SCREENS } from './constants.ts';
+import { PAGE_SELECTOR, PHOTO_PRELOAD_INITIATOR_TYPE, PHOTO_SCREENS } from './constants.ts';
 
 /** URLs of both files of the background photo of every page. */
 const PHOTO_URLS: readonly string[] = PAGES.flatMap(({ backgroundPhoto: { url, portraitUrl } }) => [
@@ -11,11 +11,11 @@ const PHOTO_URLS: readonly string[] = PAGES.flatMap(({ backgroundPhoto: { url, p
   portraitUrl,
 ]);
 
-// The style of the page that the build rendered, or the preload that the main script of the app
-// adds (src/preloadBackgroundPhoto.ts), whichever the browser reaches first, requests the
-// background photo before the app draws the page, in the version of the screen only: the portrait
-// one, much lighter, on phones held upright. Both read the same media query, or the browser would
-// download both versions.
+// The preload that the build writes in the HTML of each page (`addPrerenderedPage`,
+// src/utils/pageHtml.ts) requests the background photo before the app draws the page, in the
+// version of the screen only: the portrait one, much lighter, on phones held upright. The style of
+// the page reuses that download, and reads the same media query, or the browser would download
+// both versions.
 for (const language of LANGUAGES) {
   for (const { width, height, version } of PHOTO_SCREENS) {
     test.describe(`in ${language}, at ${width} × ${height} px`, () => {
@@ -41,7 +41,7 @@ for (const language of LANGUAGES) {
           }, photoUrl);
 
           expect(requestedPhotoUrls).toEqual([photoUrl]);
-          expect(EARLY_PHOTO_INITIATOR_TYPES, 'what requested the photo').toContain(initiatorType);
+          expect(initiatorType, 'what requested the photo').toBe(PHOTO_PRELOAD_INITIATOR_TYPE);
         });
       }
     });

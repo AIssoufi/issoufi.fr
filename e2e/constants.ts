@@ -203,12 +203,12 @@ export const PHOTO_SCREENS: readonly PhotoScreen[] = [
 ];
 
 /**
- * `initiatorType` values of the resource timing of a background photo requested before the app
- * draws the page: by the style of the page that the build rendered (`css`), or by the `<link>` that
- * the main script of the app adds (`link`, see `src/preloadBackgroundPhoto.ts`), whichever the
- * browser reaches first, which depends on the speed of the machine.
+ * `initiatorType` of the resource timing of a background photo requested before the app draws the
+ * page: by the `<link rel="preload">` that the build writes in the HTML of the page (see
+ * `addPrerenderedPage`), which the style of the page reuses. A photo that the style requested
+ * itself (`css`) would download at a high priority, next to what the first paint needs.
  */
-export const EARLY_PHOTO_INITIATOR_TYPES: readonly string[] = ['css', 'link'];
+export const PHOTO_PRELOAD_INITIATOR_TYPE = 'link';
 
 /**
  * Route of the Projects page, whose sections show the project cards. Typed by `PAGES`

@@ -17,6 +17,7 @@ import {
   HOME_PAGE,
   isTemplatePageFile,
   NOT_FOUND_FOLDER,
+  STATUS_PAGE_BACKGROUND_PHOTO,
 } from './src/utils/pages.ts';
 import { renderSitemap, SITEMAP_FILE_NAME } from './src/utils/sitemap.ts';
 import {
@@ -94,9 +95,11 @@ interface PreloadPageChunksParams {
  *
  * Each file also holds the app rendered at the path of its page, with its styles (see
  * {@link prerenderPagesInWorker}), which the browser shows before any script runs, and without
- * JavaScript, then hydrates (see `canHydrate`). A not found page holds the app rendered at a path
- * of no page, which the browser renders again at the path that the visitor typed. Its API skips
- * that render, for the standalone build (see {@link PageMetaApi}).
+ * JavaScript, then hydrates (see `canHydrate`). Since its first paint needs no script, it loads
+ * the scripts and its background photo at a low priority (see {@link addPrerenderedPage}). A not
+ * found page holds the app rendered at a path of no page, which the browser renders again at the
+ * path that the visitor typed, over the photo of the status pages. Its API skips that render, for
+ * the standalone build (see {@link PageMetaApi}).
  */
 const pageMeta = (): Plugin<PageMetaApi> => {
   let template = '';
@@ -162,6 +165,7 @@ const pageMeta = (): Plugin<PageMetaApi> => {
             html: String(templateFile.source),
             page: renderedPage,
             hydrationPath: path,
+            backgroundPhoto: page.backgroundPhoto,
           });
           return;
         }
@@ -170,9 +174,12 @@ const pageMeta = (): Plugin<PageMetaApi> => {
         this.emitFile({
           type: 'asset',
           fileName,
-          source: preloadPageChunks({
-            html: addPrerenderedPage({ html, page: renderedPage, hydrationPath: path }),
-            folder: page.folder,
+          // The chunks first, whose preloads the rendered page lowers with the other scripts
+          source: addPrerenderedPage({
+            html: preloadPageChunks({ html, folder: page.folder }),
+            page: renderedPage,
+            hydrationPath: path,
+            backgroundPhoto: page.backgroundPhoto,
           }),
         });
       });
@@ -182,9 +189,10 @@ const pageMeta = (): Plugin<PageMetaApi> => {
         this.emitFile({
           type: 'asset',
           fileName,
-          source: preloadPageChunks({
-            html: addPrerenderedPage({ html, page: renderedPages.get(path) }),
-            folder: NOT_FOUND_FOLDER,
+          source: addPrerenderedPage({
+            html: preloadPageChunks({ html, folder: NOT_FOUND_FOLDER }),
+            page: renderedPages.get(path),
+            backgroundPhoto: STATUS_PAGE_BACKGROUND_PHOTO,
           }),
         });
       });

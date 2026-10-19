@@ -6,11 +6,14 @@ import {
 } from '../i18n/constants.ts';
 import type { Language, Translations } from '../i18n/types.ts';
 import {
+  type BackgroundPhoto,
   getOgImageUrl,
   getPageAlternates,
   getPageUrl,
+  LANDSCAPE_PHOTO_MEDIA_QUERY,
   type Page,
   type PageAlternate,
+  PORTRAIT_PHOTO_MEDIA_QUERY,
 } from './pages.ts';
 import { APP_CONTAINER_ID, PRERENDERED_PATH_ATTRIBUTE, type PrerenderedPage } from './prerender.ts';
 import { isNonBlankString } from './strings.ts';
@@ -231,6 +234,55 @@ export function addModulePreload({ html, href }: AddModulePreloadParams = {}): s
 /** Container of the app in `index.html`, empty until {@link addPrerenderedPage} fills it. */
 const EMPTY_APP_CONTAINER = `<div id="${APP_CONTAINER_ID}"></div>`;
 
+/**
+ * Start of the tags that load the scripts of the app, as Vite and {@link addModulePreload} write
+ * them: its module scripts and the links that preload their modules.
+ */
+const APP_SCRIPT_TAG_START_PATTERN =
+  /<(?:script type="module"|link rel="modulepreload")(?=[\s/>])/g;
+
+/**
+ * Gives a low priority to the download of every script of the app that a page loads (see
+ * {@link APP_SCRIPT_TAG_START_PATTERN}).
+ */
+const lowerAppScriptPriority = (html: string) =>
+  html.replace(APP_SCRIPT_TAG_START_PATTERN, tagStart => `${tagStart} fetchpriority="low"`);
+
+/** A file of a background photo to preload, and the screens that show it. */
+interface PhotoPreload {
+  /** URL of the file, e.g. `/home-portrait.webp`. */
+  href: string;
+  /** Media query of the screens that show the file. Missing, every screen does. */
+  media?: string;
+}
+
+/**
+ * Lists the files of a background photo that the screens show, as the style of `Page` picks
+ * them: the portrait version on the screens of {@link PORTRAIT_PHOTO_MEDIA_QUERY}, the whole photo
+ * on the others, or a single file on every screen when only one of its URLs is valid, or when both
+ * name the same file. Lists none when neither is valid.
+ */
+const getPhotoPreloads = (photo?: Partial<BackgroundPhoto>): PhotoPreload[] => {
+  const url = isNonBlankString(photo?.url) ? photo.url.trim() : '';
+  const portraitUrl = isNonBlankString(photo?.portraitUrl) ? photo.portraitUrl.trim() : '';
+  const hasTwoVersions = url !== '' && portraitUrl !== '' && url !== portraitUrl;
+  if (hasTwoVersions) {
+    return [
+      { href: portraitUrl, media: PORTRAIT_PHOTO_MEDIA_QUERY },
+      { href: url, media: LANDSCAPE_PHOTO_MEDIA_QUERY },
+    ];
+  }
+
+  const onlyUrl = url || portraitUrl;
+  return onlyUrl === '' ? [] : [{ href: onlyUrl }];
+};
+
+/** Renders the link that preloads a file of a background photo at a low priority. */
+const renderPhotoPreloadLink = ({ href, media }: PhotoPreload) => {
+  const mediaAttribute = media === undefined ? '' : ` media="${escapeHtml(media)}"`;
+  return `<link rel="preload" as="image" href="${escapeHtml(href)}"${mediaAttribute} fetchpriority="low" />`;
+};
+
 /** Parameters of {@link addPrerenderedPage}. */
 interface AddPrerenderedPageParams {
   /** HTML of a generated page. Missing or not a string, it counts as empty. */
@@ -243,13 +295,27 @@ interface AddPrerenderedPageParams {
    * names none, and the browser renders the app again over the page, as on a not found page.
    */
   hydrationPath?: string;
+  /**
+   * Background photo that the page shows, whose files its styles request. Missing, or without a
+   * valid URL, the page preloads none.
+   */
+  backgroundPhoto?: Partial<BackgroundPhoto>;
 }
 
 /**
  * Puts a page of the app rendered at build time in the empty container of the app of a generated
  * page, so that the browser shows it before any script runs, and without JavaScript, then adds
- * its styles at the end of the head. The container names the path of the page to hydrate, when
- * there is one. Used by the Vite plugin at build time.
+ * at the end of the head the links that preload its background photo and its styles. The
+ * container names the path of the page to hydrate, when there is one. Used by the Vite plugin at
+ * build time, once the page preloads the chunks of the app.
+ *
+ * The first paints of such a page need only its HTML, its font and its largest image, whose
+ * bandwidth everything else that downloads at the same time shares, so the page lowers the rest:
+ * - the scripts of the app, which only hydrate the page, download at a low priority;
+ * - each file of the photo is preloaded at a low priority, with the media query of the screens
+ *   that show it (see {@link getPhotoPreloads}), so that a browser downloads only the version that
+ *   it shows. Its styles reuse that download, rather than requesting the photo at the high
+ *   priority of an image on the screen.
  *
  * @returns The HTML with the page, or unchanged when there is no page or no empty container.
  *
@@ -258,13 +324,16 @@ interface AddPrerenderedPageParams {
  *   html: '<head>\n  </head><body><div id="welcome"></div></body>',
  *   page: { html: '<main>…</main>', styleTags: '<style data-styled="true">…</style>' },
  *   hydrationPath: '/en/',
+ *   backgroundPhoto: { url: '/home.webp', portraitUrl: '/home-portrait.webp' },
  * });
- * // '<head>…<style …>…</style>…</head><body><div id="welcome" data-prerendered-path="/en/">…'
+ * // '<head>…<link rel="preload" as="image" href="/home-portrait.webp" media="…" …>
+ * //   <link rel="preload" as="image" href="/home.webp" media="…" …><style …>…'
  */
 export function addPrerenderedPage({
   html,
   page,
   hydrationPath,
+  backgroundPhoto,
 }: AddPrerenderedPageParams = {}): string {
   const source = typeof html === 'string' ? html : '';
   const canAddPage = page !== undefined && source.includes(EMPTY_APP_CONTAINER);
@@ -274,9 +343,10 @@ export function addPrerenderedPage({
     ? ` ${PRERENDERED_PATH_ATTRIBUTE}="${escapeHtml(hydrationPath)}"`
     : '';
   const container = `<div id="${APP_CONTAINER_ID}"${pathAttribute}>${page.html}</div>`;
-  // A function, so that a `$` of the page is inserted as it is, rather than read as a pattern
-  const withPage = source.replace(EMPTY_APP_CONTAINER, () => container);
-  return isNonBlankString(page.styleTags)
-    ? addToHead({ html: withPage, tags: [page.styleTags] })
-    : withPage;
+  // Before the page goes in, so that only the tags of the generated page change. A function, so
+  // that a `$` of the page is inserted as it is, rather than read as a pattern
+  const withPage = lowerAppScriptPriority(source).replace(EMPTY_APP_CONTAINER, () => container);
+  const styleTags = isNonBlankString(page.styleTags) ? [page.styleTags] : [];
+  const photoPreloadLinks = getPhotoPreloads(backgroundPhoto).map(renderPhotoPreloadLink);
+  return addToHead({ html: withPage, tags: [...photoPreloadLinks, ...styleTags] });
 }

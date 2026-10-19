@@ -67,11 +67,19 @@ export interface BackgroundPhoto {
 /**
  * Media query of the screens that show the portrait version of a {@link BackgroundPhoto}: narrower
  * than the tablet breakpoint and in portrait, as a phone held upright. The other screens, landscape
- * phones included, show the whole photo, framed as before. The style of `Page` and the preload of
- * the photo when the app starts (`src/preloadBackgroundPhoto.ts`) both read it, so a browser
- * downloads only the version that it shows.
+ * phones included, show the whole photo, framed as before. The style of `Page`, the preloads that
+ * the build writes in the HTML of each page (`addPrerenderedPage`) and the preload of the photo
+ * when the app starts (`src/preloadBackgroundPhoto.ts`) all read it, so a browser downloads only
+ * the version that it shows.
  */
 export const PORTRAIT_PHOTO_MEDIA_QUERY = `(orientation: portrait) and (width < ${theme.screens.tablet})`;
+
+/**
+ * Media query of the screens that show the whole version of a {@link BackgroundPhoto}: every
+ * screen that {@link PORTRAIT_PHOTO_MEDIA_QUERY} leaves out, so that a browser matches exactly one
+ * of them.
+ */
+export const LANDSCAPE_PHOTO_MEDIA_QUERY = `not all and ${PORTRAIT_PHOTO_MEDIA_QUERY}`;
 
 /**
  * Home page, the first entry of {@link PAGES}. In the default language, its HTML file is
