@@ -67,6 +67,7 @@ export const Intro = styled.div`
 export const Title = styled.h1`
   font-size: ${th.fontSize('hero-text')};
   font-weight: ${th.fontWeight('regular')};
+  /* For the running text of the passion line: the big words take the line height of a heading */
   line-height: ${th.lineHeight(170)};
   letter-spacing: ${th.letterSpacing(1)};
   margin: 0 0 ${th.space(12)};
@@ -89,6 +90,9 @@ export const TitleLine = styled.span`
    "full-stack" to the second line on a desktop screen */
 export const JobTitleLine = styled(TitleLine)`
   text-wrap: wrap;
+  /* Its big words fill its lines alone: the line height of the running text would still set the
+     least height of each line, taller than the words on a phone */
+  line-height: ${th.lineHeight(120)};
 `;
 
 export const NoWrap = styled.span`
