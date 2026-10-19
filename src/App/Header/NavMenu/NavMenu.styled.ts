@@ -2,7 +2,7 @@ import styled, { css, keyframes, th } from '@xstyled/styled-components';
 
 import List from '../../../components/List/index.ts';
 import { theme } from '../../../theme/index.ts';
-import { HOVER_POINTER_QUERY } from '../../../theme/constants.ts';
+import { FULL_MOTION_QUERY, HOVER_POINTER_QUERY } from '../../../theme/constants.ts';
 import { fingerTarget, fingerTargetSize } from '../../../theme/targets.styled.ts';
 import { NO_SCRIPT_MOBILE_MEDIA_QUERY } from '../constants.ts';
 import CvLink from './CvLink/index.ts';
@@ -174,12 +174,18 @@ export const NavItem = styled.li`
 
   @media (min-width: ${th('screens.tablet')}) and ${HOVER_POINTER_QUERY} {
     &:hover {
-      transform: scale(1.06);
       background: transparent;
     }
 
     &:hover a {
       color: ${th.color('accent-foreground')};
+    }
+  }
+
+  /* Not with reduced motion, where the instant transition would make it jump */
+  @media (min-width: ${th('screens.tablet')}) and ${HOVER_POINTER_QUERY} and ${FULL_MOTION_QUERY} {
+    &:hover {
+      transform: scale(1.06);
     }
   }
 `;
@@ -265,6 +271,12 @@ export const MenuCvLink = styled(CvLink)`
   @media (min-width: ${th('screens.tablet')}) and ${HOVER_POINTER_QUERY} {
     &:hover {
       color: ${th.color('accent-foreground')};
+    }
+  }
+
+  /* As the links of the bar grow, so not with reduced motion either */
+  @media (min-width: ${th('screens.tablet')}) and ${HOVER_POINTER_QUERY} and ${FULL_MOTION_QUERY} {
+    &:hover {
       transform: scale(1.06);
     }
   }

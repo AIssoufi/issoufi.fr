@@ -11,11 +11,16 @@ import { LANGUAGE_STORAGE_KEY } from '../../../i18n/constants.ts';
 import {
   declaredStyle,
   getContrastRatio,
+  mediaDeclaringStyle,
   MIN_TEXT_CONTRAST_RATIO,
   serializeCssValue,
 } from '../../../styleTestUtils.js';
 import { theme } from '../../../theme/index.ts';
-import { FORCED_COLORS_QUERY, HOVER_POINTER_QUERY } from '../../../theme/constants.ts';
+import {
+  FORCED_COLORS_QUERY,
+  FULL_MOTION_QUERY,
+  HOVER_POINTER_QUERY,
+} from '../../../theme/constants.ts';
 import UrlLanguage from '../../UrlLanguage/index.ts';
 import LangToggle from './LangToggle.tsx';
 
@@ -284,13 +289,19 @@ describe('LangToggle', () => {
     }
   });
 
-  it('grows a link under a pointer that hovers only, as the buttons of the site do', () => {
+  // GlobalStyle makes the transition instant with reduced motion: the link would jump
+  it('grows a link under a pointer that hovers only, without reduced motion, as the buttons of the site do', () => {
     renderAt();
-    const hoverTransform = media =>
-      declaredStyle({ element: getEnglishLink(), property: 'transform', pseudo: ':hover', media });
+    const fullMotionHoverQuery = `${HOVER_POINTER_QUERY} and ${FULL_MOTION_QUERY}`;
+    const hoverStyle = ({ property, media }) =>
+      declaredStyle({ element: getEnglishLink(), property, pseudo: ':hover', media });
 
-    expect(hoverTransform(HOVER_POINTER_QUERY)).toBe('scale(1.06)');
-    expect(hoverTransform('')).toBe('');
+    expect(hoverStyle({ property: 'transform', media: fullMotionHoverQuery })).toBe('scale(1.06)');
+    expect(
+      mediaDeclaringStyle({ element: getEnglishLink(), property: 'transform', pseudo: ':hover' }),
+    ).toEqual([fullMotionHoverQuery]);
+    // Its color still changes with reduced motion
+    expect(hoverStyle({ property: 'color', media: HOVER_POINTER_QUERY })).not.toBe('');
   });
 
   it('marks the active language with a border of the color of a selection in forced colors mode', () => {

@@ -1,7 +1,11 @@
 import styled, { css, th } from '@xstyled/styled-components';
 import { Link } from 'react-router';
 
-import { FORCED_COLORS_QUERY, HOVER_POINTER_QUERY } from '../../../theme/constants.ts';
+import {
+  FORCED_COLORS_QUERY,
+  FULL_MOTION_QUERY,
+  HOVER_POINTER_QUERY,
+} from '../../../theme/constants.ts';
 import { fingerTargetCenteringOffset, fingerTargetSize } from '../../../theme/targets.styled.ts';
 import { LINK_HEIGHT_PX, LINK_WIDTH_PX } from './constants.ts';
 
@@ -106,7 +110,12 @@ export const LanguageLink = styled(Link)<{ $active: boolean }>`
     &:hover {
       color: ${({ $active }) =>
         $active ? th.color('accent-foreground') : th.color('foreground-a70')};
-      /* As the buttons of the site grow */
+    }
+  }
+
+  /* As the buttons of the site grow, so not with reduced motion either */
+  @media ${HOVER_POINTER_QUERY} and ${FULL_MOTION_QUERY} {
+    &:hover {
       transform: scale(1.06);
     }
   }

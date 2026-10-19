@@ -1,15 +1,21 @@
 import { createGlobalStyle, th } from '@xstyled/styled-components';
 
-import { FORCED_COLORS_QUERY, HOVER_POINTER_QUERY, REDUCED_MOTION_QUERY } from './constants.ts';
+import {
+  FORCED_COLORS_QUERY,
+  FULL_MOTION_QUERY,
+  HOVER_POINTER_QUERY,
+  REDUCED_MOTION_QUERY,
+} from './constants.ts';
 
 /**
  * Base styles of the document (box sizing, body, links, buttons, lists, icons), built from the
  * tokens. Every element is sized with `border-box`, so a width includes its padding and border.
  * Buttons draw their text in the font of their parent, as links do. They grow, and links take the
- * accent from tablet up, under a pointer that hovers only
- * ({@link HOVER_POINTER_QUERY}). Icons draw their strokes in the foreground color, and in the text
- * color of their element in forced colors mode ({@link FORCED_COLORS_QUERY}). With reduced motion
- * ({@link REDUCED_MOTION_QUERY}), animations and transitions are instant.
+ * accent from tablet up, under a pointer that hovers only ({@link HOVER_POINTER_QUERY}); buttons
+ * grow only without reduced motion ({@link FULL_MOTION_QUERY}). Icons draw their strokes in the
+ * foreground color, and in the text color of their element in forced colors mode
+ * ({@link FORCED_COLORS_QUERY}). With reduced motion ({@link REDUCED_MOTION_QUERY}), animations and
+ * transitions are instant.
  */
 export const GlobalStyle = createGlobalStyle`
   *,
@@ -73,6 +79,12 @@ export const GlobalStyle = createGlobalStyle`
   @media ${HOVER_POINTER_QUERY} {
     button:hover {
       cursor: pointer;
+    }
+  }
+
+  /* Not with reduced motion, where the instant transition would make it jump */
+  @media ${HOVER_POINTER_QUERY} and ${FULL_MOTION_QUERY} {
+    button:hover {
       transform: scale(1.06);
     }
   }

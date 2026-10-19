@@ -67,6 +67,13 @@ const waitForFrames = async (count: number) => {
 const getNextPageButton = (page: Page) =>
   page.getByRole('button', { name: fr.projects.nextPage }).first();
 
+/** Like button of the first project card of the Projects page. */
+const getLikeButton = (page: Page) =>
+  page.locator(PROJECT_CARD_SELECTOR).first().getByRole('button', { name: LIKE_BUTTON_NAME });
+
+/** Transform of a control grown to its hover size, `scale(1.06)`, as the browser writes it. */
+const HOVER_SCALE_MATRIX = 'matrix(1.06, 0, 0, 1.06, 0, 0)';
+
 /** Tells whether the main pointer of the page hovers, as the hover styles of the site ask. */
 const doesPointerHover = (page: Page) =>
   page.evaluate(query => matchMedia(query).matches, HOVER_POINTER_QUERY);
@@ -136,5 +143,31 @@ test.describe('with a mouse', () => {
 
     expect(await doesPointerHover(page), 'main pointer that hovers').toBe(true);
     await expect(nextPageButton).toHaveCSS('background-color', ARROW_HOVER_BACKGROUND);
+  });
+
+  // The transition is instant with reduced motion: the control would jump to its hover size
+  test('a hovered control keeps its size, and takes its hover border', async ({ page }) => {
+    await page.goto(PROJECTS_ROUTE);
+    const likeButton = getLikeButton(page);
+    const restStyle = await likeButton.evaluate(readHoverProperties, HOVER_PROPERTIES);
+
+    await likeButton.hover();
+
+    // Even an instant transition ends after the next frame: wait for the hover style first
+    await expect(likeButton).not.toHaveCSS('border-color', restStyle['border-color']);
+    await expect(likeButton).toHaveCSS('transform', restStyle.transform);
+  });
+
+  test.describe('without reduced motion', () => {
+    test.use({ reducedMotion: 'no-preference' });
+
+    test('a hovered control grows', async ({ page }) => {
+      await page.goto(PROJECTS_ROUTE);
+      const likeButton = getLikeButton(page);
+
+      await likeButton.hover();
+
+      await expect(likeButton).toHaveCSS('transform', HOVER_SCALE_MATRIX);
+    });
   });
 });
