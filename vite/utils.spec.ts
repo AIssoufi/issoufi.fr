@@ -489,8 +489,7 @@ describe('getFontFaceTags', () => {
     expect(tags.filter(({ tag }) => tag === 'link').map(({ attrs }) => attrs?.href)).toEqual(
       FONT_FACES.map(({ url }) => url),
     );
-    const lastTag = tags[tags.length - 1];
-    expect(lastTag).toEqual({ tag: 'style', children: renderFontFaces(), injectTo: 'head' });
+    expect(tags.at(-1)).toEqual({ tag: 'style', children: renderFontFaces(), injectTo: 'head' });
   });
 
   describe('edge cases', () => {

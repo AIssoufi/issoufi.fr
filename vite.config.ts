@@ -23,6 +23,7 @@ import {
 import {
   ALL_ENV_VARIABLES_PREFIX,
   ASSETS_DIR,
+  BUILD_TARGET,
   CODE_SPLITTING_GROUPS,
   HEADERS_FILE_NAME,
   SECURITY_HEADERS,
@@ -190,13 +191,13 @@ const TEST_TIMEOUT_MS = 10_000;
 
 /**
  * Vite and Vitest configuration: React with SVG components, the web fonts, page metadata, sitemap,
- * web app manifests and HTTP headers plugins, a chunk per lazy page and named chunks for the
- * libraries and the shared modules (see {@link CODE_SPLITTING_GROUPS}), the dev and preview
- * servers on the port of the worktree (see {@link getServerPorts}), which fail when it is taken,
- * the preview server with the security headers of the site, and the tests in jsdom with coverage.
- * Node.js loads it as it is, its types stripped (`--configLoader native` in the scripts of
- * `package.json`): every relative import of the modules that it loads names its `.ts` file, and a
- * JSON import says `with { type: 'json' }`.
+ * web app manifests and HTTP headers plugins, the build for the browsers of {@link BUILD_TARGET},
+ * a chunk per lazy page and named chunks for the libraries and the shared modules (see
+ * {@link CODE_SPLITTING_GROUPS}), the dev and preview servers on the port of the worktree (see
+ * {@link getServerPorts}), which fail when it is taken, the preview server with the security
+ * headers of the site, and the tests in jsdom with coverage. Node.js loads it as it is, its types
+ * stripped (`--configLoader native` in the scripts of `package.json`): every relative import of
+ * the modules that it loads names its `.ts` file, and a JSON import says `with { type: 'json' }`.
  * @see https://vitejs.dev/config/
  */
 export default defineConfig(({ mode }) => {
@@ -209,6 +210,8 @@ export default defineConfig(({ mode }) => {
     // (src/App/Header) and typed in src/vite-env.d.ts; the tests read it too
     define: { __APP_VERSION__: JSON.stringify(packageJson.version) },
     build: {
+      // The browsers of the app, whose syntax and APIs tsconfig.app.json checks it against
+      target: BUILD_TARGET,
       rolldownOptions: {
         output: {
           // The chunk of each lazily loaded page is named after its folder, not its index file

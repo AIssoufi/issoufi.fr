@@ -24,6 +24,37 @@ export const PORT_PATTERN = /^\d+$/;
 export const ALL_ENV_VARIABLES_PREFIX = '';
 
 /**
+ * Browsers that the build transpiles the app for (`build.target`): those of Baseline Widely
+ * Available on 2026-01-01, Vite 8's default (`baseline-widely-available`), written out so that an
+ * upgrade of Vite does not move them unseen. The app is type-checked against what they all read
+ * ({@link APP_ECMASCRIPT_TARGET}, {@link APP_ECMASCRIPT_LIBS}): change them together.
+ */
+export const BUILD_TARGET = ['chrome111', 'edge111', 'firefox114', 'safari16.4', 'ios16.4'];
+
+/**
+ * Edition of ECMAScript whose syntax every browser of {@link BUILD_TARGET} reads, the `target` of
+ * `tsconfig.app.json`, as `vite.config.spec.ts` checks: TypeScript refuses a newer syntax in the
+ * app, such as the `v` flag of a regular expression (ES2024).
+ */
+export const APP_ECMASCRIPT_TARGET = 'ES2022';
+
+/**
+ * TypeScript libraries of the ECMAScript APIs that every browser of {@link BUILD_TARGET} ships, the
+ * `lib` of `tsconfig.app.json` with the DOM ones, as `vite.config.spec.ts` checks: those of ES2022
+ * but `Intl.Segmenter` (`ES2022.Intl`), which Firefox shipped in version 125. ES2023 waits for
+ * Firefox 115, the first to ship its array methods that copy (`toSorted`, `with`…). The DOM
+ * libraries follow TypeScript, not the browsers: check a recent DOM API on MDN before using it.
+ */
+export const APP_ECMASCRIPT_LIBS = [
+  'ES2021',
+  'ES2022.Array',
+  'ES2022.Error',
+  'ES2022.Object',
+  'ES2022.RegExp',
+  'ES2022.String',
+];
+
+/**
  * Folder of the hashed scripts in the build: Vite's default `build.assetsDir`. `pnpm size` only
  * counts the scripts of this folder (`ASSETS_SUBDIR` in `scripts/ci/constants.mjs`): keep both
  * equal. Browsers keep its files a year ({@link HEADER_RULES}), so each one needs a hash of its

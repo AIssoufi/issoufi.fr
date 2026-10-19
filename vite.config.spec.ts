@@ -1,6 +1,7 @@
 // @vitest-environment node
 import { existsSync } from 'node:fs';
 import { resolve } from 'node:path';
+import ts from 'typescript';
 import { build, normalizePath, type Plugin, resolveConfig, type Rolldown } from 'vite';
 
 import { isGoogleHost } from './e2e/utils';
@@ -24,7 +25,10 @@ import {
 import { renderSitemap, SITEMAP_FILE_NAME } from './src/utils/sitemap';
 import { getWebManifestFiles, getWebManifestUrl, renderWebManifest } from './src/utils/webManifest';
 import {
+  APP_ECMASCRIPT_LIBS,
+  APP_ECMASCRIPT_TARGET,
   ASSETS_DIR,
+  BUILD_TARGET,
   HEADERS_FILE_NAME,
   NODE_MODULES_PATTERN,
   PAGE_ENTRY_FILE,
@@ -424,6 +428,48 @@ const findNamedChunk = (name: string) => output.filter(isChunk).find(chunk => ch
 
 /** Finds the entry chunk of the build, the main chunk that every page loads. */
 const findEntryChunk = () => output.filter(isChunk).find(chunk => chunk.isEntry);
+
+/** Compiler options that a tsconfig file of the project writes. */
+interface WrittenCompilerOptions {
+  /** Edition of ECMAScript whose syntax TypeScript accepts. */
+  target?: string;
+  /** TypeScript libraries of the APIs that the code may call. */
+  lib?: string[];
+  /** Packages whose global types TypeScript loads, such as `node`: all of `@types/` without it. */
+  types?: string[];
+}
+
+/** TypeScript library of ECMAScript APIs, such as `ES2021` or `ES2022.Array`, unlike `DOM`. */
+const ECMASCRIPT_LIB_PATTERN = /^ES/i;
+
+/** Reads the compiler options that a tsconfig file writes, comments allowed: none without any. */
+const readCompilerOptions = (fileName: string): WrittenCompilerOptions =>
+  ts.readConfigFile(fileName, ts.sys.readFile).config?.compilerOptions ?? {};
+
+describe('browser target of the build', () => {
+  it('transpiles the app for the browsers of BUILD_TARGET', async () => {
+    const config = await resolveConfig(
+      { configFile: 'vite.config.ts', configLoader: 'native', logLevel: 'silent' },
+      'build',
+    );
+
+    expect(config.build.target).toEqual(BUILD_TARGET);
+  });
+
+  it(`type-checks the app against ${APP_ECMASCRIPT_TARGET}, the syntax that these browsers read`, () => {
+    expect(readCompilerOptions('tsconfig.app.json').target).toBe(APP_ECMASCRIPT_TARGET);
+  });
+
+  it('type-checks the app against the ECMAScript APIs that these browsers ship, and no other', () => {
+    const { lib = [] } = readCompilerOptions('tsconfig.app.json');
+
+    expect(lib.filter(name => ECMASCRIPT_LIB_PATTERN.test(name))).toEqual(APP_ECMASCRIPT_LIBS);
+  });
+
+  it('type-checks the app without the global types of Node.js or of the tests', () => {
+    expect(readCompilerOptions('tsconfig.app.json').types).toEqual([]);
+  });
+});
 
 describe('chunks of the build', () => {
   it(`puts the libraries of the first load in the ${VENDOR_CHUNK_NAME} chunk, apart from the code of the site`, () => {
