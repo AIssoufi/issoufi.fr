@@ -65,9 +65,9 @@ describe('getHomeTexts', () => {
         { text: 'UX', isHighlighted: true },
         { text: ' et l’', isHighlighted: false },
         { text: 'UI', isHighlighted: true },
-        { text: ' Design', isHighlighted: false },
+        { text: '\u00a0Design', isHighlighted: false },
       ],
-      subtitle: 'Je vous aide à développer vos applications web',
+      subtitle: 'Je vous aide à développer vos applications\u00a0web',
       site: 'issoufi.fr',
     });
   });
@@ -82,9 +82,9 @@ describe('getHomeTexts', () => {
         { text: 'UX', isHighlighted: true },
         { text: ' and ', isHighlighted: false },
         { text: 'UI', isHighlighted: true },
-        { text: ' Design', isHighlighted: false },
+        { text: '\u00a0Design', isHighlighted: false },
       ],
-      subtitle: 'I help you build web applications',
+      subtitle: 'I help you build web\u00a0applications',
       site: 'issoufi.fr',
     });
   });

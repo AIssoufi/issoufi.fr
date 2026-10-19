@@ -92,9 +92,11 @@ describe('renderOgImageHtml', () => {
     expect(page.querySelector('.logo').textContent).toBe('AI');
     expect(page.querySelector('.name').textContent).toBe('ADAM Issoufi');
     expect(page.querySelector('h1').textContent).toBe('Développeur full-stack JavaScript');
-    expect(page.querySelector('.passion').textContent).toBe('passionné par l’UX et l’UI Design');
+    expect(page.querySelector('.passion').textContent).toBe(
+      'passionné par l’UX et l’UI\u00a0Design',
+    );
     expect(page.querySelector('.subtitle').textContent).toBe(
-      'Je vous aide à développer vos applications web',
+      'Je vous aide à développer vos applications\u00a0web',
     );
     expect(page.querySelector('.site').textContent).toBe('issoufi.fr');
   });
@@ -107,8 +109,12 @@ describe('renderOgImageHtml', () => {
 
     expect(page.querySelector('.name').textContent).toBe('ADAM Issoufi');
     expect(page.querySelector('h1').textContent).toBe('Full-stack JavaScript Developer');
-    expect(page.querySelector('.passion').textContent).toBe('passionate about UX and UI Design');
-    expect(page.querySelector('.subtitle').textContent).toBe('I help you build web applications');
+    expect(page.querySelector('.passion').textContent).toBe(
+      'passionate about UX and UI\u00a0Design',
+    );
+    expect(page.querySelector('.subtitle').textContent).toBe(
+      'I help you build web\u00a0applications',
+    );
   });
 
   it.each(['fr', 'en'])('names the language %s of the texts', language => {
