@@ -1,8 +1,8 @@
 import { useTranslation } from 'react-i18next';
 
+import { EXPERIENCES_PAGE } from '../../utils/pages';
 import experiencesData from './.data/experiences.json';
 import CompanyEntry from './CompanyEntry';
-import { BACKGROUND_IMAGE_URL } from './constants';
 import type { ExperienceData } from './types';
 
 import { ExperiencesPage, PageHeader, PageTitle, Timeline } from './Experiences.styled';
@@ -21,7 +21,7 @@ export const Experiences = () => {
   const { t } = useTranslation();
 
   return (
-    <ExperiencesPage backgroundImage={BACKGROUND_IMAGE_URL}>
+    <ExperiencesPage backgroundPhoto={EXPERIENCES_PAGE.backgroundPhoto}>
       <PageHeader>
         <PageTitle>{t('exp.pageTitle')}</PageTitle>
       </PageHeader>

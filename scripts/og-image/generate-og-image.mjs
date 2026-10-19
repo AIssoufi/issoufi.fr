@@ -92,7 +92,8 @@ const fontFaceStyles = sources.fonts.renderFontFaces({
 });
 if (!fontFaceStyles) throw new Error('No web font to load in src/theme/constants.ts');
 
-const backgroundImageFile = join(PUBLIC_DIR, sources.home.BACKGROUND_IMAGE_URL);
+// The whole background photo of the home page, which wide screens show
+const backgroundImageFile = join(PUBLIC_DIR, sources.pages.HOME_PAGE.backgroundPhoto.url);
 const backgroundImageUrl = toDataUrl({
   content: readFileSync(backgroundImageFile),
   fileName: backgroundImageFile,

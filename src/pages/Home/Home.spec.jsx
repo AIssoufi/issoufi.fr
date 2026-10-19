@@ -4,8 +4,8 @@ import { MemoryRouter } from 'react-router';
 import { theme } from '../../theme';
 import { REDUCED_MOTION_QUERY } from '../../theme/constants';
 import { declaredStyle, serializeCssValue } from '../../styleTestUtils';
-import { isPublicFile } from '../testUtils';
-import { BACKGROUND_IMAGE_URL } from './constants';
+import { getPage } from '../../utils/pages';
+import { readBackgroundImages } from '../testUtils';
 import { Home } from './Home';
 
 const renderHome = (path = '/') =>
@@ -108,7 +108,13 @@ describe('Home', () => {
     expect(glowStyle.display).not.toBe('none');
   });
 
-  it('serves its background from public/', () => {
-    expect(isPublicFile(BACKGROUND_IMAGE_URL)).toBe(true);
+  it('shows the background photo of its entry in PAGES, over its placeholder', () => {
+    const { url, portraitUrl, placeholderUrl } = getPage('/').backgroundPhoto;
+    renderHome();
+
+    expect(readBackgroundImages(screen.getByRole('main'))).toEqual({
+      image: `url("${url}"), url("${placeholderUrl}")`,
+      portraitImage: `url("${portraitUrl}"), url("${placeholderUrl}")`,
+    });
   });
 });
