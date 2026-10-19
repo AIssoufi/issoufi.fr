@@ -105,6 +105,15 @@ describe('listDrawnTexts', () => {
 
     expect(listDrawnTexts(document.body)).toEqual([]);
   });
+
+  it('leaves out a text without a parent element, as in a fragment given as the root', () => {
+    const fragment = document.createRange().createContextualFragment('Accueil<p>Projets</p>');
+    stubVisibility(new Map());
+
+    const texts = listDrawnTexts(fragment);
+
+    expect(texts.map(({ text }) => text)).toEqual(['Projets']);
+  });
 });
 
 describe('describeSmallTexts', () => {
@@ -227,6 +236,16 @@ describe('listDrawnCharacters', () => {
     document.body.innerHTML = '<main></main>';
 
     expect(listDrawnCharacters(document.querySelector('main') as Element)).toEqual([]);
+  });
+
+  it('leaves out a text without a parent element, as in a fragment given as the root', () => {
+    const fragment = document.createRange().createContextualFragment('a<p>b</p>');
+    boxes.set('a:0', FIRST_LINE_BOX);
+    boxes.set('b:0', FIRST_LINE_BOX);
+
+    const characters = listDrawnCharacters(fragment);
+
+    expect(characters.map(({ character: text }) => text)).toEqual(['b']);
   });
 });
 

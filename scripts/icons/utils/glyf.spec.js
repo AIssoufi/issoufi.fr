@@ -2,8 +2,16 @@
 import { readFileSync } from 'node:fs';
 
 import { createByteReader } from './byte-reader.mjs';
+import {
+  ARG_1_AND_2_ARE_WORDS,
+  MORE_COMPONENTS,
+  WE_HAVE_A_SCALE,
+  WE_HAVE_A_TWO_BY_TWO,
+  WE_HAVE_AN_X_AND_Y_SCALE,
+  WE_HAVE_INSTRUCTIONS,
+} from './constants.mjs';
 import { findGlyphIndex } from './font-tables.mjs';
-import { decodeTriplet, readTransformedGlyphs } from './glyf.mjs';
+import { decodeTriplet, getComponentScaleBytes, readTransformedGlyphs } from './glyf.mjs';
 import { readWoff2Tables } from './woff2.mjs';
 
 /** Tables of the display font of the site, which draws the logo. */
@@ -52,6 +60,32 @@ describe('decodeTriplet', () => {
     expect(() => decodeTriplet({ flag, reader: createByteReader(Buffer.from(bytes)) })).toThrow(
       RangeError,
     );
+  });
+});
+
+describe('getComponentScaleBytes', () => {
+  it.each([
+    ['one scale', WE_HAVE_A_SCALE, 2],
+    ['a scale per axis', WE_HAVE_AN_X_AND_Y_SCALE, 4],
+    ['a matrix of four numbers', WE_HAVE_A_TWO_BY_TWO, 8],
+    [
+      'one scale, after the other flags',
+      ARG_1_AND_2_ARE_WORDS | MORE_COMPONENTS | WE_HAVE_A_SCALE,
+      2,
+    ],
+    ['no scale', ARG_1_AND_2_ARE_WORDS | MORE_COMPONENTS | WE_HAVE_INSTRUCTIONS, 0],
+    [
+      'one scale, when a malformed font also sets a matrix',
+      WE_HAVE_A_SCALE | WE_HAVE_A_TWO_BY_TWO,
+      2,
+    ],
+    ['no flag', 0, 0],
+  ])('gives the size of %s', (_, flags, bytes) => {
+    expect(getComponentScaleBytes(flags)).toBe(bytes);
+  });
+
+  it('gives no scale for flags that are not a number', () => {
+    expect(getComponentScaleBytes(Number.NaN)).toBe(0);
   });
 });
 

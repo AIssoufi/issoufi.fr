@@ -1,5 +1,5 @@
 import { lazy, Suspense } from 'react';
-import { render, screen } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { Link, MemoryRouter, Route, Routes, useNavigate } from 'react-router';
 
@@ -100,14 +100,15 @@ describe('PageHeadingFocus', () => {
 
       await userEvent.click(screen.getByRole('link', { name: 'Go to /projects' }));
 
-      expect(await screen.findByRole('heading', { name: 'Projects' })).toHaveFocus();
+      // The heading shows before the focus that the end of the transition gives it
+      await waitFor(() => expect(screen.getByRole('heading', { name: 'Projects' })).toHaveFocus());
     },
   );
 
   it('focuses the heading again after each navigation', async () => {
     renderPages();
     await userEvent.click(screen.getByRole('link', { name: 'Go to /projects' }));
-    await screen.findByRole('heading', { name: 'Projects' });
+    await waitFor(() => expect(screen.getByRole('heading', { name: 'Projects' })).toHaveFocus());
 
     await userEvent.click(screen.getByRole('link', { name: 'Go to /' }));
 
@@ -166,7 +167,7 @@ describe('PageHeadingFocus', () => {
   it('leaves the focus alone on the back button of the browser', async () => {
     renderPages();
     await userEvent.click(screen.getByRole('link', { name: 'Go to /projects' }));
-    await screen.findByRole('heading', { name: 'Projects' });
+    await waitFor(() => expect(screen.getByRole('heading', { name: 'Projects' })).toHaveFocus());
 
     await userEvent.click(screen.getByRole('button', { name: 'Back' }));
 

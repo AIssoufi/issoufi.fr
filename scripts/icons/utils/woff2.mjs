@@ -156,9 +156,11 @@ export const readGlyphOutlines = ({ file, text }) => {
   const cmap = getPlainTable({ tables, tag: 'cmap' });
   const hhea = getPlainTable({ tables, tag: 'hhea' });
   const hmtx = getPlainTable({ tables, tag: 'hmtx' });
+  // Each character of [...text] is one whole code point
   const characters = [...text];
   const glyphIndices = characters.map(character => {
-    const glyphIndex = findGlyphIndex({ cmap, codePoint: character.codePointAt(0) ?? 0 });
+    const codePoint = /** @type {number} */ (character.codePointAt(0));
+    const glyphIndex = findGlyphIndex({ cmap, codePoint });
     if (glyphIndex === 0) throw new Error(`The font does not draw ${JSON.stringify(character)}`);
     return glyphIndex;
   });
@@ -169,7 +171,8 @@ export const readGlyphOutlines = ({ file, text }) => {
     glyphs: characters.map((character, index) => ({
       character,
       advanceWidth: readAdvanceWidth({ hhea, hmtx, glyphIndex: glyphIndices[index] }),
-      contours: outlines.get(glyphIndices[index]) ?? [],
+      // readTransformedGlyphs gives the contours of every glyph asked for, or throws
+      contours: /** @type {OutlinePoint[][]} */ (outlines.get(glyphIndices[index])),
     })),
   };
 };
