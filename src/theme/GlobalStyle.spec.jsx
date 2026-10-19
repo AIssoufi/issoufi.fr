@@ -1,3 +1,6 @@
+import { readdirSync, readFileSync } from 'node:fs';
+import { join } from 'node:path';
+
 import { screen } from '@testing-library/react';
 import styled, { ThemeProvider } from '@xstyled/styled-components';
 
@@ -23,6 +26,22 @@ const REDUCED_MOTION_VALUES = {
   'transition-duration': theme.durations.instant,
   'transition-delay': '0s',
 };
+
+/** Folder of the sources of the app, whose icons the global style colors. */
+const SOURCE_DIR = 'src';
+
+/**
+ * Stroke color written in an SVG file: a `stroke` attribute, such as `stroke="white"` or
+ * `stroke='white'`, or a `stroke` declaration of a style, such as `style="stroke: white"` or
+ * `<style>path { stroke: white }</style>`.
+ */
+const STROKE_COLOR = /\sstroke=["'][^"']*["']|[\s;{"']stroke\s*:[^;}"']*/g;
+
+/** Every SVG file of the app, by its path from the root of the repository. */
+const iconFiles = readdirSync(SOURCE_DIR, { recursive: true })
+  .map(String)
+  .filter(file => file.endsWith('.svg'))
+  .map(file => join(SOURCE_DIR, file));
 
 const ContentBox = styled.div`
   box-sizing: content-box;
@@ -158,6 +177,14 @@ describe('GlobalStyle', () => {
     expect(forcedIconRule.style.getPropertyValue('stroke')).toBe(
       serializeCssValue({ property: 'stroke', value: 'currentColor' }),
     );
+  });
+
+  it('leaves the stroke color of every icon of the app to the global style', () => {
+    expect(iconFiles).not.toHaveLength(0);
+    // A stroke on a path would win over the text color that the icons need in forced colors mode
+    for (const file of iconFiles) {
+      expect(readFileSync(file, 'utf8').match(STROKE_COLOR), file).toBeNull();
+    }
   });
 
   describe('with reduced motion', () => {

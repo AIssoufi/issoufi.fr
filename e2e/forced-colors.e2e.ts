@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test';
+import { expect, type Locator, test } from '@playwright/test';
 
 import { LANGUAGE_NAMES } from '../src/App/Header/LangToggle/constants.ts';
 import { DEFAULT_LANGUAGE, LANGUAGES } from '../src/i18n/constants.ts';
@@ -21,6 +21,24 @@ const LIKE_NAME_START = fr.projects.like.split('{{name}}')[0];
 
 /** Name of the like buttons of the Projects page in French, whatever their project. */
 const LIKE_BUTTON_NAME = new RegExp(`^${LIKE_NAME_START}`);
+
+/**
+ * Reads, in the page, the color of the text of a button in the palette of forced colors mode: the
+ * computed `ButtonText` of an element that keeps the colors it is given.
+ */
+const readButtonTextColor = () => {
+  const probe = document.createElement('span');
+  probe.style.forcedColorAdjust = 'none';
+  probe.style.color = 'ButtonText';
+  document.body.append(probe);
+  const { color } = getComputedStyle(probe);
+  probe.remove();
+  return color;
+};
+
+/** Reads the computed opacity of a button. */
+const opacityOf = (button: Locator) =>
+  button.evaluate(element => Number(getComputedStyle(element).opacity));
 
 // Forced colors mode, such as a contrast theme of Windows, removes the backgrounds and the shadows
 // and draws the texts in the colors of its palette: a state that only a background shows vanishes,
@@ -78,6 +96,27 @@ for (const width of FORCED_COLORS_SCREEN_WIDTHS_PX) {
     for (const colorScheme of FORCED_COLORS_SCHEMES) {
       test.describe(`with a ${colorScheme} contrast theme`, () => {
         test.use({ colorScheme });
+
+        test('the arrows of the projects take the color of the text of the buttons', async ({
+          page,
+        }) => {
+          await page.goto(PROJECTS_ROUTE);
+          const buttonTextColor = await page.evaluate(readButtonTextColor);
+          const previousButton = page
+            .getByRole('button', { name: fr.projects.previousPage })
+            .first();
+          const nextButton = page.getByRole('button', { name: fr.projects.nextPage }).first();
+
+          // At the first page, "Previous" can go nowhere
+          await expect(previousButton).toHaveAttribute('aria-disabled', 'true');
+          await expect(nextButton).toHaveAttribute('aria-disabled', 'false');
+          for (const button of [previousButton, nextButton]) {
+            await expect(button.locator('path')).toHaveCSS('stroke', buttonTextColor);
+          }
+          expect(await opacityOf(previousButton), 'opacity of the disabled arrow').toBeLessThan(
+            await opacityOf(nextButton),
+          );
+        });
 
         // The CV link shows its download icon in the mobile menu only
         if (hasMobileMenu) {
