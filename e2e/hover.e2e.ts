@@ -3,7 +3,7 @@ import { expect, type Page, test } from '@playwright/test';
 import { fr } from '../src/i18n/fr';
 import { HOVER_POINTER_QUERY } from '../src/theme/constants';
 import { theme } from '../src/theme/theme';
-import { PROJECTS_ROUTE } from './constants';
+import { PROJECT_CARD_SELECTOR, PROJECTS_ROUTE } from './constants';
 
 /** Properties that the hover styles of the controls of the site change. */
 const HOVER_PROPERTIES = ['background-color', 'border-color', 'color', 'transform'];
@@ -21,6 +21,15 @@ const readHoverProperties = (control: Element, properties: string[]) => {
     properties.map(property => [property, style.getPropertyValue(property)]),
   );
 };
+
+/** Name of the like button of a project card, whatever the project, as `projects.like` writes it. */
+const LIKE_BUTTON_NAME = new RegExp(`^${fr.projects.like.replace('{{name}}', '.+')}$`);
+
+/**
+ * Reads the transform that the tilt of a project card writes on it, which follows the pointer.
+ * Runs in the browser, passed to `locator.evaluate`, so it uses nothing from outside its own body.
+ */
+const readInlineTransform = (card: HTMLElement) => card.style.transform;
 
 /** Arrow that shows the next page of projects, in the first section of the Projects page. */
 const getNextPageButton = (page: Page) =>
@@ -49,6 +58,19 @@ test.describe('on a touch screen', () => {
 
     expect(await doesPointerHover(page), 'main pointer that hovers').toBe(false);
     expect(await nextPageButton.evaluate(readHoverProperties, HOVER_PROPERTIES)).toEqual(restStyle);
+  });
+
+  test.describe('without reduced motion, which keeps the cards flat anyway', () => {
+    test.use({ reducedMotion: 'no-preference' });
+
+    test('a tap on the like button of a project card leaves the card flat', async ({ page }) => {
+      await page.goto(PROJECTS_ROUTE);
+      const card = page.locator(PROJECT_CARD_SELECTOR).first();
+
+      await card.getByRole('button', { name: LIKE_BUTTON_NAME }).tap();
+
+      expect(await card.evaluate(readInlineTransform), 'transform of the card').toBe('');
+    });
   });
 });
 

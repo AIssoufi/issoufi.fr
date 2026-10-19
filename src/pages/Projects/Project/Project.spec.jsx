@@ -925,7 +925,8 @@ describe('Project', () => {
     // jsdom lays nothing out: give the card a box so that it can tilt
     vi.spyOn(card, 'getBoundingClientRect').mockReturnValue(CARD_BOX);
 
-    fireEvent.mouseMove(card, {
+    fireEvent.pointerMove(card, {
+      pointerType: 'mouse',
       clientX: CARD_BOX.left + CARD_POINTER.x,
       clientY: CARD_BOX.top + CARD_POINTER.y,
     });
@@ -935,7 +936,7 @@ describe('Project', () => {
     expect(card.style.getPropertyValue('--mouse-x')).toBe(`${CARD_POINTER.x}px`);
     expect(card.style.getPropertyValue('--mouse-y')).toBe(`${CARD_POINTER.y}px`);
 
-    fireEvent.mouseLeave(card);
+    fireEvent.pointerLeave(card);
     expect(card.style.transform).toBe('');
   });
 
@@ -945,7 +946,8 @@ describe('Project', () => {
     const card = cardOf('Chess');
     vi.spyOn(card, 'getBoundingClientRect').mockReturnValue(CARD_BOX);
 
-    fireEvent.mouseMove(card, {
+    fireEvent.pointerMove(card, {
+      pointerType: 'mouse',
       clientX: CARD_BOX.left + CARD_POINTER.x,
       clientY: CARD_BOX.top + CARD_POINTER.y,
     });

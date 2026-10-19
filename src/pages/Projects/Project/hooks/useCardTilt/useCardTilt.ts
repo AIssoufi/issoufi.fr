@@ -1,18 +1,21 @@
-import { type MouseEvent, useCallback } from 'react';
+import { type PointerEvent, useCallback } from 'react';
 
 import { usePrefersReducedMotion } from '../../../../../hooks/usePrefersReducedMotion';
 import { CARD_HOVER_LIFT_PX, CARD_MAX_TILT_DEG, CARD_PERSPECTIVE_PX } from '../../constants';
 import { getCardTilt } from '../../utils';
 
-/** Mouse handlers returned by {@link useCardTilt}, to spread on the card. */
+/** `pointerType` of a finger on a touch screen, which hovers nothing. */
+const FINGER_POINTER_TYPE = 'touch';
+
+/** Pointer handlers returned by {@link useCardTilt}, to spread on the card. */
 interface CardTiltHandlers {
   /**
-   * Tilts the card toward the pointer and moves its light under it; with reduced motion, only
-   * moves its light.
+   * Tilts the card toward a mouse or a pen and moves its light under it; with reduced motion,
+   * only moves its light. Ignores a finger.
    */
-  onMouseMove: (event: MouseEvent<HTMLElement>) => void;
+  onPointerMove: (event: PointerEvent<HTMLElement>) => void;
   /** Flattens the card. */
-  onMouseLeave: (event: MouseEvent<HTMLElement>) => void;
+  onPointerLeave: (event: PointerEvent<HTMLElement>) => void;
 }
 
 /**
@@ -20,10 +23,12 @@ interface CardTiltHandlers {
  * rise a little while hovered, then flatten when the pointer leaves. It also writes the position
  * of the pointer in the card to its `--mouse-x` and `--mouse-y` properties, for the light of its
  * image. With reduced motion, the card neither tilts nor rises, and only its light follows the
- * pointer.
+ * pointer. A finger hovers nothing: the card stays as it is under it, rather than tilting toward
+ * a tap, as on its like button, and staying so until the next tap elsewhere, as it did when it
+ * followed the mouse events that a browser sends after a tap.
  *
- * @returns `onMouseMove` and `onMouseLeave` handlers to spread on the card, stable as long as the
- * preference stays the same.
+ * @returns `onPointerMove` and `onPointerLeave` handlers to spread on the card, stable as long as
+ * the preference stays the same.
  *
  * @example
  * const cardTilt = useCardTilt();
@@ -32,8 +37,11 @@ interface CardTiltHandlers {
 export function useCardTilt(): CardTiltHandlers {
   const prefersReducedMotion = usePrefersReducedMotion();
 
-  const onMouseMove = useCallback(
-    (event: MouseEvent<HTMLElement>) => {
+  const onPointerMove = useCallback(
+    (event: PointerEvent<HTMLElement>) => {
+      const isFinger = event.pointerType === FINGER_POINTER_TYPE;
+      if (isFinger) return;
+
       const card = event.currentTarget;
       const { rotateX, rotateY, x, y } = getCardTilt({
         pointer: { x: event.clientX, y: event.clientY },
@@ -49,9 +57,9 @@ export function useCardTilt(): CardTiltHandlers {
     [prefersReducedMotion],
   );
 
-  const onMouseLeave = useCallback((event: MouseEvent<HTMLElement>) => {
+  const onPointerLeave = useCallback((event: PointerEvent<HTMLElement>) => {
     event.currentTarget.style.transform = '';
   }, []);
 
-  return { onMouseMove, onMouseLeave };
+  return { onPointerMove, onPointerLeave };
 }
