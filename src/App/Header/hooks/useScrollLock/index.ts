@@ -1,1 +1,1 @@
-export * from './useScrollLock';
+export * from './useScrollLock.ts';

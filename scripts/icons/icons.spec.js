@@ -2,7 +2,7 @@
 import { readFileSync, statSync } from 'node:fs';
 import { join } from 'node:path';
 
-import { APP_ICONS } from '../../src/utils/icons';
+import { APP_ICONS } from '../../src/utils/icons.ts';
 import { PUBLIC_DIR } from '../utils/constants.mjs';
 import { ICO_SIZES_PX } from './constants.mjs';
 import { readIcoImages } from './utils/ico.mjs';

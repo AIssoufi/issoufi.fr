@@ -1,8 +1,8 @@
 import { render, screen } from '@testing-library/react';
 import styled, { th } from '@xstyled/styled-components';
 
-import { theme } from './theme';
-import { withTheme } from './testUtils';
+import { theme } from './theme/index.ts';
+import { withTheme } from './testUtils.tsx';
 
 /** Computed color of the `accent` token (#8b3168), which only the theme gives. */
 const ACCENT_COLOR = 'rgb(139, 49, 104)';

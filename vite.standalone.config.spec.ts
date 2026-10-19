@@ -3,12 +3,12 @@ import { execFileSync } from 'node:child_process';
 import { resolve } from 'node:path';
 import { build, normalizePath, type Plugin, type Rolldown } from 'vite';
 
-import { isGoogleHost } from './e2e/utils';
-import { FONT_FACES } from './src/theme/constants';
-import { HOME_PAGE } from './src/utils/pages';
-import { SITEMAP_FILE_NAME } from './src/utils/sitemap';
-import { renderStructuredDataScript } from './src/utils/structuredData';
-import { HEADERS_FILE_NAME } from './vite/constants';
+import { isGoogleHost } from './e2e/utils.ts';
+import { FONT_FACES } from './src/theme/constants.ts';
+import { HOME_PAGE } from './src/utils/pages.ts';
+import { SITEMAP_FILE_NAME } from './src/utils/sitemap.ts';
+import { renderStructuredDataScript } from './src/utils/structuredData.ts';
+import { HEADERS_FILE_NAME } from './vite/constants.ts';
 import {
   HASH_ROUTER_MODULE,
   OPTIONAL_ESCAPE_PATTERN,
@@ -16,9 +16,9 @@ import {
   REGEXP_SPECIAL_CHARACTERS,
   STANDALONE_PAGE_FILE_NAME,
   STANDALONE_README_FILE_NAME,
-} from './vite/standalone/constants';
-import { readFontDataUrl } from './vite/standalone/utils/fonts';
-import { listFileNames } from './vite/standalone/utils/public-files';
+} from './vite/standalone/constants.ts';
+import { readFontDataUrl } from './vite/standalone/utils/fonts.ts';
+import { listFileNames } from './vite/standalone/utils/public-files.ts';
 
 /** Longest time the standalone build may take in this test, coverage included. */
 const BUILD_TIMEOUT_MS = 60_000;

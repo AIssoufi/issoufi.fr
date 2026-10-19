@@ -1,8 +1,8 @@
 import { act, render, screen, within } from '@testing-library/react';
 
-import i18n from '../../../i18n';
-import { getReadText } from '../../testUtils';
-import ExperienceGroup from './ExperienceGroup';
+import i18n from '../../../i18n/index.ts';
+import { getReadText } from '../../testUtils.js';
+import ExperienceGroup from './ExperienceGroup.tsx';
 
 /** Any duration text, in French or in English. */
 const DURATION_TEXT = /\d+ (an|ans|mois|years?|months?)|< 1 (mois|month)/;

@@ -1,7 +1,7 @@
-import { MAIN_CONTENT_ID } from '../src/constants/landmarks';
-import type { Language } from '../src/i18n/types';
-import { theme } from '../src/theme/theme';
-import type { BackgroundPhoto, Page } from '../src/utils/pages';
+import { MAIN_CONTENT_ID } from '../src/constants/landmarks.ts';
+import type { Language } from '../src/i18n/types.ts';
+import { theme } from '../src/theme/theme.ts';
+import type { BackgroundPhoto, Page } from '../src/utils/pages.ts';
 
 /**
  * Screen widths, in pixels, at which the browser tests open the pages, and every page must fit

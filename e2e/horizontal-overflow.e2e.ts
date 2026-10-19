@@ -1,15 +1,15 @@
 import { expect, test } from '@playwright/test';
 
-import { LANGUAGES } from '../src/i18n/constants';
-import { localizePath } from '../src/i18n/utils';
-import { PAGES } from '../src/utils/pages';
+import { LANGUAGES } from '../src/i18n/constants.ts';
+import { localizePath } from '../src/i18n/utils.ts';
+import { PAGES } from '../src/utils/pages.ts';
 import {
   LONG_NOT_FOUND_ROUTE,
   PAGE_SELECTOR,
   SCREEN_HEIGHT_PX,
   SCREEN_WIDTHS_PX,
-} from './constants';
-import { getCheckedRoutes } from './utils';
+} from './constants.ts';
+import { getCheckedRoutes } from './utils.ts';
 
 // jsdom computes no layout, so only a real browser sees a page wider than the screen
 for (const language of LANGUAGES) {

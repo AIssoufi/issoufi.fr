@@ -1,9 +1,9 @@
 import { type RefObject, useEffect } from 'react';
 
-import { usePrefersReducedMotion } from '../../../../hooks/usePrefersReducedMotion';
-import { CURSOR_GLOW_EASING, CURSOR_GLOW_RADIUS_PX, CURSOR_GLOW_START } from '../../constants';
-import { easeTowards } from '../../utils';
-import { usePointerRef } from '../usePointerRef';
+import { usePrefersReducedMotion } from '../../../../hooks/usePrefersReducedMotion/index.ts';
+import { CURSOR_GLOW_EASING, CURSOR_GLOW_RADIUS_PX, CURSOR_GLOW_START } from '../../constants.ts';
+import { easeTowards } from '../../utils.ts';
+import { usePointerRef } from '../usePointerRef/index.ts';
 
 /**
  * Makes an element trail the mouse: on every animation frame it moves a fraction of the way to

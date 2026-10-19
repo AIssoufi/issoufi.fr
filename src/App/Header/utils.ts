@@ -1,4 +1,4 @@
-import { VERSION_PREFIX } from './constants';
+import { VERSION_PREFIX } from './constants.ts';
 
 /**
  * Lists the ancestors of an element inside the page body, from its parent up to `<body>`

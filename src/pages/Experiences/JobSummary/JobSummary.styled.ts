@@ -1,6 +1,6 @@
 import styled, { th } from '@xstyled/styled-components';
 
-import { LOGO_SIZE_PX } from './constants';
+import { LOGO_SIZE_PX } from './constants.ts';
 
 export const Summary = styled.header`
   display: flex;

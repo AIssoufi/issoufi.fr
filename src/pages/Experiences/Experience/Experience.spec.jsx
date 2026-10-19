@@ -1,7 +1,7 @@
 import { act, render, screen, within } from '@testing-library/react';
 
-import i18n from '../../../i18n';
-import Experience from './Experience';
+import i18n from '../../../i18n/index.ts';
+import Experience from './Experience.tsx';
 
 /** Any duration text, in French or in English. */
 const DURATION_TEXT = /\d+ (an|ans|mois|years?|months?)|< 1 (mois|month)/;

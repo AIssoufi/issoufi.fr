@@ -1,8 +1,8 @@
 import { act, render, screen, within } from '@testing-library/react';
 
-import i18n from '../../../../../i18n';
-import { declaredStyle } from '../../../../../styleTestUtils';
-import BulletPoints from './BulletPoints';
+import i18n from '../../../../../i18n/index.ts';
+import { declaredStyle } from '../../../../../styleTestUtils.js';
+import BulletPoints from './BulletPoints.tsx';
 
 /** A `›` followed by its empty alternative text, the value of `content` after a slash. */
 const ALTERNATIVE_TEXT_CONTENT = /^(['"])›\1\s*\/\s*(['"])\2$/;

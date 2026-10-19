@@ -6,7 +6,7 @@ import {
   groupLines,
   listDrawnCharacters,
   listDrawnTexts,
-} from './text';
+} from './text.ts';
 
 /** Box of a character drawn on the first line of its block. */
 const FIRST_LINE_BOX = { top: 10, height: 20, width: 8 };

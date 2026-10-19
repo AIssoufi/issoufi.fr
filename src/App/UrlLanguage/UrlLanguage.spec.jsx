@@ -2,8 +2,8 @@ import { act, cleanup, render, screen } from '@testing-library/react';
 import { useTranslation } from 'react-i18next';
 import { createMemoryRouter, RouterProvider } from 'react-router';
 
-import i18n from '../../i18n';
-import UrlLanguage from './UrlLanguage';
+import i18n from '../../i18n/index.ts';
+import UrlLanguage from './UrlLanguage.tsx';
 
 /** Text translated in the current language, rendered next to the component as a page would. */
 const ProjectsLink = () => {

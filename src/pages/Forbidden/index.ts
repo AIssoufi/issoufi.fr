@@ -1,1 +1,1 @@
-export * from './Forbidden';
+export * from './Forbidden.tsx';

@@ -1,9 +1,9 @@
-import { DEFAULT_LANGUAGE, LANGUAGE_STORAGE_KEY, LANGUAGES, TRANSLATIONS } from './constants';
+import { DEFAULT_LANGUAGE, LANGUAGE_STORAGE_KEY, LANGUAGES, TRANSLATIONS } from './constants.ts';
 
 /** Runs the i18n setup again, as on a new page load, and returns its instance. */
 const loadI18n = async () => {
   vi.resetModules();
-  const { default: i18n } = await import('./index');
+  const { default: i18n } = await import('./index.ts');
   return i18n;
 };
 

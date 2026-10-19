@@ -1,11 +1,11 @@
 import { act, render, screen } from '@testing-library/react';
 
-import i18n from '../../../i18n';
-import { declaredStyle } from '../../../styleTestUtils';
-import { theme } from '../../../theme/theme';
-import { getReadText } from '../../testUtils';
-import { LOGO_SIZE_PX } from './constants';
-import JobSummary from './JobSummary';
+import i18n from '../../../i18n/index.ts';
+import { declaredStyle } from '../../../styleTestUtils.js';
+import { theme } from '../../../theme/theme.ts';
+import { getReadText } from '../../testUtils.js';
+import { LOGO_SIZE_PX } from './constants.ts';
+import JobSummary from './JobSummary.tsx';
 
 /** Any duration text, in French or in English. */
 const DURATION_TEXT = /\d+ (an|ans|mois|years?|months?)|< 1 (mois|month)/;

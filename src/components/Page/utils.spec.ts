@@ -1,5 +1,5 @@
-import { NO_BACKGROUND_IMAGE } from './constants';
-import { getBackgroundImages, toBackgroundImage } from './utils';
+import { NO_BACKGROUND_IMAGE } from './constants.ts';
+import { getBackgroundImages, toBackgroundImage } from './utils.ts';
 
 describe('toBackgroundImage', () => {
   it('writes the URL of the image in a CSS string', () => {

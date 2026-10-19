@@ -3,7 +3,7 @@ import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
-import { listFileNames, toRelativePublicUrls } from './public-files';
+import { listFileNames, toRelativePublicUrls } from './public-files.ts';
 
 describe('listFileNames', () => {
   let dir = '';

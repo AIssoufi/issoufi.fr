@@ -1,4 +1,4 @@
-import { theme } from '../../src/theme/theme';
+import { theme } from '../../src/theme/theme.ts';
 import { findMissingFonts, getFirstFontFamily, listFontsInUse } from './fonts.mjs';
 
 /** Fonts of a page: the body font in three weights, and the display font of the logo. */

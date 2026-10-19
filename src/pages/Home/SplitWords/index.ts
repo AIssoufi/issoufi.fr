@@ -1,1 +1,1 @@
-export * from './SplitWords';
+export * from './SplitWords.tsx';

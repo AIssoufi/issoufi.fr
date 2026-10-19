@@ -1,5 +1,5 @@
-import { PAGES } from '../src/utils/pages';
-import { MAX_CARD_OFFSET_PX, MAX_DOT_OFFSET_PX, NOT_FOUND_ROUTE } from './constants';
+import { PAGES } from '../src/utils/pages.ts';
+import { MAX_CARD_OFFSET_PX, MAX_DOT_OFFSET_PX, NOT_FOUND_ROUTE } from './constants.ts';
 import {
   countOccurrences,
   countWholeCards,
@@ -24,7 +24,7 @@ import {
   isGoogleHost,
   isGoogleUrl,
   isSecurityPolicyMessage,
-} from './utils';
+} from './utils.ts';
 
 describe('getCheckedRoutes', () => {
   it('opens every page of PAGES, then the not found page, in the default language', () => {

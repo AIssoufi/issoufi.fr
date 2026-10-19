@@ -1,8 +1,8 @@
 import { expect, type Locator, test } from '@playwright/test';
 
-import { LANGUAGES, ROOT_PATH } from '../src/i18n/constants';
-import { localizePath } from '../src/i18n/utils';
-import { waitForEndingAnimations } from './animations';
+import { LANGUAGES, ROOT_PATH } from '../src/i18n/constants.ts';
+import { localizePath } from '../src/i18n/utils.ts';
+import { waitForEndingAnimations } from './animations.ts';
 import {
   LONG_PAGE_ROUTE,
   MAX_BAND_OFFSET_PX,
@@ -13,9 +13,9 @@ import {
   SHOW_ALL_BUTTON_NAME,
   STICKY_HEADER_SCREEN_HEIGHT_PX,
   STICKY_HEADER_SCREEN_WIDTHS_PX,
-} from './constants';
-import { scrollToEnd } from './scroll';
-import { isBoxInside } from './utils';
+} from './constants.ts';
+import { scrollToEnd } from './scroll.ts';
+import { isBoxInside } from './utils.ts';
 
 /** The long pages, scrolled to their end: the Experiences page and the Projects page. */
 const LONG_PAGE_PATHS = [LONG_PAGE_ROUTE, PROJECTS_ROUTE] as const;

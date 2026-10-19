@@ -1,5 +1,5 @@
-import { LANGUAGE_STORAGE_KEY } from './constants';
-import { getStoredLanguage, resolveInitialLanguage, storeLanguage } from './storage';
+import { LANGUAGE_STORAGE_KEY } from './constants.ts';
+import { getStoredLanguage, resolveInitialLanguage, storeLanguage } from './storage.ts';
 
 /** Error thrown by the storage when the browser blocks it, as with cookies disabled. */
 const securityError = () => new DOMException('The operation is insecure.', 'SecurityError');

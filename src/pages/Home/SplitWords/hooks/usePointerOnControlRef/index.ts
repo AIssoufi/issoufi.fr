@@ -1,1 +1,1 @@
-export * from './usePointerOnControlRef';
+export * from './usePointerOnControlRef.ts';

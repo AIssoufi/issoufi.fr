@@ -1,14 +1,14 @@
 // @vitest-environment node
-import { LANGUAGES } from '../i18n/constants';
-import type { Language } from '../i18n/types';
-import { APP_ICONS } from './icons';
+import { LANGUAGES } from '../i18n/constants.ts';
+import type { Language } from '../i18n/types.ts';
+import { APP_ICONS } from './icons.ts';
 import {
   findWebManifestLanguage,
   getWebManifestFiles,
   getWebManifestUrl,
   renderWebManifest,
   WEB_MANIFEST_FILE_NAME,
-} from './webManifest';
+} from './webManifest.ts';
 
 /**
  * Longest short name, in characters, that the home screens of Android and iOS show without cutting

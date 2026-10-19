@@ -1,5 +1,5 @@
-import { theme } from '../../../src/theme/theme';
-import { CV_SOURCES } from '../testUtils';
+import { theme } from '../../../src/theme/theme.ts';
+import { CV_SOURCES } from '../testUtils.js';
 import { buildCvContents } from './languages.mjs';
 import { renderCvStyles } from './styles.mjs';
 import { renderCvHtml } from './template.mjs';

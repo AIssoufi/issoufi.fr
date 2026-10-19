@@ -2,19 +2,19 @@ import { act, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter, useLocation } from 'react-router';
 
-import i18n from '../../../i18n';
-import { LANGUAGE_STORAGE_KEY } from '../../../i18n/constants';
+import i18n from '../../../i18n/index.ts';
+import { LANGUAGE_STORAGE_KEY } from '../../../i18n/constants.ts';
 import {
   declaredStyle,
   FORCED_COLORS_MEDIA,
   getContrastRatio,
   MIN_TEXT_CONTRAST_RATIO,
   serializeCssValue,
-} from '../../../styleTestUtils';
-import { theme } from '../../../theme';
-import { HOVER_POINTER_QUERY } from '../../../theme/constants';
-import UrlLanguage from '../../UrlLanguage';
-import LangToggle from './LangToggle';
+} from '../../../styleTestUtils.js';
+import { theme } from '../../../theme/index.ts';
+import { HOVER_POINTER_QUERY } from '../../../theme/constants.ts';
+import UrlLanguage from '../../UrlLanguage/index.ts';
+import LangToggle from './LangToggle.tsx';
 
 /** The indicator is the first child of the toggle, before the language buttons. */
 const getIndicator = () => screen.getByRole('group').firstElementChild;

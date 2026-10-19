@@ -1,11 +1,11 @@
 import { useTranslation } from 'react-i18next';
 
-import { EXPERIENCES_PAGE } from '../../utils/pages';
+import { EXPERIENCES_PAGE } from '../../utils/pages.ts';
 import experiencesData from './.data/experiences.json';
-import CompanyEntry from './CompanyEntry';
-import type { ExperienceData } from './types';
+import CompanyEntry from './CompanyEntry/index.ts';
+import type { ExperienceData } from './types.ts';
 
-import { ExperiencesPage, PageHeader, PageTitle, Timeline } from './Experiences.styled';
+import { ExperiencesPage, PageHeader, PageTitle, Timeline } from './Experiences.styled.ts';
 
 /** Companies of the timeline, most recent first, with the keys of their texts. */
 const EXPERIENCES: ExperienceData[] = experiencesData.experiences;

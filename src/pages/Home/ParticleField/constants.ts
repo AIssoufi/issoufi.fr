@@ -1,4 +1,4 @@
-import { theme } from '../../../theme';
+import { theme } from '../../../theme/index.ts';
 
 /** Window area per particle: one dot for every 11,000 px², so density stays constant. */
 export const PARTICLE_AREA_PX2 = 11000;

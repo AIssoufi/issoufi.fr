@@ -1,4 +1,4 @@
-import { DEPARTMENT_LINE_START_PATTERN } from './constants';
+import { DEPARTMENT_LINE_START_PATTERN } from './constants.ts';
 
 /** A text that a page shows, with the size of its font. */
 export interface DrawnText {

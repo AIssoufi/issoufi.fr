@@ -1,8 +1,8 @@
 import { useTranslation } from 'react-i18next';
 import { useLocation } from 'react-router';
 
-import StatusPage from '../../components/StatusPage';
-import { getNotFoundMessage } from './utils';
+import StatusPage from '../../components/StatusPage/index.ts';
+import { getNotFoundMessage } from './utils.ts';
 
 /** Props of {@link NotFound}. Both default to the translated not found texts. */
 interface NotFoundProps {

@@ -1,9 +1,9 @@
 import { expect, test } from '@playwright/test';
 
-import { LANGUAGES } from '../src/i18n/constants';
-import { localizePath } from '../src/i18n/utils';
-import { PAGES } from '../src/utils/pages';
-import { LINK_INITIATOR_TYPE, PAGE_SELECTOR, PHOTO_SCREENS } from './constants';
+import { LANGUAGES } from '../src/i18n/constants.ts';
+import { localizePath } from '../src/i18n/utils.ts';
+import { PAGES } from '../src/utils/pages.ts';
+import { LINK_INITIATOR_TYPE, PAGE_SELECTOR, PHOTO_SCREENS } from './constants.ts';
 
 /** URLs of both files of the background photo of every page. */
 const PHOTO_URLS: readonly string[] = PAGES.flatMap(({ backgroundPhoto: { url, portraitUrl } }) => [

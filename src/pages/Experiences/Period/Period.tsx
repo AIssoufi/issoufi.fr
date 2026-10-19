@@ -1,7 +1,7 @@
 import { useTranslation } from 'react-i18next';
 
-import VisuallyHidden from '../../../components/VisuallyHidden';
-import { COLUMN_PERIOD_MARK, DEFAULT_PERIOD_VARIANT, INLINE_PERIOD_MARK } from './constants';
+import VisuallyHidden from '../../../components/VisuallyHidden/index.ts';
+import { COLUMN_PERIOD_MARK, DEFAULT_PERIOD_VARIANT, INLINE_PERIOD_MARK } from './constants.ts';
 import {
   End,
   InlineEnd,
@@ -12,9 +12,9 @@ import {
   RoleStart,
   Separator,
   Start,
-} from './Period.styled';
-import type { PeriodVariant } from './types';
-import { isPeriodVariant } from './utils';
+} from './Period.styled.ts';
+import type { PeriodVariant } from './types.ts';
+import { isPeriodVariant } from './utils.ts';
 
 /** Styled parts of each look of a period, with the mark that the screen shows between its dates. */
 const PERIOD_PARTS = {

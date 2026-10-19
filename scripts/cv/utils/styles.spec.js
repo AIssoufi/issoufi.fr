@@ -1,4 +1,4 @@
-import { theme } from '../../../src/theme/theme';
+import { theme } from '../../../src/theme/theme.ts';
 import { hasUnresolvedValue } from '../../utils/html.mjs';
 import { renderCvStyles } from './styles.mjs';
 

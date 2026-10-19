@@ -1,10 +1,10 @@
 import { expect, test } from '@playwright/test';
 
-import { DEFAULT_LANGUAGE, LANGUAGE_STORAGE_KEY } from '../src/i18n/constants';
-import { en } from '../src/i18n/en';
-import { localizePath } from '../src/i18n/utils';
-import { getPageFiles, getPageUrl } from '../src/utils/pages';
-import { PROJECTS_ROUTE } from './constants';
+import { DEFAULT_LANGUAGE, LANGUAGE_STORAGE_KEY } from '../src/i18n/constants.ts';
+import { en } from '../src/i18n/en.ts';
+import { localizePath } from '../src/i18n/utils.ts';
+import { getPageFiles, getPageUrl } from '../src/utils/pages.ts';
+import { PROJECTS_ROUTE } from './constants.ts';
 
 // The language is in the URL: each page has an HTML file per language, which the server must
 // serve at the URL of that language, on a direct visit as on a reload

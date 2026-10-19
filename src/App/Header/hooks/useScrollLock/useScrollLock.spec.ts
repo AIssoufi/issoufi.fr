@@ -1,6 +1,6 @@
 import { renderHook } from '@testing-library/react';
 
-import { useScrollLock } from './useScrollLock';
+import { useScrollLock } from './useScrollLock.ts';
 
 /** Inline overflow of the root element, which the hook sets. */
 const getRootOverflow = () => document.documentElement.style.overflow;

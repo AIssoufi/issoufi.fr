@@ -1,4 +1,4 @@
-import { getPageScrollY, scrollToEnd } from './scroll';
+import { getPageScrollY, scrollToEnd } from './scroll.ts';
 
 /** Fakes a page scrolled by `scrollY` pixels, with a document `scrollHeight` pixels high. */
 const fakePage = ({ scrollY = 0, scrollHeight = 0 } = {}) => {

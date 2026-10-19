@@ -4,8 +4,8 @@ import {
   PRELOAD_ERROR_EVENT,
   STALE_CHUNK_RELOAD_COOLDOWN_MS,
   STALE_CHUNK_RELOAD_STORAGE_KEY,
-} from '../../constants';
-import { useReloadOnStaleChunk } from './useReloadOnStaleChunk';
+} from '../../constants.ts';
+import { useReloadOnStaleChunk } from './useReloadOnStaleChunk.ts';
 
 const NOW = 1_800_000_000_000;
 

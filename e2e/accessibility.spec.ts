@@ -1,4 +1,4 @@
-import { countBrowserNodes, listBrowserHeadingLevels, listBrowserTexts } from './accessibility';
+import { countBrowserNodes, listBrowserHeadingLevels, listBrowserTexts } from './accessibility.ts';
 
 /** Node id of the document in the fake protocol. */
 const DOCUMENT_NODE_ID = 1;

@@ -1,10 +1,10 @@
 import { useEffect, useRef } from 'react';
 
-import { usePrefersReducedMotion } from '../../../hooks/usePrefersReducedMotion';
-import { OFFSCREEN_POINTER } from '../constants';
-import type { Point } from '../types';
-import { usePointerRef } from '../hooks/usePointerRef';
-import { isPointerOnScreen } from '../utils';
+import { usePrefersReducedMotion } from '../../../hooks/usePrefersReducedMotion/index.ts';
+import { OFFSCREEN_POINTER } from '../constants.ts';
+import type { Point } from '../types.ts';
+import { usePointerRef } from '../hooks/usePointerRef/index.ts';
+import { isPointerOnScreen } from '../utils.ts';
 import {
   CURSOR_LINK_DISTANCE_PX,
   CURSOR_LINK_MAX_OPACITY,
@@ -14,10 +14,10 @@ import {
   LINK_MAX_WIDTH_PX,
   LINK_RGB,
   PARTICLE_COLOR,
-} from './constants';
-import { Canvas } from './ParticleField.styled';
-import type { Particle } from './types';
-import { createParticles, getLinkStrength, stepParticle } from './utils';
+} from './constants.ts';
+import { Canvas } from './ParticleField.styled.ts';
+import type { Particle } from './types.ts';
+import { createParticles, getLinkStrength, stepParticle } from './utils.ts';
 
 const FULL_CIRCLE_RAD = Math.PI * 2;
 

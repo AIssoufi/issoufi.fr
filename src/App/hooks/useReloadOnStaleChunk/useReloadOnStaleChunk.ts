@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 
-import { PRELOAD_ERROR_EVENT, STALE_CHUNK_RELOAD_STORAGE_KEY } from '../../constants';
-import { isStaleChunkReloadAllowed } from '../../utils';
+import { PRELOAD_ERROR_EVENT, STALE_CHUNK_RELOAD_STORAGE_KEY } from '../../constants.ts';
+import { isStaleChunkReloadAllowed } from '../../utils.ts';
 
 /**
  * Reloads the page when a lazily loaded chunk fails to load. Each deployment replaces the hashed

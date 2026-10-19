@@ -1,18 +1,18 @@
 import { useId, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import LocalizedLink from '../../components/LocalizedLink';
-import { useMediaQuery } from '../../hooks/useMediaQuery';
-import { useUrlLanguage } from '../../hooks/useUrlLanguage';
-import { localizePath } from '../../i18n/utils';
-import BurgerMenu from './BurgerMenu';
-import { DESKTOP_MEDIA_QUERY } from './constants';
-import { useEscapeKey } from './hooks/useEscapeKey';
-import { useInertOutside } from './hooks/useInertOutside';
-import { useScrollLock } from './hooks/useScrollLock';
-import LangToggle from './LangToggle';
-import NavMenu from './NavMenu';
-import { formatVersion } from './utils';
+import LocalizedLink from '../../components/LocalizedLink/index.ts';
+import { useMediaQuery } from '../../hooks/useMediaQuery/index.ts';
+import { useUrlLanguage } from '../../hooks/useUrlLanguage/index.ts';
+import { localizePath } from '../../i18n/utils.ts';
+import BurgerMenu from './BurgerMenu/index.ts';
+import { DESKTOP_MEDIA_QUERY } from './constants.ts';
+import { useEscapeKey } from './hooks/useEscapeKey/index.ts';
+import { useInertOutside } from './hooks/useInertOutside/index.ts';
+import { useScrollLock } from './hooks/useScrollLock/index.ts';
+import LangToggle from './LangToggle/index.ts';
+import NavMenu from './NavMenu/index.ts';
+import { formatVersion } from './utils.ts';
 
 import {
   Actions,
@@ -22,7 +22,7 @@ import {
   FloatingControls,
   Logo,
   Menu,
-} from './Header.styled';
+} from './Header.styled.ts';
 
 /**
  * Site header: the "AI" logo linking home, followed by the version of the build in small letters

@@ -1,4 +1,4 @@
-import { CV_SOURCES } from '../testUtils';
+import { CV_SOURCES } from '../testUtils.js';
 import { buildCvContents } from './languages.mjs';
 import { findMissingCvTexts, listCvLinks, listCvTexts } from './texts.mjs';
 

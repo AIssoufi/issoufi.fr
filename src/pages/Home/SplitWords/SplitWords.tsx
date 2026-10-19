@@ -1,13 +1,13 @@
 import { useEffect, useRef } from 'react';
 
-import { usePrefersReducedMotion } from '../../../hooks/usePrefersReducedMotion';
-import { StrongWord } from './SplitWords.styled';
-import { OFFSCREEN_POINTER } from '../constants';
-import { usePointerRef } from '../hooks/usePointerRef';
-import { NON_BREAKING_SPACE, RESTING_WORD, SHIMMER_CYCLE_S } from './constants';
-import { usePointerOnControlRef } from './hooks/usePointerOnControlRef';
-import type { WordState } from './types';
-import { getGlowRadius, getTextShadow, stepWord } from './utils';
+import { usePrefersReducedMotion } from '../../../hooks/usePrefersReducedMotion/index.ts';
+import { StrongWord } from './SplitWords.styled.ts';
+import { OFFSCREEN_POINTER } from '../constants.ts';
+import { usePointerRef } from '../hooks/usePointerRef/index.ts';
+import { NON_BREAKING_SPACE, RESTING_WORD, SHIMMER_CYCLE_S } from './constants.ts';
+import { usePointerOnControlRef } from './hooks/usePointerOnControlRef/index.ts';
+import type { WordState } from './types.ts';
+import { getGlowRadius, getTextShadow, stepWord } from './utils.ts';
 
 /** Props of {@link SplitWords}. */
 interface SplitWordsProps {

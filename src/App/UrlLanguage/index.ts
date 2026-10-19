@@ -1,1 +1,1 @@
-export { default } from './UrlLanguage';
+export { default } from './UrlLanguage.tsx';

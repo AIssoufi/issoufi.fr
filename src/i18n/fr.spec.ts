@@ -1,5 +1,5 @@
-import { fr } from './fr';
-import { getEntries } from './testUtils';
+import { fr } from './fr.ts';
+import { getEntries } from './testUtils.ts';
 
 /**
  * A colon, semicolon, question or exclamation mark with neither a no-break space nor another mark

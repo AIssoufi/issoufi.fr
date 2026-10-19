@@ -1,5 +1,5 @@
-import { stubMatchMedia } from './mediaQueryTestUtils';
-import { PORTRAIT_PHOTO_MEDIA_QUERY } from './utils/pages';
+import { stubMatchMedia } from './mediaQueryTestUtils.ts';
+import { PORTRAIT_PHOTO_MEDIA_QUERY } from './utils/pages.ts';
 
 /** Links of the head that preload an image. */
 const getImagePreloads = () => [
@@ -9,7 +9,7 @@ const getImagePreloads = () => [
 /** Imports the module again, so that its first preload runs as when the app starts. */
 const importModule = async () => {
   vi.resetModules();
-  return import('./preloadBackgroundPhoto');
+  return import('./preloadBackgroundPhoto.ts');
 };
 
 describe('preloadBackgroundPhoto', () => {

@@ -1,5 +1,5 @@
-import { SCROLL_GESTURE_DISTANCE_PX, SCROLL_GESTURE_SPEED_PX_PER_S } from './constants';
-import { scrollDownWithGesture } from './gestures';
+import { SCROLL_GESTURE_DISTANCE_PX, SCROLL_GESTURE_SPEED_PX_PER_S } from './constants.ts';
+import { scrollDownWithGesture } from './gestures.ts';
 
 /** Creates a fake DevTools protocol session whose `send` resolves, or rejects with `error`. */
 const createFakeSession = ({ error }: { error?: Error } = {}) => ({

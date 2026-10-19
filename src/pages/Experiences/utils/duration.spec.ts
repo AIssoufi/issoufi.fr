@@ -1,6 +1,6 @@
-import i18n from '../../../i18n';
-import { fr } from '../../../i18n/fr';
-import { computeDuration, formatDuration, parseMonthYear } from './duration';
+import i18n from '../../../i18n/index.ts';
+import { fr } from '../../../i18n/fr.ts';
+import { computeDuration, formatDuration, parseMonthYear } from './duration.ts';
 
 /** The current date the today keywords are tested against: 17 October 2026. */
 const FAKE_NOW = new Date(2026, 9, 17);

@@ -1,24 +1,24 @@
 import { act, render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
-import i18n from '../../i18n';
-import { LANGUAGES } from '../../i18n/constants';
-import { en } from '../../i18n/en';
-import { fr } from '../../i18n/fr';
-import { theme } from '../../theme';
-import { declaredStyle, serializeCssValue } from '../../styleTestUtils';
-import { getPage } from '../../utils/pages';
-import { readPublicWebpSize } from '../../publicFileTestUtils';
-import { INTERACTIVE_SELECTOR, readBackgroundImages } from '../testUtils';
+import i18n from '../../i18n/index.ts';
+import { LANGUAGES } from '../../i18n/constants.ts';
+import { en } from '../../i18n/en.ts';
+import { fr } from '../../i18n/fr.ts';
+import { theme } from '../../theme/index.ts';
+import { declaredStyle, serializeCssValue } from '../../styleTestUtils.js';
+import { getPage } from '../../utils/pages.ts';
+import { readPublicWebpSize } from '../../publicFileTestUtils.ts';
+import { INTERACTIVE_SELECTOR, readBackgroundImages } from '../testUtils.js';
 import {
   MAX_THUMBNAIL_ASPECT_RATIO,
   ROW_CARD_COUNT,
   THUMBNAIL_FILE_WIDTHS_PX,
-} from './Project/constants';
-import { getThumbnailSources } from './Project/utils';
+} from './Project/constants.ts';
+import { getThumbnailSources } from './Project/utils.ts';
 import freelanceProjectsData from './.data/freelance-projects.json';
 import personalProjectsData from './.data/personal-projects.json';
-import { Projects } from './Projects';
+import { Projects } from './Projects.tsx';
 
 const allProjects = [...personalProjectsData.projects, ...freelanceProjectsData.projects];
 

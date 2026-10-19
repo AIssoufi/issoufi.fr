@@ -1,7 +1,7 @@
 import { useLocation } from 'react-router';
 
-import type { Language } from '../../i18n/types';
-import { getPathLanguage } from '../../i18n/utils';
+import type { Language } from '../../i18n/types.ts';
+import { getPathLanguage } from '../../i18n/utils.ts';
 
 /**
  * Returns the language of the current URL, read from its prefix (see `getPathLanguage`): the

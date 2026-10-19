@@ -1,10 +1,10 @@
 import { expect, test } from '@playwright/test';
 
-import { LANGUAGES } from '../src/i18n/constants';
-import { PAGES } from '../src/utils/pages';
-import { SECURITY_HEADERS } from '../vite/constants';
-import { PAGE_SELECTOR, REPORT_POLICY_VIOLATION_FUNCTION } from './constants';
-import { getCheckedRoutes, isSecurityPolicyMessage } from './utils';
+import { LANGUAGES } from '../src/i18n/constants.ts';
+import { PAGES } from '../src/utils/pages.ts';
+import { SECURITY_HEADERS } from '../vite/constants.ts';
+import { PAGE_SELECTOR, REPORT_POLICY_VIOLATION_FUNCTION } from './constants.ts';
+import { getCheckedRoutes, isSecurityPolicyMessage } from './utils.ts';
 
 /** What a page reports of a resource or inline code that its Content Security Policy blocked. */
 interface PolicyViolation {

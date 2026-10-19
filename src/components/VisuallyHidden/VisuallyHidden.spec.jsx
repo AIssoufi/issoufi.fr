@@ -1,6 +1,6 @@
 import { render, screen } from '@testing-library/react';
 
-import VisuallyHidden from './VisuallyHidden';
+import VisuallyHidden from './VisuallyHidden.tsx';
 
 describe('VisuallyHidden', () => {
   it('renders an empty span without any props', () => {

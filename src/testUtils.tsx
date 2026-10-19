@@ -2,7 +2,7 @@ import type { RenderOptions } from '@testing-library/react';
 import { ThemeProvider } from '@xstyled/styled-components';
 import type { ReactNode } from 'react';
 
-import { GlobalStyle, theme } from './theme';
+import { GlobalStyle, theme } from './theme/index.ts';
 
 /** Component that a spec puts around what it renders, such as a router. */
 type SpecWrapper = RenderOptions['wrapper'];

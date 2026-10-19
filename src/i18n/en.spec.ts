@@ -1,6 +1,6 @@
-import { en } from './en';
-import { fr } from './fr';
-import { getMissingKeys } from './testUtils';
+import { en } from './en.ts';
+import { fr } from './fr.ts';
+import { getMissingKeys } from './testUtils.ts';
 
 describe('en', () => {
   it('translates every key of the French translations', () => {

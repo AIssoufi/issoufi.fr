@@ -1,7 +1,7 @@
 import { expect, type Page, test } from '@playwright/test';
 
-import { fr } from '../src/i18n/fr';
-import { PAGES } from '../src/utils/pages';
+import { fr } from '../src/i18n/fr.ts';
+import { PAGES } from '../src/utils/pages.ts';
 import {
   CONTROL_SELECTOR,
   DESKTOP_LAYOUT_TOUCH_SCREENS,
@@ -10,9 +10,9 @@ import {
   PAGE_SELECTOR,
   SITE_HEADER_SELECTOR,
   SKIP_LINK_SELECTOR,
-} from './constants';
-import { type HitArea, measureHitAreas, type MeasureHitAreasOptions } from './targets';
-import { getCheckedRoutes } from './utils';
+} from './constants.ts';
+import { type HitArea, measureHitAreas, type MeasureHitAreasOptions } from './targets.ts';
+import { getCheckedRoutes } from './utils.ts';
 
 /**
  * Options of the measures: the controls of the page but the skip link, the header over the page,

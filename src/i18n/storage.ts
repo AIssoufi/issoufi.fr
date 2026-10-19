@@ -1,6 +1,6 @@
-import { DEFAULT_LANGUAGE, LANGUAGE_STORAGE_KEY } from './constants';
-import type { Language } from './types';
-import { getPathLanguage, getStartPath, isLanguage } from './utils';
+import { DEFAULT_LANGUAGE, LANGUAGE_STORAGE_KEY } from './constants.ts';
+import type { Language } from './types.ts';
+import { getPathLanguage, getStartPath, isLanguage } from './utils.ts';
 
 /**
  * Returns the language the visitor chose with the toggle on a previous visit, read from

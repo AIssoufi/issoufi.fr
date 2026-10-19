@@ -2,11 +2,11 @@ import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router';
 
-import { readBackgroundImages } from '../../pages/testUtils';
-import { isPublicFile } from '../../publicFileTestUtils';
-import { declaredStyle } from '../../styleTestUtils';
-import { STATUS_PAGE_BACKGROUND_PHOTO } from '../../utils/pages';
-import StatusPage from './StatusPage';
+import { readBackgroundImages } from '../../pages/testUtils.js';
+import { isPublicFile } from '../../publicFileTestUtils.ts';
+import { declaredStyle } from '../../styleTestUtils.js';
+import { STATUS_PAGE_BACKGROUND_PHOTO } from '../../utils/pages.ts';
+import StatusPage from './StatusPage.tsx';
 
 const getMain = () => screen.getByRole('main');
 

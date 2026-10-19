@@ -1,9 +1,9 @@
 import styled, { css, keyframes, th } from '@xstyled/styled-components';
 
-import Page from '../../components/Page';
-import { theme } from '../../theme';
-import { HOVER_POINTER_QUERY, REDUCED_MOTION_QUERY } from '../../theme/constants';
-import { CURSOR_GLOW_RADIUS_PX } from './constants';
+import Page from '../../components/Page/index.ts';
+import { theme } from '../../theme/index.ts';
+import { HOVER_POINTER_QUERY, REDUCED_MOTION_QUERY } from '../../theme/constants.ts';
+import { CURSOR_GLOW_RADIUS_PX } from './constants.ts';
 
 // Keyframes have no theme context, so they read the theme object rather than the th helpers
 const float = keyframes`

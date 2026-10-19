@@ -1,2 +1,2 @@
-export * from './Experiences';
-export { Experiences as default } from './Experiences';
+export * from './Experiences.tsx';
+export { Experiences as default } from './Experiences.tsx';

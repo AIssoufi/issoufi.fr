@@ -1,6 +1,6 @@
 import { fireEvent, renderHook } from '@testing-library/react';
 
-import { usePointerOnControlRef } from './usePointerOnControlRef';
+import { usePointerOnControlRef } from './usePointerOnControlRef.ts';
 
 /** Adds a link holding a word, a button and a plain paragraph to the document. */
 const renderControls = () => {

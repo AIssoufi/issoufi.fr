@@ -1,1 +1,1 @@
-export * from './useInertOutside';
+export * from './useInertOutside.ts';

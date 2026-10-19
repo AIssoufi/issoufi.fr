@@ -1,1 +1,1 @@
-export * from './useWholeCardCount';
+export * from './useWholeCardCount.ts';

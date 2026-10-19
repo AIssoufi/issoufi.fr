@@ -1,5 +1,5 @@
-import { theme } from '../../../theme';
-import type { Point } from '../types';
+import { theme } from '../../../theme/index.ts';
+import type { Point } from '../types.ts';
 import {
   CONTROL_SELECTOR,
   GLOW_PER_DISPLACEMENT_PX,
@@ -14,8 +14,8 @@ import {
   SPIN_FACTOR,
   SPRING_STIFFNESS,
   VELOCITY_DAMPING,
-} from './constants';
-import type { WordState } from './types';
+} from './constants.ts';
+import type { WordState } from './types.ts';
 
 /** Parameters of {@link stepWord}. */
 interface StepWordParams {

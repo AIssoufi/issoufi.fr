@@ -1,1 +1,1 @@
-export { useUrlLanguage } from './useUrlLanguage';
+export { useUrlLanguage } from './useUrlLanguage.ts';

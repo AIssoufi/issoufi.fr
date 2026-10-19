@@ -1,9 +1,9 @@
 import type { ReactNode } from 'react';
 
-import { MAIN_CONTENT_ID } from '../../constants/landmarks';
-import type { BackgroundPhoto } from '../../utils/pages';
-import { Main } from './Page.styled';
-import { getBackgroundImages } from './utils';
+import { MAIN_CONTENT_ID } from '../../constants/landmarks.ts';
+import type { BackgroundPhoto } from '../../utils/pages.ts';
+import { Main } from './Page.styled.ts';
+import { getBackgroundImages } from './utils.ts';
 
 /** Props of {@link Page}. Every prop is optional. */
 interface PageProps {

@@ -1,5 +1,5 @@
-import { STALE_CHUNK_RELOAD_COOLDOWN_MS } from './constants';
-import { focusPageHeading, isStaleChunkReloadAllowed, keepPendingWhileReloading } from './utils';
+import { STALE_CHUNK_RELOAD_COOLDOWN_MS } from './constants.ts';
+import { focusPageHeading, isStaleChunkReloadAllowed, keepPendingWhileReloading } from './utils.ts';
 
 const NOW = 1_800_000_000_000;
 

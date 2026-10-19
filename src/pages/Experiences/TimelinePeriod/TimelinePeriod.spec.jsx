@@ -1,9 +1,9 @@
 import { render, screen } from '@testing-library/react';
 
-import { declaredStyle } from '../../../styleTestUtils';
-import { theme } from '../../../theme/theme';
-import { getReadText } from '../../testUtils';
-import TimelinePeriod from './TimelinePeriod';
+import { declaredStyle } from '../../../styleTestUtils.js';
+import { theme } from '../../../theme/theme.ts';
+import { getReadText } from '../../testUtils.js';
+import TimelinePeriod from './TimelinePeriod.tsx';
 
 /** Color of the start of a job's period, and of a role's dimmer one. */
 const JOB_START_COLOR = 'rgba(212, 160, 192, 0.95)';

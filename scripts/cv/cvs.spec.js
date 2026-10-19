@@ -2,12 +2,12 @@
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 
-import { CV_URLS } from '../../src/App/Header/NavMenu/CvLink/constants';
-import { theme } from '../../src/theme/theme';
+import { CV_URLS } from '../../src/App/Header/NavMenu/CvLink/constants.ts';
+import { theme } from '../../src/theme/theme.ts';
 import { PUBLIC_DIR } from '../utils/constants.mjs';
 import { getFirstFontFamily } from '../utils/fonts.mjs';
 import { CV_FINGERPRINTS_FILE, CV_MAX_BYTES, CV_MAX_PAGES } from './constants.mjs';
-import { CV_SOURCES } from './testUtils';
+import { CV_SOURCES } from './testUtils.js';
 import { getCvFingerprint } from './utils/fingerprint.mjs';
 import { buildCvContents } from './utils/languages.mjs';
 import { findPdfProblems, readPdf } from './utils/pdf.mjs';

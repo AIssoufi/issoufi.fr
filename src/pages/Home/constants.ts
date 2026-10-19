@@ -1,5 +1,5 @@
-import { theme } from '../../theme';
-import type { Point } from './types';
+import { theme } from '../../theme/index.ts';
+import type { Point } from './types.ts';
 
 /** Pointer position used while the mouse is outside the window, far from every element. */
 export const OFFSCREEN_POINTER: Point = { x: -9999, y: -9999 };

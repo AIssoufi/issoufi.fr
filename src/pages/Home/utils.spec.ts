@@ -1,11 +1,11 @@
-import { OFFSCREEN_POINTER } from './constants';
+import { OFFSCREEN_POINTER } from './constants.ts';
 import {
   easeTowards,
   getMagneticOffset,
   getParallaxOffset,
   isPointerOnScreen,
   splitLastWord,
-} from './utils';
+} from './utils.ts';
 
 describe('easeTowards', () => {
   it('covers the given fraction of the distance', () => {

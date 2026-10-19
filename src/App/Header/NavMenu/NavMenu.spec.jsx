@@ -2,11 +2,11 @@ import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router';
 
-import { declaredStyle, serializeCssValue } from '../../../styleTestUtils';
-import { theme } from '../../../theme';
-import { HOVER_POINTER_QUERY } from '../../../theme/constants';
-import { DESKTOP_MEDIA_QUERY } from '../constants';
-import NavMenu from './NavMenu';
+import { declaredStyle, serializeCssValue } from '../../../styleTestUtils.js';
+import { theme } from '../../../theme/index.ts';
+import { HOVER_POINTER_QUERY } from '../../../theme/constants.ts';
+import { DESKTOP_MEDIA_QUERY } from '../constants.ts';
+import NavMenu from './NavMenu.tsx';
 
 const items = [
   { name: 'Accueil', url: '/', end: true },

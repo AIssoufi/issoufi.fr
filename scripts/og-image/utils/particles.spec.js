@@ -1,4 +1,4 @@
-import { getLinkStrength } from '../../../src/pages/Home/ParticleField/utils';
+import { getLinkStrength } from '../../../src/pages/Home/ParticleField/utils.ts';
 import { hasUnresolvedValue } from '../../utils/html.mjs';
 import { findDotLinks, renderParticlesSvg } from './particles.mjs';
 

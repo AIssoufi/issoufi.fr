@@ -1,8 +1,8 @@
 import { statSync } from 'node:fs';
 
-import { LANGUAGES } from '../i18n/constants';
-import { readPublicWebpSize, readWebpSize } from '../publicFileTestUtils';
-import { theme } from '../theme/theme';
+import { LANGUAGES } from '../i18n/constants.ts';
+import { readPublicWebpSize, readWebpSize } from '../publicFileTestUtils.ts';
+import { theme } from '../theme/theme.ts';
 import {
   EXPERIENCES_PAGE,
   getBackgroundPhotoUrl,
@@ -21,7 +21,7 @@ import {
   getPageFiles,
   getPageUrl,
   isTemplatePageFile,
-} from './pages';
+} from './pages.ts';
 
 const [home, projects, experiences] = PAGES;
 

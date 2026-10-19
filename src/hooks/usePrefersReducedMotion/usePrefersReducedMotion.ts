@@ -1,5 +1,5 @@
-import { REDUCED_MOTION_QUERY } from '../../theme/constants';
-import { useMediaQuery } from '../useMediaQuery';
+import { REDUCED_MOTION_QUERY } from '../../theme/constants.ts';
+import { useMediaQuery } from '../useMediaQuery/index.ts';
 
 /**
  * Tells whether the visitor asked their system to reduce motion ({@link REDUCED_MOTION_QUERY}),

@@ -1,7 +1,7 @@
 import { lazy, Suspense } from 'react';
 import { render, screen } from '@testing-library/react';
 
-import ErrorBoundary from './ErrorBoundary';
+import ErrorBoundary from './ErrorBoundary.tsx';
 
 const FALLBACK_TEXT = 'Une erreur est survenue';
 

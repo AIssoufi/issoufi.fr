@@ -15,8 +15,8 @@ import {
   SHARP_IMAGE_SCREEN_WIDTHS_PX,
   SHOW_ALL_BUTTON_NAME,
   TIMELINE_ROUTE,
-} from './constants';
-import { getImageEnlargement, type ImageSize } from './images';
+} from './constants.ts';
+import { getImageEnlargement, type ImageSize } from './images.ts';
 
 /** Projects of the Projects page, from both sections. */
 const PROJECTS = [...personalProjectsData.projects, ...freelanceProjectsData.projects];

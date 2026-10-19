@@ -17,6 +17,7 @@ The agents read these rules, one line each, in [`CLAUDE.md`](../CLAUDE.md).
 - One folder per component: `Name.tsx` with its JSDoc, `Name.spec.jsx`, `Name.styled.ts` and `index.ts`.
 - A sub-component nests in the folder of its parent. A component shared by pages goes in `src/components/`.
 - A style file is imported by its own component only.
+- A relative import names its file with its extension (`./utils.ts`, `./List/index.ts`): Node.js loads the Vite configs as they are, and resolves no other path. ESLint refuses one without it.
 - Props are optional, and a missing one never crashes.
 - A meaningful number is a named constant with its unit. A computation is a pure helper, an effect a hook, each with its tests.
 

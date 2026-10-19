@@ -1,7 +1,7 @@
 import { fireEvent, renderHook } from '@testing-library/react';
 
-import { stubMatchMedia } from '../../../../mediaQueryTestUtils';
-import { useCursorFollower } from './useCursorFollower';
+import { stubMatchMedia } from '../../../../mediaQueryTestUtils.ts';
+import { useCursorFollower } from './useCursorFollower.ts';
 
 const FRAME_MS = 16;
 

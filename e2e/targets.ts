@@ -1,4 +1,4 @@
-import type { ScreenPoint } from './utils';
+import type { ScreenPoint } from './utils.ts';
 
 /** Size of the area that catches the taps of a control, as {@link measureHitAreas} measures it. */
 export interface HitArea {

@@ -3,13 +3,13 @@ import userEvent from '@testing-library/user-event';
 import { BrowserRouter as Router } from 'react-router';
 
 import packageJson from '../../../package.json';
-import i18n from '../../i18n';
-import { LANGUAGE_STORAGE_KEY } from '../../i18n/constants';
-import { en } from '../../i18n/en';
-import { declaredStyle } from '../../styleTestUtils';
-import { theme } from '../../theme';
-import { DESKTOP_MEDIA_QUERY } from './constants';
-import Header from './Header';
+import i18n from '../../i18n/index.ts';
+import { LANGUAGE_STORAGE_KEY } from '../../i18n/constants.ts';
+import { en } from '../../i18n/en.ts';
+import { declaredStyle } from '../../styleTestUtils.js';
+import { theme } from '../../theme/index.ts';
+import { DESKTOP_MEDIA_QUERY } from './constants.ts';
+import Header from './Header.tsx';
 
 /** Renders the header above a page holding a link, which the open mobile menu covers. */
 const renderHeader = (props = {}) => {

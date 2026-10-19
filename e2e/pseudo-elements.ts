@@ -1,6 +1,6 @@
 import type { CDPSession } from '@playwright/test';
 
-import { PSEUDO_ELEMENT_TYPES } from './constants';
+import { PSEUDO_ELEMENT_TYPES } from './constants.ts';
 
 /**
  * DevTools protocol session of a page, from `page.context().newCDPSession(page)`. Only its `send`

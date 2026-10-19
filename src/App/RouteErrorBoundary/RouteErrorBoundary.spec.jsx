@@ -3,8 +3,8 @@ import { act, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { Link, MemoryRouter, Route, Routes } from 'react-router';
 
-import i18n from '../../i18n';
-import RouteErrorBoundary from './RouteErrorBoundary';
+import i18n from '../../i18n/index.ts';
+import RouteErrorBoundary from './RouteErrorBoundary.tsx';
 
 /** Error of a chunk that cannot be fetched, as the browser reports it. */
 const CHUNK_ERROR = new TypeError(

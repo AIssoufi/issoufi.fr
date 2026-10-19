@@ -1,7 +1,7 @@
 // @vitest-environment node
 import { readFileSync } from 'node:fs';
 
-import { APP_ICONS } from '../../../src/utils/icons';
+import { APP_ICONS } from '../../../src/utils/icons.ts';
 import { ICON_LAYOUTS, MASKABLE_SAFE_ZONE_RADIUS_RATIO } from '../constants.mjs';
 import {
   contourToPathData,

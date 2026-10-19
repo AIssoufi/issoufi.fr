@@ -1,4 +1,4 @@
-import { isFingerPointer } from './pointer';
+import { isFingerPointer } from './pointer.ts';
 
 describe('isFingerPointer', () => {
   it('is true for a finger on a touch screen', () => {

@@ -1,13 +1,13 @@
 import { type PointerEvent, useCallback } from 'react';
 
-import { usePrefersReducedMotion } from '../../../../hooks/usePrefersReducedMotion';
-import { isFingerPointer } from '../../../../utils/pointer';
+import { usePrefersReducedMotion } from '../../../../hooks/usePrefersReducedMotion/index.ts';
+import { isFingerPointer } from '../../../../utils/pointer.ts';
 import {
   MAGNET_FOLLOW_TRANSITION,
   MAGNET_RELEASE_TRANSITION,
   MAGNET_STRENGTH,
-} from '../../constants';
-import { getMagneticOffset } from '../../utils';
+} from '../../constants.ts';
+import { getMagneticOffset } from '../../utils.ts';
 
 /** Pointer handlers returned by {@link useMagneticHover}, to spread on the element. */
 interface MagneticHoverHandlers {

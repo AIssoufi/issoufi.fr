@@ -1,13 +1,13 @@
 import { useTranslation } from 'react-i18next';
 
-import VisuallyHidden from '../../components/VisuallyHidden';
-import { PROJECTS_PAGE } from '../../utils/pages';
-import Project from './Project';
+import VisuallyHidden from '../../components/VisuallyHidden/index.ts';
+import { PROJECTS_PAGE } from '../../utils/pages.ts';
+import Project from './Project/index.ts';
 
 import freelanceProjectsData from './.data/freelance-projects.json';
 import personalProjectsData from './.data/personal-projects.json';
-import { ProjectsPage } from './Projects.styled';
-import { translateProjects } from './utils';
+import { ProjectsPage } from './Projects.styled.ts';
+import { translateProjects } from './utils.ts';
 
 /**
  * Projects page: the personal and freelance project sections, with their data read from

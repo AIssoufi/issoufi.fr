@@ -1,6 +1,6 @@
 import type { TFunction } from 'i18next';
 
-import { MONTH_NAMES, MONTHS_PER_YEAR, TODAY_KEYWORDS, YEAR_PATTERN } from '../constants';
+import { MONTH_NAMES, MONTHS_PER_YEAR, TODAY_KEYWORDS, YEAR_PATTERN } from '../constants.ts';
 
 /**
  * Parses a month-year date such as "juin 2021", "Sept. 2019" or "June 2021", ignoring case and

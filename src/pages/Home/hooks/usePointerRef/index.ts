@@ -1,1 +1,1 @@
-export * from './usePointerRef';
+export * from './usePointerRef.ts';

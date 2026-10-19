@@ -1,8 +1,8 @@
 import { type MutableRefObject, useEffect, useRef } from 'react';
 
-import { isFingerPointer } from '../../../../utils/pointer';
-import { OFFSCREEN_POINTER } from '../../constants';
-import type { Point } from '../../types';
+import { isFingerPointer } from '../../../../utils/pointer.ts';
+import { OFFSCREEN_POINTER } from '../../constants.ts';
+import type { Point } from '../../types.ts';
 
 /** Parameters of {@link usePointerRef}. */
 interface UsePointerRefParams {

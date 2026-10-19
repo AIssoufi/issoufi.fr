@@ -1,7 +1,7 @@
 import { fireEvent, renderHook } from '@testing-library/react';
 
-import { OFFSCREEN_POINTER } from '../../constants';
-import { usePointerRef } from './usePointerRef';
+import { OFFSCREEN_POINTER } from '../../constants.ts';
+import { usePointerRef } from './usePointerRef.ts';
 
 describe('usePointerRef', () => {
   afterEach(() => {

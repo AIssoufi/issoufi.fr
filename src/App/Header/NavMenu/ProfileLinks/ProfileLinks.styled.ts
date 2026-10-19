@@ -1,12 +1,12 @@
 import styled, { css, th } from '@xstyled/styled-components';
 
-import NewTabLink from '../../../../components/NewTabLink';
-import { HOVER_POINTER_QUERY } from '../../../../theme/constants';
+import NewTabLink from '../../../../components/NewTabLink/index.ts';
+import { HOVER_POINTER_QUERY } from '../../../../theme/constants.ts';
 import {
   fingerTarget,
   fingerTargetCenteringOffset,
   fingerTargetSize,
-} from '../../../../theme/targets.styled';
+} from '../../../../theme/targets.styled.ts';
 
 /* Space between the icons in the bar of the header on desktop */
 const desktopIconGap = th.space(16);

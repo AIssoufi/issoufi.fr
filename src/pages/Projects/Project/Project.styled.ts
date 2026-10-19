@@ -1,10 +1,10 @@
 import styled, { css, keyframes, th } from '@xstyled/styled-components';
 
-import List from '../../../components/List';
-import NewTabLink from '../../../components/NewTabLink';
-import { HOVER_POINTER_QUERY } from '../../../theme/constants';
-import { fingerTarget } from '../../../theme/targets.styled';
-import { CARD_PERSPECTIVE_PX, LIKE_ANIMATION_MS } from './constants';
+import List from '../../../components/List/index.ts';
+import NewTabLink from '../../../components/NewTabLink/index.ts';
+import { HOVER_POINTER_QUERY } from '../../../theme/constants.ts';
+import { fingerTarget } from '../../../theme/targets.styled.ts';
+import { CARD_PERSPECTIVE_PX, LIKE_ANIMATION_MS } from './constants.ts';
 
 const heartPop = keyframes`
   0%   { transform: scale(1); }

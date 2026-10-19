@@ -1,5 +1,5 @@
-import { LINE_BREAKING_SPACE, OFFSCREEN_POINTER } from './constants';
-import type { Point } from './types';
+import { LINE_BREAKING_SPACE, OFFSCREEN_POINTER } from './constants.ts';
+import type { Point } from './types.ts';
 
 /** Parameters of {@link easeTowards}. */
 interface EaseTowardsParams {

@@ -1,7 +1,7 @@
-import { GITHUB_PROFILE_URL, LINKEDIN_PROFILE_URL } from '../constants/profiles';
-import { LANGUAGES } from '../i18n/constants';
-import type { Language } from '../i18n/types';
-import { EXPERIENCES_PAGE, getPageFiles, getPageUrl, HOME_PAGE, PROJECTS_PAGE } from './pages';
+import { GITHUB_PROFILE_URL, LINKEDIN_PROFILE_URL } from '../constants/profiles.ts';
+import { LANGUAGES } from '../i18n/constants.ts';
+import type { Language } from '../i18n/types.ts';
+import { EXPERIENCES_PAGE, getPageFiles, getPageUrl, HOME_PAGE, PROJECTS_PAGE } from './pages.ts';
 import {
   getStructuredData,
   PERSON_ID,
@@ -10,7 +10,7 @@ import {
   serializeStructuredData,
   type StructuredData,
   type WebPageNode,
-} from './structuredData';
+} from './structuredData.ts';
 
 /** Opening tag of the script element of the structured data. */
 const SCRIPT_START = '<script type="application/ld+json">';

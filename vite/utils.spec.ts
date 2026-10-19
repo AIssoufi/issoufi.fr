@@ -1,6 +1,6 @@
-import { FONT_FACES } from '../src/theme/constants';
-import type { FontFaceDeclaration } from '../src/theme/types';
-import { renderFontFaces } from '../src/theme/utils';
+import { FONT_FACES } from '../src/theme/constants.ts';
+import type { FontFaceDeclaration } from '../src/theme/types.ts';
+import { renderFontFaces } from '../src/theme/utils.ts';
 import {
   DEFAULT_DEV_PORT,
   DEFAULT_PREVIEW_PORT,
@@ -12,8 +12,8 @@ import {
   NO_INDEX_HEADERS,
   PAGES_PROJECT_HOST,
   SECURITY_HEADERS,
-} from './constants';
-import type { HeaderRule } from './types';
+} from './constants.ts';
+import type { HeaderRule } from './types.ts';
 import {
   getChunkName,
   getFontFaceTags,
@@ -22,7 +22,7 @@ import {
   getServerPorts,
   parsePort,
   renderHeaderRules,
-} from './utils';
+} from './utils.ts';
 
 describe('parsePort', () => {
   it.each([

@@ -1,14 +1,14 @@
 import { expect, test } from '@playwright/test';
 
-import { LANGUAGES } from '../src/i18n/constants';
-import { en } from '../src/i18n/en';
-import { fr } from '../src/i18n/fr';
-import { getEntries } from '../src/i18n/testUtils';
-import type { Language, Translations } from '../src/i18n/types';
-import { localizePath } from '../src/i18n/utils';
+import { LANGUAGES } from '../src/i18n/constants.ts';
+import { en } from '../src/i18n/en.ts';
+import { fr } from '../src/i18n/fr.ts';
+import { getEntries } from '../src/i18n/testUtils.ts';
+import type { Language, Translations } from '../src/i18n/types.ts';
+import { localizePath } from '../src/i18n/utils.ts';
 import experiencesData from '../src/pages/Experiences/.data/experiences.json' with { type: 'json' };
-import type { ExperienceData } from '../src/pages/Experiences/types';
-import { listBrowserHeadingLevels, listBrowserTexts } from './accessibility';
+import type { ExperienceData } from '../src/pages/Experiences/types.ts';
+import { listBrowserHeadingLevels, listBrowserTexts } from './accessibility.ts';
 import {
   DECORATION_PATTERN,
   EXPERIENCES_SCREEN_WIDTHS_PX,
@@ -17,8 +17,8 @@ import {
   SCREEN_HEIGHT_PX,
   TIMELINE_LINE_ATTRIBUTE,
   TIMELINE_ROUTE,
-} from './constants';
-import { countOccurrences, findSkippedHeadingLevels } from './utils';
+} from './constants.ts';
+import { countOccurrences, findSkippedHeadingLevels } from './utils.ts';
 
 /** Translations of each language, to find the dates of the jobs by their keys. */
 const TRANSLATIONS = { fr, en } satisfies Record<Language, Translations>;

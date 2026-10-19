@@ -1,4 +1,4 @@
-import { getEntries, getMissingKeys } from './testUtils';
+import { getEntries, getMissingKeys } from './testUtils.ts';
 
 describe('getEntries', () => {
   it('finds every nested translation, with its dotted key', () => {

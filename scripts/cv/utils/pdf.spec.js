@@ -4,7 +4,7 @@ import { join } from 'node:path';
 
 import { getDocument } from 'pdfjs-dist/legacy/build/pdf.mjs';
 
-import { CV_URLS } from '../../../src/App/Header/NavMenu/CvLink/constants';
+import { CV_URLS } from '../../../src/App/Header/NavMenu/CvLink/constants.ts';
 import { PUBLIC_DIR } from '../../utils/constants.mjs';
 import { findPdfProblems, isSamePdfApartFromDates, readPdf } from './pdf.mjs';
 

@@ -1,4 +1,4 @@
-import { FINGER_POINTER_TYPE } from '../constants/pointer';
+import { FINGER_POINTER_TYPE } from '../constants/pointer.ts';
 
 /**
  * Tells whether a pointer event comes from a finger on a touch screen, which hovers nothing. The

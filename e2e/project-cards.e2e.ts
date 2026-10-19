@@ -1,22 +1,22 @@
 import { expect, test, type Locator, type Page } from '@playwright/test';
 
-import { DEFAULT_LANGUAGE, LANGUAGES } from '../src/i18n/constants';
-import { en } from '../src/i18n/en';
-import type { Language } from '../src/i18n/types';
-import { fr } from '../src/i18n/fr';
-import { localizePath } from '../src/i18n/utils';
+import { DEFAULT_LANGUAGE, LANGUAGES } from '../src/i18n/constants.ts';
+import { en } from '../src/i18n/en.ts';
+import type { Language } from '../src/i18n/types.ts';
+import { fr } from '../src/i18n/fr.ts';
+import { localizePath } from '../src/i18n/utils.ts';
 import freelanceProjectsData from '../src/pages/Projects/.data/freelance-projects.json' with { type: 'json' };
 import personalProjectsData from '../src/pages/Projects/.data/personal-projects.json' with { type: 'json' };
-import { ROW_CARD_COUNT } from '../src/pages/Projects/Project/constants';
-import type { ProjectItemData } from '../src/pages/Projects/Project/types';
-import { getThumbnailSources } from '../src/pages/Projects/Project/utils';
+import { ROW_CARD_COUNT } from '../src/pages/Projects/Project/constants.ts';
+import type { ProjectItemData } from '../src/pages/Projects/Project/types.ts';
+import { getThumbnailSources } from '../src/pages/Projects/Project/utils.ts';
 import {
   MAX_CARD_OFFSET_PX,
   PROJECT_CARD_SCREEN_WIDTHS_PX,
   PROJECTS_ROUTE,
   SCREEN_HEIGHT_PX,
-} from './constants';
-import { type CardBox, countWholeCards, filterWholeCards, groupCardsIntoRows } from './utils';
+} from './constants.ts';
+import { type CardBox, countWholeCards, filterWholeCards, groupCardsIntoRows } from './utils.ts';
 
 /** Texts of the Projects page in each language. */
 const TEXTS = { fr: fr.projects, en: en.projects };

@@ -1,11 +1,11 @@
 import { expect, test } from '@playwright/test';
 
-import { LANGUAGES } from '../src/i18n/constants';
-import { MIN_FONT_SIZE_PX } from '../src/theme/constants';
-import { PAGES } from '../src/utils/pages';
-import { PAGE_SELECTOR, SCREEN_HEIGHT_PX, TEXT_SIZE_SCREEN_WIDTHS_PX } from './constants';
-import { describeSmallTexts, listDrawnTexts } from './text';
-import { getCheckedRoutes } from './utils';
+import { LANGUAGES } from '../src/i18n/constants.ts';
+import { MIN_FONT_SIZE_PX } from '../src/theme/constants.ts';
+import { PAGES } from '../src/utils/pages.ts';
+import { PAGE_SELECTOR, SCREEN_HEIGHT_PX, TEXT_SIZE_SCREEN_WIDTHS_PX } from './constants.ts';
+import { describeSmallTexts, listDrawnTexts } from './text.ts';
+import { getCheckedRoutes } from './utils.ts';
 
 // jsdom ignores the media queries that change the font sizes: only a real browser tells the size
 // that each text is drawn in

@@ -1,12 +1,12 @@
 import { expect, type Locator, type Page, test } from '@playwright/test';
 
-import { LANGUAGE_NAMES } from '../src/App/Header/LangToggle/constants';
-import { LANGUAGES } from '../src/i18n/constants';
-import { en } from '../src/i18n/en';
-import { fr } from '../src/i18n/fr';
-import type { Translations } from '../src/i18n/types';
-import { localizePath } from '../src/i18n/utils';
-import { waitForEndingAnimations } from './animations';
+import { LANGUAGE_NAMES } from '../src/App/Header/LangToggle/constants.ts';
+import { LANGUAGES } from '../src/i18n/constants.ts';
+import { en } from '../src/i18n/en.ts';
+import { fr } from '../src/i18n/fr.ts';
+import type { Translations } from '../src/i18n/types.ts';
+import { localizePath } from '../src/i18n/utils.ts';
+import { waitForEndingAnimations } from './animations.ts';
 import {
   FINGER_TARGET_SIZE_PX,
   LANDSCAPE_PHONE_SCREENS,
@@ -16,10 +16,10 @@ import {
   MOBILE_LAYOUT_SCREENS,
   PAGE_SELECTOR,
   SHORTER_THAN_MENU_SCREEN,
-} from './constants';
-import { scrollDownWithGesture, type ScrollGestureSource } from './gestures';
-import { getPageScrollY } from './scroll';
-import { doBoxesOverlapHorizontally, getScreenBox, getScreenCenter, isBoxInside } from './utils';
+} from './constants.ts';
+import { scrollDownWithGesture, type ScrollGestureSource } from './gestures.ts';
+import { getPageScrollY } from './scroll.ts';
+import { doBoxesOverlapHorizontally, getScreenBox, getScreenCenter, isBoxInside } from './utils.ts';
 
 /** Translations of each language, to find the burger button and the links of the menu. */
 const TRANSLATIONS = { fr, en };

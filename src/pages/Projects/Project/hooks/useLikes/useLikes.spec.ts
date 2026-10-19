@@ -1,7 +1,7 @@
 import { act, renderHook } from '@testing-library/react';
 
-import { LIKE_ANIMATION_MS, LIKED_PROJECTS_STORAGE_KEY } from '../../constants';
-import { useLikes } from './useLikes';
+import { LIKE_ANIMATION_MS, LIKED_PROJECTS_STORAGE_KEY } from '../../constants.ts';
+import { useLikes } from './useLikes.ts';
 
 /** Makes every access to `localStorage` throw, as when the browser blocks it. */
 const blockStorageAccess = () =>

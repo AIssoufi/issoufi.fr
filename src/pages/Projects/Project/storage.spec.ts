@@ -1,5 +1,5 @@
-import { LIKED_PROJECTS_STORAGE_KEY } from './constants';
-import { getStoredLikedIds, storeLike } from './storage';
+import { LIKED_PROJECTS_STORAGE_KEY } from './constants.ts';
+import { getStoredLikedIds, storeLike } from './storage.ts';
 
 /** Error thrown by the storage when the browser blocks it, as with cookies disabled. */
 const securityError = () => new DOMException('The operation is insecure.', 'SecurityError');

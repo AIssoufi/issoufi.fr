@@ -1,1 +1,1 @@
-export { default } from './TimelinePeriod';
+export { default } from './TimelinePeriod.tsx';

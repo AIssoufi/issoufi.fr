@@ -1,5 +1,5 @@
 // @vitest-environment node
-import { removeManifestLinks } from './manifest';
+import { removeManifestLinks } from './manifest.ts';
 
 describe('removeManifestLinks', () => {
   it('removes the link to the manifest, with its line', () => {

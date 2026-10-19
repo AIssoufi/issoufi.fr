@@ -3,7 +3,7 @@ import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { Link, MemoryRouter, Route, Routes, useNavigate } from 'react-router';
 
-import PageHeadingFocus from './PageHeadingFocus';
+import PageHeadingFocus from './PageHeadingFocus.tsx';
 
 /** A page with its heading and a link to the other page. */
 const Page = ({ title, linkTo }) => (

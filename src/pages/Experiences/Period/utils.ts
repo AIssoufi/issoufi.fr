@@ -1,5 +1,5 @@
-import { PERIOD_VARIANTS } from './constants';
-import type { PeriodVariant } from './types';
+import { PERIOD_VARIANTS } from './constants.ts';
+import type { PeriodVariant } from './types.ts';
 
 /**
  * Tells whether a value is one of the {@link PERIOD_VARIANTS}, written exactly, such as `role`.

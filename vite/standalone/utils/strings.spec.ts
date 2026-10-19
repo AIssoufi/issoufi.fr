@@ -1,5 +1,5 @@
 // @vitest-environment node
-import { escapeRegExp, isFileName } from './strings';
+import { escapeRegExp, isFileName } from './strings.ts';
 
 describe('escapeRegExp', () => {
   it.each([

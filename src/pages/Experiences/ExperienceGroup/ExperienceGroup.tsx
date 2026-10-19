@@ -1,12 +1,18 @@
 import React from 'react';
 
-import VisuallyHidden from '../../../components/VisuallyHidden';
-import JobSummary from '../JobSummary';
-import Project from '../Project';
-import Technologies from '../Technologies';
-import TimelinePeriod from '../TimelinePeriod';
+import VisuallyHidden from '../../../components/VisuallyHidden/index.ts';
+import JobSummary from '../JobSummary/index.ts';
+import Project from '../Project/index.ts';
+import Technologies from '../Technologies/index.ts';
+import TimelinePeriod from '../TimelinePeriod/index.ts';
 
-import { GroupItem, RoleContent, RoleDetails, RoleItem, RolesList } from './ExperienceGroup.styled';
+import {
+  GroupItem,
+  RoleContent,
+  RoleDetails,
+  RoleItem,
+  RolesList,
+} from './ExperienceGroup.styled.ts';
 
 /** Company details shared by every {@link Role} of an {@link ExperienceGroup}. */
 interface CompanyCtxValue {

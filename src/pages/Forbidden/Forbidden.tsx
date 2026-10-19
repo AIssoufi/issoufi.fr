@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next';
 
-import StatusPage from '../../components/StatusPage';
+import StatusPage from '../../components/StatusPage/index.ts';
 
 /** Props of {@link Forbidden}. Both default to the translated forbidden texts. */
 interface ForbiddenProps {

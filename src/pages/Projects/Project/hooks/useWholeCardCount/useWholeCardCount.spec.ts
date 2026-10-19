@@ -2,8 +2,8 @@ import { act, renderHook } from '@testing-library/react';
 import { createElement } from 'react';
 import { renderToString } from 'react-dom/server';
 
-import { ROW_CARD_COUNT } from '../../constants';
-import { useWholeCardCount } from './useWholeCardCount';
+import { ROW_CARD_COUNT } from '../../constants.ts';
+import { useWholeCardCount } from './useWholeCardCount.ts';
 
 /** Parameters of {@link createRow}: the layout of a fake row, which jsdom would not lay out. */
 interface CreateRowParams {

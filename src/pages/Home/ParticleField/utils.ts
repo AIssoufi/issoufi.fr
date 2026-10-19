@@ -1,4 +1,4 @@
-import type { Point } from '../types';
+import type { Point } from '../types.ts';
 import {
   FRICTION,
   INITIAL_SPEED_RANGE_PX,
@@ -7,8 +7,8 @@ import {
   PARTICLE_RADIUS_RANGE_PX,
   REPEL_DISTANCE_PX,
   REPEL_STRENGTH,
-} from './constants';
-import type { Particle } from './types';
+} from './constants.ts';
+import type { Particle } from './types.ts';
 
 /** Parameters of {@link createParticles}. */
 interface CreateParticlesParams {

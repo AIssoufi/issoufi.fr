@@ -1,6 +1,13 @@
 import { NavLink } from 'react-router';
 
-import { MenuCvLink, MenuProfileLinks, Nav, NavItem, NavList, Separator } from './NavMenu.styled';
+import {
+  MenuCvLink,
+  MenuProfileLinks,
+  Nav,
+  NavItem,
+  NavList,
+  Separator,
+} from './NavMenu.styled.ts';
 
 /** A single link of the navigation menu. */
 interface Item {

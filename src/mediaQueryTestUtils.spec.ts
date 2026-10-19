@@ -1,4 +1,4 @@
-import { stubMatchMedia } from './mediaQueryTestUtils';
+import { stubMatchMedia } from './mediaQueryTestUtils.ts';
 
 const QUERY = '(prefers-reduced-motion: reduce)';
 

@@ -1,11 +1,11 @@
 import { act, fireEvent, render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
-import i18n from '../../../i18n';
-import { theme } from '../../../theme';
-import { HOVER_POINTER_QUERY } from '../../../theme/constants';
-import { holdsFunctionSource } from '../../../cssRuleGuard';
-import { stubMatchMedia } from '../../../mediaQueryTestUtils';
+import i18n from '../../../i18n/index.ts';
+import { theme } from '../../../theme/index.ts';
+import { HOVER_POINTER_QUERY } from '../../../theme/constants.ts';
+import { holdsFunctionSource } from '../../../cssRuleGuard.ts';
+import { stubMatchMedia } from '../../../mediaQueryTestUtils.ts';
 import {
   blendColors,
   declaredStyle,
@@ -14,8 +14,8 @@ import {
   listStyleRules,
   MIN_ICON_CONTRAST_RATIO,
   serializeCssValue,
-} from '../../../styleTestUtils';
-import { INTERACTIVE_SELECTOR } from '../../testUtils';
+} from '../../../styleTestUtils.js';
+import { INTERACTIVE_SELECTOR } from '../../testUtils.js';
 
 import {
   CARD_HOVER_LIFT_PX,
@@ -25,13 +25,13 @@ import {
   LIKED_PROJECTS_STORAGE_KEY,
   ROW_CARD_COUNT,
   THUMBNAIL_SIZES,
-} from './constants';
-import { useWholeCardCount } from './hooks/useWholeCardCount';
-import Project from './Project';
+} from './constants.ts';
+import { useWholeCardCount } from './hooks/useWholeCardCount/index.ts';
+import Project from './Project.tsx';
 
 // jsdom lays nothing out, so the row counts as many cards shown whole as it holds: the tests of a
 // narrower screen give the count that it would measure
-vi.mock('./hooks/useWholeCardCount', async importOriginal => {
+vi.mock('./hooks/useWholeCardCount/index.ts', async importOriginal => {
   const hook = await importOriginal();
   return { ...hook, useWholeCardCount: vi.fn(hook.useWholeCardCount) };
 });

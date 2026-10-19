@@ -1,6 +1,6 @@
-import { OFFSCREEN_POINTER } from '../constants';
-import { FRICTION, MIN_PARTICLE_RADIUS_PX, PARTICLE_AREA_PX2 } from './constants';
-import { createParticles, getLinkStrength, stepParticle, wrapAround } from './utils';
+import { OFFSCREEN_POINTER } from '../constants.ts';
+import { FRICTION, MIN_PARTICLE_RADIUS_PX, PARTICLE_AREA_PX2 } from './constants.ts';
+import { createParticles, getLinkStrength, stepParticle, wrapAround } from './utils.ts';
 
 const still = { x: 100, y: 100, vx: 0, vy: 0, size: 1 };
 

@@ -2,9 +2,9 @@ import '@testing-library/jest-dom/vitest';
 import type { RenderOptions } from '@testing-library/react';
 import type { ReactNode } from 'react';
 import { afterEach, vi } from 'vitest';
-import './i18n/index';
-import { logDroppedCssRules } from './cssRuleGuard';
-import { describeLoggedErrors } from './testErrors';
+import './i18n/index.ts';
+import { logDroppedCssRules } from './cssRuleGuard.ts';
+import { describeLoggedErrors } from './testErrors.ts';
 
 // jsdom ignores the inert attribute: like a browser, refuse the focus to an element inside an
 // inert subtree, so that keyboard tests see the focus stay out of it. The specs that run in the
@@ -32,7 +32,7 @@ if (hasDom) {
 // such as a router, goes inside the theme.
 vi.mock('@testing-library/react', async importOriginal => {
   const testingLibrary = await importOriginal<typeof import('@testing-library/react')>();
-  const { withTheme } = await import('./testUtils');
+  const { withTheme } = await import('./testUtils.tsx');
   const render = (ui: ReactNode, options?: RenderOptions) =>
     testingLibrary.render(ui, { ...options, wrapper: withTheme(options?.wrapper) });
 
