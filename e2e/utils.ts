@@ -6,6 +6,7 @@ import {
   NETWORK_PROTOCOLS,
   NOT_FOUND_ROUTE,
   QUAD_COORDINATE_COUNT,
+  SECURITY_POLICY_MESSAGE_PATTERN,
   TRAILING_DOT_PATTERN,
 } from './constants';
 
@@ -494,6 +495,21 @@ export const isGoogleUrl = (url?: unknown): boolean => {
   const goesToAHost = (NETWORK_PROTOCOLS as readonly string[]).includes(protocol);
   return goesToAHost && isGoogleHost(hostname);
 };
+
+/**
+ * Tells whether a message of the browser console is about a security policy of the page (see
+ * {@link SECURITY_POLICY_MESSAGE_PATTERN}): something that its Content Security Policy blocked,
+ * or a directive of its Content Security Policy or Permissions-Policy that the browser refused.
+ *
+ * @param text - Text of the console message, as Playwright gives it.
+ * @returns `false` for any other message, and for a value that is not a string.
+ *
+ * @example
+ * isSecurityPolicyMessage("Loading 'x.png' violates the Content Security Policy"); // true
+ * isSecurityPolicyMessage('Failed to load resource: … a status of 404 (Not Found)'); // false
+ */
+export const isSecurityPolicyMessage = (text?: unknown): boolean =>
+  typeof text === 'string' && SECURITY_POLICY_MESSAGE_PATTERN.test(text);
 
 /** Point of the screen, in CSS pixels from its top left corner. */
 export interface ScreenPoint {
