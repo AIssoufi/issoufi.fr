@@ -19,6 +19,12 @@ interface CreateRowParams {
   margin?: string;
   /** Number of cards in the list. @default 3 */
   cardCount?: number;
+  /**
+   * Number of cards, from the first one, hidden with `display: none`, as the cards out of the page
+   * of the row, and without a width, as a browser computes it for a box it does not lay out.
+   * @default 0
+   */
+  hiddenCardCount?: number;
 }
 
 /** Parameters of {@link setRowWidth}. */
@@ -45,6 +51,7 @@ const createRow = ({
   cardWidth = '327px',
   margin = '5px',
   cardCount = 3,
+  hiddenCardCount = 0,
 }: CreateRowParams) => {
   const list = document.createElement('ul');
   list.style.paddingLeft = paddingLeft;
@@ -52,7 +59,9 @@ const createRow = ({
   setRowWidth({ list, rowWidth });
   for (let index = 0; index < cardCount; index += 1) {
     const card = document.createElement('li');
-    card.style.width = cardWidth;
+    const isHidden = index < hiddenCardCount;
+    card.style.display = isHidden ? 'none' : 'block';
+    card.style.width = isHidden ? 'auto' : cardWidth;
     card.style.margin = margin;
     list.append(card);
   }
@@ -140,6 +149,22 @@ describe('useWholeCardCount', () => {
     const { result } = renderWithList({ list: createRow(layout) });
 
     expect(result.current.wholeCardCount).toBe(expected);
+  });
+
+  it('measures the first card shown, past the cards hidden out of the page of the row', () => {
+    const list = createRow({ rowWidth: 375, cardCount: 5, hiddenCardCount: 3 });
+
+    const { result } = renderWithList({ list });
+
+    expect(result.current.wholeCardCount).toBe(1);
+  });
+
+  it('counts the cards that the row holds when every card of the list is hidden', () => {
+    const list = createRow({ rowWidth: 375, hiddenCardCount: 3 });
+
+    const { result } = renderWithList({ list });
+
+    expect(result.current.wholeCardCount).toBe(ROW_CARD_COUNT);
   });
 
   it('counts the gap of the list between the cards', () => {
