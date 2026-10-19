@@ -534,20 +534,31 @@ export const HERO_WORD_SELECTOR = 'span:not(:has(span))';
 export const POINTER_REST_FRAME_COUNT = 4;
 
 /**
- * Screen widths, in pixels, at which axe-core checks the contrast of the texts of every page: a
+ * Screen widths, in pixels, at which axe-core checks every page with {@link PAGE_AXE_RULES}: a
  * phone (375) and a tablet held upright (768), with the mobile menu closed then open, a tablet
  * held sideways (1024), a laptop (1280) and a common desktop width (1440).
  */
-export const CONTRAST_SCREEN_WIDTHS_PX = [375, 768, 1024, 1280, 1440] as const;
+export const AXE_SCREEN_WIDTHS_PX = [375, 768, 1024, 1280, 1440] as const;
 
-/** Screen widths, in pixels, among {@link CONTRAST_SCREEN_WIDTHS_PX}, that show the mobile menu. */
-export const MENU_CONTRAST_SCREEN_WIDTHS_PX = [375, 768] as const;
+/** Screen widths, in pixels, among {@link AXE_SCREEN_WIDTHS_PX}, that show the mobile menu. */
+export const MENU_AXE_SCREEN_WIDTHS_PX = [375, 768] as const;
 
 /**
  * Rule of axe-core that checks the contrast of each text against its background: 4.5:1, or 3:1 for
  * a large text, the level AA of the Web Content Accessibility Guidelines (success criterion 1.4.3).
  */
 export const COLOR_CONTRAST_RULE = 'color-contrast';
+
+/**
+ * Rule of axe-core that checks that the accessible name of a control given by `aria-label` or
+ * `aria-labelledby` holds its visible text, so that a voice control user who says what they see
+ * finds it (success criterion 2.5.3, Label in Name, level A). Experimental, so axe-core runs it only
+ * when it is named.
+ */
+export const LABEL_IN_NAME_RULE = 'label-content-name-mismatch';
+
+/** Rules of axe-core that every page passes, at each of {@link AXE_SCREEN_WIDTHS_PX}. */
+export const PAGE_AXE_RULES = [COLOR_CONTRAST_RULE, LABEL_IN_NAME_RULE] as const;
 
 /**
  * Screen widths, in pixels, at which no page may show a text under the smallest font size of the
