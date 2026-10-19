@@ -2,8 +2,9 @@
 // Checks that a deployed site serves the pages of the local build: every page of dist/ and of its
 // language folders at its route with a 200, and the not found page of each folder with a 404, each
 // with the title and canonical URL of the build, then robots.txt and sitemap.xml unchanged at its
-// root. Retries for a while, since a new deployment can take a moment to spread. Without a site
-// URL, it checks the production site, SITE_URL of constants.mjs.
+// root, and the web app manifest of each language unchanged, as application/manifest+json.
+// Retries for a while, since a new deployment can take a moment to spread. Without a site URL, it
+// checks the production site, SITE_URL of constants.mjs.
 // Usage: node scripts/ci/smoke-test.mjs [site URL]
 import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
@@ -60,6 +61,7 @@ if (!hasPages) {
  * @property {number} status - Status the site answered with.
  * @property {string} served - Content the site answered with.
  * @property {string} built - Content of the file in the build.
+ * @property {string | null} contentType - `Content-Type` header of the response, if any.
  */
 
 /**
@@ -76,6 +78,7 @@ const checkRoute = async ({ check, compare }) => {
     return compare({
       status: response.status,
       served: await response.text(),
+      contentType: response.headers.get('content-type'),
       built: readFileSync(join(DIST_DIR, check.file), 'utf8'),
     });
   } catch (error) {
@@ -96,8 +99,8 @@ const checkSite = async () => {
     ...files.map(check =>
       checkRoute({
         check,
-        compare: ({ status, served, built }) =>
-          compareFile({ check, status, servedText: served, builtText: built }),
+        compare: ({ status, served, built, contentType }) =>
+          compareFile({ check, status, servedText: served, builtText: built, contentType }),
       }),
     ),
   ]);
