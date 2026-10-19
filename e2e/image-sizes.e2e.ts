@@ -59,6 +59,14 @@ const showAllProjects = async (page: Page) => {
   while ((await showAllButtons.count()) > 0) await showAllButtons.first().click();
 };
 
+/** Parameters of {@link measureShownImages}. */
+interface MeasureShownImagesParams {
+  /** Page of the browser. */
+  page: Page;
+  /** Number of images that the page shows, every project shown on the Projects page. */
+  count: number;
+}
+
 /**
  * Brings each image of the page into view, so that a lazy one downloads, waits for its file, and
  * measures it: the size of the file is read from a separate `Image` without `srcset`, since the
@@ -67,7 +75,7 @@ const showAllProjects = async (page: Page) => {
 const measureShownImages = async ({
   page,
   count,
-}: Omit<OpenAndMeasureImagesParams, 'route'>): Promise<ShownImage[]> => {
+}: MeasureShownImagesParams): Promise<ShownImage[]> => {
   const images = page.locator(`${PAGE_SELECTOR} img`);
   // The page is rendered from its own chunk, after the first paint
   await expect(images, 'images of the page').toHaveCount(count);
@@ -95,13 +103,9 @@ const measureShownImages = async ({
 };
 
 /** Parameters of {@link openAndMeasureImages}. */
-interface OpenAndMeasureImagesParams {
-  /** Page of the browser. */
-  page: Page;
+interface OpenAndMeasureImagesParams extends MeasureShownImagesParams {
   /** Route of the page of the site to open. */
   route: string;
-  /** Number of images that the page shows, every project shown on the Projects page. */
-  count: number;
 }
 
 /** Opens a page, with every project shown on the Projects page, and measures its images. */

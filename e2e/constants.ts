@@ -446,8 +446,8 @@ export const MAX_FILE_TO_SHOWN_WIDTH_RATIO = 2;
 
 /**
  * `nameKey` of the projects whose screenshot is smaller than their card needs on a 2x screen: their
- * site is offline, and its original the largest file there is, until the site owner replaces it.
- * The browser test of the image sizes leaves their thumbnails out.
+ * site is offline, and its original the largest file there is, until the site owner replaces it
+ * (issue #238). The browser test of the image sizes leaves their thumbnails out.
  */
 export const LOW_RESOLUTION_PROJECT_NAME_KEYS: readonly string[] = [
   'trouilletDecors',

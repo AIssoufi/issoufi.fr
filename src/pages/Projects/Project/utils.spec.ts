@@ -312,6 +312,15 @@ describe('getPageProjects', () => {
     expect(getPageProjects({ projects: [], pageStart: 0 })).toEqual([]);
   });
 
+  it.each([-1, -4, 1.5, NaN, Infinity, -Infinity])(
+    'shows the first page from %s, which starts no page',
+    pageStart => {
+      expect(getPageProjects({ projects: PROJECTS, pageStart }).map(({ id }) => id)).toEqual([
+        1, 2, 3,
+      ]);
+    },
+  );
+
   it('leaves the projects unchanged', () => {
     const projects = [1, 2, 3, 4].map(projectOf);
 

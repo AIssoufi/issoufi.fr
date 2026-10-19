@@ -250,18 +250,24 @@ interface GetPageProjectsParams {
   pageStart: number;
 }
 
+/** Whether a value can start a page: a whole number of cards from the first one. */
+const isPageStart = (value: unknown): value is number =>
+  typeof value === 'number' && Number.isInteger(value) && value >= 0;
+
 /**
  * Returns the projects that the row shows from a page: {@link ROW_CARD_COUNT} cards from its
  * first one, those it shows whole and the next ones, which it scrolls to.
  *
- * @returns Fewer cards on the last page, and none past the last project.
+ * @returns Fewer cards on the last page, and none past the last project. A start that is not a
+ * whole number from zero, such as `-1`, `1.5` or `NaN`, shows the first page.
  *
  * @example
  * getPageProjects({ projects: [chess, calculator, store, connectFour], pageStart: 1 });
  * // [calculator, store, connectFour]
  */
 export function getPageProjects({ projects, pageStart }: GetPageProjectsParams): ProjectItemData[] {
-  return projects.slice(pageStart, pageStart + ROW_CARD_COUNT);
+  const start = isPageStart(pageStart) ? pageStart : 0;
+  return projects.slice(start, start + ROW_CARD_COUNT);
 }
 
 /** Any white space character, which would split a URL of a `srcset` in two. */
