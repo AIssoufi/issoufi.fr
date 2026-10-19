@@ -147,6 +147,20 @@ export const JOB_CARD_SELECTOR = `${PAGE_SELECTOR} article`;
 export const MAX_CARD_PART_WIDTH_OFFSET_PX = 0.5;
 
 /**
+ * Header of each project of a job card of the Experiences page: the `header` that holds the title
+ * of the project, its `h4`, and its state badge, the `span` after it.
+ */
+export const PROJECT_HEADER_SELECTOR = 'header:has(> h4)';
+
+/**
+ * Screen widths, in pixels, at which the state badge of each project of the Experiences page must
+ * stay inside its job card and leave its title a readable width: the narrowest phones still in use
+ * (320), where the badges once crossed the edge of their card, then a common phone width (360),
+ * where they once squeezed their titles onto 3 or 4 lines.
+ */
+export const PROJECT_HEADER_SCREEN_WIDTHS_PX = [320, 360] as const;
+
+/**
  * Row of each job of the timeline of the Experiences page, a job alone at its company or one of
  * the roles of a company: the list item that holds its period column, the only element whose
  * `::after` draws a dot ({@link TIMELINE_DOT_ATTRIBUTE}).
