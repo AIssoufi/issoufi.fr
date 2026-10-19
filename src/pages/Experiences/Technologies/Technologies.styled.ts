@@ -19,4 +19,8 @@ export const TechChip = styled.li`
   color: ${th.color('foreground-subtle')};
   background: ${th.color('foreground-a4')};
   border: ${th.borderWidth('thin')} solid ${th.color('foreground-a9')};
+
+  @media (min-width: ${th('screens.wide')}) {
+    font-size: ${th.fontSize(14)};
+  }
 `;

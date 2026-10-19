@@ -9,8 +9,10 @@ import {
   FORCED_COLORS_MEDIA,
   getContrastRatio,
   MIN_TEXT_CONTRAST_RATIO,
+  serializeCssValue,
 } from '../../../styleTestUtils';
 import { theme } from '../../../theme';
+import { HOVER_POINTER_QUERY } from '../../../theme/constants';
 import UrlLanguage from '../../UrlLanguage';
 import LangToggle from './LangToggle';
 
@@ -144,12 +146,47 @@ describe('LangToggle', () => {
     expect(wrapperStyle.flexDirection).toBe('row');
   });
 
+  it('gives each button a target as large as a finger, from the middle of their gap outward, in a row then in a column', () => {
+    renderAt();
+    const fingerTarget = theme.sizes['finger-target'];
+    const halfGapOutside = `calc(${theme.space[4]} / -2)`;
+    const centeringOffset = `calc((100% - ${fingerTarget}) / 2)`;
+    const tabletMedia = `(min-width: ${theme.screens.tablet})`;
+    const targetInset = ({ pseudo, media = '' }) =>
+      declaredStyle({ element: getFrenchButton(), property: 'inset', pseudo, media });
+    const inset = value => serializeCssValue({ property: 'inset', value });
+
+    expect(
+      declaredStyle({ element: getFrenchButton(), property: 'width', pseudo: '::after' }),
+    ).toBe(fingerTarget);
+    expect(
+      declaredStyle({ element: getFrenchButton(), property: 'height', pseudo: '::after' }),
+    ).toBe(fingerTarget);
+    expect(targetInset({ pseudo: ':first-of-type::after' })).toBe(
+      inset(`${centeringOffset} ${halfGapOutside} auto auto`),
+    );
+    expect(targetInset({ pseudo: ':last-of-type::after' })).toBe(
+      inset(`${centeringOffset} auto auto ${halfGapOutside}`),
+    );
+    expect(targetInset({ pseudo: ':first-of-type::after', media: tabletMedia })).toBe(
+      inset(`auto auto ${halfGapOutside} ${centeringOffset}`),
+    );
+    expect(targetInset({ pseudo: ':last-of-type::after', media: tabletMedia })).toBe(
+      inset(`${halfGapOutside} auto auto ${centeringOffset}`),
+    );
+    expect(getComputedStyle(screen.getByRole('group')).gap).toBe(theme.space[4]);
+  });
+
   it('keeps the inactive language at 4.5:1 on the dark background, hovered or not', () => {
     renderAt();
-    const inactiveColor = pseudo =>
-      declaredStyle({ element: getEnglishButton(), property: 'color', pseudo });
+    const inactiveColor = ({ pseudo = '', media = '' } = {}) =>
+      declaredStyle({ element: getEnglishButton(), property: 'color', pseudo, media });
+    const hoverColor = inactiveColor({ pseudo: ':hover', media: HOVER_POINTER_QUERY });
 
-    for (const color of [inactiveColor(''), inactiveColor(':hover')]) {
+    // A touch screen would keep the hover color of the button tapped last
+    expect(inactiveColor({ pseudo: ':hover' })).toBe('');
+    expect(hoverColor).not.toBe('');
+    for (const color of [inactiveColor(), hoverColor]) {
       expect(
         getContrastRatio({ foreground: color, background: theme.colors.background }),
       ).toBeGreaterThanOrEqual(MIN_TEXT_CONTRAST_RATIO);

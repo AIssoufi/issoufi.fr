@@ -1,4 +1,4 @@
-import type { FontFaceDeclaration } from './types';
+import type { FontFaceDeclaration } from './types.ts';
 
 /**
  * Characters of the `latin` subset of Google Fonts, the subset of the font files of
@@ -61,6 +61,15 @@ export const FONT_FACES: readonly FontFaceDeclaration[] = [
  * `src/hooks`).
  */
 export const REDUCED_MOTION_QUERY = '(prefers-reduced-motion: reduce)';
+
+/**
+ * Media query of the screens whose main pointer hovers, precisely, such as a mouse or a trackpad.
+ * Every `:hover` of the styles sits in a block of it, alone or after other conditions
+ * (`@media (min-width: …) and ${HOVER_POINTER_QUERY}`), which `theme.spec.jsx` checks: a touch
+ * screen keeps the hover style of the last control tapped until the next tap elsewhere, so it
+ * gets none, and keeps the `:active` and `:focus-visible` styles.
+ */
+export const HOVER_POINTER_QUERY = '(hover: hover) and (pointer: fine)';
 
 /**
  * Smallest font size of the site, in pixels: the size of its metadata (dates, badges, tags, the

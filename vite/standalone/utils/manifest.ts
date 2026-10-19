@@ -1,4 +1,4 @@
-import { LINK_TAG_PATTERN, MANIFEST_RELATION_PATTERN } from '../constants';
+import { LINK_TAG_PATTERN, MANIFEST_RELATION_PATTERN } from '../constants.ts';
 
 /** Tells whether a link tag links a web app manifest. */
 const isManifestLink = (tag: string) => MANIFEST_RELATION_PATTERN.test(tag);

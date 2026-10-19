@@ -1,4 +1,4 @@
-import type { Translations } from './types';
+import type { Translations } from './types.ts';
 
 /**
  * English translations. Typed with {@link Translations}, so they must keep exactly the keys of the

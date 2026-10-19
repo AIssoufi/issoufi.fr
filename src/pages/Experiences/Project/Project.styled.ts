@@ -17,6 +17,10 @@ export const Title = styled.h4`
   margin: 0;
   flex: 1;
   line-height: ${th.lineHeight(140)};
+
+  @media (min-width: ${th('screens.wide')}) {
+    font-size: ${th.fontSize(15)};
+  }
 `;
 
 export const State = styled.span`
@@ -29,6 +33,10 @@ export const State = styled.span`
   border-radius: ${th.radius(20)};
   padding: ${th.space(1)} ${th.space(7)};
   white-space: nowrap;
+
+  @media (min-width: ${th('screens.wide')}) {
+    font-size: ${th.fontSize(14)};
+  }
 `;
 
 export const Body = styled.div`
@@ -40,4 +48,8 @@ export const Description = styled.div`
   font-weight: ${th.fontWeight('regular')};
   line-height: ${th.lineHeight(155)};
   color: ${th.color('foreground-a72')};
+
+  @media (min-width: ${th('screens.wide')}) {
+    font-size: ${th.fontSize(15)};
+  }
 `;

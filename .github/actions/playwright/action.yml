@@ -1,0 +1,20 @@
+name: Playwright
+description: >-
+  Installs the headless shell of Chromium of the Playwright version in the lockfile and the system
+  libraries it needs. Only the browser is cached between runs: the libraries are installed on every
+  run, and a cached browser is not downloaded again. Run it after the setup action.
+
+runs:
+  using: composite
+  steps:
+    - id: playwright
+      run: echo "version=$(pnpm exec playwright --version | cut -d ' ' -f 2)" >> "$GITHUB_OUTPUT"
+      shell: bash
+
+    - uses: actions/cache@v6
+      with:
+        path: ~/.cache/ms-playwright
+        key: playwright-${{ runner.os }}-${{ steps.playwright.outputs.version }}
+
+    - run: pnpm exec playwright install --with-deps --only-shell chromium
+      shell: bash

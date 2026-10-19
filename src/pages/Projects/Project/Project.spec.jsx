@@ -3,6 +3,7 @@ import userEvent from '@testing-library/user-event';
 
 import i18n from '../../../i18n';
 import { theme } from '../../../theme';
+import { HOVER_POINTER_QUERY } from '../../../theme/constants';
 import { holdsFunctionSource } from '../../../cssRuleGuard';
 import { stubMatchMedia } from '../../../mediaQueryTestUtils';
 import {
@@ -49,7 +50,10 @@ const thumbnailsOf = id => [
 /** `srcset` of the thumbnail of the project `id`. */
 const srcSetOf = id => `/${id}-480.webp 480w, /${id}-960.webp 960w`;
 
-const project = (id, name, extra = {}) => ({
+/**
+ * A project `id` named `name`, with a thumbnail and two tools unless the other fields replace them.
+ */
+const project = ({ id, name, ...extra }) => ({
   id,
   name,
   type: 'Application web',
@@ -59,16 +63,16 @@ const project = (id, name, extra = {}) => ({
 });
 
 const projects = [
-  project(1, 'Chess', { url: 'https://example.com/chess' }),
-  project(2, 'Calculator'),
-  project(3, 'Plugin store'),
-  project(4, 'Connect Four'),
+  project({ id: 1, name: 'Chess', url: 'https://example.com/chess' }),
+  project({ id: 2, name: 'Calculator' }),
+  project({ id: 3, name: 'Plugin store' }),
+  project({ id: 4, name: 'Connect Four' }),
 ];
 
 /** Project that is not in the list of the first render. */
-const ADDED_PROJECT = project(6, 'Weather app');
-const TOOLLESS_PROJECT = project(7, 'Landing page', { tools: undefined });
-const NAMELESS_PROJECT = project(8, undefined);
+const ADDED_PROJECT = project({ id: 6, name: 'Weather app' });
+const TOOLLESS_PROJECT = project({ id: 7, name: 'Landing page', tools: undefined });
+const NAMELESS_PROJECT = project({ id: 8, name: undefined });
 
 /** Box of a card in the viewport. */
 const CARD_BOX = { left: 100, top: 100, width: 200, height: 100 };
@@ -188,7 +192,9 @@ const inheritedWhiteSpace = element => {
   return 'normal';
 };
 
-const LONG_TECH_LINE_PROJECT = project(5, 'Chess engine', {
+const LONG_TECH_LINE_PROJECT = project({
+  id: 5,
+  name: 'Chess engine',
   tools: ['HTML 5', 'CSS 3', 'JavaScript', 'Gulp', 'Mocha', 'Babel', 'Webpack', 'TypeScript'],
 });
 
@@ -400,7 +406,7 @@ describe('Project', () => {
   });
 
   it.each([undefined, '', '   '])('renders no empty heading for a card whose name is %j', name => {
-    render(<Project projects={[project(9, name)]} />);
+    render(<Project projects={[project({ id: 9, name })]} />);
 
     expect(screen.queryByRole('heading')).not.toBeInTheDocument();
     expect(screen.getByText('Application web')).toBeInTheDocument();
@@ -437,7 +443,9 @@ describe('Project', () => {
   it('lists each tool once, without the entries of the data that are not names', () => {
     render(
       <Project
-        projects={[project(9, 'Draft', { tools: ['HTML 5', '', 42, null, 'HTML 5', 'Vite'] })]}
+        projects={[
+          project({ id: 9, name: 'Draft', tools: ['HTML 5', '', 42, null, 'HTML 5', 'Vite'] }),
+        ]}
       />,
     );
 
@@ -448,7 +456,7 @@ describe('Project', () => {
   it.each([undefined, null, [], ['', '  '], 'HTML 5', { 0: 'HTML 5' }])(
     'shows no list of tools for the tools %j',
     tools => {
-      render(<Project projects={[project(9, 'Draft', { tools })]} />);
+      render(<Project projects={[project({ id: 9, name: 'Draft', tools })]} />);
 
       expect(within(cardOf('Draft')).queryByRole('list')).not.toBeInTheDocument();
       expect(cardOf('Draft')).toHaveTextContent('Application web');
@@ -500,7 +508,7 @@ describe('Project', () => {
   });
 
   it('gives no link to a card whose url is empty', () => {
-    render(<Project projects={[project(9, 'Draft', { url: '' })]} />);
+    render(<Project projects={[project({ id: 9, name: 'Draft', url: '' })]} />);
 
     expect(screen.queryByRole('link')).not.toBeInTheDocument();
     expect(cardOf('Draft')).toHaveTextContent('Draft');
@@ -646,7 +654,7 @@ describe('Project', () => {
     it.each([undefined, null, [], [{ url: '', width: 480, height: 300 }], 'chess.webp'])(
       'shows no image for the files %j, the card keeping its name and its like button',
       thumbnails => {
-        render(<Project projects={[project(1, 'Chess', { thumbnails })]} />);
+        render(<Project projects={[project({ id: 1, name: 'Chess', thumbnails })]} />);
 
         expect(thumbnailOf('Chess')).toBeNull();
         expect(screen.getByRole('heading', { level: 3, name: 'Chess' })).toBeInTheDocument();
@@ -750,9 +758,9 @@ describe('Project', () => {
       render(
         <Project
           projects={[
-            project(1, 'Chess'),
-            project(2, 'Calculator', { thumbnails: undefined }),
-            project(3, 'Plugin store', { thumbnails: [{ url: '/3.webp' }] }),
+            project({ id: 1, name: 'Chess' }),
+            project({ id: 2, name: 'Calculator', thumbnails: undefined }),
+            project({ id: 3, name: 'Plugin store', thumbnails: [{ url: '/3.webp' }] }),
           ]}
         />,
       );
@@ -924,7 +932,8 @@ describe('Project', () => {
     // jsdom lays nothing out: give the card a box so that it can tilt
     vi.spyOn(card, 'getBoundingClientRect').mockReturnValue(CARD_BOX);
 
-    fireEvent.mouseMove(card, {
+    fireEvent.pointerMove(card, {
+      pointerType: 'mouse',
       clientX: CARD_BOX.left + CARD_POINTER.x,
       clientY: CARD_BOX.top + CARD_POINTER.y,
     });
@@ -934,7 +943,7 @@ describe('Project', () => {
     expect(card.style.getPropertyValue('--mouse-x')).toBe(`${CARD_POINTER.x}px`);
     expect(card.style.getPropertyValue('--mouse-y')).toBe(`${CARD_POINTER.y}px`);
 
-    fireEvent.mouseLeave(card);
+    fireEvent.pointerLeave(card);
     expect(card.style.transform).toBe('');
   });
 
@@ -944,7 +953,8 @@ describe('Project', () => {
     const card = cardOf('Chess');
     vi.spyOn(card, 'getBoundingClientRect').mockReturnValue(CARD_BOX);
 
-    fireEvent.mouseMove(card, {
+    fireEvent.pointerMove(card, {
+      pointerType: 'mouse',
       clientX: CARD_BOX.left + CARD_POINTER.x,
       clientY: CARD_BOX.top + CARD_POINTER.y,
     });
@@ -989,6 +999,41 @@ describe('Project', () => {
         ]),
       );
 
+    it('scales the cards and the title up from the wide breakpoint, with the app container', () => {
+      render(
+        <Project
+          title="Projets personnels"
+          projects={projects}
+        />,
+      );
+      const card = within(cardOf('Chess'));
+      const sizesOf = ({ element, property }) => ({
+        belowWide: declaredStyle({ element, property }),
+        wide: declaredStyle({ element, property, media: WIDE_MEDIA }),
+      });
+
+      expect(sizesOf({ element: thumbnailOf('Chess').parentElement, property: 'height' })).toEqual({
+        belowWide: theme.sizes[222],
+        wide: theme.sizes[248],
+      });
+      expect(
+        sizesOf({ element: card.getByRole('heading', { level: 3 }), property: 'font-size' }),
+      ).toEqual({ belowWide: theme.fontSizes[16], wide: theme.fontSizes[18] });
+      for (const metadata of [card.getByText('Application web'), card.getByRole('list')]) {
+        expect(sizesOf({ element: metadata, property: 'font-size' })).toEqual({
+          belowWide: theme.fontSizes[13],
+          wide: theme.fontSizes[15],
+        });
+      }
+      expect(
+        declaredStyle({
+          element: screen.getByRole('heading', { level: 2 }),
+          property: 'font-size',
+          media: WIDE_MEDIA,
+        }),
+      ).toBe(theme.fontSizes[44]);
+    });
+
     it('stretches the title link over its card, above the thumbnail and under the like button', () => {
       render(<Project projects={projects} />);
 
@@ -1032,25 +1077,35 @@ describe('Project', () => {
       render(<Project projects={projects} />);
       const likeButton = likeButtonOf('Chess');
       // Position in the cascade of the last rule that sets the button's transform in a state
-      const lastTransformRuleIndex = state => {
+      const lastTransformRuleIndex = ({ state, media = '' }) => {
         const stateSelectors = [...likeButton.classList].map(className => `.${className}${state}`);
-        return listStyleRules().findLastIndex(({ media, rule }) => {
-          const isRuleOfState = media === '' && stateSelectors.includes(rule.selectorText);
+        return listStyleRules().findLastIndex(entry => {
+          const isRuleOfState =
+            entry.media === media && stateSelectors.includes(entry.rule.selectorText);
           // Also skips the @keyframes rules, which have no style
           if (!isRuleOfState) return false;
-          return rule.style.getPropertyValue('transform') !== '';
+          return entry.rule.style.getPropertyValue('transform') !== '';
         });
       };
+      const hoverRuleIndex = lastTransformRuleIndex({
+        state: ':hover',
+        media: HOVER_POINTER_QUERY,
+      });
 
-      expect(declaredStyle({ element: likeButton, property: 'transform', pseudo: ':hover' })).toBe(
-        'scale(1.06)',
-      );
+      expect(
+        declaredStyle({
+          element: likeButton,
+          property: 'transform',
+          pseudo: ':hover',
+          media: HOVER_POINTER_QUERY,
+        }),
+      ).toBe('scale(1.06)');
       expect(declaredStyle({ element: likeButton, property: 'transform', pseudo: ':active' })).toBe(
         'scale(0.93)',
       );
       // A pressed button is hovered too: the rule of :active must come last to win
-      expect(lastTransformRuleIndex(':hover')).toBeGreaterThan(-1);
-      expect(lastTransformRuleIndex(':active')).toBeGreaterThan(lastTransformRuleIndex(':hover'));
+      expect(hoverRuleIndex).toBeGreaterThan(-1);
+      expect(lastTransformRuleIndex({ state: ':active' })).toBeGreaterThan(hoverRuleIndex);
     });
 
     it('plays the pop animation of the heart for exactly as long as its button stays animated', () => {
@@ -1093,9 +1148,13 @@ describe('Project', () => {
         storeLikedIds([1]);
         render(<Project projects={projects} />);
         // Value of the state, or of the rest state that it does not change
-        const stateStyle = ({ button, property, pseudo }) =>
-          declaredStyle({ element: button, property, pseudo }) ||
-          declaredStyle({ element: button, property, pseudo: pseudo.replace(':hover', '') });
+        const stateStyle = ({ button, property, pseudo }) => {
+          const media = pseudo.includes(':hover') ? HOVER_POINTER_QUERY : '';
+          return (
+            declaredStyle({ element: button, property, pseudo, media }) ||
+            declaredStyle({ element: button, property, pseudo: pseudo.replace(':hover', '') })
+          );
+        };
         const heartContrast = ({ button, state }) => {
           const fill = stateStyle({ button, property: 'background-color', pseudo: state });
           const heart = stateStyle({ button, property: 'stroke', pseudo: `${state} > svg` });
@@ -1123,8 +1182,12 @@ describe('Project', () => {
     it('fills the heart of a liked project in the color of a selection in forced colors mode', () => {
       storeLikedIds([1]);
       render(<Project projects={projects} />);
-      const forcedHeartStyle = ({ button, property, pseudo = '>svg' }) =>
-        declaredStyle({ element: button, property, media: FORCED_COLORS_MEDIA, pseudo });
+      const forcedHeartStyle = ({
+        button,
+        property,
+        pseudo = '>svg',
+        media = FORCED_COLORS_MEDIA,
+      }) => declaredStyle({ element: button, property, media, pseudo });
 
       // Forced colors mode keeps the colors of an SVG but empties the background of its button
       expect(forcedHeartStyle({ button: likeButtonOf('Chess'), property: 'fill' })).toBe(
@@ -1145,6 +1208,7 @@ describe('Project', () => {
           button: likeButtonOf('Calculator'),
           property: 'stroke',
           pseudo: ':hover > svg',
+          media: `${FORCED_COLORS_MEDIA} and ${HOVER_POINTER_QUERY}`,
         }),
       ).toBe('buttontext');
     });
@@ -1224,16 +1288,22 @@ describe('Project', () => {
       render(<Project projects={projects} />);
       const { previousButton } = pageButtons();
       const disabledState = "[aria-disabled='true']";
-      const arrowStyle = ({ property, pseudo }) =>
-        declaredStyle({ element: previousButton, property, pseudo });
+      const arrowStyle = ({ property, pseudo, media = '' }) =>
+        declaredStyle({ element: previousButton, property, pseudo, media });
+      const hoverColor = pseudo =>
+        arrowStyle({ property: 'background-color', pseudo, media: HOVER_POINTER_QUERY });
 
       expect(arrowStyle({ property: 'opacity', pseudo: disabledState })).toBe('0.4');
       expect(arrowStyle({ property: 'cursor', pseudo: disabledState })).toBe('default');
+      expect(hoverColor(`:hover:not(${disabledState})`)).toBe(
+        serializeCssValue({ property: 'background-color', value: theme.colors.accent }),
+      );
+      // A hover color for every state would light up the disabled arrow too
+      expect(hoverColor(':hover')).toBe(UNDECLARED);
+      // A touch screen would keep the hover color of the arrow tapped last
       expect(
         arrowStyle({ property: 'background-color', pseudo: `:hover:not(${disabledState})` }),
-      ).toBe(serializeCssValue({ property: 'background-color', value: theme.colors.accent }));
-      // A hover color for every state would light up the disabled arrow too
-      expect(arrowStyle({ property: 'background-color', pseudo: ':hover' })).toBe(UNDECLARED);
+      ).toBe(UNDECLARED);
     });
 
     it('lays the section buttons out in the order of the page, which Tab follows', () => {

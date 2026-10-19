@@ -1,0 +1,54 @@
+{
+  // Type-checks the code that runs in Node.js 24 against ES2024, which it ships whole: the Vite
+  // configs and their plugins, the browser tests and the Playwright config, and the specs and test
+  // helpers of the app, which Vitest runs in jsdom, hence the DOM types. Node.js loads the Vite
+  // configs as they are, their types stripped (`--configLoader native`): every relative import of
+  // the modules that a config loads names its .ts file, a JSON import says
+  // `with { type: 'json' }`, and a type import says `type` (verbatimModuleSyntax), with no syntax
+  // that Node.js cannot strip (erasableSyntaxOnly).
+  "compilerOptions": {
+    "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.node.tsbuildinfo",
+    "target": "ES2024",
+    "lib": ["ES2024", "DOM", "DOM.Iterable"],
+    "module": "ESNext",
+    "types": ["node", "vitest/globals"],
+    "skipLibCheck": true,
+
+    /* Bundler mode */
+    "moduleResolution": "bundler",
+    "allowImportingTsExtensions": true,
+    "verbatimModuleSyntax": true,
+    "isolatedModules": true,
+    "moduleDetection": "force",
+    "noEmit": true,
+    "jsx": "react-jsx",
+
+    /* Linting */
+    "strict": true,
+    "noUnusedLocals": false,
+    "noUnusedParameters": false,
+    "erasableSyntaxOnly": true,
+    "noFallthroughCasesInSwitch": true,
+    "forceConsistentCasingInFileNames": true,
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "resolveJsonModule": true
+  },
+  "include": [
+    "vite",
+    "e2e",
+    "vite.config.ts",
+    "vite.config.spec.ts",
+    "vite.standalone.config.ts",
+    "vite.standalone.config.spec.ts",
+    "playwright.config.ts",
+    "playwright.visual.config.ts",
+    "src/**/*.d.ts",
+    "src/**/*.spec.ts",
+    "src/**/*.spec.tsx",
+    "src/setupTests.ts",
+    "src/testErrors.ts",
+    "src/**/*testUtils.*",
+    "src/**/*TestUtils.*"
+  ]
+}

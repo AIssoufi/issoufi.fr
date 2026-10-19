@@ -210,17 +210,37 @@ export const SMOKE_TEST_RETRY_DELAY_MS = 5000;
 /** Time zone whose local time the production deploy of `deploy-production.yml` follows. */
 export const DEPLOY_TIME_ZONE = 'Europe/Paris';
 
+/** Workflow of the daily production deploy, which reads its own scheduled runs. */
+export const DEPLOY_WORKFLOW_FILE = 'deploy-production.yml';
+
 /**
- * Schedule of `deploy-production.yml` that deploys for each offset of {@link DEPLOY_TIME_ZONE}
- * from UTC, in minutes: both run at 6:00 in Paris, at 4:00 UTC in summer (UTC+2) and at 5:00 UTC
- * in winter (UTC+1). The workflow runs both every day, and only the one of the day's offset goes
- * on. Keep them equal to the `cron` entries of the workflow, which a test checks.
- * @type {ReadonlyMap<number, string>}
+ * Earliest local time of the daily deploy in {@link DEPLOY_TIME_ZONE}, in minutes after midnight:
+ * 6:00. The crons of `deploy-production.yml` start a run every 30 minutes from 4:07 to 6:37 UTC,
+ * which is 6:07 to 8:37 in Paris in summer (UTC+2) and 5:07 to 7:37 in winter (UTC+1): the runs
+ * before 6:00 stop, and the first of the others that passes deploys.
  */
-export const DEPLOY_CRON_BY_UTC_OFFSET_MINUTES = new Map([
-  [120, '0 4 * * *'],
-  [60, '0 5 * * *'],
-]);
+export const DEPLOY_START_MINUTES = 360;
+
+/**
+ * Number of scheduled runs of {@link DEPLOY_WORKFLOW_FILE} that the schedule check reads, newest
+ * first: the six of a day at most, and the last ones of the days before, whose gap it checks.
+ */
+export const DEPLOY_RUNS_PAGE_SIZE = 20;
+
+/**
+ * Longest gap between two scheduled runs of {@link DEPLOY_WORKFLOW_FILE}, in hours, before the
+ * schedule check warns that GitHub skipped every run of a day: a day and the 2 h 30 of the
+ * window of the crons, from the first run of a day to the last run of the next, plus 9 h 30 for
+ * the delays of GitHub's scheduler, which started the run of 4:00 UTC at 9:29 UTC on
+ * 2026-10-19. A day without any run leaves at least 45 h 30 when the runs keep their time.
+ */
+export const SCHEDULE_GAP_WARNING_HOURS = 36;
+
+/** Milliseconds per minute, to shift a moment by an offset from UTC and to measure a gap. */
+export const MS_PER_MINUTE = 60_000;
+
+/** Length of the date at the start of an ISO 8601 timestamp, `YYYY-MM-DD`. */
+export const ISO_DATE_LENGTH = 10;
 
 /**
  * Name of the offset from UTC that `Intl.DateTimeFormat` gives with `timeZoneName: 'longOffset'`:
@@ -241,6 +261,12 @@ export const MANUAL_EVENT = 'workflow_dispatch';
 
 /** Event of a run started by a push, the one whose CI run of develop must pass to deploy it. */
 export const PUSH_EVENT = 'push';
+
+/**
+ * Event of a run started by a pull request: the only run of the CI whose checks GitHub links to
+ * the pull request, so the only one that the required checks of a ruleset count.
+ */
+export const PULL_REQUEST_EVENT = 'pull_request';
 
 /** Workflow whose run must pass on develop before a deploy, and that deploys main. */
 export const CI_WORKFLOW_FILE = 'ci.yml';
@@ -264,8 +290,8 @@ export const GITHUB_API_VERSION = '2022-11-28';
 export const GITHUB_API_MEDIA_TYPE = 'application/vnd.github+json';
 
 /**
- * Number of runs that the deploy asks the REST API for: the latest only, since the API lists the
- * runs of a workflow newest first.
+ * Number of runs that the deploy and the schedule-gap check of the CI ask the REST API for: the
+ * latest only, since the API lists the runs of a workflow newest first.
  */
 export const LATEST_RUN_PAGE_SIZE = 1;
 
@@ -285,9 +311,17 @@ export const RUN_COMPLETED_STATUS = 'completed';
 export const RUN_SUCCESS_CONCLUSION = 'success';
 
 /**
- * Number of times the daily release reads a run of the CI it started before giving up, every
- * {@link RUN_WAIT_DELAY_MS}: 20 minutes in all, while a run of `ci.yml`, its preview deployment
- * and smoke test included, took about 5 minutes in October 2026.
+ * Conclusion of a completed workflow run that GitHub holds until someone with write access
+ * approves it, as it does for the pull request runs of a pull request that GitHub Actions opened.
+ * Approving it starts the same run again, as a new attempt.
+ */
+export const RUN_ACTION_REQUIRED_CONCLUSION = 'action_required';
+
+/**
+ * Number of times the daily release reads a run of the CI before giving up, every
+ * {@link RUN_WAIT_DELAY_MS}: the pull request run of the release pull request, which it may have
+ * approved, then the run it starts on develop. 20 minutes in all, while a run of `ci.yml`, its
+ * preview deployment and smoke test included, took about 5 minutes in October 2026.
  */
 export const RUN_WAIT_ATTEMPTS = 40;
 
@@ -322,6 +356,71 @@ export const RELEASE_MERGE_METHOD = 'merge';
 export const OPEN_PULL_REQUESTS_PAGE_SIZE = 100;
 
 /**
+ * Values of the `mergeable_state` of a pull request of the REST API that let it merge:
+ * `clean`, every check passed; `unstable`, a check that no rule requires did not pass, such as
+ * the one of the Cloudflare Pages app; `has_hooks`, a pre-receive hook will check the push.
+ */
+export const MERGEABLE_STATES = ['clean', 'unstable', 'has_hooks'];
+
+/**
+ * Why a pull request cannot merge, for each other value of its `mergeable_state`, written after
+ * its number in a message. A value missing here gives `cannot merge`.
+ * @type {Readonly<Record<string, string>>}
+ */
+export const UNMERGEABLE_STATE_REASONS = {
+  blocked: 'is blocked by a rule of the base branch',
+  behind: 'is behind its base branch, which a rule requires to be up to date',
+  dirty: 'conflicts with its base branch',
+  draft: 'is a draft',
+  unknown: 'has not been checked by GitHub yet',
+};
+
+/**
+ * Number of times the daily release reads the release pull request, once its CI passed, until
+ * GitHub says it can merge, every {@link MERGEABLE_WAIT_DELAY_MS}: 5 minutes in all, while GitHub
+ * takes a few seconds to count the checks of a run that just ended.
+ */
+export const MERGEABLE_WAIT_ATTEMPTS = 30;
+
+/** Pause between two reads of the release pull request that waits to merge, in milliseconds. */
+export const MERGEABLE_WAIT_DELAY_MS = 10_000;
+
+/**
+ * Number of times the daily release tries to merge the release pull request: release-please
+ * rewrites its branch on each push to develop, which cancels the CI of the old head or makes
+ * GitHub refuse its merge (409, _Head branch was modified_), as on 2026-10-19. The next attempt
+ * starts again from the new head. Each attempt waits up to 26 minutes, which the timeout of the
+ * release job of `deploy-production.yml` covers.
+ */
+export const RELEASE_MERGE_ATTEMPTS = 2;
+
+/**
+ * Number of times the daily release looks for the run of the CI that the pull request event
+ * started on the head of the release pull request, every
+ * {@link PULL_REQUEST_RUN_LOOKUP_DELAY_MS}: GitHub creates it a few seconds after release-please
+ * pushed.
+ */
+export const PULL_REQUEST_RUN_LOOKUP_ATTEMPTS = 6;
+
+/** Pause between two lookups of the run of the CI of the release pull request, in milliseconds. */
+export const PULL_REQUEST_RUN_LOOKUP_DELAY_MS = 10_000;
+
+/** Type of the rule of a ruleset that names the status checks required to merge. */
+export const REQUIRED_STATUS_CHECKS_RULE = 'required_status_checks';
+
+/**
+ * Number of check runs of a commit that the daily release reads to name the required checks that
+ * did not pass: the most the REST API gives in one page, while a run of the CI makes 15.
+ */
+export const CHECK_RUNS_PAGE_SIZE = 100;
+
+/**
+ * Conclusions of a completed check run that a required status check accepts, as GitHub counts
+ * them.
+ */
+export const PASSING_CHECK_CONCLUSIONS = ['success', 'neutral', 'skipped'];
+
+/**
  * Format of `git log` read by the deploy report: the full SHA and the subject of each commit,
  * separated by a tab. A line is split at its first tab, so a subject keeps any tab it holds.
  */
@@ -339,7 +438,10 @@ export const MAIN_CI_RUN_LOOKUP_ATTEMPTS = 6;
 /** Pause between two lookups of the CI run of main, in milliseconds. */
 export const MAIN_CI_RUN_LOOKUP_DELAY_MS = 5000;
 
-/** Line break of any platform, which a step output of GitHub Actions cannot hold. */
+/**
+ * Line break of any platform, which a step output of GitHub Actions cannot hold, and before which
+ * the summary of the screenshot comparison cuts the error of a screen.
+ */
 export const LINE_BREAK_PATTERN = /[\r\n]/;
 
 /**
@@ -380,3 +482,49 @@ export const WORKFLOW_PROPERTY_ESCAPE_PATTERN = /[%\r\n:,]/g;
 
 /** Slash at the end of a URL path, removed before another segment is added. */
 export const TRAILING_SLASH_PATTERN = /\/$/;
+
+/**
+ * Git reference whose merge base with `HEAD` the screenshot comparison (`pnpm test:visual`) takes
+ * as the base of the change, unless `--base` names another: the branch that pull requests target.
+ */
+export const DEFAULT_VISUAL_BASE_REF = 'origin/develop';
+
+/** Playwright configuration of the screenshot comparison, relative to the project root. */
+export const VISUAL_CONFIG_FILE = 'playwright.visual.config.ts';
+
+/**
+ * Environment variable that tells {@link VISUAL_CONFIG_FILE} in which checkout to serve the build:
+ * its `SITE_DIR_VARIABLE`, which both must name the same.
+ */
+export const VISUAL_SITE_DIR_VARIABLE = 'VISUAL_SITE_DIR';
+
+/**
+ * Folder of the HTML report of the screenshot comparison, relative to the project root, which the
+ * CI uploads as an artifact of the same name. Ignored by git.
+ */
+export const VISUAL_REPORT_DIR = 'visual-report';
+
+/**
+ * Status that the JSON report of Playwright gives a test that ended as expected: here, a screen
+ * that the change draws as the base did.
+ */
+export const EXPECTED_TEST_STATUS = 'expected';
+
+/**
+ * Ends of the names of the images that `toHaveScreenshot` attaches to a test whose screen differs
+ * from the expected one: the screenshot of the base, the one of the change, and the image of
+ * their differences. A screen missing from the base lacks the first.
+ */
+export const SCREENSHOT_DIFF_ATTACHMENT_SUFFIXES = ['-expected.png', '-actual.png', '-diff.png'];
+
+/**
+ * End of the name of the image that `toHaveScreenshot` attaches when the page never stood still
+ * long enough for two screenshots in a row to match: a failure of the page, not a change.
+ */
+export const UNSTABLE_SCREENSHOT_ATTACHMENT_SUFFIX = '-previous.png';
+
+/** Text that joins the titles of a test and of its groups, as the reports of Playwright do. */
+export const TEST_TITLE_SEPARATOR = ' › ';
+
+/** Pipe that would end a cell of a Markdown table, written `\|` inside a cell. */
+export const TABLE_CELL_PIPE_PATTERN = /\|/g;

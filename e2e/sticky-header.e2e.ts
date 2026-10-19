@@ -57,7 +57,7 @@ const expectBandOnHeader = async (header: Locator) => {
  */
 const listHeaderRowControlBoxes = (header: Element) => {
   const hasFixedAncestorInHeader = (element: Element) => {
-    for (let current = element.parentElement; current && current !== header; ) {
+    for (let current = element.parentElement; current && current !== header;) {
       if (getComputedStyle(current).position === 'fixed') return true;
       current = current.parentElement;
     }

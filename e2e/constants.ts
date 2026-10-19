@@ -1,3 +1,4 @@
+import { MAIN_CONTENT_ID } from '../src/constants/landmarks';
 import type { Language } from '../src/i18n/types';
 import { theme } from '../src/theme/theme';
 import type { BackgroundPhoto, Page } from '../src/utils/pages';
@@ -5,10 +6,11 @@ import type { BackgroundPhoto, Page } from '../src/utils/pages';
 /**
  * Screen widths, in pixels, at which the browser tests open the pages, and every page must fit
  * without scrolling sideways: the narrowest phones still in use (320), two common phone widths
- * (375 and 414), which get the mobile layout, and a common desktop width (1440), at which the
- * layout of the app reaches its widest.
+ * (375 and 414) and a tablet held upright (768), which get the mobile layout, a tablet held
+ * sideways (1024) and a laptop (1280), which get the desktop layout, and a common desktop width
+ * (1440), at which the layout of the app reaches its widest below the `wide` breakpoint.
  */
-export const SCREEN_WIDTHS_PX = [320, 375, 414, 1440] as const;
+export const SCREEN_WIDTHS_PX = [320, 375, 414, 768, 1024, 1280, 1440] as const;
 
 /** Screen height of the browser tests, in pixels, the height of a common laptop screen. */
 export const SCREEN_HEIGHT_PX = 800;
@@ -89,6 +91,33 @@ export const PSEUDO_ELEMENT_TYPES = ['before', 'after'] as const;
 export const MAX_DOT_OFFSET_PX = 0.5;
 
 /**
+ * Screen widths, in pixels, at which the dots of the timeline must be centered on its line: those
+ * of {@link SCREEN_WIDTHS_PX}, then a desktop screen past the `wide` breakpoint (1920), where the
+ * period column, along whose right edge the line runs, is wider.
+ */
+export const TIMELINE_SCREEN_WIDTHS_PX = [...SCREEN_WIDTHS_PX, 1920] as const;
+
+/**
+ * Period column of each row of the timeline, a job alone at its company or one of the roles of a
+ * company, shown from the tablet breakpoint: the only element whose `::after` draws a dot
+ * ({@link TIMELINE_DOT_ATTRIBUTE}).
+ */
+export const PERIOD_COLUMN_SELECTOR = `[${TIMELINE_DOT_ATTRIBUTE}="after"]`;
+
+/**
+ * Screen widths, in pixels, at which every date of the period column must stay inside the column:
+ * a laptop (1440), below the `wide` breakpoint, then a desktop screen past it (1920), where the
+ * column and its dates are larger.
+ */
+export const PERIOD_COLUMN_SCREEN_WIDTHS_PX = [1440, 1920] as const;
+
+/**
+ * Largest distance, in pixels, that a text may pass the edge of its box. Half a pixel lets through
+ * subpixel rounding, but not a date 1 px out of its column.
+ */
+export const MAX_TEXT_OVERFLOW_PX = 0.5;
+
+/**
  * Screen widths, in pixels, at which the browser test of the Experiences page checks what screen
  * readers read: the narrowest phones still in use (320), two common phone widths (375 and 414)
  * and a tablet in portrait (768), below the tablet breakpoint, where the header of each card shows
@@ -96,6 +125,26 @@ export const MAX_DOT_OFFSET_PX = 0.5;
  * timeline shows it.
  */
 export const EXPERIENCES_SCREEN_WIDTHS_PX = [320, 375, 414, 768, 1440] as const;
+
+/**
+ * Screen widths, in pixels, at which each job card of the Experiences page must stack its summary,
+ * its description and its technologies, as a tablet does: a small laptop (1024), common desktop
+ * widths (1280 and 1440), then screens past the `wide` breakpoint (1920 and 2560), where the cards
+ * are widest.
+ */
+export const STACKED_JOB_CARD_SCREEN_WIDTHS_PX = [1024, 1280, 1440, 1920, 2560] as const;
+
+/**
+ * Card of each job of the Experiences page, an `article` that holds its summary, its description
+ * and its technologies, in this order.
+ */
+export const JOB_CARD_SELECTOR = `${PAGE_SELECTOR} article`;
+
+/**
+ * Largest difference, in pixels, between the width of a part of a job card and that of its
+ * summary: each part spans the whole card, and half a pixel lets through subpixel rounding.
+ */
+export const MAX_CARD_PART_WIDTH_OFFSET_PX = 0.5;
 
 /**
  * Row of each job of the timeline of the Experiences page, a job alone at its company or one of
@@ -177,11 +226,12 @@ export const PROJECT_READING_SCREEN_WIDTHS_PX = [375, 1440] as const;
  * each section with its "Show all" rows, and moves the row with its arrows: the narrowest phones
  * still in use (320), two common phone widths (375 and 414), with one column of cards, a tablet in
  * portrait (768), with two, the tablet breakpoint, where the desktop layout starts with two
- * columns still (800), two laptop widths (1280 and 1440), with three, then past the `wide`
- * breakpoint (1600), with the page content at its largest width (1720 and 2400).
+ * columns still (800), two laptop widths (1280 and 1440), with three, then the `wide` breakpoint
+ * (1600), where the cards grow with the app container, and two desktop screens wider than it
+ * (1920 and 2560).
  */
 export const PROJECT_CARD_SCREEN_WIDTHS_PX = [
-  320, 375, 414, 768, 800, 1280, 1440, 1720, 2400,
+  320, 375, 414, 768, 800, 1280, 1440, 1600, 1920, 2560,
 ] as const;
 
 /**
@@ -192,16 +242,18 @@ export const MAX_CARD_OFFSET_PX = 0.5;
 
 /**
  * Screen widths, in pixels, of the desktop layout, at which the header shows its links, the
- * GitHub and LinkedIn icons and the CV link on one line: the tablet breakpoint (800), two laptops
- * (1280 and 1440), then a screen wider than the app container (1920).
+ * GitHub and LinkedIn icons and the CV link on one line: the tablet breakpoint (800), a tablet held
+ * sideways (1024), two laptops (1280 and 1440), then two screens wider than the app container
+ * (1920 and 2560).
  */
-export const DESKTOP_SCREEN_WIDTHS_PX = [800, 1280, 1440, 1920] as const;
+export const DESKTOP_SCREEN_WIDTHS_PX = [800, 1024, 1280, 1440, 1920, 2560] as const;
 
 /**
  * Screen widths, in pixels, below the tablet breakpoint, at which the mobile menu holds the GitHub
- * and LinkedIn icons and the CV link.
+ * and LinkedIn icons and the CV link: three phones (320, 375 and 414) and a tablet held upright
+ * (768).
  */
-export const MOBILE_SCREEN_WIDTHS_PX = [320, 375, 414] as const;
+export const MOBILE_SCREEN_WIDTHS_PX = [320, 375, 414, 768] as const;
 
 /**
  * Route of a page longer than the screen, scrolled to check what stays fixed. Typed by `PAGES`
@@ -278,10 +330,39 @@ export const MAX_HEADER_SCREEN_SHARE = 0.15;
 export const MIN_TARGET_SIZE_PX = 24;
 
 /**
- * Smallest height, in pixels, of the CV link of the mobile menu, compact or not: the
- * `finger-target` size of the theme, the target size that the guidelines recommend for a finger.
+ * Smallest width and height, in pixels, of the area that a finger taps on a control of a touch
+ * screen, and of the CV link of the mobile menu, compact or not: the `finger-target` size of the
+ * theme, the target size that the guidelines recommend for a finger (success criterion 2.5.5).
  */
-export const FINGER_TARGET_HEIGHT_PX = Number.parseFloat(theme.sizes['finger-target']);
+export const FINGER_TARGET_SIZE_PX = Number.parseFloat(theme.sizes['finger-target']);
+
+/**
+ * Touch screens of the desktop layout, on which every control must take the taps of a finger over
+ * {@link FINGER_TARGET_SIZE_PX} each way, as on those of {@link MOBILE_LAYOUT_SCREENS}: phones held
+ * sideways (844 × 390, an iPhone 12, which reaches the tablet breakpoint) and tablets held upright
+ * (820 × 1180, an iPad Air) and sideways (1024 × 768, an iPad, and 1180 × 820, an iPad Air).
+ */
+export const DESKTOP_LAYOUT_TOUCH_SCREENS = [
+  { width: 844, height: 390 },
+  { width: 820, height: 1180 },
+  { width: 1024, height: 768 },
+  { width: 1180, height: 820 },
+] as const;
+
+/** Controls of a page that a finger taps: the links and the buttons. */
+export const CONTROL_SELECTOR = 'a[href], button';
+
+/**
+ * Skip link of every page, which shows only once the keyboard focuses it, which a tap never does:
+ * the browser test of the targets leaves it out.
+ */
+export const SKIP_LINK_SELECTOR = `a[href="#${MAIN_CONTENT_ID}"]`;
+
+/**
+ * Header of the site, right inside the app grid, which stays at the top of the screen, and from
+ * tablet up holds the language toggle that floats on the right edge, over the page.
+ */
+export const SITE_HEADER_SELECTOR = '[data-testid="app"] > header';
 
 /**
  * Screen lower than the open mobile menu, even compact, as a phone held sideways with the bars of
@@ -454,12 +535,13 @@ export const POINTER_REST_FRAME_COUNT = 4;
 
 /**
  * Screen widths, in pixels, at which axe-core checks the contrast of the texts of every page: a
- * phone (375), with the mobile menu closed then open, and a common desktop width (1440).
+ * phone (375) and a tablet held upright (768), with the mobile menu closed then open, a tablet
+ * held sideways (1024), a laptop (1280) and a common desktop width (1440).
  */
-export const CONTRAST_SCREEN_WIDTHS_PX = [375, 1440] as const;
+export const CONTRAST_SCREEN_WIDTHS_PX = [375, 768, 1024, 1280, 1440] as const;
 
 /** Screen widths, in pixels, among {@link CONTRAST_SCREEN_WIDTHS_PX}, that show the mobile menu. */
-export const MENU_CONTRAST_SCREEN_WIDTHS_PX = [375] as const;
+export const MENU_CONTRAST_SCREEN_WIDTHS_PX = [375, 768] as const;
 
 /**
  * Rule of axe-core that checks the contrast of each text against its background: 4.5:1, or 3:1 for
@@ -470,23 +552,10 @@ export const COLOR_CONTRAST_RULE = 'color-contrast';
 /**
  * Screen widths, in pixels, at which no page may show a text under the smallest font size of the
  * site (`MIN_FONT_SIZE_PX`, `src/theme/constants.ts`): the narrowest phones (320), a common phone
- * (375), a tablet held upright (768), a laptop (1440), a screen past the `wide` breakpoint (1920)
- * and a large desktop screen (2560).
+ * (375), a tablet held upright (768) then sideways (1024), two laptops (1280 and 1440), a screen
+ * past the `wide` breakpoint (1920) and a large desktop screen (2560).
  */
-export const TEXT_SIZE_SCREEN_WIDTHS_PX = [320, 375, 768, 1440, 1920, 2560] as const;
-
-/**
- * Screen widths, in pixels, at which no line of text of the Experiences page may hold more than
- * {@link MAX_LINE_CHARACTERS}: a laptop (1440), where the cards of the timeline reach their largest
- * width, then wider screens (1920 and 2560), where the content of the page keeps that width.
- */
-export const LINE_LENGTH_SCREEN_WIDTHS_PX = [1440, 1920, 2560] as const;
-
-/**
- * Most characters, spaces included, that a line of text may hold: 80, the upper end of the 50 to 80
- * that keep a long text easy to follow from one line to the next.
- */
-export const MAX_LINE_CHARACTERS = 80;
+export const TEXT_SIZE_SCREEN_WIDTHS_PX = [320, 375, 768, 1024, 1280, 1440, 1920, 2560] as const;
 
 /**
  * Screen widths, in pixels, at which forced colors mode, such as a contrast theme of Windows, must
@@ -497,9 +566,10 @@ export const FORCED_COLORS_SCREEN_WIDTHS_PX = [375, 1440] as const;
 
 /**
  * Screen widths, in pixels, at which no thumbnail or logo may be enlarged on a 2x screen: a phone,
- * with one column of cards (375), and a laptop, with three (1440).
+ * with one column of cards (375), a laptop, with three (1440), and a desktop screen past the `wide`
+ * breakpoint, with three larger ones (1920, as a 4K screen at 200 %).
  */
-export const SHARP_IMAGE_SCREEN_WIDTHS_PX = [375, 1440] as const;
+export const SHARP_IMAGE_SCREEN_WIDTHS_PX = [375, 1440, 1920] as const;
 
 /** Device pixels per CSS pixel of the screens of {@link SHARP_IMAGE_SCREEN_WIDTHS_PX}. */
 export const HIGH_DENSITY_SCALE = 2;
@@ -551,3 +621,55 @@ export const HERO_PASSION_SELECTOR = `${HERO_TITLE_SELECTOR} > :last-child`;
 
 /** Subtitle of the home page, right after its title. */
 export const HERO_SUBTITLE_SELECTOR = `${HERO_TITLE_SELECTOR} + p`;
+
+/**
+ * Screen widths, in pixels, past the `wide` breakpoint, at which the content of every page must
+ * span at least {@link MIN_CONTENT_SCREEN_SHARE} of the screen: a common desktop screen (1920) and
+ * a large one (2560), of which the content of a laptop layout once left 54 %.
+ */
+export const WIDE_SCREEN_WIDTHS_PX = [1920, 2560] as const;
+
+/** Smallest share of the width of a wide screen that the content of a page must span: 60 %. */
+export const MIN_CONTENT_SCREEN_SHARE = 0.6;
+
+/**
+ * Largest difference, in pixels, allowed between the width of the content of a page and the width
+ * that the app container leaves it. Half a pixel lets through subpixel rounding, but not a 1 px
+ * difference.
+ */
+export const MAX_CONTENT_WIDTH_OFFSET_PX = 0.5;
+
+/** Screen of the screenshot comparison, named after the device it stands for. */
+interface VisualScreen {
+  /** Kind of device, which the title of each test starts with, e.g. `tablet`. */
+  name: string;
+  /** Width of the screen, in pixels. */
+  width: number;
+  /** Height of the screen, in pixels, which sizes what fills the first screen, such as the hero. */
+  height: number;
+}
+
+/**
+ * Screens of the screenshot comparison (`e2e/pages.visual.ts`): a common phone (375 × 812), a
+ * tablet held upright (768 × 1024), below the tablet breakpoint, a laptop (1280 × 800) and a
+ * desktop screen past the `wide` breakpoint (1920 × 1080).
+ */
+export const VISUAL_SCREENS: readonly VisualScreen[] = [
+  { name: 'phone', width: 375, height: 812 },
+  { name: 'tablet', width: 768, height: 1024 },
+  { name: 'laptop', width: 1280, height: 800 },
+  { name: 'desktop', width: 1920, height: 1080 },
+];
+
+/**
+ * Time at which the clock of the screenshot comparison stands, so the durations of the jobs and
+ * the years of experience, which count up to today, read the same from a run to the next: noon in
+ * the middle of a month, which is the same month in every time zone.
+ */
+export const VISUAL_CLOCK_TIME = '2026-10-15T12:00:00Z';
+
+/**
+ * Seed of the `Math.random` of the screenshot comparison (`seedRandom`, `e2e/screenshots.ts`), so
+ * the dots of the particle field of the home page stand at the same places on every load.
+ */
+export const VISUAL_RANDOM_SEED = 1;

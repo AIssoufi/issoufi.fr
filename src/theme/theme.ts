@@ -22,7 +22,7 @@ import {
   spacing,
   systemColors,
   zIndices,
-} from './tokens';
+} from './tokens.ts';
 
 /** White translucent fills, borders and glows. */
 const foregroundAlphas = alphaVariants({
@@ -119,8 +119,14 @@ export const theme = {
   },
   sizes: {
     ...sizes,
-    /** Largest width of the app container. */
+    /** Largest width of the app container, up to the `wide` breakpoint. */
     container: sizes[1440],
+    /**
+     * Largest width of the app container from the `wide` breakpoint: the width of the screen at
+     * that breakpoint, so the content keeps more than 60 % of a 2560 px screen, where the
+     * 1440 px of `container` left it 54 %.
+     */
+    'container-wide': sizes[1600],
     /**
      * Height of the site header: the logo, 54 px high, with 20 px above and below. Its blurred
      * band, fixed on the screen, has the same height, so it covers the header and nothing else.
@@ -146,12 +152,6 @@ export const theme = {
     'finger-target': sizes[44],
     /** Largest width of the text of a status message, short enough to read at a glance. */
     message: measures[40],
-    /**
-     * Largest width of the description of a job card from the `two-job-columns` breakpoint: its
-     * lines stay under 75 characters of Montserrat, whose zero is wider than most letters, within
-     * the 50 to 80 that keep a long text easy to follow.
-     */
-    'text-measure': measures[52],
     /**
      * Largest width of the title and subtitle of the home page, given the font size of the words
      * of its title (`hero-title`): 640 px, or 15.25 times that size once larger, so the job title
@@ -263,12 +263,10 @@ export const theme = {
      */
     'three-project-columns': breakpoints['53.625'],
     /**
-     * From this width, each job card of the Experiences page shows its summary and its technologies
-     * on the left of its description: 1024 px, where the description gets its whole measure
-     * (`text-measure`) next to a summary of more than 300 px.
+     * From this width, 1600 px, the layout scales up one step, so that a large screen shows the
+     * content in proportion instead of a narrow column in its middle: the app container widens to
+     * `container-wide`, and the pages enlarge their texts and their cards with it.
      */
-    'two-job-columns': breakpoints[64],
-    /** Wide screens. */
     wide: breakpoints[100],
   },
   /**

@@ -9,24 +9,29 @@ import { theme } from '../../../theme/theme';
 export const ROW_CARD_COUNT = 3;
 /**
  * Widths of the files of each thumbnail, in pixels, from the narrowest: each original is encoded
- * at these widths but those wider than itself, and at its own width in their place (see the
- * README). With {@link THUMBNAIL_SIZES}, they serve the card of any screen of one or two device
- * pixels per CSS pixel without enlarging it, and a phone of one with a file at most twice as wide.
+ * at these widths but those wider than itself, and at its own width in their place (see
+ * `docs/assets.md`). With {@link THUMBNAIL_SIZES}, they serve the card of any screen of one or
+ * two device pixels per CSS pixel without enlarging it, and a phone of one with a file at most
+ * twice as wide.
  */
 export const THUMBNAIL_FILE_WIDTHS_PX = [480, 720, 960, 1200] as const;
 /**
- * Widest ratio of a screenshot, 16:10: a card is 220 px high inside its border, so a 16:10
- * screenshot that covers it is 352 px wide, which the 720 px file serves on a 2x screen even where
- * the card is narrower. A wider one would be enlarged there.
+ * Widest ratio of a screenshot, 16:10: below the `wide` breakpoint, a card is 220 px high inside
+ * its border, so a 16:10 screenshot that covers it is 352 px wide, which the 720 px file serves on
+ * a 2x screen even where the card is narrower. A wider one would be enlarged there. From the
+ * `wide` breakpoint, a card is 246 px high but 505 px wide inside its border: its width sets the
+ * cover, which {@link THUMBNAIL_SIZES} serves.
  */
 export const MAX_THUMBNAIL_ASPECT_RATIO = 16 / 10;
 /**
  * Width that a thumbnail takes on the screen, the `sizes` of its `img`: the browser downloads the
  * narrowest file of its `srcset` at least this wide times the device pixels per CSS pixel. The
  * whole screen with one column of cards, a half with two, a third with three, then a third of the
- * app container, where the cards stop growing: always at least the width of the card.
+ * app container, where the cards stop growing, and a third of its larger width from the `wide`
+ * breakpoint: always at least the width of the card.
  */
 export const THUMBNAIL_SIZES = [
+  `(min-width: ${theme.screens.wide}) calc(${theme.sizes['container-wide']} / ${ROW_CARD_COUNT})`,
   `(min-width: ${theme.sizes.container}) calc(${theme.sizes.container} / ${ROW_CARD_COUNT})`,
   `(min-width: ${theme.screens['three-project-columns']}) 33vw`,
   `(min-width: ${theme.screens['two-project-columns']}) 50vw`,

@@ -1,4 +1,5 @@
 // @vitest-environment node
+import { execFileSync } from 'node:child_process';
 import { resolve } from 'node:path';
 import { build, normalizePath, type Plugin, type Rolldown } from 'vite';
 
@@ -21,6 +22,21 @@ import { listFileNames } from './vite/standalone/utils/public-files';
 
 /** Longest time the standalone build may take in this test, coverage included. */
 const BUILD_TIMEOUT_MS = 60_000;
+
+/**
+ * How Vite loads the config in this test: bundled by Rolldown, not imported by Node.js as the
+ * scripts of `package.json` do, which would merge a second copy of the modules of `vite/` into the
+ * coverage and give their branches wrong counts (see `CONFIG_LOADER` in `vite.config.spec.ts`).
+ * Only the release workflow builds the standalone page, so a test imports the config with Node.js
+ * in a process of its own, out of the coverage (see {@link STANDALONE_CONFIG_IMPORT}).
+ */
+const CONFIG_LOADER = 'bundle';
+
+/**
+ * Script that imports the standalone config as `pnpm build:standalone` does, with Node.js, which
+ * fails on an import that it cannot resolve, such as one without the extension of its file.
+ */
+const STANDALONE_CONFIG_IMPORT = "await import('./vite.standalone.config.ts');";
 
 /** Module of the app that renders the router. */
 const APP_MODULE = normalizePath(resolve('src/App/App.tsx'));
@@ -84,6 +100,7 @@ beforeAll(async () => {
   vi.stubEnv('NODE_ENV', 'production');
   const result = await build({
     configFile: 'vite.standalone.config.ts',
+    configLoader: CONFIG_LOADER,
     logLevel: 'silent',
     plugins: [recordAppImports()],
     build: { write: false },
@@ -103,6 +120,15 @@ const getSource = (fileName: string) =>
   String(output.filter(isAsset).find(file => file.fileName === fileName)?.source ?? '');
 
 describe('standalone build', () => {
+  it('has a config that Node.js loads, as `pnpm build:standalone` does', () => {
+    const importConfig = () =>
+      execFileSync(process.execPath, ['--input-type=module', '--eval', STANDALONE_CONFIG_IMPORT], {
+        stdio: 'pipe',
+      });
+
+    expect(importConfig).not.toThrow();
+  });
+
   it('has index.html as its only page', () => {
     const pages = output.map(file => file.fileName).filter(fileName => fileName.endsWith('.html'));
 

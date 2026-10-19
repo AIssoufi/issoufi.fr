@@ -39,7 +39,8 @@ const WHITE_SPACE_PATTERN = /\s+/g;
  * @returns {string} `''` when it is not an element, or when it is hidden from screen readers.
  *
  * @example
- * // <span>août 2021</span> <span aria-hidden="true">↓</span><span>à</span> <span>Aujourd’hui</span>
+ * // <span>août 2021</span> <span aria-hidden="true">↓</span><span>à</span>
+ * //   <span>Aujourd’hui</span>
  * getReadText(period); // 'août 2021 à Aujourd’hui'
  */
 export const getReadText = element => {

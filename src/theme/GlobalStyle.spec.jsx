@@ -1,10 +1,15 @@
-import { render, screen } from '@testing-library/react';
+import { screen } from '@testing-library/react';
 import styled, { ThemeProvider } from '@xstyled/styled-components';
 
-import { listStyleRules } from '../styleTestUtils';
-import { REDUCED_MOTION_QUERY } from './constants';
+import { listStyleRules, serializeCssValue } from '../styleTestUtils';
+import { HOVER_POINTER_QUERY, REDUCED_MOTION_QUERY } from './constants';
 import { GlobalStyle } from './GlobalStyle';
 import { theme } from './theme';
+
+// The render of src/setupTests.ts adds the global styles already, and in styled-components 6.5 each
+// mounted copy of a global style adds its own rules: Testing Library's own render keeps the global
+// styles of the spec alone in the document
+const { render } = await vi.importActual('@testing-library/react');
 
 /**
  * Properties that the reduced motion rule sets, with the value it gives each one: a single
@@ -114,6 +119,27 @@ describe('GlobalStyle', () => {
     const [paragraphRule] = findRulesSelecting({ selectors: ['p'] });
     expect(headingRule.style.getPropertyValue('text-wrap')).toBe('balance');
     expect(paragraphRule.style.getPropertyValue('text-wrap')).toBe('pretty');
+  });
+
+  it('grows a hovered button, and turns a hovered link to the accent from tablet up, under a pointer that hovers only', () => {
+    renderWithGlobalStyle();
+    const tabletHoverQuery = `(min-width: ${theme.screens.tablet}) and ${HOVER_POINTER_QUERY}`;
+
+    const [buttonRule] = findRulesSelecting({
+      selectors: ['button:hover'],
+      media: HOVER_POINTER_QUERY,
+    });
+    const [linkRule] = findRulesSelecting({ selectors: ['a:hover'], media: tabletHoverQuery });
+    expect(buttonRule.style.getPropertyValue('transform')).toBe('scale(1.06)');
+    expect(linkRule.style.getPropertyValue('color')).toBe(
+      serializeCssValue({ property: 'color', value: theme.colors['accent-foreground'] }),
+    );
+    // A touch screen keeps the hover style of the last control tapped
+    const isHoverRuleOfEveryPointer = ({ media, rule }) => {
+      const isForHoverPointers = media.endsWith(HOVER_POINTER_QUERY);
+      return !isForHoverPointers && Boolean(rule.selectorText?.includes(':hover'));
+    };
+    expect(listStyleRules().filter(isHoverRuleOfEveryPointer)).toEqual([]);
   });
 
   describe('with reduced motion', () => {

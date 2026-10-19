@@ -19,10 +19,39 @@ describe('useMagneticHover', () => {
     const { result } = renderHook(() => useMagneticHover());
     const element = elementAt({ left: 100, top: 100, width: 200, height: 50 });
 
-    result.current.onMouseMove({ currentTarget: element, clientX: 250, clientY: 145 });
+    result.current.onPointerMove({ currentTarget: element, clientX: 250, clientY: 145 });
 
     expect(element.style.transform).toBe('translate(20px, 8px)');
     expect(element.style.transition).toBe(MAGNET_FOLLOW_TRANSITION);
+  });
+
+  it('moves the element toward a pen too', () => {
+    const { result } = renderHook(() => useMagneticHover());
+    const element = elementAt({ left: 100, top: 100, width: 200, height: 50 });
+
+    result.current.onPointerMove({
+      currentTarget: element,
+      pointerType: 'pen',
+      clientX: 250,
+      clientY: 145,
+    });
+
+    expect(element.style.transform).toBe('translate(20px, 8px)');
+  });
+
+  it('leaves the element in its place under a finger, which would leave it moved after a tap', () => {
+    const { result } = renderHook(() => useMagneticHover());
+    const element = elementAt({ left: 100, top: 100, width: 200, height: 50 });
+
+    result.current.onPointerMove({
+      currentTarget: element,
+      pointerType: 'touch',
+      clientX: 250,
+      clientY: 145,
+    });
+
+    expect(element.style.transform).toBe('');
+    expect(element.style.transition).toBe('');
   });
 
   it('eases the element back on leave', () => {
@@ -30,7 +59,7 @@ describe('useMagneticHover', () => {
     const element = elementAt({ left: 0, top: 0, width: 10, height: 10 });
     element.style.transform = 'translate(4px, 4px)';
 
-    result.current.onMouseLeave({ currentTarget: element });
+    result.current.onPointerLeave({ currentTarget: element });
 
     expect(element.style.transform).toBe('');
     expect(element.style.transition).toBe(MAGNET_RELEASE_TRANSITION);
@@ -42,8 +71,8 @@ describe('useMagneticHover', () => {
 
     rerender();
 
-    expect(result.current.onMouseMove).toBe(first.onMouseMove);
-    expect(result.current.onMouseLeave).toBe(first.onMouseLeave);
+    expect(result.current.onPointerMove).toBe(first.onPointerMove);
+    expect(result.current.onPointerLeave).toBe(first.onPointerLeave);
   });
 
   describe('with reduced motion', () => {
@@ -52,7 +81,7 @@ describe('useMagneticHover', () => {
       const { result } = renderHook(() => useMagneticHover());
       const element = elementAt({ left: 100, top: 100, width: 200, height: 50 });
 
-      result.current.onMouseMove({ currentTarget: element, clientX: 250, clientY: 145 });
+      result.current.onPointerMove({ currentTarget: element, clientX: 250, clientY: 145 });
 
       expect(element.style.transform).toBe('');
       expect(element.style.transition).toBe('');
@@ -62,13 +91,13 @@ describe('useMagneticHover', () => {
       const { setMatches } = stubMatchMedia({ matches: false });
       const { result } = renderHook(() => useMagneticHover());
       const element = elementAt({ left: 100, top: 100, width: 200, height: 50 });
-      result.current.onMouseMove({ currentTarget: element, clientX: 250, clientY: 145 });
+      result.current.onPointerMove({ currentTarget: element, clientX: 250, clientY: 145 });
 
       setMatches(true);
-      result.current.onMouseMove({ currentTarget: element, clientX: 300, clientY: 150 });
+      result.current.onPointerMove({ currentTarget: element, clientX: 300, clientY: 150 });
       expect(element.style.transform).toBe('translate(20px, 8px)');
 
-      result.current.onMouseLeave({ currentTarget: element });
+      result.current.onPointerLeave({ currentTarget: element });
       expect(element.style.transform).toBe('');
     });
 
@@ -78,7 +107,7 @@ describe('useMagneticHover', () => {
       const element = elementAt({ left: 100, top: 100, width: 200, height: 50 });
 
       setMatches(false);
-      result.current.onMouseMove({ currentTarget: element, clientX: 250, clientY: 145 });
+      result.current.onPointerMove({ currentTarget: element, clientX: 250, clientY: 145 });
 
       expect(element.style.transform).toBe('translate(20px, 8px)');
     });

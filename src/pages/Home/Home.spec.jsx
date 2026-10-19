@@ -3,7 +3,7 @@ import { MemoryRouter } from 'react-router';
 
 import i18n from '../../i18n';
 import { theme } from '../../theme';
-import { REDUCED_MOTION_QUERY } from '../../theme/constants';
+import { HOVER_POINTER_QUERY, REDUCED_MOTION_QUERY } from '../../theme/constants';
 import { declaredStyle, serializeCssValue } from '../../styleTestUtils';
 import { getPage } from '../../utils/pages';
 import { readBackgroundImages } from '../testUtils';
@@ -11,6 +11,9 @@ import { Home } from './Home';
 
 /** Media query of the short screens, such as a phone held sideways. */
 const SHORT_SCREEN_MEDIA_QUERY = `(max-height: ${theme.screenHeights.short})`;
+
+/** Media query of the wide screens, from the `wide` breakpoint. */
+const WIDE_MEDIA_QUERY = `(min-width: ${theme.screens.wide})`;
 
 const renderHome = (path = '/') =>
   render(
@@ -139,6 +142,25 @@ describe('Home', () => {
     expect(shortScreenStyle({ element: buttons, property: 'gap' })).toBe(theme.space[8]);
   });
 
+  it('enlarges the labels of its buttons from the wide breakpoint, and leaves the hero fluid', () => {
+    renderHome();
+    const wideFontSize = element =>
+      declaredStyle({ element, property: 'font-size', media: WIDE_MEDIA_QUERY });
+    const buttons = screen.getAllByRole('link');
+
+    expect(buttons).toHaveLength(2);
+    buttons.forEach(button => {
+      expect(declaredStyle({ element: button, property: 'font-size' })).toBe(theme.fontSizes[14]);
+      expect(wideFontSize(button)).toBe(theme.fontSizes[16]);
+    });
+    // The title and the subtitle already grow with the screen
+    expect(wideFontSize(screen.getByRole('heading', { level: 1 }))).toBe('');
+    expect(wideFontSize(screen.getByText('UX'))).toBe('');
+    expect(wideFontSize(screen.getByText('Je vous aide à développer vos applications web'))).toBe(
+      '',
+    );
+  });
+
   it('fits the buttons to narrow screens instead of widening the page', () => {
     // jsdom applies no media query, so these are the mobile styles
     renderHome();
@@ -155,10 +177,15 @@ describe('Home', () => {
     });
   });
 
-  it('inverts the colors of the secondary button under the pointer, not those of the main one', () => {
+  it('inverts the colors of the secondary button under a pointer that hovers, not those of the main one', () => {
     renderHome();
-    const hoverStyle = ({ name, property }) =>
-      declaredStyle({ element: screen.getByRole('link', { name }), property, pseudo: ':hover' });
+    const hoverStyle = ({ name, property, media = HOVER_POINTER_QUERY }) =>
+      declaredStyle({
+        element: screen.getByRole('link', { name }),
+        property,
+        pseudo: ':hover',
+        media,
+      });
     const secondaryHoverStyle = property =>
       hoverStyle({ name: 'Expériences professionnelles', property });
     const color = name => serializeCssValue({ property: 'color', value: theme.colors[name] });
@@ -168,6 +195,10 @@ describe('Home', () => {
     expect(secondaryHoverStyle('border-color')).toBe(color('foreground'));
     expect(hoverStyle({ name: 'Voir mes projets', property: 'background-color' })).toBe('');
     expect(hoverStyle({ name: 'Voir mes projets', property: 'color' })).toBe(color('foreground'));
+    // A touch screen would keep the hover colors of the button tapped last
+    expect(
+      hoverStyle({ name: 'Expériences professionnelles', property: 'background-color', media: '' }),
+    ).toBe('');
   });
 
   it('hides the cursor glow with reduced motion, and nothing else, since it follows no pointer', () => {

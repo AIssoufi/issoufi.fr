@@ -65,7 +65,7 @@ describe('SplitWords', () => {
     it('pushes a word away from a close pointer and makes it glow', () => {
       const { container } = render(<SplitWords>Developer</SplitWords>);
 
-      fireEvent.mouseMove(window, PUSHING_POINTER);
+      fireEvent.pointerMove(window, PUSHING_POINTER);
       vi.advanceTimersByTime(FRAME_MS);
 
       const [word] = getWords(container);
@@ -87,11 +87,11 @@ describe('SplitWords', () => {
         );
         const [word] = getWords(container);
 
-        fireEvent.mouseMove(screen.getByText(control.props.children), PUSHING_POINTER);
+        fireEvent.pointerMove(screen.getByText(control.props.children), PUSHING_POINTER);
         vi.advanceTimersByTime(FRAME_MS * 10);
         expect(word.style.transform).toBe(RESTING_TRANSFORM);
 
-        fireEvent.mouseMove(window, PUSHING_POINTER);
+        fireEvent.pointerMove(window, PUSHING_POINTER);
         vi.advanceTimersByTime(FRAME_MS);
         expect(word.style.transform).toMatch(PUSHED_LEFT_TRANSFORM);
       },
@@ -109,11 +109,11 @@ describe('SplitWords', () => {
         </>,
       );
       const [word] = getWords(container);
-      fireEvent.mouseMove(window, PUSHING_POINTER);
+      fireEvent.pointerMove(window, PUSHING_POINTER);
       vi.advanceTimersByTime(FRAME_MS);
       expect(word.style.transform).toMatch(PUSHED_LEFT_TRANSFORM);
 
-      fireEvent.mouseMove(screen.getByRole('link'), PUSHING_POINTER);
+      fireEvent.pointerMove(screen.getByRole('link'), PUSHING_POINTER);
       vi.advanceTimersByTime(RETURN_DELAY_MS + SPRING_SETTLING_MS);
 
       expect(getShift(word)).toBeLessThan(SETTLED_SHIFT_PX);
@@ -125,7 +125,7 @@ describe('SplitWords', () => {
       );
       rerender(<SplitWords>Full-stack JavaScript</SplitWords>);
 
-      fireEvent.mouseMove(window, PUSHING_POINTER);
+      fireEvent.pointerMove(window, PUSHING_POINTER);
       expect(() => vi.advanceTimersByTime(FRAME_MS)).not.toThrow();
 
       const words = getWords(container);
@@ -137,7 +137,7 @@ describe('SplitWords', () => {
       const { container, rerender } = render(<SplitWords>Full-stack JavaScript</SplitWords>);
       rerender(<SplitWords>Full-stack JavaScript Developer</SplitWords>);
 
-      fireEvent.mouseMove(window, PUSHING_POINTER);
+      fireEvent.pointerMove(window, PUSHING_POINTER);
       vi.advanceTimersByTime(FRAME_MS);
 
       const words = getWords(container);
@@ -149,7 +149,7 @@ describe('SplitWords', () => {
       stubMatchMedia({ matches: true });
       const { container } = render(<SplitWords>Full-stack Developer</SplitWords>);
 
-      fireEvent.mouseMove(window, PUSHING_POINTER);
+      fireEvent.pointerMove(window, PUSHING_POINTER);
       vi.advanceTimersByTime(FRAME_MS * 10);
 
       getWords(container).forEach(word => {
@@ -162,7 +162,7 @@ describe('SplitWords', () => {
     it('puts back the pushed words once the visitor turns reduced motion on', () => {
       const { setMatches } = stubMatchMedia({ matches: false });
       const { container } = render(<SplitWords>Full-stack Developer</SplitWords>);
-      fireEvent.mouseMove(window, PUSHING_POINTER);
+      fireEvent.pointerMove(window, PUSHING_POINTER);
       vi.advanceTimersByTime(FRAME_MS);
       getWords(container).forEach(word =>
         expect(word.style.transform).toMatch(PUSHED_LEFT_TRANSFORM),
@@ -185,7 +185,7 @@ describe('SplitWords', () => {
       );
       // The removed word leaves an empty slot among the elements of the words
       rerender(<SplitWords>Full-stack JavaScript</SplitWords>);
-      fireEvent.mouseMove(window, PUSHING_POINTER);
+      fireEvent.pointerMove(window, PUSHING_POINTER);
       vi.advanceTimersByTime(FRAME_MS);
       getWords(container).forEach(word =>
         expect(word.style.transform).toMatch(PUSHED_LEFT_TRANSFORM),
@@ -207,7 +207,7 @@ describe('SplitWords', () => {
       const { container } = render(<SplitWords>Developer</SplitWords>);
 
       setMatches(false);
-      fireEvent.mouseMove(window, PUSHING_POINTER);
+      fireEvent.pointerMove(window, PUSHING_POINTER);
       vi.advanceTimersByTime(FRAME_MS);
 
       const [word] = getWords(container);

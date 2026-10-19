@@ -14,6 +14,10 @@ export const WebApp = styled.div`
   max-width: ${th.size('container')};
   margin: 0 auto;
 
+  @media (min-width: ${th('screens.wide')}) {
+    max-width: ${th.size('container-wide')};
+  }
+
   > header {
     padding-left: ${th.space('page')};
     padding-right: ${th.space('page')};

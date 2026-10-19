@@ -1,19 +1,55 @@
-# Testing pitfalls
+# Testing
 
-What the test setup and jsdom do differently from a browser, and how the specs deal with it. How the tests run, and what each browser test checks, is in the [README](../README.md#tests).
+| Level              | Tools                          | Command                                |
+| ------------------ | ------------------------------ | -------------------------------------- |
+| Unit and component | Vitest, Testing Library, jsdom | `pnpm test`                            |
+| Browser            | Playwright, Chromium, axe-core | `pnpm build`, then `pnpm test:browser` |
+| Screenshots        | Playwright, Chromium           | `pnpm test:visual`                     |
 
-## Vitest and jsdom
+## Unit and component tests
 
-- **Logged errors**: `src/setupTests.ts` fails a test that logs with `console.error`, so fix the warning. An update outside `act`, such as a page loaded with `React.lazy`, is awaited with a `findBy` query or `waitFor`; an error that the test expects is silenced with `vi.spyOn(console, 'error').mockImplementation(() => {})`.
-- **The setup runs everywhere**: `src/setupTests.ts` also runs for the specs of the node environment, so it guards every DOM global it touches.
-- **Wrappers**: the setup wraps every `render` in the theme around the wrapper that a spec passes, so a spec adds no `ThemeProvider`; only the specs of `src/theme` render one, to test the theme itself. A component that needs routing is wrapped in `<BrowserRouter>`.
-- **Styles in the CSSOM**: since styled-components inserts its rules with `insertRule`, the `<style>` elements hold no text, and the rules are read through `document.styleSheets`. `declaredStyle` (`src/styleTestUtils.js`) also takes the `media` of a rule and reads the rules of a selector list. The CSSOM writes a declared value as browsers do, a length of `0` as `0px`, `calc(24px - 5px)` as `calc(19px)`, `url("/a.webp")` with quotes: build an expected value from the tokens with `serializeCssValue` rather than by hand.
-- **What jsdom ignores**: the media queries but `all` and `screen`, and, in `getComputedStyle`, any rule whose selector list holds a pseudo-element (`*, *::before, *::after`): read the declared rules then. It converts computed lengths into pixels, and does not focus an element hidden by `display: none`.
-- **`:focus-visible`**: jsdom decides it from the last keyboard, mouse and focus events and from the last element that matched it, which it keeps for the whole file, so it may refuse it after the first `Tab` of a file. Check what the focus shows rather than the pseudo-class.
-- **`stubMatchMedia`** (`src/mediaQueryTestUtils.ts`) replaces a global: undo it with `vi.unstubAllGlobals()`.
-- **CV specs**: they build the real content of the CV from `CV_SOURCES` (`scripts/cv/testUtils.js`).
+- Every component, helper and hook has its spec, next to it: `*.spec.jsx` for components, `*.spec.ts` for helpers and hooks, `*.spec.js` for the JavaScript helpers. The browser tests are the `e2e/*.e2e.ts` files.
+- The coverage must stay at 100 %: the CI fails below.
+- A test that logs an error fails, so the output stays clean.
+- Some specs build the whole site in memory, and check every generated page and header.
 
-## Playwright
+## Browser tests
 
-- **Wait for the animations**: before a test measures a box or aims the pointer at a point, it waits for the animations of the page that end (`waitForEndingAnimations`, `e2e/animations.ts`), or opens the page with `reducedMotion: 'reduce'`. An element still rising into place stands elsewhere, as the buttons of the home page, 20 px lower during their entrance.
-- **Prove the test**: check that a new test fails without its fix at every size it covers, not only at one.
+jsdom computes no layout, so these tests run in Chromium, on the production build.
+They run in both languages, on screens from small phones to large desktops:
+
+| Area          | What they check                                                                                                               |
+| ------------- | ----------------------------------------------------------------------------------------------------------------------------- |
+| Layout        | no sideways scroll; the cards, the header, the menu and the home page hold their layout at every width                        |
+| Accessibility | contrast, headings and what screen readers read, keyboard navigation, touch targets, text size, reduced motion, forced colors |
+| Images        | each screen downloads the right photo and screenshot sizes                                                                    |
+| Server        | each page in its language, the security headers and policy, no request to Google                                              |
+
+## Screenshot comparison
+
+`pnpm test:visual` shows what a change draws differently, page by page.
+
+- It builds the working tree and its base, the commit where it left `origin/develop`, then screenshots every page in both languages, on a phone, a tablet, a laptop and a desktop screen.
+  Run `git fetch origin` first; `--base <ref>` compares with another branch. It takes about a minute.
+- The screens of the base are the expected ones. A changed screen does not fail the run, since the change may mean it; a page that does not load does.
+- Both builds render alike: a fixed date, fixed random values, reduced motion, and every image and font loaded.
+- The HTML report shows each changed screen before and after the change, with their diff and a slider: `pnpm exec playwright show-report visual-report`.
+- On a pull request, the `visual` job lists the changed screens in its summary and uploads the report as its `visual-report` artifact. No ruleset requires it.
+
+## Pitfalls
+
+### Vitest and jsdom
+
+- **Logged errors**: fix the warning. Await a page loaded with `React.lazy` with a `findBy` query or `waitFor`. Silence an error that the test expects with `vi.spyOn(console, 'error').mockImplementation(() => {})`.
+- **Setup**: it runs for the specs of the node environment too, so it guards every DOM global it touches.
+- **Wrappers**: the setup wraps every render in the theme, so a spec adds no `ThemeProvider`. Wrap a component that routes in `<BrowserRouter>`.
+- **Styles**: styled-components writes its rules to the CSSOM, not to the text of `<style>`. Read them with `listStyleRules` and `declaredStyle`, and build an expected value with `serializeCssValue`, since the CSSOM rewrites values (`0` as `0px`).
+- **What jsdom ignores**: media queries (but `all` and `screen`), pseudo-elements in `getComputedStyle`, and the focus of an element hidden by `display: none`. Read the declared rules instead.
+- **`:focus-visible`**: jsdom keeps its state for a whole file. Check what the focus shows, not the pseudo-class.
+- **`matchMedia`**: jsdom has none. Stub it with `stubMatchMedia`, and undo it with `vi.unstubAllGlobals()`.
+
+### Playwright
+
+- **Animations**: wait for them to end before measuring a box (`waitForEndingAnimations`), or open the page with reduced motion. An element still sliding in stands elsewhere.
+- **Proof**: check that a new test fails without its fix, at every size it covers.
+- **Screenshots**: a screen that changes with no change of the code draws something that moves from a run to the next, such as the time, a random value or a late image. Fix it in `e2e/pages.visual.ts` rather than tolerate a difference.

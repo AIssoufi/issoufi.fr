@@ -2,38 +2,39 @@ import react from '@vitejs/plugin-react';
 import { defineConfig, loadEnv, type Plugin } from 'vite';
 import svgr from 'vite-plugin-svgr';
 
-import packageJson from './package.json';
-import { DEFAULT_LANGUAGE } from './src/i18n/constants';
-import { getYearsOfExperience } from './src/utils/career';
-import { addModulePreload, renderNotFoundHtml, renderPageHtml } from './src/utils/pageHtml';
+import packageJson from './package.json' with { type: 'json' };
+import { DEFAULT_LANGUAGE } from './src/i18n/constants.ts';
+import { getYearsOfExperience } from './src/utils/career.ts';
+import { addModulePreload, renderNotFoundHtml, renderPageHtml } from './src/utils/pageHtml.ts';
 import {
   getNotFoundFiles,
   getPageFiles,
   HOME_PAGE,
   isTemplatePageFile,
   NOT_FOUND_FOLDER,
-} from './src/utils/pages';
-import { renderSitemap, SITEMAP_FILE_NAME } from './src/utils/sitemap';
+} from './src/utils/pages.ts';
+import { renderSitemap, SITEMAP_FILE_NAME } from './src/utils/sitemap.ts';
 import {
   findWebManifestLanguage,
   getWebManifestFiles,
   renderWebManifest,
   WEB_MANIFEST_MEDIA_TYPE,
-} from './src/utils/webManifest';
+} from './src/utils/webManifest.ts';
 import {
   ALL_ENV_VARIABLES_PREFIX,
   ASSETS_DIR,
+  BUILD_TARGET,
   CODE_SPLITTING_GROUPS,
   HEADERS_FILE_NAME,
   SECURITY_HEADERS,
-} from './vite/constants';
+} from './vite/constants.ts';
 import {
   getChunkName,
   getFontFaceTags,
   getPageChunkFiles,
   getServerPorts,
   renderHeaderRules,
-} from './vite/utils';
+} from './vite/utils.ts';
 
 /**
  * Vite plugin that adds the web fonts of the site to the head of `index.html`, in development as
@@ -172,14 +173,14 @@ const httpHeaders = (): Plugin => ({
 });
 
 /**
- * Minimum test coverage, in percent, below which `pnpm test:coverage` fails. Set two to three
- * points under the coverage of October 2026, Vite and CI helpers included, as measured by
- * Vitest 4 (99.6% of lines, 99.4% of statements, 98.8% of branches, 98.3% of functions), so a
- * change that drops tests fails the CI while a few untested lines of a new change do not.
- * Vitest 4 maps the V8 coverage onto the syntax tree and counts only the executable code, so its
- * figures differ from those of Vitest 3 for the same tests. Raise them when the coverage goes up.
+ * Minimum test coverage, in percent, below which `pnpm test:coverage` fails: 100% of the lines,
+ * statements, branches and functions, Vite and CI helpers included, as Vitest 4 measures them since
+ * October 2026, so the CI keeps every line of a new change tested. Code that a test cannot reach
+ * is removed when the types allow it, or else covered by a test that fakes the case. Vitest 4 maps
+ * the V8 coverage onto the syntax tree and counts only the executable code, so its figures differ
+ * from those of Vitest 3 for the same tests.
  */
-const COVERAGE_THRESHOLDS_PERCENT = { lines: 97, statements: 97, branches: 96, functions: 96 };
+const COVERAGE_THRESHOLDS_PERCENT = { lines: 100, statements: 100, branches: 100, functions: 100 };
 
 /**
  * Time a test may take before Vitest fails it, in milliseconds: twice its default of 5 s. Several
@@ -190,10 +191,13 @@ const TEST_TIMEOUT_MS = 10_000;
 
 /**
  * Vite and Vitest configuration: React with SVG components, the web fonts, page metadata, sitemap,
- * web app manifests and HTTP headers plugins, a chunk per lazy page and named chunks for the
- * libraries and the shared modules (see {@link CODE_SPLITTING_GROUPS}), the dev and preview
- * servers on the port of the worktree (see {@link getServerPorts}), which fail when it is taken,
- * the preview server with the security headers of the site, and the tests in jsdom with coverage.
+ * web app manifests and HTTP headers plugins, the build for the browsers of {@link BUILD_TARGET},
+ * a chunk per lazy page and named chunks for the libraries and the shared modules (see
+ * {@link CODE_SPLITTING_GROUPS}), the dev and preview servers on the port of the worktree (see
+ * {@link getServerPorts}), which fail when it is taken, the preview server with the security
+ * headers of the site, and the tests in jsdom with coverage. Node.js loads it as it is, its types
+ * stripped (`--configLoader native` in the scripts of `package.json`): every relative import of
+ * the modules that it loads names its `.ts` file, and a JSON import says `with { type: 'json' }`.
  * @see https://vitejs.dev/config/
  */
 export default defineConfig(({ mode }) => {
@@ -206,6 +210,8 @@ export default defineConfig(({ mode }) => {
     // (src/App/Header) and typed in src/vite-env.d.ts; the tests read it too
     define: { __APP_VERSION__: JSON.stringify(packageJson.version) },
     build: {
+      // The browsers of the app, whose syntax and APIs tsconfig.app.json checks it against
+      target: BUILD_TARGET,
       rolldownOptions: {
         output: {
           // The chunk of each lazily loaded page is named after its folder, not its index file
@@ -239,6 +245,16 @@ export default defineConfig(({ mode }) => {
       // its text to a <style>, which jsdom parses again whole on every change: a quadratic cost
       // that made the tests several times slower since jsdom 29
       env: { SC_DISABLE_SPEEDY: 'false' },
+      // Vite resolves styled-components to its browser build, as in the app, instead of Node.js
+      // loading its server build, whose createGlobalStyle injects nothing in jsdom in 6.5. xstyled
+      // goes through Vite too, so that the app and xstyled share one copy of styled-components
+      alias: [
+        {
+          find: /^styled-components$/,
+          replacement: 'styled-components/dist/styled-components.browser.esm.js',
+        },
+      ],
+      server: { deps: { inline: ['styled-components', '@xstyled/styled-components'] } },
       coverage: {
         provider: 'v8',
         // The helpers of the scripts and of the browser tests are measured, not the scripts and the
@@ -257,6 +273,7 @@ export default defineConfig(({ mode }) => {
           '**/*.spec.*',
           // The browser tests run in Playwright, not in Vitest
           '**/*.e2e.ts',
+          '**/*.visual.ts',
           '**/index.ts',
           '**/*.d.ts',
           'src/setupTests.ts',

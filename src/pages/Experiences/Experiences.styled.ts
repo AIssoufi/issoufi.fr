@@ -3,7 +3,12 @@ import styled, { th } from '@xstyled/styled-components';
 import List from '../../components/List';
 import Page from '../../components/Page';
 
-import { lineWidth, mobileLineLeft, periodColumnWidth } from './timeline.styled';
+import {
+  lineWidth,
+  mobileLineLeft,
+  periodColumnWidth,
+  widePeriodColumnWidth,
+} from './timeline.styled';
 
 export const ExperiencesPage = styled(Page)``;
 
@@ -23,6 +28,10 @@ export const PageTitle = styled.h1`
 
   @media (min-width: ${th('screens.tablet')}) {
     font-size: ${th.fontSize(40)};
+  }
+
+  @media (min-width: ${th('screens.wide')}) {
+    font-size: ${th.fontSize(44)};
   }
 `;
 
@@ -52,6 +61,12 @@ export const Timeline = styled(List)`
   @media (min-width: ${th('screens.tablet')}) {
     &::before {
       left: calc(${periodColumnWidth} - ${lineWidth} / 2);
+    }
+  }
+
+  @media (min-width: ${th('screens.wide')}) {
+    &::before {
+      left: calc(${widePeriodColumnWidth} - ${lineWidth} / 2);
     }
   }
 `;

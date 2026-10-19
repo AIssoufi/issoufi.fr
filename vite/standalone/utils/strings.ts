@@ -1,4 +1,4 @@
-import { REGEXP_SPECIAL_CHARACTERS } from '../constants';
+import { REGEXP_SPECIAL_CHARACTERS } from '../constants.ts';
 
 /**
  * Escapes the characters of a text that have a meaning in a regular expression, so a regular

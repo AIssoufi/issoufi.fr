@@ -1,4 +1,9 @@
-import { findRawThemeValues, findRawValues, getSmallestFontSizePx } from './testUtils';
+import {
+  findRawThemeValues,
+  findRawValues,
+  findUnguardedHovers,
+  getSmallestFontSizePx,
+} from './testUtils';
 
 /** Values found in a source, as `kind value` strings, to compare them at a glance. */
 const valuesIn = source => findRawValues(source).map(({ kind, value }) => `${kind} ${value}`);
@@ -147,7 +152,7 @@ const themeValuesIn = source =>
 describe('findRawThemeValues', () => {
   it('finds the values written by hand in a theme, with their lines', () => {
     const source = [
-      "import { radii, sizes } from './tokens';",
+      "import { radii, sizes } from './tokens.ts';",
       '',
       'export const theme = {',
       "  radii: { sm: '8px', md: radii[12] },",
@@ -207,23 +212,28 @@ describe('findRawThemeValues', () => {
       ["literal 'accent'"],
     ],
     [
+      'the arguments of a builder imported from tokens without the extension that Node.js needs',
+      "import { alphaVariants } from './tokens'; alphaVariants({ name: 'accent' });",
+      ["literal 'accent'"],
+    ],
+    [
       'the arguments of a method of a primitive',
-      "import { palette } from './tokens'; theme = { a: palette.white.replace('#fff', '#000') };",
+      "import { palette } from './tokens.ts'; theme = { a: palette.white.replace('#fff', '#000') };",
       ["literal '#fff'", "literal '#000'"],
     ],
     [
       'the arguments of a method of a primitive read from a namespace import',
-      "import * as tokens from './tokens'; theme = { a: tokens.radii[12].concat('4px') };",
+      "import * as tokens from './tokens.ts'; theme = { a: tokens.radii[12].concat('4px') };",
       ["literal '4px'"],
     ],
     [
       'the arguments of a builder read with brackets',
-      "import * as tokens from './tokens'; tokens['alphaVariants']({ name: 'accent' });",
+      "import * as tokens from './tokens.ts'; tokens['alphaVariants']({ name: 'accent' });",
       ["literal 'accent'"],
     ],
     [
       'the values after an import of tokens.ts for its side effects',
-      "import './tokens'; const theme = { raised: 1 };",
+      "import './tokens.ts'; const theme = { raised: 1 };",
       ['literal 1'],
     ],
     ['the values read before a syntax error', "const theme = { sm: '8px', md: ", ["literal '8px'"]],
@@ -243,26 +253,26 @@ describe('findRawThemeValues', () => {
     ['negated references', 'theme = { offset: -spacing[8] };'],
     [
       'the modules of imports and exports',
-      "import { palette } from './tokens'; export { theme } from './theme'; export * from './x';",
+      "import { palette } from './tokens.ts'; export { theme } from './theme'; export * from './x';",
     ],
     ['types', "const accent: 'plum' | 1 = palette.plum; theme = { accent } as const;"],
     ['comments', "theme = {\n  // '8px' by hand\n  /* #fff, 0.2s ease */\n  sm: radii[8],\n};"],
     [
       'the arguments of a builder imported from tokens.ts',
-      "import { alphaVariants, rgb } from './tokens';\n" +
+      "import { alphaVariants, rgb } from './tokens.ts';\n" +
         "colors = { ...alphaVariants({ name: 'accent', rgb: rgb.plum, opacities: [10, 20] as const }) };",
     ],
     [
       'the arguments of a renamed builder',
-      "import { alphaVariants as variants } from './tokens'; variants({ name: 'accent' });",
+      "import { alphaVariants as variants } from './tokens.ts'; variants({ name: 'accent' });",
     ],
     [
       'the arguments of a builder read from a namespace import',
-      "import * as tokens from './tokens'; tokens.alphaVariants({ name: 'accent' });",
+      "import * as tokens from './tokens.ts'; tokens.alphaVariants({ name: 'accent' });",
     ],
     [
       'the arguments of a default import of tokens.ts',
-      "import build from './tokens'; build({ name: 'accent' });",
+      "import build from './tokens.ts'; build({ name: 'accent' });",
     ],
     [
       'a template that only reads tokens and keywords',
@@ -307,5 +317,101 @@ describe('getSmallestFontSizePx', () => {
     ['nothing', undefined],
   ])('cannot read %s', (_case, size) => {
     expect(getSmallestFontSizePx(size)).toBeNaN();
+  });
+});
+
+describe('findUnguardedHovers', () => {
+  it('finds a :hover outside any media query, with its line', () => {
+    const source = [
+      'export const Card = styled.div`',
+      "  color: ${th.color('foreground')};",
+      '',
+      '  &:hover {',
+      "    color: ${th.color('accent')};",
+      '  }',
+      '`;',
+    ].join('\n');
+
+    expect(findUnguardedHovers(source)).toEqual([4]);
+  });
+
+  it.each([
+    ['in another media query', "@media (min-width: ${th('screens.tablet')}) {\n  &:hover {}\n}"],
+    ['in a negation', '&:not(:hover) {\n}'],
+    ['after the class of another component', '${ProjectItem}:hover & {\n}'],
+    ['in a global selector list', 'a,\nbutton:hover {\n}'],
+    ['in the query of reduced motion', '@media ${REDUCED_MOTION_QUERY} {\n  &:hover {}\n}'],
+    ['in a selector that names the query', '[data-query="${HOVER_POINTER_QUERY}"]:hover {\n}'],
+    [
+      'in a list of queries that names it last',
+      "@media (min-width: ${th('screens.tablet')}), ${HOVER_POINTER_QUERY} {\n  &:hover {}\n}",
+    ],
+    [
+      'in a list of queries that names it first',
+      "@media ${HOVER_POINTER_QUERY}, (min-width: ${th('screens.tablet')}) {\n  &:hover {}\n}",
+    ],
+    ['in the negation of the query', '@media not ${HOVER_POINTER_QUERY} {\n  &:hover {}\n}'],
+  ])('finds a :hover %s', (_case, source) => {
+    expect(findUnguardedHovers(source)).toHaveLength(1);
+  });
+
+  it.each([
+    ['alone', '@media ${HOVER_POINTER_QUERY} {\n  &:hover {}\n}'],
+    [
+      'after other conditions',
+      "@media (min-width: ${th('screens.tablet')}) and ${HOVER_POINTER_QUERY} {\n  a:hover {}\n}",
+    ],
+    ['deep inside', '@media ${HOVER_POINTER_QUERY} {\n  &:hover {\n    > svg:hover {}\n  }\n}'],
+    [
+      'in a css block that it interpolates',
+      '@media ${HOVER_POINTER_QUERY} {\n  ${props => props.$a && css`&:hover {}`}\n}',
+    ],
+    [
+      'in a css block interpolated in the styles',
+      '${props => !props.$a && css`\n  @media ${HOVER_POINTER_QUERY} {\n    &:hover {}\n  }\n`}',
+    ],
+  ])('allows a :hover in a block of the media query %s', (_case, source) => {
+    expect(findUnguardedHovers(source)).toEqual([]);
+  });
+
+  it('finds a :hover written once the block of the media query is closed', () => {
+    const source = [
+      '@media ${HOVER_POINTER_QUERY} {',
+      "  color: ${props => (props.$a ? th.color('accent') : th.color('foreground'))};",
+      '  &:hover {}',
+      '}',
+      '&:focus-visible:hover {}',
+    ].join('\n');
+
+    expect(findUnguardedHovers(source)).toEqual([5]);
+  });
+
+  it('finds a :hover of a css block interpolated outside the media query', () => {
+    const source = '${props => props.$a && css`\n  &:hover {\n  }\n`}';
+
+    expect(findUnguardedHovers(source)).toEqual([2]);
+  });
+
+  it('ignores a :hover named in a comment', () => {
+    const source = [
+      '/* The global style grows buttons on :hover */',
+      '// a:hover is the accent from tablet up',
+      "color: ${th.color('accent')};",
+    ].join('\n');
+
+    expect(findUnguardedHovers(source)).toEqual([]);
+  });
+
+  describe('edge cases', () => {
+    it.each([
+      ['an empty source', ''],
+      ['a source without any :hover', 'export const A = styled.div`\n  color: red;\n`;'],
+      ['a closing brace with no block', '}\n@media ${HOVER_POINTER_QUERY} {\n  &:hover {}\n}'],
+      ['a number', 42],
+      ['null', null],
+      ['nothing', undefined],
+    ])('finds nothing in %s', (_case, source) => {
+      expect(findUnguardedHovers(source)).toEqual([]);
+    });
   });
 });

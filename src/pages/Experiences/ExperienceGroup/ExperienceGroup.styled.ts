@@ -1,12 +1,8 @@
 import styled, { th } from '@xstyled/styled-components';
 
 import List from '../../../components/List';
-import Technologies from '../Technologies';
 import {
   card,
-  cardColumns,
-  cardDetails,
-  cardTechnologies,
   companyBlock,
   mobileContentIndent,
   mobileLineCenter,
@@ -70,7 +66,6 @@ export const RoleItem = styled.li`
 export const RoleContent = styled.article`
   min-width: 0;
   ${card}
-  ${cardColumns}
   padding: ${th.space(14)} ${th.space(16)};
 
   @media (min-width: ${th('screens.tablet')}) {
@@ -83,9 +78,8 @@ export const RoleDetails = styled.div`
   font-weight: ${th.fontWeight('regular')};
   line-height: ${th.lineHeight(160)};
   margin-top: ${th.space(10)};
-  ${cardDetails}
-`;
 
-export const RoleTechnologies = styled(Technologies)`
-  ${cardTechnologies}
+  @media (min-width: ${th('screens.wide')}) {
+    font-size: ${th.fontSize(16)};
+  }
 `;

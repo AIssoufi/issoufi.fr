@@ -89,7 +89,7 @@ describe('ParticleField', () => {
       render(<ParticleField />);
       const pointer = { x: DOT.x - LINKED_DISTANCE_PX, y: DOT.y };
 
-      fireEvent.mouseMove(window, { clientX: pointer.x, clientY: pointer.y });
+      fireEvent.pointerMove(window, { clientX: pointer.x, clientY: pointer.y });
       vi.advanceTimersByTime(FRAME_MS);
 
       expect(context.moveTo).toHaveBeenCalledWith(pointer.x, pointer.y);
@@ -100,7 +100,7 @@ describe('ParticleField', () => {
     it('fades and thins the cursor link linearly with the distance', () => {
       render(<ParticleField />);
 
-      fireEvent.mouseMove(window, { clientX: DOT.x - LINKED_DISTANCE_PX, clientY: DOT.y });
+      fireEvent.pointerMove(window, { clientX: DOT.x - LINKED_DISTANCE_PX, clientY: DOT.y });
       vi.advanceTimersByTime(FRAME_MS);
 
       const [, rgb, opacity] = context.strokeStyle.match(/^rgba\((.+),([\d.]+)\)$/) ?? [];
@@ -112,7 +112,7 @@ describe('ParticleField', () => {
     it('does not link the cursor to a dot out of reach', () => {
       render(<ParticleField />);
 
-      fireEvent.mouseMove(window, { clientX: DOT.x - UNLINKED_DISTANCE_PX, clientY: DOT.y });
+      fireEvent.pointerMove(window, { clientX: DOT.x - UNLINKED_DISTANCE_PX, clientY: DOT.y });
       vi.advanceTimersByTime(FRAME_MS);
 
       // One dot drawn on mount and one on the next frame, without any line
@@ -122,7 +122,7 @@ describe('ParticleField', () => {
 
     it('draws no cursor link once the mouse has left the window', () => {
       render(<ParticleField />);
-      fireEvent.mouseMove(window, { clientX: DOT.x - LINKED_DISTANCE_PX, clientY: DOT.y });
+      fireEvent.pointerMove(window, { clientX: DOT.x - LINKED_DISTANCE_PX, clientY: DOT.y });
 
       fireEvent.mouseLeave(document);
       vi.advanceTimersByTime(FRAME_MS);
@@ -159,7 +159,7 @@ describe('ParticleField', () => {
       stubMatchMedia({ matches: true });
       render(<ParticleField />);
 
-      fireEvent.mouseMove(window, { clientX: DOT.x - LINKED_DISTANCE_PX, clientY: DOT.y });
+      fireEvent.pointerMove(window, { clientX: DOT.x - LINKED_DISTANCE_PX, clientY: DOT.y });
       vi.advanceTimersByTime(FRAME_MS * 10);
 
       expect(context.arc).toHaveBeenCalledOnce();

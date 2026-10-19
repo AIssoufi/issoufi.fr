@@ -16,13 +16,20 @@ import {
 import { readGlyphOutlines } from './woff2.mjs';
 
 /** A point of an outline, on the curve unless said otherwise. */
-const point = (x, y, onCurve = true) => ({ x, y, onCurve });
+const point = ({ x, y, onCurve = true }) => ({ x, y, onCurve });
 
 /** A square glyph of 100 font units, from the baseline up. */
 const squareGlyph = ({ character, advanceWidth }) => ({
   character,
   advanceWidth,
-  contours: [[point(0, 0), point(0, 100), point(100, 100), point(100, 0)]],
+  contours: [
+    [
+      point({ x: 0, y: 0 }),
+      point({ x: 0, y: 100 }),
+      point({ x: 100, y: 100 }),
+      point({ x: 100, y: 0 }),
+    ],
+  ],
 });
 
 /** The logo of the site, laid out as `pnpm icons` does. */
@@ -96,10 +103,10 @@ describe('layoutLogo', () => {
     });
 
     expect(logo.contours[0]).toEqual([
-      point(0, 0),
-      point(0, -100),
-      point(100, -100),
-      point(100, 0),
+      point({ x: 0, y: 0 }),
+      point({ x: 0, y: -100 }),
+      point({ x: 100, y: -100 }),
+      point({ x: 100, y: 0 }),
     ]);
   });
 
@@ -187,36 +194,54 @@ describe('formatCoordinate', () => {
 
 describe('contourToPathData', () => {
   it('draws lines between on-curve points, and closes the contour', () => {
-    expect(contourToPathData([point(0, 0), point(10, 0), point(10, 10), point(0, 10)])).toBe(
-      'M0 0L10 0L10 10L0 10Z',
-    );
+    expect(
+      contourToPathData([
+        point({ x: 0, y: 0 }),
+        point({ x: 10, y: 0 }),
+        point({ x: 10, y: 10 }),
+        point({ x: 0, y: 10 }),
+      ]),
+    ).toBe('M0 0L10 0L10 10L0 10Z');
   });
 
   it('draws a quadratic curve through an off-curve point', () => {
-    expect(contourToPathData([point(0, 0), point(10, 0, false), point(10, 10)])).toBe(
-      'M0 0Q10 0 10 10Z',
-    );
+    expect(
+      contourToPathData([
+        point({ x: 0, y: 0 }),
+        point({ x: 10, y: 0, onCurve: false }),
+        point({ x: 10, y: 10 }),
+      ]),
+    ).toBe('M0 0Q10 0 10 10Z');
   });
 
   it('adds the on-curve point implied between two off-curve points', () => {
     expect(
-      contourToPathData([point(0, 0), point(10, 0, false), point(20, 10, false), point(20, 20)]),
+      contourToPathData([
+        point({ x: 0, y: 0 }),
+        point({ x: 10, y: 0, onCurve: false }),
+        point({ x: 20, y: 10, onCurve: false }),
+        point({ x: 20, y: 20 }),
+      ]),
     ).toBe('M0 0Q10 0 15 5Q20 10 20 20Z');
   });
 
   it('starts on an on-curve point when the contour starts with an off-curve one', () => {
-    expect(contourToPathData([point(10, 0, false), point(10, 10), point(0, 0)])).toBe(
-      'M10 10L0 0Q10 0 10 10Z',
-    );
+    expect(
+      contourToPathData([
+        point({ x: 10, y: 0, onCurve: false }),
+        point({ x: 10, y: 10 }),
+        point({ x: 0, y: 0 }),
+      ]),
+    ).toBe('M10 10L0 0Q10 0 10 10Z');
   });
 
   it('draws a contour of off-curve points only from their implied on-curve points', () => {
     expect(
       contourToPathData([
-        point(0, 10, false),
-        point(10, 10, false),
-        point(10, 0, false),
-        point(0, 0, false),
+        point({ x: 0, y: 10, onCurve: false }),
+        point({ x: 10, y: 10, onCurve: false }),
+        point({ x: 10, y: 0, onCurve: false }),
+        point({ x: 0, y: 0, onCurve: false }),
       ]),
     ).toBe('M5 10Q10 10 10 5Q10 0 5 0Q0 0 0 5Q0 10 5 10Z');
   });
@@ -229,8 +254,8 @@ describe('contourToPathData', () => {
 describe('toLogoPathData', () => {
   it('scales and moves every contour into the icon, one after the other', () => {
     const contours = [
-      [point(0, 0), point(10, 0), point(10, -10)],
-      [point(20, 0), point(30, 0), point(30, -10)],
+      [point({ x: 0, y: 0 }), point({ x: 10, y: 0 }), point({ x: 10, y: -10 })],
+      [point({ x: 20, y: 0 }), point({ x: 30, y: 0 }), point({ x: 30, y: -10 })],
     ];
 
     expect(

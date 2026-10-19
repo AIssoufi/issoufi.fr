@@ -1,4 +1,4 @@
-import { ROUTER_MODULE, TRAILING_SLASHES_PATTERN } from '../constants';
+import { ROUTER_MODULE, TRAILING_SLASHES_PATTERN } from '../constants.ts';
 
 /** Parameters of {@link isAppRouterImport}. */
 interface IsAppRouterImportParams {

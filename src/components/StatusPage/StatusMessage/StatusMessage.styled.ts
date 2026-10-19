@@ -1,6 +1,7 @@
 import styled, { css, th } from '@xstyled/styled-components';
 
 import LocalizedLink from '../../LocalizedLink';
+import { HOVER_POINTER_QUERY } from '../../../theme/constants';
 
 export const Container = styled.section`
   display: flex;
@@ -54,9 +55,11 @@ const pillAction = css`
   transition-property: border-color, color;
   transition-duration: ${th.duration('base')};
 
-  &:hover {
-    border-color: ${th.color('accent')};
-    color: ${th.color('accent-foreground')};
+  @media ${HOVER_POINTER_QUERY} {
+    &:hover {
+      border-color: ${th.color('accent')};
+      color: ${th.color('accent-foreground')};
+    }
   }
 `;
 
@@ -69,8 +72,10 @@ export const ActionButton = styled.button`
   background-color: transparent;
   font-family: inherit;
 
-  &:hover {
-    /* Stays still like the home link, unlike the other buttons of the site */
-    transform: none;
+  @media ${HOVER_POINTER_QUERY} {
+    &:hover {
+      /* Stays still like the home link, unlike the other buttons of the site */
+      transform: none;
+    }
   }
 `;

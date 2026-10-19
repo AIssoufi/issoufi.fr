@@ -1,8 +1,8 @@
 import type { HtmlTagDescriptor } from 'vite';
 
-import { FONT_FACES, FONT_MEDIA_TYPE } from '../src/theme/constants';
-import type { FontFaceDeclaration } from '../src/theme/types';
-import { isDeclarableFontFace, renderFontFaces } from '../src/theme/utils';
+import { FONT_FACES, FONT_MEDIA_TYPE } from '../src/theme/constants.ts';
+import type { FontFaceDeclaration } from '../src/theme/types.ts';
+import { isDeclarableFontFace, renderFontFaces } from '../src/theme/utils.ts';
 import {
   DEFAULT_DEV_PORT,
   DEFAULT_PREVIEW_PORT,
@@ -19,8 +19,8 @@ import {
   PAGES_DIR,
   PATH_SEPARATOR_PATTERN,
   PORT_PATTERN,
-} from './constants';
-import type { HeaderRule } from './types';
+} from './constants.ts';
+import type { HeaderRule } from './types.ts';
 
 /** Environment variables, as Vite's `loadEnv` returns them. */
 type Env = Record<string, string | undefined>;
@@ -94,8 +94,10 @@ interface ChunkNameInfo {
  * {@link FALLBACK_CHUNK_NAME} when the chunk has no name.
  *
  * @example
- * getChunkName({ name: 'index', facadeModuleId: '/app/src/pages/Projects/index.ts' }); // 'Projects'
- * getChunkName({ name: 'library', facadeModuleId: '/app/node_modules/library/library.js' }); // 'library'
+ * getChunkName({ name: 'index', facadeModuleId: '/app/src/pages/Projects/index.ts' });
+ * // 'Projects'
+ * getChunkName({ name: 'library', facadeModuleId: '/app/node_modules/library/library.js' });
+ * // 'library'
  */
 export const getChunkName = ({ name, facadeModuleId }: ChunkNameInfo = {}): string => {
   const hasName = typeof name === 'string' && name !== '';
@@ -147,8 +149,7 @@ interface GetPageChunkFileParams {
  * getPageChunkFile({ bundle, folder: 'Home' }); // undefined
  */
 export const getPageChunkFile = ({ bundle, folder }: GetPageChunkFileParams = {}):
-  | string
-  | undefined => {
+  string | undefined => {
   const hasFolder = typeof folder === 'string' && folder.trim() !== '';
   const hasBundle = typeof bundle === 'object' && bundle !== null;
   const canSearch = hasFolder && hasBundle;
@@ -265,13 +266,11 @@ export const getFontFaceTags = ({
   const faces = Array.isArray(fontFaces) ? fontFaces.filter(isDeclarableFontFace) : [];
   if (faces.length === 0) return [];
 
-  const preloadLinks = faces.map(
-    ({ url }): HtmlTagDescriptor => ({
-      tag: 'link',
-      attrs: { rel: 'preload', href: url, as: 'font', type: FONT_MEDIA_TYPE, crossorigin: true },
-      injectTo: 'head',
-    }),
-  );
+  const preloadLinks = faces.map(({ url }): HtmlTagDescriptor => ({
+    tag: 'link',
+    attrs: { rel: 'preload', href: url, as: 'font', type: FONT_MEDIA_TYPE, crossorigin: true },
+    injectTo: 'head',
+  }));
   const style: HtmlTagDescriptor = {
     tag: 'style',
     children: renderFontFaces({ fontFaces: faces }),

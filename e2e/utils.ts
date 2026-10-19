@@ -223,7 +223,7 @@ export const groupCardsIntoRows = ({
 
   const rows: CardBox[][] = [];
   for (const card of cards.filter(isCardBox)) {
-    const currentRow: CardBox[] | undefined = rows[rows.length - 1];
+    const currentRow = rows.at(-1);
     const isInCurrentRow =
       currentRow !== undefined && Math.abs(card.top - currentRow[0].top) <= tolerancePx;
     if (isInCurrentRow) currentRow.push(card);
@@ -422,6 +422,30 @@ export const isBoxInside = ({ box, container }: IsBoxInsideParams = {}): boolean
   return isInsideHorizontally && isInsideVertically;
 };
 
+/** Parameters of {@link isBoxBelow}. */
+interface IsBoxBelowParams {
+  /** Box that should start lower, such as the description of a job card. */
+  box?: ScreenBox | null;
+  /** Box that it should follow, such as the summary of the card. */
+  reference?: ScreenBox | null;
+}
+
+/**
+ * Tells whether a box starts below another, as blocks stacked one after the other do: its top
+ * edge is at the bottom edge of the reference or lower. A box beside the reference, which starts
+ * higher than its bottom, is not below it.
+ *
+ * @returns `false` when either box is missing or holds a value that is not a finite number.
+ *
+ * @example
+ * isBoxBelow({
+ *   box: { x: 16, y: 72, width: 520, height: 300 },
+ *   reference: { x: 16, y: 16, width: 900, height: 44 },
+ * }); // true
+ */
+export const isBoxBelow = ({ box, reference }: IsBoxBelowParams = {}): boolean =>
+  isScreenBox(box) && box.y >= getBoxBottom(reference);
+
 /** Size of the screen of a page, as `page.viewportSize()` of Playwright returns it. */
 interface ViewportSize {
   /** Width of the screen, in CSS pixels. */
@@ -534,6 +558,20 @@ export const getScreenCenter = (viewport?: ViewportSize | null): ScreenPoint | n
   const screen = getScreenBox(viewport);
   return screen && { x: screen.width / 2, y: screen.height / 2 };
 };
+
+/**
+ * Finds the middle of a box, such as the point where a tap lands on an element that never stops
+ * moving, which a locator would wait for.
+ *
+ * @param box - Box of the element, such as the one that Playwright's `boundingBox()` returns.
+ * @returns The middle of the box, or `null` when the box is missing or holds a value that is not a
+ * finite number.
+ *
+ * @example
+ * getBoxCenter({ x: 24, y: 300, width: 327, height: 60 }); // { x: 187.5, y: 330 }
+ */
+export const getBoxCenter = (box?: ScreenBox | null): ScreenPoint | null =>
+  isScreenBox(box) ? { x: box.x + box.width / 2, y: box.y + box.height / 2 } : null;
 
 /** How many levels deeper than the heading before it a heading may be: one at most. */
 const MAX_HEADING_LEVEL_STEP = 1;

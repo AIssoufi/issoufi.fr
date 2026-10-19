@@ -1,16 +1,11 @@
 import { act, render, screen, within } from '@testing-library/react';
 
 import i18n from '../../../i18n';
-import { declaredStyle } from '../../../styleTestUtils';
-import { theme } from '../../../theme';
 import { getReadText } from '../../testUtils';
 import ExperienceGroup from './ExperienceGroup';
 
 /** Any duration text, in French or in English. */
 const DURATION_TEXT = /\d+ (an|ans|mois|years?|months?)|< 1 (mois|month)/;
-
-/** Media query from which a job card shows two columns. */
-const TWO_JOB_COLUMNS_MEDIA = `(min-width: ${theme.screens['two-job-columns']})`;
 
 describe('ExperienceGroup', () => {
   afterEach(async () => {
@@ -148,7 +143,7 @@ describe('ExperienceGroup', () => {
     expect(getReadText(card)).toContain('août 2021 à Aujourd’hui');
   });
 
-  it('lists the technologies of a role after its description, on the left of it on a wide screen', () => {
+  it('lists the technologies of a role after its description', () => {
     render(
       <ExperienceGroup entityName="Sewan Groupe">
         <ExperienceGroup.Role
@@ -159,8 +154,6 @@ describe('ExperienceGroup', () => {
         </ExperienceGroup.Role>
       </ExperienceGroup>,
     );
-    const wideStyle = ({ element, property }) =>
-      declaredStyle({ element, property, media: TWO_JOB_COLUMNS_MEDIA });
     const card = screen.getByRole('article');
     const details = screen.getByText('Description du rôle');
     const technologies = within(card).getByRole('list');
@@ -171,14 +164,6 @@ describe('ExperienceGroup', () => {
         .map(({ textContent }) => textContent),
     ).toEqual(['React.js', 'Storybook']);
     expect(details.compareDocumentPosition(technologies)).toBe(Node.DOCUMENT_POSITION_FOLLOWING);
-    expect(wideStyle({ element: card, property: 'display' })).toBe('grid');
-    expect(wideStyle({ element: details, property: 'grid-column' })).toBe('2');
-    expect(wideStyle({ element: technologies, property: 'grid-column' })).toBe('1');
-    expect(wideStyle({ element: details, property: 'max-width' })).toBe(
-      theme.sizes['text-measure'],
-    );
-    // A single column on a narrower screen, as wide as the card
-    expect(declaredStyle({ element: details, property: 'max-width' })).toBe('');
   });
 
   it('lists no technologies for a role without them', () => {

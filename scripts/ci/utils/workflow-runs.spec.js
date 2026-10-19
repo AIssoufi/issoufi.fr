@@ -1,21 +1,27 @@
 import {
+  approveRun,
   describeRunOutcome,
   dispatchWorkflow,
   fetchLatestRun,
   fetchRun,
+  fetchWorkflowRuns,
   getCiVerdict,
   getWorkflowRunsUrl,
   isCommitSha,
+  isHeldRun,
   readDispatchedRun,
   readLatestRun,
   readRun,
+  readRuns,
   shortenSha,
+  waitForLatestRun,
   waitForRun,
 } from './workflow-runs.mjs';
 
 const SHA = '58ff9ea0c3f4e1b2a9d8c7b6a5f4e3d2c1b0a9f8';
 const OTHER_SHA = '9ff31f7aa1b2c3d4e5f60718293a4b5c6d7e8f90';
 const RUN_URL = 'https://github.com/AIssoufi/issoufi.fr/actions/runs/123';
+const CREATED_AT = '2026-10-19T05:00:00Z';
 
 /** A run of the REST API answer, as GitHub writes it. */
 const apiRun = (fields = {}) => ({
@@ -23,15 +29,18 @@ const apiRun = (fields = {}) => ({
   head_sha: SHA,
   status: 'completed',
   conclusion: 'success',
+  created_at: CREATED_AT,
   html_url: RUN_URL,
   ...fields,
 });
 
 /** A run as readLatestRun returns it. */
 const run = (fields = {}) => ({
+  id: 123,
   sha: SHA,
   status: 'completed',
   conclusion: 'success',
+  createdAt: new Date(CREATED_AT),
   url: RUN_URL,
   ...fields,
 });
@@ -146,13 +155,36 @@ describe('readRun', () => {
     42,
     [],
     {},
+    apiRun({ id: undefined }),
+    apiRun({ id: 0 }),
+    apiRun({ id: '123' }),
     apiRun({ head_sha: undefined }),
     apiRun({ head_sha: '58ff9ea' }),
     apiRun({ status: undefined }),
     apiRun({ conclusion: undefined }),
+    apiRun({ created_at: undefined }),
+    apiRun({ created_at: 'yesterday' }),
+    apiRun({ created_at: 1_760_850_000_000 }),
     apiRun({ html_url: null }),
   ])('returns undefined for %o', value => {
     expect(readRun(value)).toBeUndefined();
+  });
+});
+
+describe('isHeldRun', () => {
+  it('spots a run that waits for approval', () => {
+    expect(isHeldRun(run({ conclusion: 'action_required' }))).toBe(true);
+  });
+
+  it.each([
+    run(),
+    run({ conclusion: 'failure' }),
+    run({ status: 'queued', conclusion: null }),
+    run({ status: 'waiting', conclusion: 'action_required' }),
+    undefined,
+    null,
+  ])('leaves out %o', value => {
+    expect(isHeldRun(value)).toBe(false);
   });
 });
 
@@ -171,7 +203,7 @@ describe('describeRunOutcome', () => {
     });
   });
 
-  it.each(['failure', 'cancelled', 'timed_out', 'skipped', 'action_required'])(
+  it.each(['failure', 'cancelled', 'timed_out', 'skipped'])(
     'says that a run ended with %s did not pass',
     conclusion => {
       expect(describeRunOutcome(run({ conclusion }))).toEqual({
@@ -180,6 +212,13 @@ describe('describeRunOutcome', () => {
       });
     },
   );
+
+  it('says that a held run waits for approval', () => {
+    expect(describeRunOutcome(run({ conclusion: 'action_required' }))).toEqual({
+      isSuccess: false,
+      outcome: `is waiting for someone to approve it on 58ff9ea: ${RUN_URL}`,
+    });
+  });
 
   it('names a missing conclusion', () => {
     expect(describeRunOutcome(run({ conclusion: null })).outcome).toBe(
@@ -256,6 +295,25 @@ describe('readLatestRun', () => {
   });
 });
 
+describe('readRuns', () => {
+  it('reads every run of the list, in its order', () => {
+    const response = { workflow_runs: [apiRun(), apiRun({ id: 122, conclusion: 'failure' })] };
+    expect(readRuns(response)).toEqual([run(), run({ id: 122, conclusion: 'failure' })]);
+  });
+
+  it('leaves out the runs it cannot read', () => {
+    const response = { workflow_runs: [null, apiRun({ id: 0 }), apiRun(), 'run'] };
+    expect(readRuns(response)).toEqual([run()]);
+  });
+
+  it.each([undefined, null, 'runs', {}, { workflow_runs: null }, { workflow_runs: {} }])(
+    'returns an empty list for %o',
+    response => {
+      expect(readRuns(response)).toEqual([]);
+    },
+  );
+});
+
 describe('getCiVerdict', () => {
   it('lets a commit whose run passed through', () => {
     expect(getCiVerdict({ run: run(), sha: SHA, branch: 'develop' })).toEqual({
@@ -277,7 +335,7 @@ describe('getCiVerdict', () => {
     });
   });
 
-  it.each(['failure', 'cancelled', 'timed_out', 'skipped', 'action_required'])(
+  it.each(['failure', 'cancelled', 'timed_out', 'skipped'])(
     'stops when the run ended with %s',
     conclusion => {
       expect(getCiVerdict({ run: run({ conclusion }), sha: SHA })).toEqual({
@@ -286,6 +344,12 @@ describe('getCiVerdict', () => {
       });
     },
   );
+
+  it('stops while the run waits for approval', () => {
+    expect(getCiVerdict({ run: run({ conclusion: 'action_required' }), sha: SHA }).message).toBe(
+      `Nothing deployed: the CI of develop is waiting for someone to approve it on 58ff9ea: ${RUN_URL}`,
+    );
+  });
 
   it('stops when a completed run has no conclusion', () => {
     expect(getCiVerdict({ run: run({ conclusion: null }), sha: SHA }).message).toBe(
@@ -452,6 +516,115 @@ describe('the API calls on runs', () => {
     );
   });
 
+  describe('waitForLatestRun', () => {
+    const filters = { branch: 'release', event: 'pull_request', sha: SHA };
+
+    it('looks for the run until GitHub created it', async () => {
+      const fetch = stubFetch({ workflow_runs: [] }, { workflow_runs: [apiRun()] });
+      await expect(waitForLatestRun({ ...filters, delayMs: 0 })).resolves.toEqual(run());
+      expect(fetch).toHaveBeenCalledTimes(2);
+      expect(fetch.mock.calls[0][0]).toBe(
+        `${RUNS_API_URL}/workflows/ci.yml/runs?branch=release&event=pull_request&head_sha=${SHA}&per_page=1`,
+      );
+    });
+
+    it('resolves to undefined when the run never appears, and asks nothing for no attempt', async () => {
+      const fetch = stubFetch({ workflow_runs: [] });
+      await expect(
+        waitForLatestRun({ ...filters, attempts: 2, delayMs: 0 }),
+      ).resolves.toBeUndefined();
+      await expect(
+        waitForLatestRun({ ...filters, attempts: 0, delayMs: 0 }),
+      ).resolves.toBeUndefined();
+      expect(fetch).toHaveBeenCalledTimes(2);
+    });
+
+    it('waits between two lookups', async () => {
+      vi.useFakeTimers();
+      const fetch = stubFetch({ workflow_runs: [] }, { workflow_runs: [apiRun()] });
+      const promise = waitForLatestRun(filters);
+      await vi.advanceTimersByTimeAsync(9_999);
+      expect(fetch).toHaveBeenCalledTimes(1);
+      await vi.advanceTimersByTimeAsync(1);
+      await expect(promise).resolves.toEqual(run());
+    });
+
+    it('throws when a lookup fails', async () => {
+      vi.stubGlobal(
+        'fetch',
+        vi.fn(async () => new Response('{}', { status: 500 })),
+      );
+      await expect(waitForLatestRun({ ...filters, delayMs: 0 })).rejects.toThrow(
+        'The GitHub API answered 500',
+      );
+    });
+  });
+
+  describe('approveRun', () => {
+    it('approves a held run', async () => {
+      const fetch = vi.fn(async () => new Response(null, { status: 201 }));
+      vi.stubGlobal('fetch', fetch);
+      await expect(approveRun({ runId: 123 })).resolves.toBeUndefined();
+      const [url, init] = fetch.mock.calls[0];
+      expect(url).toBe(`${RUNS_API_URL}/runs/123/approve`);
+      expect(init.method).toBe('POST');
+      expect(init.headers.Authorization).toBe('Bearer token');
+    });
+
+    it('throws when GitHub refuses', async () => {
+      vi.stubGlobal(
+        'fetch',
+        vi.fn(
+          async () =>
+            new Response(JSON.stringify({ message: 'Resource not accessible by integration' }), {
+              status: 403,
+            }),
+        ),
+      );
+      await expect(approveRun({ runId: 123 })).rejects.toThrow(
+        `The GitHub API answered 403 to ${RUNS_API_URL}/runs/123/approve: Resource not accessible by integration`,
+      );
+    });
+
+    it.each([undefined, 0, 1.5, '123'])(
+      'throws without asking the API for the run %o',
+      async runId => {
+        const fetch = stubFetch({});
+        await expect(approveRun({ runId })).rejects.toThrow('Invalid workflow run');
+        expect(fetch).not.toHaveBeenCalled();
+      },
+    );
+  });
+
+  describe('fetchWorkflowRuns', () => {
+    it('lists the latest runs of a workflow started by an event', async () => {
+      const fetch = stubFetch({ workflow_runs: [apiRun(), apiRun({ id: 122 })] });
+      await expect(
+        fetchWorkflowRuns({ workflow: 'deploy-production.yml', event: 'schedule', perPage: 20 }),
+      ).resolves.toEqual([run(), run({ id: 122 })]);
+      expect(fetch.mock.calls[0][0]).toBe(
+        `${RUNS_API_URL}/workflows/deploy-production.yml/runs?event=schedule&per_page=20`,
+      );
+    });
+
+    it('resolves to an empty list when the workflow has no such run', async () => {
+      stubFetch({ total_count: 0, workflow_runs: [] });
+      await expect(
+        fetchWorkflowRuns({ workflow: 'deploy-production.yml', event: 'schedule', perPage: 20 }),
+      ).resolves.toEqual([]);
+    });
+
+    it('throws when the API answers with an error', async () => {
+      vi.stubGlobal(
+        'fetch',
+        vi.fn(async () => new Response('{}', { status: 500 })),
+      );
+      await expect(
+        fetchWorkflowRuns({ workflow: 'deploy-production.yml', event: 'schedule', perPage: 20 }),
+      ).rejects.toThrow('The GitHub API answered 500');
+    });
+  });
+
   describe('dispatchWorkflow', () => {
     it('starts a workflow on a branch and reads the run it started', async () => {
       const fetch = stubFetch({ workflow_run_id: 123, html_url: RUN_URL });
@@ -501,6 +674,23 @@ describe('the API calls on runs', () => {
         run({ conclusion: 'failure' }),
       );
       expect(fetch).toHaveBeenCalledTimes(3);
+    });
+
+    it('waits for an approved run that still reads as held to run again', async () => {
+      const fetch = stubFetch(
+        apiRun({ conclusion: 'action_required' }),
+        apiRun({ status: 'queued', conclusion: null }),
+        apiRun(),
+      );
+      await expect(waitForRun({ runId: 123, delayMs: 0 })).resolves.toEqual(run());
+      expect(fetch).toHaveBeenCalledTimes(3);
+    });
+
+    it('gives a run that stays held as last read', async () => {
+      stubFetch(apiRun({ conclusion: 'action_required' }));
+      await expect(waitForRun({ runId: 123, attempts: 2, delayMs: 0 })).resolves.toEqual(
+        run({ conclusion: 'action_required' }),
+      );
     });
 
     it('gives the run as last read when it is still going after every attempt', async () => {
