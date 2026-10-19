@@ -4,6 +4,7 @@ import i18n from '../../../i18n';
 import { declaredStyle } from '../../../styleTestUtils';
 import { theme } from '../../../theme/theme';
 import { getReadText } from '../../testUtils';
+import { LOGO_SIZE_PX } from './constants';
 import JobSummary from './JobSummary';
 
 /** Any duration text, in French or in English. */
@@ -37,7 +38,7 @@ describe('JobSummary', () => {
       <JobSummary
         jobName="Full-Stack Engineer"
         entityName="Wibilong"
-        entityLogoUrl="/wibilong.png"
+        entityLogoUrl="/wibilong.webp"
         contractType="CDI"
         city="Paris (75)"
         startDate="sept. 2019"
@@ -49,7 +50,17 @@ describe('JobSummary', () => {
     expect(screen.getByText('Wibilong · CDI · Paris (75)')).toBeInTheDocument();
     expect(getReadText(getPeriod('sept. 2019'))).toBe('sept. 2019 à juin 2021');
     expect(screen.getByText('1 an 9 mois')).toBeInTheDocument();
-    expect(document.querySelector('img')).toHaveAttribute('src', '/wibilong.png');
+    expect(document.querySelector('img')).toHaveAttribute('src', '/wibilong.webp');
+  });
+
+  it('gives the logo the size it shows at, before its file and its styles load', () => {
+    render(<JobSummary entityLogoUrl="/wibilong.webp" />);
+    const logo = document.querySelector('img');
+
+    expect(logo).toHaveAttribute('width', String(LOGO_SIZE_PX));
+    expect(logo).toHaveAttribute('height', String(LOGO_SIZE_PX));
+    expect(declaredStyle({ element: logo, property: 'width' })).toBe(`${LOGO_SIZE_PX}px`);
+    expect(declaredStyle({ element: logo, property: 'height' })).toBe(`${LOGO_SIZE_PX}px`);
   });
 
   describe('variant', () => {
@@ -115,7 +126,7 @@ describe('JobSummary', () => {
         const { container } = render(
           <JobSummary
             entityName={entityName}
-            entityLogoUrl="/sewan.png"
+            entityLogoUrl="/sewan.webp"
           />,
         );
 
