@@ -98,7 +98,7 @@ jobs:
           HAS_DEPLOY_KEY: ${{ secrets.DEPLOY_KEY != '' }}
         run: |
           if [ "$HAS_DEPLOY_KEY" != "true" ]; then
-            echo "::error::The DEPLOY_KEY secret is not set: add a deploy key with write access to the repository, and its private key as the DEPLOY_KEY secret (see the README, Deployment)."
+            echo "::error::The DEPLOY_KEY secret is not set: add a deploy key with write access to the repository, and its private key as the DEPLOY_KEY secret (see docs/deployment.md, Setup by the site owner)."
             exit 1
           fi
 
