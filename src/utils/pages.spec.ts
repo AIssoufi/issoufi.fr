@@ -1,10 +1,17 @@
-import { statSync } from 'node:fs';
+import { readFileSync, statSync } from 'node:fs';
 
 import { LANGUAGES } from '../i18n/constants';
+import { theme } from '../theme/theme';
 import {
+  EXPERIENCES_PAGE,
+  getBackgroundPhotoUrl,
+  HOME_PAGE,
   NOT_FOUND_FOLDER,
   OG_IMAGE_PATHS,
   PAGES,
+  PORTRAIT_PHOTO_MEDIA_QUERY,
+  PROJECTS_PAGE,
+  STATUS_PAGE_BACKGROUND_PHOTO,
   getLanguageFileName,
   getNotFoundFiles,
   getOgImageUrl,
@@ -16,6 +23,89 @@ import {
 } from './pages';
 
 const [home, projects, experiences] = PAGES;
+
+/**
+ * Heaviest portrait version of a background photo: on the throttled phone network of the audit,
+ * 1.6 Mbit/s, it downloads in 0.2 s, so the photo shows with the text of the page.
+ */
+const PORTRAIT_PHOTO_MAX_BYTES = 40_000;
+
+/**
+ * Heaviest whole background photo, which wide screens download once the app starts: the projects
+ * and experiences photos weighed 148 and 179 kB before they were re-encoded.
+ */
+const WHOLE_PHOTO_MAX_BYTES = 110_000;
+
+/** Widest whole background photo: wider screens show it a little enlarged, under the overlay. */
+const WHOLE_PHOTO_MAX_WIDTH_PX = 1920;
+
+/** Width over height of the portrait version of a background photo: 3:4. */
+const PORTRAIT_PHOTO_ASPECT_RATIO = 3 / 4;
+
+/** Pixels by which the width of a portrait version may differ from its 3:4 width, when rounded. */
+const PORTRAIT_PHOTO_ROUNDING_PX = 1;
+
+/** Offset of the type of the first chunk of a WebP file, after its RIFF header. */
+const WEBP_CHUNK_TYPE_OFFSET_BYTES = 12;
+
+/** Bytes of the type of a chunk of a WebP file, such as `VP8 `. */
+const WEBP_CHUNK_TYPE_BYTES = 4;
+
+/** Offsets of the width and height of a lossy WebP file without extended header (`VP8 `). */
+const WEBP_LOSSY_WIDTH_OFFSET_BYTES = 26;
+const WEBP_LOSSY_HEIGHT_OFFSET_BYTES = 28;
+
+/** Bits of a 16-bit field of a lossy WebP file that hold the width or height, without the scale. */
+const WEBP_LOSSY_SIZE_MASK = 0x3fff;
+
+/** Offsets of the canvas width and height, minus one, in an extended WebP file (`VP8X`). */
+const WEBP_EXTENDED_WIDTH_OFFSET_BYTES = 24;
+const WEBP_EXTENDED_HEIGHT_OFFSET_BYTES = 27;
+
+/** Bytes of the canvas width and height of an extended WebP file. */
+const WEBP_EXTENDED_SIZE_BYTES = 3;
+
+/**
+ * Reads the width and height of a WebP file in its header, lossy (`VP8 `) or extended (`VP8X`).
+ * Returns `undefined` for any other kind of WebP file.
+ */
+const readWebpSize = (webp: Buffer) => {
+  const chunkType = webp.toString(
+    'ascii',
+    WEBP_CHUNK_TYPE_OFFSET_BYTES,
+    WEBP_CHUNK_TYPE_OFFSET_BYTES + WEBP_CHUNK_TYPE_BYTES,
+  );
+
+  if (chunkType === 'VP8 ') {
+    return {
+      width: webp.readUInt16LE(WEBP_LOSSY_WIDTH_OFFSET_BYTES) & WEBP_LOSSY_SIZE_MASK,
+      height: webp.readUInt16LE(WEBP_LOSSY_HEIGHT_OFFSET_BYTES) & WEBP_LOSSY_SIZE_MASK,
+    };
+  }
+  if (chunkType === 'VP8X') {
+    return {
+      width: webp.readUIntLE(WEBP_EXTENDED_WIDTH_OFFSET_BYTES, WEBP_EXTENDED_SIZE_BYTES) + 1,
+      height: webp.readUIntLE(WEBP_EXTENDED_HEIGHT_OFFSET_BYTES, WEBP_EXTENDED_SIZE_BYTES) + 1,
+    };
+  }
+  return undefined;
+};
+
+/** Reads the width and height of a WebP file of `public/`, named by its absolute URL. */
+const readPublicWebpSize = (url: string) => readWebpSize(readFileSync(`public${url}`));
+
+/** Start of the data URL of a placeholder: a WebP image in base64. */
+const PLACEHOLDER_URL_PREFIX = 'data:image/webp;base64,';
+
+/** Reads the WebP image of a placeholder from its data URL. */
+const readPlaceholder = (placeholderUrl: string) =>
+  Buffer.from(placeholderUrl.slice(PLACEHOLDER_URL_PREFIX.length), 'base64');
+
+/** Width of the placeholder of a background photo, which the page shows enlarged, so blurred. */
+const PLACEHOLDER_WIDTH_PX = 32;
+
+/** Heaviest placeholder, written in the main chunk of the app, which every page loads. */
+const PLACEHOLDER_MAX_BYTES = 400;
 
 describe('getPage', () => {
   it('finds the page matching the path', () => {
@@ -157,6 +247,128 @@ describe('getOgImageUrl', () => {
 describe('OG_IMAGE_PATHS', () => {
   it.each(Object.entries(OG_IMAGE_PATHS))('names a file of public/ for %s: %s', (_, path) => {
     expect(statSync(`public${path}`).isFile()).toBe(true);
+  });
+});
+
+describe('PAGES', () => {
+  it('lists the home, projects and experiences pages, in the order of the menu', () => {
+    expect(PAGES).toEqual([HOME_PAGE, PROJECTS_PAGE, EXPERIENCES_PAGE]);
+  });
+
+  it('gives each page its own background photo', () => {
+    const urls = PAGES.flatMap(({ backgroundPhoto }) => Object.values(backgroundPhoto));
+
+    expect(new Set(urls).size).toBe(urls.length);
+  });
+});
+
+describe('getBackgroundPhotoUrl', () => {
+  it.each([
+    ['/', '/home.webp'],
+    ['/projects', '/projects.webp'],
+    ['/en/experiences/', '/experiences.webp'],
+  ])('gives the whole photo of the page at %s: %s', (pathname, url) => {
+    expect(getBackgroundPhotoUrl({ pathname })).toBe(url);
+    expect(getBackgroundPhotoUrl({ pathname, isPortraitScreen: false })).toBe(url);
+  });
+
+  it.each([
+    ['/', '/home-portrait.webp'],
+    ['/en/projects', '/projects-portrait.webp'],
+  ])('gives the portrait version on a narrow portrait screen at %s: %s', (pathname, url) => {
+    expect(getBackgroundPhotoUrl({ pathname, isPortraitScreen: true })).toBe(url);
+  });
+
+  it.each([
+    ['an unknown path', '/skills'],
+    ['the path of the file of the standalone build', '/Users/adam/site/index.html'],
+    ['no path', undefined],
+    ['a path that is not a string', 42 as never],
+  ])('gives no URL for %s', (_, pathname) => {
+    expect(getBackgroundPhotoUrl({ pathname })).toBe('');
+    expect(getBackgroundPhotoUrl({ pathname, isPortraitScreen: true })).toBe('');
+  });
+
+  it('takes an empty path for the root, as getPage does', () => {
+    expect(getBackgroundPhotoUrl({ pathname: '' })).toBe('/home.webp');
+  });
+
+  it('gives no URL without parameters', () => {
+    expect(getBackgroundPhotoUrl()).toBe('');
+  });
+
+  it('takes only true as a portrait screen', () => {
+    expect(getBackgroundPhotoUrl({ pathname: '/', isPortraitScreen: 'yes' as never })).toBe(
+      '/home.webp',
+    );
+  });
+});
+
+describe('background photos', () => {
+  const photos = [
+    ...PAGES.map(({ folder, backgroundPhoto }) => ({ folder, ...backgroundPhoto })),
+    { folder: 'the status pages', ...STATUS_PAGE_BACKGROUND_PHOTO },
+  ];
+
+  it.each(photos)(
+    'names files of public/ for $folder: $url, $portraitUrl',
+    ({ url, portraitUrl }) => {
+      expect(statSync(`public${url}`).isFile()).toBe(true);
+      expect(statSync(`public${portraitUrl}`).isFile()).toBe(true);
+    },
+  );
+
+  it.each(photos)(
+    'gives $folder a portrait version lighter than the photo, under the budget of phones',
+    ({ url, portraitUrl }) => {
+      const portraitBytes = statSync(`public${portraitUrl}`).size;
+
+      expect(portraitBytes).toBeLessThan(statSync(`public${url}`).size);
+      expect(portraitBytes).toBeLessThanOrEqual(PORTRAIT_PHOTO_MAX_BYTES);
+    },
+  );
+
+  it.each(photos)('keeps the whole photo of $folder light and at most 1920 px wide', ({ url }) => {
+    expect(statSync(`public${url}`).size).toBeLessThanOrEqual(WHOLE_PHOTO_MAX_BYTES);
+    expect(readPublicWebpSize(url)?.width).toBeLessThanOrEqual(WHOLE_PHOTO_MAX_WIDTH_PX);
+  });
+
+  it.each(photos)(
+    'gives $folder a portrait version in 3:4, no taller than the photo',
+    ({ url, portraitUrl }) => {
+      const photo = readPublicWebpSize(url);
+      const portrait = readPublicWebpSize(portraitUrl);
+      const expectedWidth = (portrait?.height ?? 0) * PORTRAIT_PHOTO_ASPECT_RATIO;
+
+      expect(portrait?.height).toBeGreaterThan(0);
+      expect(Math.abs((portrait?.width ?? 0) - expectedWidth)).toBeLessThanOrEqual(
+        PORTRAIT_PHOTO_ROUNDING_PX,
+      );
+      expect(portrait?.height).toBeLessThanOrEqual(photo?.height ?? 0);
+    },
+  );
+
+  it.each(photos)(
+    'gives $folder a placeholder of 32 px wide in WebP, framed as the photo, written in the app',
+    ({ url, placeholderUrl }) => {
+      const placeholder = readPlaceholder(placeholderUrl);
+      const placeholderSize = readWebpSize(placeholder);
+      const photoSize = readPublicWebpSize(url);
+      const photoRatio = (photoSize?.height ?? 0) / (photoSize?.width ?? 1);
+
+      expect(placeholderUrl.startsWith(PLACEHOLDER_URL_PREFIX)).toBe(true);
+      expect(placeholder.length).toBeLessThanOrEqual(PLACEHOLDER_MAX_BYTES);
+      expect(placeholderSize?.width).toBe(PLACEHOLDER_WIDTH_PX);
+      expect(
+        Math.abs((placeholderSize?.height ?? 0) - PLACEHOLDER_WIDTH_PX * photoRatio),
+      ).toBeLessThanOrEqual(PORTRAIT_PHOTO_ROUNDING_PX);
+    },
+  );
+
+  it('shows the portrait versions on portrait screens under the tablet breakpoint', () => {
+    expect(PORTRAIT_PHOTO_MEDIA_QUERY).toBe(
+      `(orientation: portrait) and (width < ${theme.screens.tablet})`,
+    );
   });
 });
 
