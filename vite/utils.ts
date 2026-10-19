@@ -149,8 +149,7 @@ interface GetPageChunkFileParams {
  * getPageChunkFile({ bundle, folder: 'Home' }); // undefined
  */
 export const getPageChunkFile = ({ bundle, folder }: GetPageChunkFileParams = {}):
-  | string
-  | undefined => {
+  string | undefined => {
   const hasFolder = typeof folder === 'string' && folder.trim() !== '';
   const hasBundle = typeof bundle === 'object' && bundle !== null;
   const canSearch = hasFolder && hasBundle;
@@ -267,13 +266,11 @@ export const getFontFaceTags = ({
   const faces = Array.isArray(fontFaces) ? fontFaces.filter(isDeclarableFontFace) : [];
   if (faces.length === 0) return [];
 
-  const preloadLinks = faces.map(
-    ({ url }): HtmlTagDescriptor => ({
-      tag: 'link',
-      attrs: { rel: 'preload', href: url, as: 'font', type: FONT_MEDIA_TYPE, crossorigin: true },
-      injectTo: 'head',
-    }),
-  );
+  const preloadLinks = faces.map(({ url }): HtmlTagDescriptor => ({
+    tag: 'link',
+    attrs: { rel: 'preload', href: url, as: 'font', type: FONT_MEDIA_TYPE, crossorigin: true },
+    injectTo: 'head',
+  }));
   const style: HtmlTagDescriptor = {
     tag: 'style',
     children: renderFontFaces({ fontFaces: faces }),
