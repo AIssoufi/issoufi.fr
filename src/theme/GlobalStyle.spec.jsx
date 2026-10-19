@@ -140,6 +140,15 @@ describe('GlobalStyle', () => {
     expect(paragraphRule.style.getPropertyValue('text-wrap')).toBe('pretty');
   });
 
+  it('draws the text of a button in the font of its parent, rather than the font of the browser', () => {
+    renderWithGlobalStyle();
+
+    const buttonRules = findRulesSelecting({ selectors: ['button'] });
+    expect(buttonRules).toHaveLength(1);
+    // jsdom has no style of its own for the controls: only the rule tells what a browser draws
+    expect(buttonRules[0].style.getPropertyValue('font-family')).toBe('inherit');
+  });
+
   it('grows a hovered button, and turns a hovered link to the accent from tablet up, under a pointer that hovers only', () => {
     renderWithGlobalStyle();
     const tabletHoverQuery = `(min-width: ${theme.screens.tablet}) and ${HOVER_POINTER_QUERY}`;

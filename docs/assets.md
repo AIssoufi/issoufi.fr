@@ -48,6 +48,7 @@ cwebp -q 90 -m 6 -sharp_yuv -resize 108 108 original.png -o public/sewan.webp
 ## Fonts
 
 - Montserrat for the texts, Saira Stencil One for the logo.
+- A button takes the font of its parent (`GlobalStyle`), where a browser gives it the system font of its controls.
 - The site serves them itself, with their licenses, and requests nothing from Google.
 - No page loads Saira Stencil One, 20 kB for two letters: the header draws the logo as an inline SVG of their outline, which `pnpm icons` writes from the font. The scripts still read its file.
 - The CV prints in static Montserrat files of its own: a variable font would make its text impossible to select in some PDF readers.
