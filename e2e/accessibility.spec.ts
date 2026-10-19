@@ -28,7 +28,10 @@ const imageNode = (ignored = false) => ({ role: { type: 'role', value: 'image' }
 
 /** Parameters of {@link createFakeTreeSession}. */
 interface CreateFakeTreeSessionParams {
-  /** Nodes that `Accessibility.queryAXTree` answers for each node id, by node id. */
+  /**
+   * Nodes that `Accessibility.queryAXTree` answers for each node id, by node id, as they are, even
+   * when not a list. An empty list for a node id missing from it.
+   */
   nodesById?: Record<number, unknown>;
   /** Node ids that `DOM.querySelectorAll` answers for {@link ROW_SELECTOR}. */
   nodeIds?: number[];
@@ -56,8 +59,10 @@ const createFakeTreeSession = ({
         return { root: { nodeId: DOCUMENT_NODE_ID } };
       case 'DOM.querySelectorAll':
         return { nodeIds: params.selector === ROW_SELECTOR ? nodeIds : [] };
-      case 'Accessibility.queryAXTree':
-        return { nodes: nodesById[params.nodeId as number] ?? [] };
+      case 'Accessibility.queryAXTree': {
+        const nodeId = params.nodeId as number;
+        return { nodes: nodeId in nodesById ? nodesById[nodeId] : [] };
+      }
       default:
         throw new Error(`Unexpected command ${method}`);
     }
@@ -125,8 +130,13 @@ describe('listBrowserTexts', () => {
       expect(await listBrowserTexts({ session, selector: ROW_SELECTOR })).toEqual(['à']);
     });
 
-    it('reads an empty text when the nodes are not a list', async () => {
-      const { session } = createFakeTreeSession({ nodesById: { 11: null }, nodeIds: [11] });
+    it.each([
+      ['missing', undefined],
+      ['null', null],
+      ['a node rather than a list', textNode('à')],
+      ['a string', 'à'],
+    ])('reads an empty text when the nodes are %s', async (_case, nodes) => {
+      const { session } = createFakeTreeSession({ nodesById: { 11: nodes }, nodeIds: [11] });
 
       expect(await listBrowserTexts({ session, selector: ROW_SELECTOR })).toEqual(['']);
     });
