@@ -6,10 +6,11 @@ import type { BackgroundPhoto, Page } from '../src/utils/pages';
 /**
  * Screen widths, in pixels, at which the browser tests open the pages, and every page must fit
  * without scrolling sideways: the narrowest phones still in use (320), two common phone widths
- * (375 and 414), which get the mobile layout, and a common desktop width (1440), at which the
- * layout of the app reaches its widest below the `wide` breakpoint.
+ * (375 and 414) and a tablet held upright (768), which get the mobile layout, a tablet held
+ * sideways (1024) and a laptop (1280), which get the desktop layout, and a common desktop width
+ * (1440), at which the layout of the app reaches its widest below the `wide` breakpoint.
  */
-export const SCREEN_WIDTHS_PX = [320, 375, 414, 1440] as const;
+export const SCREEN_WIDTHS_PX = [320, 375, 414, 768, 1024, 1280, 1440] as const;
 
 /** Screen height of the browser tests, in pixels, the height of a common laptop screen. */
 export const SCREEN_HEIGHT_PX = 800;
@@ -241,16 +242,18 @@ export const MAX_CARD_OFFSET_PX = 0.5;
 
 /**
  * Screen widths, in pixels, of the desktop layout, at which the header shows its links, the
- * GitHub and LinkedIn icons and the CV link on one line: the tablet breakpoint (800), two laptops
- * (1280 and 1440), then two screens wider than the app container (1920 and 2560).
+ * GitHub and LinkedIn icons and the CV link on one line: the tablet breakpoint (800), a tablet held
+ * sideways (1024), two laptops (1280 and 1440), then two screens wider than the app container
+ * (1920 and 2560).
  */
-export const DESKTOP_SCREEN_WIDTHS_PX = [800, 1280, 1440, 1920, 2560] as const;
+export const DESKTOP_SCREEN_WIDTHS_PX = [800, 1024, 1280, 1440, 1920, 2560] as const;
 
 /**
  * Screen widths, in pixels, below the tablet breakpoint, at which the mobile menu holds the GitHub
- * and LinkedIn icons and the CV link.
+ * and LinkedIn icons and the CV link: three phones (320, 375 and 414) and a tablet held upright
+ * (768).
  */
-export const MOBILE_SCREEN_WIDTHS_PX = [320, 375, 414] as const;
+export const MOBILE_SCREEN_WIDTHS_PX = [320, 375, 414, 768] as const;
 
 /**
  * Route of a page longer than the screen, scrolled to check what stays fixed. Typed by `PAGES`
@@ -532,12 +535,13 @@ export const POINTER_REST_FRAME_COUNT = 4;
 
 /**
  * Screen widths, in pixels, at which axe-core checks the contrast of the texts of every page: a
- * phone (375), with the mobile menu closed then open, and a common desktop width (1440).
+ * phone (375) and a tablet held upright (768), with the mobile menu closed then open, a tablet
+ * held sideways (1024), a laptop (1280) and a common desktop width (1440).
  */
-export const CONTRAST_SCREEN_WIDTHS_PX = [375, 1440] as const;
+export const CONTRAST_SCREEN_WIDTHS_PX = [375, 768, 1024, 1280, 1440] as const;
 
 /** Screen widths, in pixels, among {@link CONTRAST_SCREEN_WIDTHS_PX}, that show the mobile menu. */
-export const MENU_CONTRAST_SCREEN_WIDTHS_PX = [375] as const;
+export const MENU_CONTRAST_SCREEN_WIDTHS_PX = [375, 768] as const;
 
 /**
  * Rule of axe-core that checks the contrast of each text against its background: 4.5:1, or 3:1 for
@@ -548,10 +552,10 @@ export const COLOR_CONTRAST_RULE = 'color-contrast';
 /**
  * Screen widths, in pixels, at which no page may show a text under the smallest font size of the
  * site (`MIN_FONT_SIZE_PX`, `src/theme/constants.ts`): the narrowest phones (320), a common phone
- * (375), a tablet held upright (768), a laptop (1440), a screen past the `wide` breakpoint (1920)
- * and a large desktop screen (2560).
+ * (375), a tablet held upright (768) then sideways (1024), two laptops (1280 and 1440), a screen
+ * past the `wide` breakpoint (1920) and a large desktop screen (2560).
  */
-export const TEXT_SIZE_SCREEN_WIDTHS_PX = [320, 375, 768, 1440, 1920, 2560] as const;
+export const TEXT_SIZE_SCREEN_WIDTHS_PX = [320, 375, 768, 1024, 1280, 1440, 1920, 2560] as const;
 
 /**
  * Screen widths, in pixels, at which forced colors mode, such as a contrast theme of Windows, must
