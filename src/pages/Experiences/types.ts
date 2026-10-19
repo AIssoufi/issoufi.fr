@@ -58,7 +58,10 @@ export interface ExperienceData {
   contractKey?: string;
   /** Translation key of the city and department, e.g. "Paris (75)". */
   cityKey?: string;
-  /** Absolute URL of the company logo, a file of `public/`. */
+  /**
+   * Absolute URL of the company logo, a square WebP file of `public/`, twice as wide as the
+   * `LOGO_SIZE_PX` it shows at (`JobSummary/constants.ts`).
+   */
   logoUrl?: string;
   /**
    * Successive roles at the company, most recent first: several make a group on the timeline.

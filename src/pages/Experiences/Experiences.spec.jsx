@@ -4,8 +4,10 @@ import i18n from '../../i18n';
 import { en } from '../../i18n/en';
 import { fr } from '../../i18n/fr';
 import { getPage } from '../../utils/pages';
-import { getReadText, isPublicFile, readBackgroundImages } from '../testUtils';
+import { readPublicWebpSize } from '../../publicFileTestUtils';
+import { getReadText, readBackgroundImages } from '../testUtils';
 import experiencesData from './.data/experiences.json';
+import { LOGO_SIZE_PX } from './JobSummary/constants';
 import { Experiences } from './Experiences';
 
 /** Names of the fields of the data that hold a translation key, or a list of them. */
@@ -251,8 +253,14 @@ describe('Experiences', () => {
       expect(new Set(ids).size).toBe(ids.length);
     });
 
-    it('serves every logo from public/', () => {
-      experiences.forEach(({ logoUrl }) => expect(isPublicFile(logoUrl)).toBe(true));
+    it('serves every logo from public/ as a square WebP image twice as big as it shows', () => {
+      const logoFileSizePx = 2 * LOGO_SIZE_PX;
+      experiences.forEach(({ logoUrl }) =>
+        expect(readPublicWebpSize(logoUrl), logoUrl).toEqual({
+          width: logoFileSizePx,
+          height: logoFileSizePx,
+        }),
+      );
     });
 
     it('gives every role its start and its end, which the timeline and its card both write', () => {

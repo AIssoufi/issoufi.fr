@@ -10,7 +10,7 @@ interface ExperienceProps {
   jobName?: string;
   /** Company name, written first in the company details. */
   entityName?: string;
-  /** Absolute URL of the company logo, e.g. `/wibilong.png`, decorative. No logo when missing. */
+  /** Absolute URL of the company logo, e.g. `/wibilong.webp`, decorative. No logo when missing. */
   entityLogoUrl?: string;
   /** Contract type, e.g. "CDI" or "Alternance". */
   contractType?: string;
