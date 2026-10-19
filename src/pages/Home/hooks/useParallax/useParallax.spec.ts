@@ -25,6 +25,15 @@ describe('useParallax', () => {
     expect(element.style.transform).toBe('translate(-10px, 7px)');
   });
 
+  it('shifts the element away from a pen too', () => {
+    const element = document.createElement('div');
+    renderHook(() => useParallax({ current: element }));
+
+    fireEvent.pointerMove(window, { pointerType: 'pen', clientX: 1000, clientY: 0 });
+
+    expect(element.style.transform).toBe('translate(-10px, 7px)');
+  });
+
   it('leaves the element in its place under a finger, which would leave it shifted after a tap', () => {
     const element = document.createElement('div');
     renderHook(() => useParallax({ current: element }));

@@ -102,7 +102,7 @@ test.describe('on a touch screen', () => {
       expect(await card.evaluate(readInlineTransform), 'transform of the card').toBe('');
     });
 
-    test('a tap on the home page leaves the content, the glow, the words and the buttons in place', async ({
+    test('a tap on the home page leaves the content, the glow and the words in place', async ({
       page,
     }) => {
       await page.goto('/');
@@ -112,7 +112,7 @@ test.describe('on a touch screen', () => {
       const restTransforms = await main.evaluate(readInlineTransforms);
 
       // The content floats without end, which a locator would wait for: tap where it stands now.
-      // Without a box, the coordinates are NaN, which the tap refuses, so the test fails
+      // Without a box, the coordinates are NaN, which the tap refuses, so the test fails.
       const subtitleBox = await page.locator(HERO_SUBTITLE_SELECTOR).boundingBox();
       const { x, y } = getBoxCenter(subtitleBox) ?? { x: Number.NaN, y: Number.NaN };
       await page.touchscreen.tap(x, y);

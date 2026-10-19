@@ -52,6 +52,12 @@ const tokenUsages = listStyleFiles('src').flatMap(file =>
   ),
 );
 
+/**
+ * Fewest style files that hold a `:hover`, half as many as today, so that the guard of the hover
+ * styles proves that it reads them, and still passes when a file stops styling a hover.
+ */
+const MIN_STYLE_FILES_WITH_HOVER = 5;
+
 /** Helpers whose token xstyled negates when its key starts with a minus sign: `th.space(-8)`. */
 const NEGATABLE_HELPERS = ['space'];
 
@@ -97,7 +103,9 @@ describe('theme', () => {
       findUnguardedHovers(source).map(line => `${file}:${line}`),
     );
 
-    expect(sources.filter(({ source }) => source.includes(':hover')).length).toBeGreaterThan(5);
+    expect(sources.filter(({ source }) => source.includes(':hover')).length).toBeGreaterThanOrEqual(
+      MIN_STYLE_FILES_WITH_HOVER,
+    );
     expect(unguardedHovers).toEqual([]);
   });
 

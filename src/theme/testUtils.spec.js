@@ -337,6 +337,15 @@ describe('findUnguardedHovers', () => {
     ['in a global selector list', 'a,\nbutton:hover {\n}'],
     ['in the query of reduced motion', '@media ${REDUCED_MOTION_QUERY} {\n  &:hover {}\n}'],
     ['in a selector that names the query', '[data-query="${HOVER_POINTER_QUERY}"]:hover {\n}'],
+    [
+      'in a list of queries that names it last',
+      "@media (min-width: ${th('screens.tablet')}), ${HOVER_POINTER_QUERY} {\n  &:hover {}\n}",
+    ],
+    [
+      'in a list of queries that names it first',
+      "@media ${HOVER_POINTER_QUERY}, (min-width: ${th('screens.tablet')}) {\n  &:hover {}\n}",
+    ],
+    ['in the negation of the query', '@media not ${HOVER_POINTER_QUERY} {\n  &:hover {}\n}'],
   ])('finds a :hover %s', (_case, source) => {
     expect(findUnguardedHovers(source)).toHaveLength(1);
   });

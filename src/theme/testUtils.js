@@ -286,11 +286,30 @@ const COMMENTS = /\/\*[\s\S]*?\*\/|(?<=^|\s)\/\/.*$/gm;
 /** The pseudo-class whose style a touch screen keeps after a tap, alone or inside `:not()`. */
 const HOVER_PSEUDO_CLASS = ':hover';
 
+/** Rule that starts the head of a block of a media query. */
+const MEDIA_RULE = '@media';
+
+/** How a style file writes the constant `HOVER_POINTER_QUERY` (`src/theme/constants.ts`). */
+const HOVER_QUERY_REFERENCE = '${HOVER_POINTER_QUERY}';
+
+/** The `not` of a media query, which applies its block where its condition is false. */
+const MEDIA_NEGATION_PATTERN = /\bnot\b/;
+
 /**
- * Head of a block of the media query of the pointers that hover: `@media`, then the constant
- * `HOVER_POINTER_QUERY` (`src/theme/constants.ts`), alone or after other conditions.
+ * Tells whether the head of a block is a media query of the pointers that hover only: `@media`,
+ * then `HOVER_POINTER_QUERY`, alone or with other conditions joined by `and`. A comma makes a list
+ * of queries, any of which applies the block, such as a width that a touch screen matches too,
+ * and `not` applies it to the other screens.
  */
-const HOVER_MEDIA_HEAD_PATTERN = /@media\b[\s\S]*\$\{HOVER_POINTER_QUERY\}/;
+const isHoverMediaHead = head => {
+  const mediaStart = head.lastIndexOf(MEDIA_RULE);
+  if (mediaStart === -1) return false;
+
+  const query = head.slice(mediaStart + MEDIA_RULE.length);
+  const isQueryList = query.includes(',');
+  const isNegated = MEDIA_NEGATION_PATTERN.test(query);
+  return !isQueryList && !isNegated && query.includes(HOVER_QUERY_REFERENCE);
+};
 
 /**
  * Lines of the `:hover` pseudo-classes of a style file written outside a block of the media query
@@ -326,12 +345,13 @@ export const findUnguardedHovers = source => {
       // An interpolation holds code, or a css block, but no head of a block of its own
       const opensInterpolation = code[index - 1] === '$';
       const head = code.slice(headStart, index);
-      const isHoverMedia = !opensInterpolation && HOVER_MEDIA_HEAD_PATTERN.test(head);
+      const isHoverMedia = !opensInterpolation && isHoverMediaHead(head);
       openBlocks.push({ isInterpolation: opensInterpolation, isHoverMedia });
       if (!opensInterpolation) headStart = index + 1;
     } else if (character === '}') {
-      const closedBlock = openBlocks.pop();
-      if (!closedBlock?.isInterpolation) headStart = index + 1;
+      // A brace with no block to close counts as the end of a block of CSS
+      const closesInterpolation = openBlocks.pop()?.isInterpolation ?? false;
+      if (!closesInterpolation) headStart = index + 1;
     } else if (character === ';') {
       headStart = index + 1;
     } else if (code.startsWith(HOVER_PSEUDO_CLASS, index)) {

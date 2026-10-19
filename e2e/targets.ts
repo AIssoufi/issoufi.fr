@@ -1,3 +1,5 @@
+import type { ScreenPoint } from './utils';
+
 /** Size of the area that catches the taps of a control, as {@link measureHitAreas} measures it. */
 export interface HitArea {
   /** Name of the control: its `aria-label`, or else its text, without the spaces around it. */
@@ -6,6 +8,14 @@ export interface HitArea {
   width: number;
   /** Height of the area along the vertical line through the center of the control, in pixels. */
   height: number;
+}
+
+/** Direction in which {@link measureHitAreas} moves away from the center of a control. */
+interface ReachStep {
+  /** Pixels added to the x of the point at each step: -1 to the left, 1 to the right, 0 neither. */
+  stepX: number;
+  /** Pixels added to the y of the point at each step: -1 up, 1 down, 0 neither. */
+  stepY: number;
 }
 
 /** Options of {@link measureHitAreas}, the argument that `page.evaluate` passes to it. */
@@ -75,7 +85,7 @@ export const measureHitAreas = ({
     const isPageControl = !isInOverlay(control);
     if (isPageControl) control.scrollIntoView({ block: 'center', inline: 'center' });
 
-    const isControlAt = (x: number, y: number) => {
+    const isControlAt = ({ x, y }: ScreenPoint) => {
       const elements = document.elementsFromPoint(x, y);
       const topElement = isPageControl
         ? elements.find(element => !isInOverlay(element))
@@ -86,15 +96,18 @@ export const measureHitAreas = ({
     const center = { x: box.x + box.width / 2, y: box.y + box.height / 2 };
     // Counts the points, a pixel apart, past the center in one direction, up to the first one
     // where the control is no longer on top
-    const reach = ({ stepX, stepY }: { stepX: number; stepY: number }) => {
+    const reach = ({ stepX, stepY }: ReachStep) => {
       let distance = 0;
       const nextPointHitsControl = () =>
-        isControlAt(center.x + stepX * (distance + 1), center.y + stepY * (distance + 1));
+        isControlAt({
+          x: center.x + stepX * (distance + 1),
+          y: center.y + stepY * (distance + 1),
+        });
       while (distance < maxReachPx && nextPointHitsControl()) distance += 1;
       return distance;
     };
 
-    if (!isControlAt(center.x, center.y)) return { name, width: 0, height: 0 };
+    if (!isControlAt(center)) return { name, width: 0, height: 0 };
     const width = reach({ stepX: -1, stepY: 0 }) + 1 + reach({ stepX: 1, stepY: 0 });
     const height = reach({ stepX: 0, stepY: -1 }) + 1 + reach({ stepX: 0, stepY: 1 });
     return { name, width, height };

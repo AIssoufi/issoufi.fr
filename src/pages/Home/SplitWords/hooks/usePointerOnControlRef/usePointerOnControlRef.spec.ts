@@ -49,6 +49,15 @@ describe('usePointerOnControlRef', () => {
     expect(result.current.current).toBe(false);
   });
 
+  it('is true while a pen moves over a control too', () => {
+    const { button } = renderControls();
+    const { result } = renderHook(() => usePointerOnControlRef());
+
+    fireEvent.pointerMove(button, { pointerType: 'pen' });
+
+    expect(result.current.current).toBe(true);
+  });
+
   it('stays false under a finger, which hovers no control', () => {
     const { button } = renderControls();
     const { result } = renderHook(() => usePointerOnControlRef());
