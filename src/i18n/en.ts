@@ -42,6 +42,7 @@ export const en = {
     notFound: {
       title: 'Page not found',
       message: 'The page {{path}} does not exist.',
+      messageWithoutPath: 'This page does not exist.',
     },
     forbidden: {
       title: 'Access denied',

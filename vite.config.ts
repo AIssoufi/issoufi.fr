@@ -47,6 +47,25 @@ const fontFaces = (): Plugin => ({
   transformIndexHtml: () => getFontFaceTags(),
 });
 
+/** Date of the build, whose month the durations of the pages that it renders count to. */
+const BUILD_DATE = new Date();
+
+/**
+ * Constants that the build writes into the code of the app, by name, typed in src/vite-env.d.ts:
+ * the version that release-please writes in package.json, shown after the logo of the header
+ * (src/App/Header), and the month of the build, the today of the pages that it renders, which the
+ * browser keeps while it hydrates them (src/pages/Experiences/JobSummary). Only a month, so that
+ * the chunk of the page that reads it keeps its hash across the builds of a month. The tests and
+ * the pages rendered at build time read them too.
+ */
+const BUILD_CONSTANTS = {
+  __APP_VERSION__: JSON.stringify(packageJson.version),
+  __BUILD_MONTH__: JSON.stringify({
+    year: BUILD_DATE.getFullYear(),
+    monthIndex: BUILD_DATE.getMonth(),
+  }),
+};
+
 /** Parameters of the `preloadPageChunks` helper of {@link pageMeta}. */
 interface PreloadPageChunksParams {
   /** HTML of a generated page. */
@@ -206,9 +225,7 @@ export default defineConfig(({ mode }) => {
   return {
     base: '/',
     plugins: [react(), svgr(), fontFaces(), pageMeta(), sitemap(), webManifests(), httpHeaders()],
-    // The version that release-please writes in package.json, shown after the logo of the header
-    // (src/App/Header) and typed in src/vite-env.d.ts; the tests read it too
-    define: { __APP_VERSION__: JSON.stringify(packageJson.version) },
+    define: BUILD_CONSTANTS,
     build: {
       // The browsers of the app, whose syntax and APIs tsconfig.app.json checks it against
       target: BUILD_TARGET,

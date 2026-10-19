@@ -1,4 +1,6 @@
 import { act, renderHook } from '@testing-library/react';
+import { createElement } from 'react';
+import { renderToString } from 'react-dom/server';
 
 import { LIKE_ANIMATION_MS, LIKED_PROJECTS_STORAGE_KEY } from '../../constants.ts';
 import { useLikes } from './useLikes.ts';
@@ -37,6 +39,37 @@ describe('useLikes', () => {
 
     const { result } = renderHook(() => useLikes());
 
+    expect(likedIdsOf(result)).toEqual([1, 5]);
+  });
+
+  it('likes nothing in the page rendered at build time, whatever is stored', () => {
+    localStorage.setItem(LIKED_PROJECTS_STORAGE_KEY, '[1,5]');
+    const likedIds: number[][] = [];
+    const Probe = () => {
+      likedIds.push([...useLikes().likedIds]);
+      return null;
+    };
+
+    renderToString(createElement(Probe));
+
+    expect(likedIds).toEqual([[]]);
+  });
+
+  it('likes nothing while the browser hydrates the page, then the stored likes', () => {
+    localStorage.setItem(LIKED_PROJECTS_STORAGE_KEY, '[1,5]');
+    const likedIds: number[][] = [];
+    const container = document.body.appendChild(document.createElement('div'));
+
+    const { result } = renderHook(
+      () => {
+        const likes = useLikes();
+        likedIds.push([...likes.likedIds]);
+        return likes;
+      },
+      { container, hydrate: true },
+    );
+
+    expect(likedIds[0]).toEqual([]);
     expect(likedIdsOf(result)).toEqual([1, 5]);
   });
 
