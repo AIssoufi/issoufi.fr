@@ -96,6 +96,25 @@ export const MAX_DOT_OFFSET_PX = 0.5;
 export const TIMELINE_SCREEN_WIDTHS_PX = [...SCREEN_WIDTHS_PX, 1920] as const;
 
 /**
+ * Period column of each job row of the timeline, shown from the tablet breakpoint: the only
+ * element whose `::after` draws a dot ({@link TIMELINE_DOT_ATTRIBUTE}).
+ */
+export const PERIOD_COLUMN_SELECTOR = `[${TIMELINE_DOT_ATTRIBUTE}="after"]`;
+
+/**
+ * Screen widths, in pixels, at which every date of the period column must stay inside the column:
+ * a laptop (1440), below the `wide` breakpoint, then a desktop screen past it (1920), where the
+ * column and its dates are larger.
+ */
+export const PERIOD_COLUMN_SCREEN_WIDTHS_PX = [1440, 1920] as const;
+
+/**
+ * Largest distance, in pixels, that a text may pass the edge of its box. Half a pixel lets through
+ * subpixel rounding, but not a date 1 px out of its column.
+ */
+export const MAX_TEXT_OVERFLOW_PX = 0.5;
+
+/**
  * Screen widths, in pixels, at which the browser test of the Experiences page checks what screen
  * readers read: the narrowest phones still in use (320), two common phone widths (375 and 414)
  * and a tablet in portrait (768), below the tablet breakpoint, where the header of each card shows
