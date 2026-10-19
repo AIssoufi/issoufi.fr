@@ -210,17 +210,37 @@ export const SMOKE_TEST_RETRY_DELAY_MS = 5000;
 /** Time zone whose local time the production deploy of `deploy-production.yml` follows. */
 export const DEPLOY_TIME_ZONE = 'Europe/Paris';
 
+/** Workflow of the daily production deploy, which reads its own scheduled runs. */
+export const DEPLOY_WORKFLOW_FILE = 'deploy-production.yml';
+
 /**
- * Schedule of `deploy-production.yml` that deploys for each offset of {@link DEPLOY_TIME_ZONE}
- * from UTC, in minutes: both run at 6:00 in Paris, at 4:00 UTC in summer (UTC+2) and at 5:00 UTC
- * in winter (UTC+1). The workflow runs both every day, and only the one of the day's offset goes
- * on. Keep them equal to the `cron` entries of the workflow, which a test checks.
- * @type {ReadonlyMap<number, string>}
+ * Earliest local time of the daily deploy in {@link DEPLOY_TIME_ZONE}, in minutes after midnight:
+ * 6:00. The crons of `deploy-production.yml` start a run every 30 minutes from 4:07 to 6:37 UTC,
+ * which is 6:07 to 8:37 in Paris in summer (UTC+2) and 5:07 to 7:37 in winter (UTC+1): the runs
+ * before 6:00 stop, and the first of the others that passes deploys.
  */
-export const DEPLOY_CRON_BY_UTC_OFFSET_MINUTES = new Map([
-  [120, '0 4 * * *'],
-  [60, '0 5 * * *'],
-]);
+export const DEPLOY_START_MINUTES = 360;
+
+/**
+ * Number of scheduled runs of {@link DEPLOY_WORKFLOW_FILE} that the schedule check reads, newest
+ * first: the six of a day at most, and the last ones of the days before, whose gap it checks.
+ */
+export const DEPLOY_RUNS_PAGE_SIZE = 20;
+
+/**
+ * Longest gap between two scheduled runs of {@link DEPLOY_WORKFLOW_FILE}, in hours, before the
+ * schedule check warns that GitHub skipped every run of a day: a day and the 2 h 30 of the
+ * window of the crons, from the first run of a day to the last run of the next, plus 9 h 30 for
+ * the delays of GitHub's scheduler, which started the run of 4:00 UTC at 9:29 UTC on
+ * 2026-10-19. A day without any run leaves at least 45 h 30 when the runs keep their time.
+ */
+export const SCHEDULE_GAP_WARNING_HOURS = 36;
+
+/** Milliseconds per minute, to shift a moment by an offset from UTC and to measure a gap. */
+export const MS_PER_MINUTE = 60_000;
+
+/** Length of the date at the start of an ISO 8601 timestamp, `YYYY-MM-DD`. */
+export const ISO_DATE_LENGTH = 10;
 
 /**
  * Name of the offset from UTC that `Intl.DateTimeFormat` gives with `timeZoneName: 'longOffset'`:

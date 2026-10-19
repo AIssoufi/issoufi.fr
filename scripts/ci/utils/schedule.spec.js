@@ -1,10 +1,17 @@
 import { readFileSync } from 'node:fs';
 
-import { DEPLOY_CRON_BY_UTC_OFFSET_MINUTES } from '../constants.mjs';
-import { getScheduleVerdict, getUtcOffsetMinutes } from './schedule.mjs';
-
-const SUMMER_CRON = '0 4 * * *';
-const WINTER_CRON = '0 5 * * *';
+import {
+  DEPLOY_RUNS_PAGE_SIZE,
+  DEPLOY_START_MINUTES,
+  MINUTES_PER_HOUR,
+  SCHEDULE_GAP_WARNING_HOURS,
+} from '../constants.mjs';
+import {
+  getLocalTime,
+  getScheduleGapWarning,
+  getScheduleVerdict,
+  getUtcOffsetMinutes,
+} from './schedule.mjs';
 
 describe('getUtcOffsetMinutes', () => {
   afterEach(() => {
@@ -68,95 +75,194 @@ describe('getUtcOffsetMinutes', () => {
   });
 });
 
+describe('getLocalTime', () => {
+  it.each([
+    ['2026-07-01T04:07:00Z', { day: '2026-07-01', minutes: 367 }],
+    ['2026-12-01T04:07:00Z', { day: '2026-12-01', minutes: 307 }],
+    // Midnight in Paris is still the day before in UTC
+    ['2026-07-01T22:30:00Z', { day: '2026-07-02', minutes: 30 }],
+    ['2026-12-31T23:00:00Z', { day: '2027-01-01', minutes: 0 }],
+    ['2026-12-31T22:59:00Z', { day: '2026-12-31', minutes: 1439 }],
+  ])('reads %s in Europe/Paris', (date, localTime) => {
+    expect(getLocalTime({ date: new Date(date) })).toEqual(localTime);
+  });
+
+  it('reads another time zone', () => {
+    expect(
+      getLocalTime({ date: new Date('2026-07-01T04:07:00Z'), timeZone: 'America/St_Johns' }),
+    ).toEqual({ day: '2026-07-01', minutes: 97 });
+  });
+
+  it.each([
+    [new Date('not a date'), 'Europe/Paris'],
+    [new Date('2026-07-01T04:07:00Z'), 'Nowhere/Unknown'],
+  ])('returns undefined for %o in %s', (date, timeZone) => {
+    expect(getLocalTime({ date, timeZone })).toBeUndefined();
+  });
+});
+
+const RUNS_URL = 'https://github.com/AIssoufi/issoufi.fr/actions/runs';
+
+/** A scheduled run of deploy-production.yml, as fetchWorkflowRuns returns it. */
+const scheduledRun = ({ id = 1, createdAt, status = 'completed', conclusion = 'success' }) => ({
+  id,
+  sha: '58ff9ea0c3f4e1b2a9d8c7b6a5f4e3d2c1b0a9f8',
+  status,
+  conclusion,
+  createdAt: new Date(createdAt),
+  url: `${RUNS_URL}/${id}`,
+});
+
 describe('getScheduleVerdict', () => {
   afterEach(() => {
     vi.useRealTimers();
-    vi.restoreAllMocks();
   });
 
-  const summerMorning = new Date('2026-07-01T04:03:00Z');
-  const winterMorning = new Date('2026-12-01T05:03:00Z');
+  // 6:07 in Paris
+  const summerRun = scheduledRun({ id: 10, createdAt: '2026-07-01T04:07:00Z' });
+  const winterRun = scheduledRun({ id: 10, createdAt: '2026-12-01T05:07:00Z' });
 
-  it('lets a run started by hand go on, whatever the schedule and the date', () => {
+  /** The verdict of the scheduled run `id` 10, created at `createdAt`, among `others`. */
+  const verdictAt = ({ createdAt, others = [] }) =>
+    getScheduleVerdict({
+      eventName: 'schedule',
+      runId: 10,
+      runs: [
+        scheduledRun({ id: 10, createdAt, status: 'in_progress', conclusion: null }),
+        ...others,
+      ],
+    });
+
+  it('lets a run started by hand go on, whatever the date and the other runs', () => {
     expect(
-      getScheduleVerdict({ eventName: 'workflow_dispatch', date: new Date('not a date') }),
+      getScheduleVerdict({
+        eventName: 'workflow_dispatch',
+        runs: [summerRun],
+        date: new Date('not a date'),
+      }),
     ).toEqual({ isDue: true, message: 'Started by hand: no schedule to check.' });
   });
 
-  it('lets the summer schedule go on in summer', () => {
-    expect(
-      getScheduleVerdict({ eventName: 'schedule', schedule: SUMMER_CRON, date: summerMorning }),
-    ).toEqual({
-      isDue: true,
-      message: 'Europe/Paris is at UTC+02:00 today: the 0 4 * * * schedule deploys.',
-    });
-  });
-
-  it('lets the winter schedule go on in winter', () => {
-    expect(
-      getScheduleVerdict({ eventName: 'schedule', schedule: WINTER_CRON, date: winterMorning }),
-    ).toEqual({
-      isDue: true,
-      message: 'Europe/Paris is at UTC+01:00 today: the 0 5 * * * schedule deploys.',
-    });
-  });
-
   it.each([
-    [WINTER_CRON, summerMorning, SUMMER_CRON, 'UTC+02:00'],
-    [SUMMER_CRON, winterMorning, WINTER_CRON, 'UTC+01:00'],
-  ])('stops the %s schedule on %s', (schedule, date, scheduleOfTheDay, offset) => {
-    expect(getScheduleVerdict({ eventName: 'schedule', schedule, date })).toEqual({
+    ['summer', summerRun],
+    ['winter', winterRun],
+  ])('lets the first scheduled run of the day from 6:00 go on in %s', (_, run) => {
+    expect(getScheduleVerdict({ eventName: 'schedule', runId: 10, runs: [run] })).toEqual({
+      isDue: true,
+      message: 'It is 06:07 in Europe/Paris: the first scheduled run of the day deploys.',
+    });
+  });
+
+  it('stops a run before 6:00 in Paris', () => {
+    expect(verdictAt({ createdAt: '2026-12-01T04:37:00Z' })).toEqual({
       isDue: false,
-      message: `Skipped: Europe/Paris is at ${offset} today, so the ${scheduleOfTheDay} schedule deploys, not this one (${schedule}).`,
+      message: 'Skipped: it is 05:37 in Europe/Paris, before the deploy of 06:00.',
     });
   });
 
   it.each([
-    // The day summer time ends: 4:00 UTC is already 5:00 in Paris, 5:00 UTC is 6:00
-    ['2026-10-25T04:00:00Z', SUMMER_CRON, false],
-    ['2026-10-25T05:00:00Z', WINTER_CRON, true],
-    // The day summer time starts: 4:00 UTC is already 6:00 in Paris, 5:00 UTC is 7:00
-    ['2027-03-28T04:00:00Z', SUMMER_CRON, true],
-    ['2027-03-28T05:00:00Z', WINTER_CRON, false],
-  ])('deploys once at 6:00 in Paris on a day of time change (%s, %s)', (date, schedule, isDue) => {
-    expect(
-      getScheduleVerdict({ eventName: 'schedule', schedule, date: new Date(date) }).isDue,
-    ).toBe(isDue);
+    ['2026-12-01T04:59:59Z', false],
+    ['2026-12-01T05:00:00Z', true],
+    ['2026-07-01T03:59:00Z', false],
+    ['2026-07-01T04:00:00Z', true],
+  ])('goes on from 6:00 in Paris exactly (%s)', (createdAt, isDue) => {
+    expect(verdictAt({ createdAt }).isDue).toBe(isDue);
   });
 
-  it('keeps the schedule of the day when GitHub starts the run hours late', () => {
-    const lateRun = new Date('2026-07-01T09:47:00Z');
-    expect(
-      getScheduleVerdict({ eventName: 'schedule', schedule: SUMMER_CRON, date: lateRun }).isDue,
-    ).toBe(true);
-    expect(
-      getScheduleVerdict({ eventName: 'schedule', schedule: WINTER_CRON, date: lateRun }).isDue,
-    ).toBe(false);
+  it.each([
+    // The day summer time ends: 4:07 UTC is already 5:07 in Paris, 5:07 UTC is 6:07
+    ['2026-10-25T04:07:00Z', false],
+    ['2026-10-25T05:07:00Z', true],
+    // The day summer time starts: 4:07 UTC is already 6:07 in Paris
+    ['2027-03-28T04:07:00Z', true],
+  ])('starts at 6:00 in Paris on a day of time change (%s)', (createdAt, isDue) => {
+    expect(verdictAt({ createdAt }).isDue).toBe(isDue);
   });
 
-  it('defaults to the current date', () => {
+  it('stops once a scheduled run of the day passed', () => {
+    const passedRun = scheduledRun({ id: 9, createdAt: '2026-07-01T04:07:00Z' });
+    expect(verdictAt({ createdAt: '2026-07-01T04:37:00Z', others: [passedRun] })).toEqual({
+      isDue: false,
+      message: `Skipped: the scheduled run of 06:07 already went through today: ${RUNS_URL}/9`,
+    });
+  });
+
+  it('finds the run that passed among failed ones', () => {
+    const others = [
+      scheduledRun({ id: 9, createdAt: '2026-07-01T05:07:00Z', conclusion: 'failure' }),
+      scheduledRun({ id: 8, createdAt: '2026-07-01T04:37:00Z' }),
+      scheduledRun({ id: 7, createdAt: '2026-07-01T04:07:00Z', conclusion: 'failure' }),
+    ];
+    expect(verdictAt({ createdAt: '2026-07-01T05:37:00Z', others }).message).toBe(
+      `Skipped: the scheduled run of 06:37 already went through today: ${RUNS_URL}/8`,
+    );
+  });
+
+  it('tries again after a scheduled run of the day that failed', () => {
+    const failedRun = scheduledRun({
+      id: 9,
+      createdAt: '2026-07-01T04:07:00Z',
+      conclusion: 'failure',
+    });
+    expect(verdictAt({ createdAt: '2026-07-01T04:37:00Z', others: [failedRun] })).toEqual({
+      isDue: true,
+      message: `It is 06:37 in Europe/Paris, and the scheduled run of 06:07 did not pass (failure): this one tries again. ${RUNS_URL}/9`,
+    });
+  });
+
+  it('names the status of an earlier run without a conclusion', () => {
+    const others = [
+      scheduledRun({
+        id: 9,
+        createdAt: '2026-07-01T04:07:00Z',
+        status: 'queued',
+        conclusion: null,
+      }),
+    ];
+    expect(verdictAt({ createdAt: '2026-07-01T04:37:00Z', others }).message).toContain(
+      'did not pass (queued)',
+    );
+  });
+
+  it.each([
+    ['a run before 6:00', scheduledRun({ id: 9, createdAt: '2026-12-01T04:37:00Z' })],
+    ['a run of the day before', scheduledRun({ id: 9, createdAt: '2026-11-30T05:07:00Z' })],
+    ['a run created after this one', scheduledRun({ id: 11, createdAt: '2026-12-01T05:37:00Z' })],
+    ['this run itself', scheduledRun({ id: 10, createdAt: '2026-12-01T04:37:00Z' })],
+  ])('does not count %s that passed', (_, run) => {
+    const verdict = getScheduleVerdict({
+      eventName: 'schedule',
+      runId: 10,
+      runs: [run],
+      date: new Date('2026-12-01T05:07:00Z'),
+    });
+    expect(verdict).toEqual({
+      isDue: true,
+      message: 'It is 06:07 in Europe/Paris: the first scheduled run of the day deploys.',
+    });
+  });
+
+  it('reads the moment of the run from its creation, whatever the delay of its first job', () => {
     vi.useFakeTimers();
-    vi.setSystemTime(winterMorning);
-    expect(getScheduleVerdict({ eventName: 'schedule', schedule: WINTER_CRON }).isDue).toBe(true);
+    vi.setSystemTime(new Date('2026-12-01T05:30:00Z'));
+    expect(verdictAt({ createdAt: '2026-12-01T04:37:00Z' }).isDue).toBe(false);
   });
 
-  it.each([undefined, '', '0 6 * * *', '0 4 * * 1'])(
-    'stops a scheduled run with the schedule %o',
-    schedule => {
-      const verdict = getScheduleVerdict({ eventName: 'schedule', schedule, date: summerMorning });
-      expect(verdict).toEqual({
-        isDue: false,
-        message: `Skipped: Europe/Paris is at UTC+02:00 today, so the 0 4 * * * schedule deploys, not this one (${schedule || 'none'}).`,
-      });
-    },
-  );
+  it('defaults to now when the run is not in the list', () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date('2026-12-01T05:07:00Z'));
+    expect(getScheduleVerdict({ eventName: 'schedule', runId: 10 }).isDue).toBe(true);
+    expect(getScheduleVerdict({ eventName: 'schedule', runId: 10, runs: undefined }).isDue).toBe(
+      true,
+    );
+  });
 
   it.each([
     ['push', 'Skipped: a run started by push does not deploy.'],
     [undefined, 'Skipped: a run started by an unknown event does not deploy.'],
     ['', 'Skipped: a run started by an unknown event does not deploy.'],
   ])('stops a run started by %o', (eventName, message) => {
-    expect(getScheduleVerdict({ eventName, schedule: SUMMER_CRON, date: summerMorning })).toEqual({
+    expect(getScheduleVerdict({ eventName, runId: 10, runs: [summerRun] })).toEqual({
       isDue: false,
       message,
     });
@@ -166,61 +272,153 @@ describe('getScheduleVerdict', () => {
     expect(getScheduleVerdict().isDue).toBe(false);
   });
 
-  it('stops a scheduled run at an invalid date', () => {
-    expect(
-      getScheduleVerdict({
-        eventName: 'schedule',
-        schedule: SUMMER_CRON,
-        date: new Date('not a date'),
-      }),
-    ).toEqual({
-      isDue: false,
-      message: 'Skipped: the offset of Europe/Paris from UTC is unknown at this date.',
+  it.each([new Date('not a date'), new Date('1900-01-01T05:07:00Z')])(
+    'stops a scheduled run when the offset of Paris is unknown at %o',
+    date => {
+      expect(getScheduleVerdict({ eventName: 'schedule', runs: [], date })).toEqual({
+        isDue: false,
+        message: 'Skipped: the offset of Europe/Paris from UTC is unknown at this date.',
+      });
+    },
+  );
+});
+
+describe('getScheduleGapWarning', () => {
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  const thisRun = scheduledRun({
+    id: 10,
+    createdAt: '2026-10-19T04:07:00Z',
+    status: 'in_progress',
+    conclusion: null,
+  });
+
+  /** The warning of the scheduled run `id` 10 when the run before it was created at `createdAt`. */
+  const warningAfter = createdAt =>
+    getScheduleGapWarning({
+      eventName: 'schedule',
+      runId: 10,
+      runs: [thisRun, scheduledRun({ id: 9, createdAt })],
     });
+
+  it('stays quiet when the run before is from the same morning', () => {
+    expect(warningAfter('2026-10-19T03:37:00Z')).toBeUndefined();
   });
 
-  it('stops a scheduled run when the offset of the day is not a whole number of minutes', () => {
-    expect(
-      getScheduleVerdict({
-        eventName: 'schedule',
-        schedule: SUMMER_CRON,
-        date: new Date('1900-01-01T05:00:00Z'),
-      }).isDue,
-    ).toBe(false);
+  it.each(['2026-10-18T04:07:00Z', '2026-10-17T16:07:00Z'])(
+    'stays quiet up to a gap of 36 hours, delays of GitHub included (%s)',
+    createdAt => {
+      expect(warningAfter(createdAt)).toBeUndefined();
+    },
+  );
+
+  it('warns from a gap of more than 36 hours', () => {
+    expect(warningAfter('2026-10-17T16:06:59Z')).toContain(
+      'for 36 hours, since 2026-10-17T16:06:59.000Z',
+    );
   });
 
-  it('stops when no schedule covers the offset of the day', () => {
-    // Paris was at UTC+00:00 in winter from 1911 to 1940
-    expect(
-      getScheduleVerdict({
-        eventName: 'schedule',
-        schedule: SUMMER_CRON,
-        date: new Date('1920-01-01T05:00:00Z'),
-      }),
-    ).toEqual({
-      isDue: false,
-      message:
-        'Skipped: no schedule deploys when Europe/Paris is at UTC+00:00. Add one to deploy-production.yml and DEPLOY_CRON_BY_UTC_OFFSET_MINUTES.',
-    });
+  it('names the gap and the last scheduled run after a day without any', () => {
+    expect(warningAfter('2026-10-17T06:37:00Z')).toBe(
+      `No scheduled run of deploy-production.yml for 45 hours, since 2026-10-17T06:37:00.000Z: GitHub skipped every run of at least one day, so nothing was deployed then. Check that the workflow is enabled in the Actions tab, and start it by hand if a deploy is missing. ${RUNS_URL}/9`,
+    );
   });
 
-  it('writes a negative offset that no schedule covers', () => {
-    vi.spyOn(Intl.DateTimeFormat.prototype, 'formatToParts').mockReturnValue([
-      { type: 'timeZoneName', value: 'GMT-03:30' },
-    ]);
+  it('stays quiet for the first scheduled run', () => {
     expect(
-      getScheduleVerdict({ eventName: 'schedule', schedule: SUMMER_CRON, date: summerMorning })
-        .message,
-    ).toMatch(/^Skipped: no schedule deploys when Europe\/Paris is at UTC-03:30\. /);
+      getScheduleGapWarning({ eventName: 'schedule', runId: 10, runs: [thisRun] }),
+    ).toBeUndefined();
+  });
+
+  it.each([[[]], [undefined]])(
+    'warns a run started by hand when no scheduled run ever started (%o)',
+    runs => {
+      expect(getScheduleGapWarning({ eventName: 'workflow_dispatch', runId: 20, runs })).toBe(
+        'GitHub has never started deploy-production.yml on its schedule: check that the workflow is enabled in the Actions tab and that its crons are on the default branch.',
+      );
+    },
+  );
+
+  it('measures the gap of a run started by hand from now', () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date('2026-10-20T17:00:00Z'));
+    const runs = [thisRun];
+    expect(getScheduleGapWarning({ eventName: 'workflow_dispatch', runId: 20, runs })).toMatch(
+      /^No scheduled run of deploy-production\.yml for 36 hours, since 2026-10-19T04:07:00\.000Z/,
+    );
+    vi.setSystemTime(new Date('2026-10-20T06:00:00Z'));
+    expect(
+      getScheduleGapWarning({ eventName: 'workflow_dispatch', runId: 20, runs }),
+    ).toBeUndefined();
+  });
+
+  it('leaves out the runs created after this one', () => {
+    const laterRun = scheduledRun({ id: 11, createdAt: '2026-10-19T04:37:00Z' });
+    const runs = [laterRun, thisRun, scheduledRun({ id: 9, createdAt: '2026-10-17T06:37:00Z' })];
+    expect(getScheduleGapWarning({ eventName: 'schedule', runId: 10, runs })).toContain(
+      'for 45 hours',
+    );
+  });
+
+  it('warns without any parameter, as for a run started by hand', () => {
+    expect(getScheduleGapWarning()).toBe(
+      'GitHub has never started deploy-production.yml on its schedule: check that the workflow is enabled in the Actions tab and that its crons are on the default branch.',
+    );
   });
 });
 
-describe('DEPLOY_CRON_BY_UTC_OFFSET_MINUTES', () => {
-  it('holds the schedules of deploy-production.yml, and only them', () => {
-    const workflow = readFileSync('.github/workflows/deploy-production.yml', 'utf8');
-    const workflowCrons = [...workflow.matchAll(/^\s*- cron: '([^']+)'$/gm)].map(match => match[1]);
+const MINUTES_PER_DAY = 24 * MINUTES_PER_HOUR;
 
-    expect(workflowCrons).toHaveLength(2);
-    expect([...DEPLOY_CRON_BY_UTC_OFFSET_MINUTES.values()].sort()).toEqual(workflowCrons.sort());
+describe('the crons of deploy-production.yml', () => {
+  const workflow = readFileSync('.github/workflows/deploy-production.yml', 'utf8');
+  const crons = [...workflow.matchAll(/^\s*- cron: '([^']+)'$/gm)].map(match => match[1]);
+
+  /**
+   * The moments of the day, in minutes after midnight UTC, when a daily cron written
+   * `<minutes, comma-separated> <hour or first-last hours> * * *` fires.
+   */
+  const getFireMinutes = cron => {
+    const [minutes, hours] = cron.split(' ');
+    const [firstHour, lastHour = firstHour] = hours.split('-').map(Number);
+    return Array.from(
+      { length: lastHour - firstHour + 1 },
+      (_, index) => firstHour + index,
+    ).flatMap(hour => minutes.split(',').map(minute => hour * MINUTES_PER_HOUR + Number(minute)));
+  };
+  const fireMinutes = crons.flatMap(getFireMinutes).sort((first, second) => first - second);
+
+  it('fire every day, in the shape that the other tests read', () => {
+    expect(crons.length).toBeGreaterThan(0);
+    for (const cron of crons) expect(cron).toMatch(/^\d+(,\d+)* \d+(-\d+)? \* \* \*$/);
+  });
+
+  it('fire off the hour, so that GitHub drops fewer of their runs', () => {
+    for (const minutes of fireMinutes) expect(minutes % MINUTES_PER_HOUR).not.toBe(0);
+  });
+
+  it.each([
+    ['summer', 2 * MINUTES_PER_HOUR],
+    ['winter', MINUTES_PER_HOUR],
+  ])('start at least two runs from 6:00 in Paris in %s', (_, offsetMinutes) => {
+    const dueRuns = fireMinutes.filter(minutes => {
+      const localMinutes = minutes + offsetMinutes;
+      return localMinutes >= DEPLOY_START_MINUTES;
+    });
+    expect(dueRuns.length).toBeGreaterThanOrEqual(2);
+  });
+
+  it('start fewer runs a day than the schedule check reads', () => {
+    expect(fireMinutes.length).toBeLessThan(DEPLOY_RUNS_PAGE_SIZE);
+  });
+
+  it('leave a gap over the warning threshold only after a day without any run', () => {
+    const windowMinutes = fireMinutes.at(-1) - fireMinutes[0];
+    const thresholdMinutes = SCHEDULE_GAP_WARNING_HOURS * MINUTES_PER_HOUR;
+    // From the first run of a day to the last run of the next
+    expect(MINUTES_PER_DAY + windowMinutes).toBeLessThan(thresholdMinutes);
+    // From the last run of a day to the first run two days later
+    expect(2 * MINUTES_PER_DAY - windowMinutes).toBeGreaterThan(thresholdMinutes);
   });
 });
