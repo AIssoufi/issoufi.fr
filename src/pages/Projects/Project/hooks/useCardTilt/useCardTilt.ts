@@ -1,11 +1,9 @@
 import { type PointerEvent, useCallback } from 'react';
 
 import { usePrefersReducedMotion } from '../../../../../hooks/usePrefersReducedMotion';
+import { isFingerPointer } from '../../../../../utils/pointer';
 import { CARD_HOVER_LIFT_PX, CARD_MAX_TILT_DEG, CARD_PERSPECTIVE_PX } from '../../constants';
 import { getCardTilt } from '../../utils';
-
-/** `pointerType` of a finger on a touch screen, which hovers nothing. */
-const FINGER_POINTER_TYPE = 'touch';
 
 /** Pointer handlers returned by {@link useCardTilt}, to spread on the card. */
 interface CardTiltHandlers {
@@ -39,8 +37,7 @@ export function useCardTilt(): CardTiltHandlers {
 
   const onPointerMove = useCallback(
     (event: PointerEvent<HTMLElement>) => {
-      const isFinger = event.pointerType === FINGER_POINTER_TYPE;
-      if (isFinger) return;
+      if (isFingerPointer(event)) return;
 
       const card = event.currentTarget;
       const { rotateX, rotateY, x, y } = getCardTilt({
