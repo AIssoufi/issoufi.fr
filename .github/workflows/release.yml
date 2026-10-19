@@ -25,11 +25,33 @@ jobs:
       version: ${{ steps.release.outputs.version }}
       sha: ${{ steps.release.outputs.sha }}
     steps:
+      # GitHub holds the CI of a pull request that the GITHUB_TOKEN opened until a person approves
+      # it, while the daily release needs it to merge the release pull request. A token of the
+      # release GitHub App, once the site owner has set it up, opens the pull request instead, so
+      # its CI starts at once. A step condition cannot read secrets: this step checks them.
+      - id: app
+        name: Check the release app
+        env:
+          RELEASE_APP_CLIENT_ID: ${{ vars.RELEASE_APP_CLIENT_ID }}
+          RELEASE_APP_PRIVATE_KEY: ${{ secrets.RELEASE_APP_PRIVATE_KEY }}
+        run: |
+          if [ -n "$RELEASE_APP_CLIENT_ID" ] && [ -n "$RELEASE_APP_PRIVATE_KEY" ]; then
+            echo "configured=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "::notice::release-please uses the GITHUB_TOKEN: the RELEASE_APP_CLIENT_ID variable or the RELEASE_APP_PRIVATE_KEY secret is not set, so GitHub holds the CI of the release pull request until someone approves it."
+          fi
+      - id: app-token
+        if: steps.app.outputs.configured == 'true'
+        uses: actions/create-github-app-token@v3
+        with:
+          client-id: ${{ vars.RELEASE_APP_CLIENT_ID }}
+          private-key: ${{ secrets.RELEASE_APP_PRIVATE_KEY }}
       # Keeps a release pull request open against develop with the next version and its
       # CHANGELOG.md entry. Merging it tags the version and publishes a GitHub release.
       - uses: googleapis/release-please-action@v5
         id: release
         with:
+          token: ${{ steps.app-token.outputs.token || github.token }}
           target-branch: develop
           config-file: release-please-config.json
           manifest-file: .release-please-manifest.json
