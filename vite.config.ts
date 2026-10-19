@@ -5,7 +5,12 @@ import svgr from 'vite-plugin-svgr';
 import packageJson from './package.json' with { type: 'json' };
 import { DEFAULT_LANGUAGE } from './src/i18n/constants.ts';
 import { getYearsOfExperience } from './src/utils/career.ts';
-import { addModulePreload, renderNotFoundHtml, renderPageHtml } from './src/utils/pageHtml.ts';
+import {
+  addModulePreload,
+  addPrerenderedPage,
+  renderNotFoundHtml,
+  renderPageHtml,
+} from './src/utils/pageHtml.ts';
 import {
   getNotFoundFiles,
   getPageFiles,
@@ -26,8 +31,12 @@ import {
   BUILD_TARGET,
   CODE_SPLITTING_GROUPS,
   HEADERS_FILE_NAME,
+  PAGE_META_PLUGIN_NAME,
   SECURITY_HEADERS,
 } from './vite/constants.ts';
+import { styledComponentIds } from './vite/prerender/plugins.ts';
+import { prerenderPagesInWorker } from './vite/prerender/utils/render.ts';
+import type { PageMetaApi } from './vite/types.ts';
 import {
   getChunkName,
   getFontFaceTags,
@@ -47,6 +56,25 @@ const fontFaces = (): Plugin => ({
   transformIndexHtml: () => getFontFaceTags(),
 });
 
+/** Date of the build, whose month the durations of the pages that it renders count to. */
+const BUILD_DATE = new Date();
+
+/**
+ * Constants that the build writes into the code of the app, by name, typed in src/vite-env.d.ts:
+ * the version that release-please writes in package.json, shown after the logo of the header
+ * (src/App/Header), and the month of the build, the today of the pages that it renders, which the
+ * browser keeps while it hydrates them (src/pages/Experiences/JobSummary). Only a month, so that
+ * the chunk of the page that reads it keeps its hash across the builds of a month. The tests and
+ * the pages rendered at build time read them too.
+ */
+const BUILD_CONSTANTS = {
+  __APP_VERSION__: JSON.stringify(packageJson.version),
+  __BUILD_MONTH__: JSON.stringify({
+    year: BUILD_DATE.getFullYear(),
+    monthIndex: BUILD_DATE.getMonth(),
+  }),
+};
+
 /** Parameters of the `preloadPageChunks` helper of {@link pageMeta}. */
 interface PreloadPageChunksParams {
   /** HTML of a generated page. */
@@ -63,16 +91,30 @@ interface PreloadPageChunksParams {
  * template already contains the hashed asset tags. Each emitted page also preloads the chunk of
  * the page it shows, and the chunks that this one imports, so a direct visit downloads them at the
  * same time as the main chunk; the home page is in the main chunk and needs none.
+ *
+ * Each file also holds the app rendered at the path of its page, with its styles (see
+ * {@link prerenderPagesInWorker}), which the browser shows before any script runs, and without
+ * JavaScript, then hydrates (see `canHydrate`). A not found page holds the app rendered at a path
+ * of no page, which the browser renders again at the path that the visitor typed. Its API skips
+ * that render, for the standalone build (see {@link PageMetaApi}).
  */
-const pageMeta = (): Plugin => {
+const pageMeta = (): Plugin<PageMetaApi> => {
   let template = '';
   let base = '/';
+  let root = '';
+  let isPrerendering = true;
 
   return {
-    name: 'page-meta',
+    name: PAGE_META_PLUGIN_NAME,
     enforce: 'post',
+    api: {
+      skipPrerender: () => {
+        isPrerendering = false;
+      },
+    },
     configResolved: config => {
       base = config.base;
+      root = config.root;
     },
     transformIndexHtml: html => {
       template = html;
@@ -83,7 +125,7 @@ const pageMeta = (): Plugin => {
         years: getYearsOfExperience(),
       });
     },
-    generateBundle(_options, bundle) {
+    async generateBundle(_options, bundle) {
       if (!template) this.error('index.html was not transformed before generateBundle');
 
       /**
@@ -97,24 +139,53 @@ const pageMeta = (): Plugin => {
         );
 
       const years = getYearsOfExperience();
+      const pageFiles = getPageFiles();
+      const notFoundFiles = getNotFoundFiles();
+      const renderedPages = isPrerendering
+        ? await prerenderPagesInWorker({
+            root,
+            define: BUILD_CONSTANTS,
+            paths: [...pageFiles, ...notFoundFiles].map(({ path }) => path),
+          })
+        : new Map();
 
-      getPageFiles()
-        .filter(file => !isTemplatePageFile(file))
-        .forEach(({ page, language, fileName }) => {
-          const html = renderPageHtml({ template, page, language, years });
-          this.emitFile({
-            type: 'asset',
-            fileName,
-            source: preloadPageChunks({ html, folder: page.folder }),
+      pageFiles.forEach(file => {
+        const { page, language, fileName, path } = file;
+        const renderedPage = renderedPages.get(path);
+        if (isTemplatePageFile(file)) {
+          // Vite writes the home page of the default language from the template itself
+          const templateFile = bundle[fileName];
+          const hasTemplateFile = templateFile?.type === 'asset';
+          if (!hasTemplateFile) this.error(`The build has no ${fileName}`);
+
+          templateFile.source = addPrerenderedPage({
+            html: String(templateFile.source),
+            page: renderedPage,
+            hydrationPath: path,
           });
-        });
+          return;
+        }
 
-      getNotFoundFiles().forEach(({ language, fileName }) => {
+        const html = renderPageHtml({ template, page, language, years });
+        this.emitFile({
+          type: 'asset',
+          fileName,
+          source: preloadPageChunks({
+            html: addPrerenderedPage({ html, page: renderedPage, hydrationPath: path }),
+            folder: page.folder,
+          }),
+        });
+      });
+
+      notFoundFiles.forEach(({ language, fileName, path }) => {
         const html = renderNotFoundHtml({ template, language, years });
         this.emitFile({
           type: 'asset',
           fileName,
-          source: preloadPageChunks({ html, folder: NOT_FOUND_FOLDER }),
+          source: preloadPageChunks({
+            html: addPrerenderedPage({ html, page: renderedPages.get(path) }),
+            folder: NOT_FOUND_FOLDER,
+          }),
         });
       });
     },
@@ -205,10 +276,18 @@ export default defineConfig(({ mode }) => {
 
   return {
     base: '/',
-    plugins: [react(), svgr(), fontFaces(), pageMeta(), sitemap(), webManifests(), httpHeaders()],
-    // The version that release-please writes in package.json, shown after the logo of the header
-    // (src/App/Header) and typed in src/vite-env.d.ts; the tests read it too
-    define: { __APP_VERSION__: JSON.stringify(packageJson.version) },
+    plugins: [
+      react(),
+      svgr(),
+      // The build only: the dev server and the tests render in the browser alone
+      { ...styledComponentIds(), apply: 'build' },
+      fontFaces(),
+      pageMeta(),
+      sitemap(),
+      webManifests(),
+      httpHeaders(),
+    ],
+    define: BUILD_CONSTANTS,
     build: {
       // The browsers of the app, whose syntax and APIs tsconfig.app.json checks it against
       target: BUILD_TARGET,
@@ -279,6 +358,8 @@ export default defineConfig(({ mode }) => {
           'src/setupTests.ts',
           // The entry point only mounts the app, which App.spec.jsx renders
           'src/index.tsx',
+          // A thread apart from the coverage, which the specs of vite/prerender start
+          'vite/prerender/worker.ts',
         ],
         reporter: ['text', 'html', 'json-summary'],
         thresholds: COVERAGE_THRESHOLDS_PERCENT,

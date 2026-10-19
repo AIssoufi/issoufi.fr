@@ -120,13 +120,24 @@ describe('getPageFiles', () => {
   it('gives each file the page it shows', () => {
     expect(getPageFiles().map(({ page }) => page)).toEqual([...PAGES, ...PAGES]);
   });
+
+  it('gives each file the path of its page in its language', () => {
+    expect(getPageFiles().map(({ path }) => path)).toEqual([
+      '/',
+      '/projects',
+      '/experiences',
+      '/en/',
+      '/en/projects',
+      '/en/experiences',
+    ]);
+  });
 });
 
 describe('getNotFoundFiles', () => {
   it('lists a not found page per language, in the folder of its prefix', () => {
     expect(getNotFoundFiles()).toEqual([
-      { language: 'fr', fileName: '404.html' },
-      { language: 'en', fileName: 'en/404.html' },
+      { language: 'fr', fileName: '404.html', path: '/404' },
+      { language: 'en', fileName: 'en/404.html', path: '/en/404' },
     ]);
   });
 });
@@ -336,19 +347,24 @@ describe('page folders', () => {
 describe('isTemplatePageFile', () => {
   it('sees index.html, the home page of the default language, as the template file', () => {
     expect(getPageFiles().filter(isTemplatePageFile)).toEqual([
-      { page: home, language: 'fr', fileName: 'index.html' },
+      { page: home, language: 'fr', fileName: 'index.html', path: '/' },
     ]);
   });
 
   it('sees the English home page as a file to emit', () => {
-    expect(isTemplatePageFile({ page: home, language: 'en', fileName: 'en/index.html' })).toBe(
-      false,
-    );
+    expect(
+      isTemplatePageFile({ page: home, language: 'en', fileName: 'en/index.html', path: '/en/' }),
+    ).toBe(false);
   });
 
   it('sees the other French pages as files to emit', () => {
-    expect(isTemplatePageFile({ page: projects, language: 'fr', fileName: 'projects.html' })).toBe(
-      false,
-    );
+    expect(
+      isTemplatePageFile({
+        page: projects,
+        language: 'fr',
+        fileName: 'projects.html',
+        path: '/projects',
+      }),
+    ).toBe(false);
   });
 });

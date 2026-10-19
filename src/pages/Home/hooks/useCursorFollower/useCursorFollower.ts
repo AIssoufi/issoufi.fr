@@ -1,8 +1,8 @@
 import { type RefObject, useEffect } from 'react';
 
 import { usePrefersReducedMotion } from '../../../../hooks/usePrefersReducedMotion/index.ts';
-import { CURSOR_GLOW_EASING, CURSOR_GLOW_RADIUS_PX, CURSOR_GLOW_START } from '../../constants.ts';
-import { easeTowards } from '../../utils.ts';
+import { CURSOR_GLOW_EASING, CURSOR_GLOW_START } from '../../constants.ts';
+import { easeTowards, getCursorGlowTransform } from '../../utils.ts';
 import { usePointerRef } from '../usePointerRef/index.ts';
 
 /**
@@ -31,11 +31,7 @@ export function useCursorFollower(elementRef: RefObject<HTMLElement | null>): vo
         factor: CURSOR_GLOW_EASING,
       });
       const element = elementRef.current;
-      if (element) {
-        const x = position.x - CURSOR_GLOW_RADIUS_PX;
-        const y = position.y - CURSOR_GLOW_RADIUS_PX;
-        element.style.transform = `translate(${x}px, ${y}px)`;
-      }
+      if (element) element.style.transform = getCursorGlowTransform(position);
       frame = requestAnimationFrame(animate);
     };
     frame = requestAnimationFrame(animate);

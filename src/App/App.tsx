@@ -1,11 +1,12 @@
 import { lazy, Suspense } from 'react';
-import { Route, BrowserRouter as Router, Routes } from 'react-router';
+import { Route, Routes } from 'react-router';
 import { ThemeProvider } from '@xstyled/styled-components';
 
 import { LANGUAGES, ROOT_PATH } from '../i18n/constants.ts';
 import { localizePath } from '../i18n/utils.ts';
 import { Home } from '../pages/Home/index.ts';
 import { GlobalStyle, theme } from '../theme/index.ts';
+import AppRouter from './AppRouter/index.ts';
 import DocumentMeta from './DocumentMeta/index.ts';
 import Header from './Header/index.ts';
 import { useReloadOnStaleChunk } from './hooks/useReloadOnStaleChunk/index.ts';
@@ -39,15 +40,16 @@ const NotFound = lazy(() => import('../pages/NotFound/index.ts').then(keepPendin
  * {@link useReloadOnStaleChunk}). A page that fails to render or to load shows an error with a
  * reload button below the header, which stays usable (see {@link RouteErrorBoundary}). After a
  * navigation by link, the heading of the new page takes the keyboard focus, unless only the
- * language changed (see {@link PageHeadingFocus}).
+ * language changed (see {@link PageHeadingFocus}). The build renders it at the path of each page,
+ * which the browser then hydrates (see {@link AppRouter}).
  */
-function App() {
+function App({ location }: AppProps) {
   useReloadOnStaleChunk();
 
   return (
     <ThemeProvider theme={theme}>
       <GlobalStyle />
-      <Router>
+      <AppRouter location={location}>
         <UrlLanguage />
         <DocumentMeta />
         <SkipLink />
@@ -84,9 +86,18 @@ function App() {
             </Suspense>
           </RouteErrorBoundary>
         </WebApp>
-      </Router>
+      </AppRouter>
     </ThemeProvider>
   );
 }
 
 export default App;
+
+/** Props of {@link App}. */
+interface AppProps {
+  /**
+   * Path of the page to render, such as `/en/projects`, when the build prerenders it
+   * (`src/prerender.tsx`). Missing, the routes follow the address of the browser.
+   */
+  location?: string;
+}

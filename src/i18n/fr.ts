@@ -31,7 +31,6 @@ export const fr = {
       description: 'Cette page n’existe pas.',
     },
     ogImageAlt: 'ADAM Issoufi, développeur full-stack JavaScript passionné par l’UX et l’UI Design',
-    noScript: 'Activez JavaScript pour afficher ce site.',
     // The names of the site and of its owner, which link previews (og:site_name) and search
     // engines (the structured data of the pages) show: the same for now, kept apart so that
     // either can change alone
@@ -51,6 +50,8 @@ export const fr = {
     notFound: {
       title: 'Page introuvable',
       message: 'La page {{path}} n’existe pas.',
+      // The page rendered at build time, which cannot know the path that the visitor typed
+      messageWithoutPath: 'Cette page n’existe pas.',
     },
     forbidden: {
       title: 'Accès refusé',

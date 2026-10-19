@@ -245,3 +245,9 @@ export const PAGES_DIR = 'src/pages';
 
 /** File of a page folder that `App.tsx` imports lazily, so the module of the page chunk. */
 export const PAGE_ENTRY_FILE = 'index.ts';
+
+/**
+ * Name of the plugin of `vite.config.ts` that writes the HTML file of each page, by which the
+ * standalone build finds it to call its API (see `PageMetaApi`).
+ */
+export const PAGE_META_PLUGIN_NAME = 'page-meta';

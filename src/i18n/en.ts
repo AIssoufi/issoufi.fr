@@ -27,7 +27,6 @@ export const en = {
       description: 'This page does not exist.',
     },
     ogImageAlt: 'ADAM Issoufi, full-stack JavaScript developer with a passion for UX and UI Design',
-    noScript: 'Enable JavaScript to view this site.',
     siteName: 'ADAM Issoufi',
     ownerName: 'ADAM Issoufi',
     webApp: {
@@ -42,6 +41,7 @@ export const en = {
     notFound: {
       title: 'Page not found',
       message: 'The page {{path}} does not exist.',
+      messageWithoutPath: 'This page does not exist.',
     },
     forbidden: {
       title: 'Access denied',

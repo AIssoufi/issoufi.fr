@@ -3,9 +3,15 @@ import { readFileSync, statSync } from 'node:fs';
 import { LANGUAGES } from '../i18n/constants.ts';
 import { en } from '../i18n/en.ts';
 import { fr } from '../i18n/fr.ts';
-import { addModulePreload, renderNotFoundHtml, renderPageHtml } from './pageHtml.ts';
+import {
+  addModulePreload,
+  addPrerenderedPage,
+  renderNotFoundHtml,
+  renderPageHtml,
+} from './pageHtml.ts';
 import { OG_IMAGE_PATHS, PAGES, SITE_URL, getNotFoundFiles, getPageFiles } from './pages.ts';
 import { getStructuredData } from './structuredData.ts';
+import { APP_CONTAINER_ID, PRERENDERED_PATH_ATTRIBUTE } from './prerender.ts';
 import { getWebManifestUrl } from './webManifest.ts';
 
 const [home, projects, experiences] = PAGES;
@@ -93,7 +99,6 @@ describe('renderPageHtml', () => {
     expect(html.match(/%PAGE_URL%/g)).toHaveLength(2);
     expect(html.match(/%PAGE_IMAGE_URL%/g)).toHaveLength(1);
     expect(html.match(/%PAGE_IMAGE_ALT%/g)).toHaveLength(1);
-    expect(html.match(/%PAGE_NOSCRIPT%/g)).toHaveLength(1);
     getPageFiles().forEach(({ page, language }) =>
       expect(renderPageHtml({ template: html, page, language, years: 8 })).not.toMatch(
         /%PAGE_\w+%/,
@@ -109,24 +114,8 @@ describe('renderPageHtml', () => {
 });
 
 describe('message shown without JavaScript', () => {
-  const html = readFileSync('index.html', 'utf-8');
-
-  it('is in French on the French pages', () => {
-    const page = renderPageHtml({ template: html, page: projects, years: 8 });
-
-    expect(page).toContain('<noscript>Activez JavaScript pour afficher ce site.</noscript>');
-  });
-
-  it('is in English on the English pages', () => {
-    const page = renderPageHtml({ template: html, page: projects, language: 'en', years: 8 });
-
-    expect(page).toContain('<noscript>Enable JavaScript to view this site.</noscript>');
-  });
-
-  it.each(['fr', 'en'] as const)('is in the language of the %s not found page', language => {
-    const page = renderNotFoundHtml({ template: html, language, years: 8 });
-
-    expect(page).toContain(`<noscript>${{ fr, en }[language].meta.noScript}</noscript>`);
+  it('is not in index.html, since every page holds its content (see addPrerenderedPage)', () => {
+    expect(readFileSync('index.html', 'utf-8')).not.toContain('<noscript>');
   });
 });
 
@@ -516,6 +505,94 @@ describe('addModulePreload', () => {
       ['HTML that is not a string', { html: null as never, href }],
     ])('returns an empty string for %s', (_, params) => {
       expect(addModulePreload(params)).toBe('');
+    });
+  });
+});
+
+describe('addPrerenderedPage', () => {
+  const html = '<head>\n  </head>\n<body>\n  <div id="welcome"></div>\n</body>';
+  const page = {
+    html: '<main><h1>Projets</h1></main>',
+    styleTags: '<style data-styled="true">.a{color:red;}</style>',
+  };
+
+  it('puts the page in the container, which names the path to hydrate', () => {
+    expect(addPrerenderedPage({ html, page, hydrationPath: '/en/projects' })).toContain(
+      `<div id="welcome" ${PRERENDERED_PATH_ATTRIBUTE}="/en/projects"><main><h1>Projets</h1></main></div>`,
+    );
+  });
+
+  it('adds the styles of the page at the end of the head', () => {
+    expect(addPrerenderedPage({ html, page, hydrationPath: '/' })).toMatch(
+      /^<head>\n {4}<style data-styled="true">\.a\{color:red;\}<\/style>\n {2}<\/head>/,
+    );
+  });
+
+  it('fills the container of index.html, the one that the app renders in', () => {
+    const template = readFileSync('index.html', 'utf-8');
+
+    expect(template).toContain(`<div id="${APP_CONTAINER_ID}"></div>`);
+    expect(addPrerenderedPage({ html: template, page, hydrationPath: '/' })).toContain(
+      '<main><h1>Projets</h1></main>',
+    );
+  });
+
+  it.each([
+    ['no path', undefined],
+    ['an empty path', ''],
+    ['a blank path', ' \t'],
+  ])('names no path to hydrate with %s, as for a not found page', (_, hydrationPath) => {
+    expect(addPrerenderedPage({ html, page, hydrationPath })).toContain(
+      '<div id="welcome"><main><h1>Projets</h1></main></div>',
+    );
+  });
+
+  it('escapes the path for the attribute', () => {
+    expect(addPrerenderedPage({ html, page, hydrationPath: '/a"b&c' })).toContain(
+      `${PRERENDERED_PATH_ATTRIBUTE}="/a&quot;b&amp;c"`,
+    );
+  });
+
+  it.each(['$&', "$'", '$`', '$$', '$1'])(
+    'inserts the page and its styles as they are, even with %s, a pattern of replace',
+    pattern => {
+      const result = addPrerenderedPage({
+        html,
+        page: { html: `<p>${pattern}</p>`, styleTags: `<style>/*${pattern}*/</style>` },
+      });
+
+      expect(result).toContain(`<div id="welcome"><p>${pattern}</p></div>`);
+      expect(result).toContain(`<style>/*${pattern}*/</style>\n  </head>`);
+    },
+  );
+
+  it.each([
+    ['no styles', ''],
+    ['blank styles', ' '],
+  ])('adds nothing to the head with %s', (_, styleTags) => {
+    expect(addPrerenderedPage({ html, page: { html: '<main></main>', styleTags } })).toBe(
+      '<head>\n  </head>\n<body>\n  <div id="welcome"><main></main></div>\n</body>',
+    );
+  });
+
+  describe('edge cases', () => {
+    it('leaves the HTML unchanged without a page, as in the standalone build', () => {
+      expect(addPrerenderedPage({ html, hydrationPath: '/' })).toBe(html);
+    });
+
+    it('leaves the HTML unchanged without an empty container, as when it is already filled', () => {
+      const filled = addPrerenderedPage({ html, page });
+
+      expect(addPrerenderedPage({ html: filled, page })).toBe(filled);
+      expect(addPrerenderedPage({ html: '<head></head>', page })).toBe('<head></head>');
+    });
+
+    it.each([
+      ['no parameters', undefined],
+      ['no HTML', { page }],
+      ['HTML that is not a string', { html: 42 as never, page }],
+    ])('returns an empty string for %s', (_, params) => {
+      expect(addPrerenderedPage(params)).toBe('');
     });
   });
 });

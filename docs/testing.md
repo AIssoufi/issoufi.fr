@@ -11,7 +11,8 @@
 - Every component, helper and hook has its spec, next to it: `*.spec.jsx` for components, `*.spec.ts` for helpers and hooks, `*.spec.js` for the JavaScript helpers. The browser tests are the `e2e/*.e2e.ts` files.
 - The coverage must stay at 100 %: the CI fails below.
 - A test that logs an error fails, so the output stays clean.
-- Some specs build the whole site in memory, and check every generated page and header.
+- Some specs build the whole site in memory, and check every generated page and header, with the page rendered in it.
+- The spec of a component whose render depends on the visitor renders it as the build does, then hydrates it, with `renderHydrated` (`src/hydrationTestUtils.tsx`). `src/prerender.spec.jsx` hydrates every page rendered at build time.
 
 ## Browser tests
 
@@ -24,6 +25,7 @@ They run in both languages, on screens from small phones to large desktops:
 | Accessibility | contrast, names that hold their visible text, headings and what screen readers read, keyboard navigation, touch targets, text size, reduced motion, forced colors |
 | Images        | each screen downloads the right photo and screenshot sizes                                                                                                        |
 | Server        | each page in its language, the security headers and policy, no request to Google                                                                                  |
+| Hydration     | each page shows without JavaScript, then React takes it over with no error, for a visitor whose state differs from the build                                      |
 
 ## Screenshot comparison
 
@@ -47,6 +49,8 @@ They run in both languages, on screens from small phones to large desktops:
 - **What jsdom ignores**: media queries (but `all` and `screen`), pseudo-elements in `getComputedStyle`, and the focus of an element hidden by `display: none`. Read the declared rules instead.
 - **`:focus-visible`**: jsdom keeps its state for a whole file. Check what the focus shows, not the pseudo-class.
 - **`matchMedia`**: jsdom has none. Stub it with `stubMatchMedia`, and undo it with `vi.unstubAllGlobals()`.
+- **Hydration**: in production, React keeps an attribute of the build that differs from its own render, and says nothing. In a test, the development build of React logs it, which fails the test.
+- **Render in Node.js**: React leaves the contexts of a render at build time set, in the same JavaScript realm. Run `await prerender(null)` before hydrating in the same file, as `src/prerender.spec.jsx` does.
 
 ### Playwright
 

@@ -3,7 +3,8 @@ import styled, { css, keyframes, th } from '@xstyled/styled-components';
 import Page from '../../components/Page/index.ts';
 import { theme } from '../../theme/index.ts';
 import { HOVER_POINTER_QUERY, REDUCED_MOTION_QUERY } from '../../theme/constants.ts';
-import { CURSOR_GLOW_RADIUS_PX } from './constants.ts';
+import { CURSOR_GLOW_RADIUS_PX, CURSOR_GLOW_START } from './constants.ts';
+import { getCursorGlowTransform } from './utils.ts';
 
 // Keyframes have no theme context, so they read the theme object rather than the th helpers
 const float = keyframes`
@@ -34,9 +35,12 @@ export const CursorGlow = styled.div`
   background: radial-gradient(circle, ${th.color('accent-a10')} 0%, transparent 70%);
   pointer-events: none;
   z-index: ${th.zIndex('cursor')};
+  /* Off the screen, where useCursorFollower starts it, in the page of the build too, which shows
+     it before any script runs */
+  transform: ${getCursorGlowTransform(CURSOR_GLOW_START)};
   will-change: transform;
 
-  /* With reduced motion, useCursorFollower leaves it at the top-left corner of the screen */
+  /* With reduced motion, useCursorFollower never moves it to the pointer */
   @media ${REDUCED_MOTION_QUERY} {
     display: none;
   }

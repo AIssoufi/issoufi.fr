@@ -1,7 +1,7 @@
 import { MAIN_CONTENT_ID } from '../src/constants/landmarks.ts';
-import type { Language } from '../src/i18n/types.ts';
+import type { Language, Translations } from '../src/i18n/types.ts';
 import { theme } from '../src/theme/theme.ts';
-import type { BackgroundPhoto, Page } from '../src/utils/pages.ts';
+import { type BackgroundPhoto, NOT_FOUND_FOLDER, type Page } from '../src/utils/pages.ts';
 
 /**
  * Screen widths, in pixels, at which the browser tests open the pages, and every page must fit
@@ -203,10 +203,12 @@ export const PHOTO_SCREENS: readonly PhotoScreen[] = [
 ];
 
 /**
- * `initiatorType` of the resource timing of a file that a `<link>` loaded, such as a background
- * photo preloaded by the app when it starts, rather than by the style that shows it (`css`).
+ * `initiatorType` values of the resource timing of a background photo requested before the app
+ * draws the page: by the style of the page that the build rendered (`css`), or by the `<link>` that
+ * the main script of the app adds (`link`, see `src/preloadBackgroundPhoto.ts`), whichever the
+ * browser reaches first, which depends on the speed of the machine.
  */
-export const LINK_INITIATOR_TYPE = 'link';
+export const EARLY_PHOTO_INITIATOR_TYPES: readonly string[] = ['css', 'link'];
 
 /**
  * Route of the Projects page, whose sections show the project cards. Typed by `PAGES`
@@ -705,3 +707,38 @@ export const VISUAL_CLOCK_TIME = '2026-10-15T12:00:00Z';
  * the dots of the particle field of the home page stand at the same places on every load.
  */
 export const VISUAL_RANDOM_SEED = 1;
+
+/**
+ * Reads the text of the `h1` of each page of the site in a language, by the folder of the page,
+ * the not found page included: the build renders it in each page, and the browser shows it.
+ */
+export const PAGE_HEADINGS: Record<string, (translations: Translations) => string> = {
+  Home: ({ home }) => home.title1,
+  Projects: ({ projects }) => projects.pageTitle,
+  Experiences: ({ exp }) => exp.pageTitle,
+  [NOT_FOUND_FOLDER]: ({ errors }) => errors.notFound.title,
+};
+
+/**
+ * Property of `window` where the hydration test keeps the elements that the build rendered in the
+ * page, read before any script of the page runs, to check that React kept them.
+ */
+export const PRERENDERED_ELEMENTS_PROPERTY = '__prerenderedElements';
+
+/**
+ * Start of the name of the property that React gives each element that it renders or hydrates,
+ * which tells a test that React has taken over the page.
+ */
+export const REACT_FIBER_KEY_PREFIX = '__reactFiber$';
+
+/**
+ * Types of the console messages that fail the hydration test: React reports a mismatch between the
+ * page of the build and its own render as an error, and logs other problems as warnings.
+ */
+export const REPORTED_CONSOLE_TYPES: ReadonlySet<string> = new Set(['error', 'warning']);
+
+/**
+ * Months from the build to the clock of the visitor in the hydration test: over a year, so the
+ * durations of the jobs, which the build counts up to its own month, read otherwise in the browser.
+ */
+export const VISITOR_MONTHS_AFTER_BUILD = 14;

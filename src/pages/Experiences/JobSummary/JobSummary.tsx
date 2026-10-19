@@ -5,6 +5,7 @@ import Period from '../Period/index.ts';
 import { computeDuration, formatDuration } from '../utils/duration.ts';
 
 import { LOGO_SIZE_PX } from './constants.ts';
+import { useToday } from './hooks/useToday/index.ts';
 
 import {
   EntityLogo,
@@ -61,10 +62,11 @@ interface JobSummaryProps {
 }
 
 /**
- * Header of a job: company logo, job title, in its own language when it is not the one of the
- * page (`jobNameLanguage`), company details joined with " · ", then the period, below the tablet
- * breakpoint only, and the duration computed from the dates, in the active language. From the
- * tablet breakpoint, the period column of the timeline shows the period instead, so that it is
+ * Header of a job: company logo, job title, in its own language when it is not the one of the page
+ * (`jobNameLanguage`), company details joined with " · ", then the period, below the tablet
+ * breakpoint only, and the duration computed from the dates, in the active language, up to the
+ * month of the build for an ongoing job in the page that it renders (see {@link useToday}). From
+ * the tablet breakpoint, the period column of the timeline shows the period instead, so that it is
  * shown, and read, once. Shared by `Experience` and `ExperienceGroup.Role`, which add the
  * description below it.
  *
@@ -91,8 +93,9 @@ const JobSummary = ({
   variant = 'job',
 }: JobSummaryProps) => {
   const { t } = useTranslation();
+  const today = useToday();
   const details = [entityName, contractType, city].filter(Boolean).join(' · ');
-  const duration = formatDuration({ duration: computeDuration({ startDate, endDate }), t });
+  const duration = formatDuration({ duration: computeDuration({ startDate, endDate, today }), t });
   const Title = variant === 'role' ? RoleName : JobName;
   // A language that the site does not know would give screen readers a wrong `lang`
   const titleLanguage = isLanguage(jobNameLanguage) ? jobNameLanguage : undefined;

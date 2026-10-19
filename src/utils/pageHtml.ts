@@ -12,6 +12,7 @@ import {
   type Page,
   type PageAlternate,
 } from './pages.ts';
+import { APP_CONTAINER_ID, PRERENDERED_PATH_ATTRIBUTE, type PrerenderedPage } from './prerender.ts';
 import { isNonBlankString } from './strings.ts';
 import { renderStructuredDataScript } from './structuredData.ts';
 import { getWebManifestUrl } from './webManifest.ts';
@@ -22,13 +23,13 @@ const escapeHtml = (value: string) =>
 
 /**
  * Key of a page's title and description in the `meta` translations: every key but those that all
- * pages share, `ogImageAlt`, the description of the link preview image, `noScript`, the message
- * shown without JavaScript, `siteName` and `ownerName`, the names of the site and of its owner,
- * and `webApp`, the texts of the web app manifest.
+ * pages share, `ogImageAlt`, the description of the link preview image, `siteName` and
+ * `ownerName`, the names of the site and of its owner, and `webApp`, the texts of the web app
+ * manifest.
  */
 type PageMetaKey = Exclude<
   keyof Translations['meta'],
-  'ogImageAlt' | 'noScript' | 'siteName' | 'ownerName' | 'webApp'
+  'ogImageAlt' | 'siteName' | 'ownerName' | 'webApp'
 >;
 
 /** A `%PAGE_*%` placeholder of `index.html`. Its first group captures its name. */
@@ -51,8 +52,8 @@ interface FillPlaceholdersParams {
 /**
  * Replaces every `%PAGE_*%` placeholder with the metadata of a page in a language, HTML-escaped:
  * its language code (`<html lang>`), its Open Graph locale, the name of the site, its title, its
- * description, its URL, the URL and description of the link preview image of its language, and the
- * message shown without JavaScript. An unknown placeholder is left as it is.
+ * description, its URL, and the URL and description of the link preview image of its language. An
+ * unknown placeholder is left as it is.
  */
 function fillPlaceholders({ template, meta, language, url, years }: FillPlaceholdersParams) {
   const translations = TRANSLATIONS[language].meta;
@@ -66,7 +67,6 @@ function fillPlaceholders({ template, meta, language, url, years }: FillPlacehol
     PAGE_URL: url,
     PAGE_IMAGE_URL: getOgImageUrl(language),
     PAGE_IMAGE_ALT: translations.ogImageAlt,
-    PAGE_NOSCRIPT: translations.noScript,
   };
 
   return template.replace(PLACEHOLDER_PATTERN, (placeholder, key: string) =>
@@ -86,10 +86,11 @@ interface AddToHeadParams {
 
 /**
  * Adds tags at the end of the head of a page, each on its own line, indented as the other tags of
- * the head (`</head>` is indented by two spaces). Adds nothing to a page without a head.
+ * the head (`</head>` is indented by two spaces). Adds nothing to a page without a head. The tags
+ * are inserted as they are, even a `$` that `replace` would read as a pattern, as in a style.
  */
 const addToHead = ({ html, tags }: AddToHeadParams) =>
-  html.replace(HEAD_END_TAG, `${tags.map(tag => `  ${tag}\n  `).join('')}${HEAD_END_TAG}`);
+  html.replace(HEAD_END_TAG, () => `${tags.map(tag => `  ${tag}\n  `).join('')}${HEAD_END_TAG}`);
 
 /** Renders the `alternate` link to a translation of a page. */
 const renderAlternateLink = ({ hreflang, href }: PageAlternate) =>
@@ -225,4 +226,57 @@ export function addModulePreload({ html, href }: AddModulePreloadParams = {}): s
 
   const link = `<link rel="modulepreload" crossorigin href="${escapeHtml(href)}" />`;
   return addToHead({ html: page, tags: [link] });
+}
+
+/** Container of the app in `index.html`, empty until {@link addPrerenderedPage} fills it. */
+const EMPTY_APP_CONTAINER = `<div id="${APP_CONTAINER_ID}"></div>`;
+
+/** Parameters of {@link addPrerenderedPage}. */
+interface AddPrerenderedPageParams {
+  /** HTML of a generated page. Missing or not a string, it counts as empty. */
+  html?: string;
+  /** Page of the app rendered at build time. Missing, the HTML is returned unchanged. */
+  page?: PrerenderedPage;
+  /**
+   * Path at which the build rendered the page, such as `/en/projects`, which the browser hydrates
+   * at that path only (see {@link PRERENDERED_PATH_ATTRIBUTE}). Missing or blank, the container
+   * names none, and the browser renders the app again over the page, as on a not found page.
+   */
+  hydrationPath?: string;
+}
+
+/**
+ * Puts a page of the app rendered at build time in the empty container of the app of a generated
+ * page, so that the browser shows it before any script runs, and without JavaScript, then adds
+ * its styles at the end of the head. The container names the path of the page to hydrate, when
+ * there is one. Used by the Vite plugin at build time.
+ *
+ * @returns The HTML with the page, or unchanged when there is no page or no empty container.
+ *
+ * @example
+ * addPrerenderedPage({
+ *   html: '<head>\n  </head><body><div id="welcome"></div></body>',
+ *   page: { html: '<main>…</main>', styleTags: '<style data-styled="true">…</style>' },
+ *   hydrationPath: '/en/',
+ * });
+ * // '<head>…<style …>…</style>…</head><body><div id="welcome" data-prerendered-path="/en/">…'
+ */
+export function addPrerenderedPage({
+  html,
+  page,
+  hydrationPath,
+}: AddPrerenderedPageParams = {}): string {
+  const source = typeof html === 'string' ? html : '';
+  const canAddPage = page !== undefined && source.includes(EMPTY_APP_CONTAINER);
+  if (!canAddPage) return source;
+
+  const pathAttribute = isNonBlankString(hydrationPath)
+    ? ` ${PRERENDERED_PATH_ATTRIBUTE}="${escapeHtml(hydrationPath)}"`
+    : '';
+  const container = `<div id="${APP_CONTAINER_ID}"${pathAttribute}>${page.html}</div>`;
+  // A function, so that a `$` of the page is inserted as it is, rather than read as a pattern
+  const withPage = source.replace(EMPTY_APP_CONTAINER, () => container);
+  return isNonBlankString(page.styleTags)
+    ? addToHead({ html: withPage, tags: [page.styleTags] })
+    : withPage;
 }

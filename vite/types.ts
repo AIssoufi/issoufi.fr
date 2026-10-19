@@ -13,3 +13,16 @@ export interface HeaderRule {
   /** Value of each header, by name, e.g. `{ 'Cache-Control': 'no-store' }`. */
   headers: Readonly<Record<string, string>>;
 }
+
+/**
+ * API of the plugin of `vite.config.ts` that writes the HTML file of each page
+ * (`PAGE_META_PLUGIN_NAME`), which another config reaches through `config.plugins`.
+ */
+export interface PageMetaApi {
+  /**
+   * Writes the pages without the app rendered in them, which the browser then renders from
+   * scratch, as in the standalone build: its router reads the hash of the URL, which no page
+   * rendered at build time knows. To call before the build starts, as from `configResolved`.
+   */
+  skipPrerender: () => void;
+}

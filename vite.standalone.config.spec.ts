@@ -6,6 +6,7 @@ import { build, normalizePath, type Plugin, type Rolldown } from 'vite';
 import { isGoogleHost } from './e2e/utils.ts';
 import { FONT_FACES } from './src/theme/constants.ts';
 import { HOME_PAGE } from './src/utils/pages.ts';
+import { APP_CONTAINER_ID } from './src/utils/prerender.ts';
 import { SITEMAP_FILE_NAME } from './src/utils/sitemap.ts';
 import { renderStructuredDataScript } from './src/utils/structuredData.ts';
 import { HEADERS_FILE_NAME } from './vite/constants.ts';
@@ -158,6 +159,13 @@ describe('standalone build', () => {
     expect(getSource(STANDALONE_PAGE_FILE_NAME)).toContain(
       renderStructuredDataScript({ page: HOME_PAGE }),
     );
+  });
+
+  it('leaves the container of the app empty, for the app to render at the hash of the URL', () => {
+    const html = getSource(STANDALONE_PAGE_FILE_NAME);
+
+    expect(html).toContain(`<div id="${APP_CONTAINER_ID}"></div>`);
+    expect(html).not.toContain('<style data-styled');
   });
 
   it('routes the app on the hash of the URL', () => {

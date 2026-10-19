@@ -10,8 +10,9 @@ const isPortraitScreen = () =>
 /**
  * Starts downloading the background photo of the page at the current URL, in the version that
  * the screen shows (see `getBackgroundPhotoUrl`), by adding to the head of the document a
- * `<link rel="preload" as="image">`, whose download the style of `Page` then reuses. Adds nothing
- * at a path of no page of `PAGES`, such as an unknown path.
+ * `<link rel="preload" as="image">`, whose download the style of `Page` then reuses. In a page that
+ * the build rendered, the style may request it first, and the link then reuses that download.
+ * Adds nothing at a path of no page of `PAGES`, such as an unknown path.
  *
  * @returns The link it added, or `null` when it added none.
  */
@@ -30,7 +31,7 @@ export const preloadBackgroundPhoto = (): HTMLLinkElement | null => {
   return link;
 };
 
-// `index.tsx` imports this module before any other, so the photo starts downloading as soon as the
-// main script runs: once the scripts and fonts that the text waits for have arrived, which it
-// never delays, and before the modules of the app are evaluated and the page is drawn
+// `index.tsx` imports this module before any other, so where the app draws the page itself, as in
+// the standalone build, the photo starts downloading as soon as the main script runs, before the
+// modules of the app are evaluated and the page is drawn
 preloadBackgroundPhoto();
