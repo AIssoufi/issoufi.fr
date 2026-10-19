@@ -4,6 +4,8 @@ import {
   breakpoints,
   durations,
   easings,
+  fluidFontSizes,
+  fluidSpacing,
   fontFamilies,
   fontSizes,
   fontWeights,
@@ -12,6 +14,7 @@ import {
   measures,
   palette,
   radii,
+  relativeSizes,
   relativeSpacing,
   rgb,
   shadowShapes,
@@ -89,6 +92,11 @@ export const theme = {
     'project-card-margin': spacing[5],
     /** Gap between an icon and its label, relative to the font size. */
     'icon-gap': relativeSpacing[70],
+    /**
+     * Space above the buttons of the home page, which grows with the height of the screen, so a
+     * phone held sideways shows them under the title and a large screen keeps the hero airy.
+     */
+    'hero-actions': fluidSpacing['16-80'],
   },
   sizes: {
     ...sizes,
@@ -119,13 +127,30 @@ export const theme = {
     'finger-target': sizes[44],
     /** Largest width of the text of a status message, short enough to read at a glance. */
     message: measures[40],
+    /**
+     * Largest width of the title and subtitle of the home page, given the font size of the words
+     * of its title (`hero-title`): 640 px, or 15.25 times that size once larger, so the job title
+     * keeps wrapping after the same word as it grows with the screen.
+     */
+    'hero-intro': `max(${sizes[640]}, ${relativeSizes[1525]})`,
   },
   fonts: {
     body: fontFamilies.montserrat,
     display: fontFamilies.sairaStencilOne,
     code: fontFamilies.sourceCodePro,
   },
-  fontSizes,
+  fontSizes: {
+    ...fontSizes,
+    /**
+     * Animated words of the home title, which grow with the smaller side of the screen, so the
+     * hero fits a phone held sideways and fills a tablet or a large screen in proportion.
+     */
+    'hero-title': fluidFontSizes['24-72'],
+    /** Rest of the home title, which grows with its words. */
+    'hero-text': fluidFontSizes['18-28'],
+    /** Subtitle of the home page, which grows with its title. */
+    'hero-subtitle': fluidFontSizes['16-24'],
+  },
   fontWeights,
   letterSpacings,
   lineHeights,
