@@ -235,3 +235,87 @@ export const findDetachedDepartmentLines = (lines?: readonly string[] | null): s
   const lineList = toLineList(lines);
   return lineList.filter(line => DEPARTMENT_LINE_START_PATTERN.test(line.trim()));
 };
+
+/** The end of a list item that a page shows, where the separator drawn after its text stands. */
+export interface DrawnItemEnd {
+  /** Text of the item, without the spaces around it. */
+  text: string;
+  /**
+   * Distance from the top of the viewport to the top of the box of its last line of text, in CSS
+   * pixels.
+   */
+  textTop: number;
+  /** Height of that box, in CSS pixels. */
+  textHeight: number;
+  /**
+   * Distance from the top of the viewport to the top of the last box that the item draws, in CSS
+   * pixels: the box of what follows its text, such as the separator of its `::after`.
+   */
+  endTop: number;
+}
+
+/**
+ * Measures where each item of some lists ends: the line of its text and the line of the last box
+ * it draws, which holds the separator of its `::after`. The text of a range leaves out the content
+ * of the pseudo-elements, which only the boxes of the item hold. An item that draws no box, as
+ * when hidden, is left out. Runs in the browser, passed to `locator.evaluateAll`, so it uses
+ * nothing from outside its own body.
+ *
+ * @param lists - Lists whose items are measured, such as the lists of tools of the project cards.
+ * @returns The end of each item, list after list, in the order of the document.
+ *
+ * @example
+ * const itemEnds = await page.locator('main section ul ul').evaluateAll(listDrawnItemEnds);
+ */
+export const listDrawnItemEnds = (lists: Element[]): DrawnItemEnd[] => {
+  const range = document.createRange();
+  return lists.flatMap(list =>
+    [...list.children].flatMap(item => {
+      range.selectNodeContents(item);
+      const lastTextBox = [...range.getClientRects()].at(-1);
+      const lastItemBox = [...item.getClientRects()].at(-1);
+      const isDrawn = lastTextBox !== undefined && lastItemBox !== undefined;
+      if (!isDrawn) return [];
+
+      return [
+        {
+          text: range.toString().trim(),
+          textTop: lastTextBox.top,
+          textHeight: lastTextBox.height,
+          endTop: lastItemBox.top,
+        },
+      ];
+    }),
+  );
+};
+
+/** Tells whether a value is the end of an item with a text and finite boxes, as measured. */
+const isDrawnItemEnd = (value: unknown): value is DrawnItemEnd => {
+  const itemEnd = value as Partial<DrawnItemEnd> | null | undefined;
+  const isTextString = typeof itemEnd?.text === 'string';
+  const measures = [itemEnd?.textTop, itemEnd?.textHeight, itemEnd?.endTop];
+  return isTextString && measures.every(Number.isFinite);
+};
+
+/**
+ * Lists the items whose separator starts a line, such as a line of tools that reads "· Babel":
+ * the last box of the item, which holds the separator drawn after its text, stands half a line or
+ * more below the last line of its text, as after a wrap between the two.
+ *
+ * @param itemEnds - Ends of the items, as {@link listDrawnItemEnds} measures them.
+ * @returns The text of each item whose separator wrapped, in the order of the items; empty when
+ * the ends are not an array. Entries that are not the end of an item with finite boxes are
+ * skipped.
+ *
+ * @example
+ * findWrappedSeparatorItems([
+ *   { text: 'Gulp', textTop: 10, textHeight: 20, endTop: 10 },
+ *   { text: 'Mocha', textTop: 10, textHeight: 20, endTop: 32 },
+ * ]); // ['Mocha']
+ */
+export const findWrappedSeparatorItems = (itemEnds?: readonly DrawnItemEnd[] | null): string[] => {
+  const itemEndList = Array.isArray(itemEnds) ? itemEnds.filter(isDrawnItemEnd) : [];
+  const hasWrappedSeparator = ({ textTop, textHeight, endTop }: DrawnItemEnd) =>
+    endTop - textTop >= textHeight / 2;
+  return itemEndList.filter(hasWrappedSeparator).map(({ text }) => text);
+};

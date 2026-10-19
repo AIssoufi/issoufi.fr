@@ -1,10 +1,13 @@
 import {
   describeSmallTexts,
   type DrawnCharacter,
+  type DrawnItemEnd,
   findDetachedDepartmentLines,
   findSingleWordLines,
+  findWrappedSeparatorItems,
   groupLines,
   listDrawnCharacters,
+  listDrawnItemEnds,
   listDrawnTexts,
 } from './text.ts';
 
@@ -380,5 +383,138 @@ describe('findDetachedDepartmentLines', () => {
     ['a string', '(06)'],
   ])('finds no line in %s', (_case, lines) => {
     expect(findDetachedDepartmentLines(lines as never)).toEqual([]);
+  });
+});
+
+describe('listDrawnItemEnds', () => {
+  /** Boxes of the content of each item, as a range around it gives them. */
+  let textBoxes: Map<Node, (typeof FIRST_LINE_BOX)[]>;
+  /** Boxes that each item draws, its `::after` included. */
+  let itemBoxes: Map<Element, (typeof FIRST_LINE_BOX)[]>;
+
+  // jsdom lays nothing out and gives ranges no getClientRects: each test draws its items
+  beforeEach(() => {
+    textBoxes = new Map();
+    itemBoxes = new Map();
+    Object.defineProperty(Range.prototype, 'getClientRects', {
+      configurable: true,
+      value(this: Range) {
+        return textBoxes.get(this.startContainer) ?? [];
+      },
+    });
+    vi.spyOn(Element.prototype, 'getClientRects').mockImplementation(function (this: Element) {
+      return (itemBoxes.get(this) ?? []) as unknown as DOMRectList;
+    });
+  });
+
+  afterEach(() => {
+    delete (Range.prototype as Partial<Range>).getClientRects;
+    vi.restoreAllMocks();
+    document.body.innerHTML = '';
+  });
+
+  /** Items of the lists of the document, in its order. */
+  const getItems = () => [...document.querySelectorAll('li')];
+
+  /** Lists of the document, in its order. */
+  const getLists = () => [...document.querySelectorAll('ul')];
+
+  it('measures the last line of the text and the last box of each item, list after list', () => {
+    document.body.innerHTML =
+      '<ul><li>Gulp</li><li> Mocha </li></ul><ul><li>Babel</li></ul><ul></ul>';
+    const [gulp, mocha, babel] = getItems();
+    textBoxes.set(gulp, [FIRST_LINE_BOX]);
+    itemBoxes.set(gulp, [FIRST_LINE_BOX, FIRST_LINE_BOX]);
+    // A tool that wraps, then its dot alone on the next line
+    textBoxes.set(mocha, [FIRST_LINE_BOX, SECOND_LINE_BOX]);
+    itemBoxes.set(mocha, [FIRST_LINE_BOX, SECOND_LINE_BOX, { ...SECOND_LINE_BOX, top: 54 }]);
+    textBoxes.set(babel, [SECOND_LINE_BOX]);
+    itemBoxes.set(babel, [SECOND_LINE_BOX]);
+
+    expect(listDrawnItemEnds(getLists())).toEqual([
+      { text: 'Gulp', textTop: 10, textHeight: 20, endTop: 10 },
+      { text: 'Mocha', textTop: 32, textHeight: 20, endTop: 54 },
+      { text: 'Babel', textTop: 32, textHeight: 20, endTop: 32 },
+    ]);
+  });
+
+  it.each([
+    ['no text box', { text: [], item: [FIRST_LINE_BOX] }],
+    ['no box of its own', { text: [FIRST_LINE_BOX], item: [] }],
+    ['no box at all', { text: [], item: [] }],
+  ])('leaves out an item that draws %s, as when hidden', (_case, boxes) => {
+    document.body.innerHTML = '<ul><li>Gulp</li><li>Babel</li></ul>';
+    const [gulp, babel] = getItems();
+    textBoxes.set(gulp, boxes.text);
+    itemBoxes.set(gulp, boxes.item);
+    textBoxes.set(babel, [FIRST_LINE_BOX]);
+    itemBoxes.set(babel, [FIRST_LINE_BOX]);
+
+    expect(listDrawnItemEnds(getLists()).map(({ text }) => text)).toEqual(['Babel']);
+  });
+
+  it('measures nothing without lists', () => {
+    expect(listDrawnItemEnds([])).toEqual([]);
+  });
+});
+
+describe('findWrappedSeparatorItems', () => {
+  /** End of an item whose last line of text stands on the first line. */
+  const itemEnd = ({ text = 'Mocha', endTop = FIRST_LINE_BOX.top }: Partial<DrawnItemEnd>) => ({
+    text,
+    textTop: FIRST_LINE_BOX.top,
+    textHeight: FIRST_LINE_BOX.height,
+    endTop,
+  });
+
+  it('lists the items whose separator stands on a line below their text, in their order', () => {
+    const itemEnds = [
+      itemEnd({ text: 'Gulp' }),
+      itemEnd({ text: 'Mocha', endTop: SECOND_LINE_BOX.top }),
+      itemEnd({ text: 'Babel', endTop: SECOND_LINE_BOX.top }),
+    ];
+
+    expect(findWrappedSeparatorItems(itemEnds)).toEqual(['Mocha', 'Babel']);
+  });
+
+  it.each([
+    ['on the line of the text', FIRST_LINE_BOX.top],
+    ['a pixel lower, from rounding', FIRST_LINE_BOX.top + 1],
+    ['just under half a line lower', FIRST_LINE_BOX.top + FIRST_LINE_BOX.height / 2 - 0.1],
+    ['above the text', FIRST_LINE_BOX.top - FIRST_LINE_BOX.height],
+  ])('keeps a separator %s', (_case, endTop) => {
+    expect(findWrappedSeparatorItems([itemEnd({ endTop })])).toEqual([]);
+  });
+
+  it('counts a separator half a line lower as wrapped', () => {
+    const endTop = FIRST_LINE_BOX.top + FIRST_LINE_BOX.height / 2;
+
+    expect(findWrappedSeparatorItems([itemEnd({ endTop })])).toEqual(['Mocha']);
+  });
+
+  it('skips the entries that are not the end of an item with finite boxes', () => {
+    const wrapped = itemEnd({ endTop: SECOND_LINE_BOX.top });
+    const itemEnds = [
+      null,
+      undefined,
+      42,
+      { ...wrapped, text: 7 },
+      { ...wrapped, textTop: Number.NaN },
+      { ...wrapped, textHeight: undefined },
+      { ...wrapped, endTop: Number.POSITIVE_INFINITY },
+      { ...wrapped, endTop: '32' },
+      wrapped,
+    ];
+
+    expect(findWrappedSeparatorItems(itemEnds as never)).toEqual(['Mocha']);
+  });
+
+  it.each([
+    ['no items', []],
+    ['nothing', undefined],
+    ['null', null],
+    ['a string', 'Mocha'],
+  ])('finds no item in %s', (_case, itemEnds) => {
+    expect(findWrappedSeparatorItems(itemEnds as never)).toEqual([]);
   });
 });
