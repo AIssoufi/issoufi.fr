@@ -50,7 +50,10 @@ const thumbnailsOf = id => [
 /** `srcset` of the thumbnail of the project `id`. */
 const srcSetOf = id => `/${id}-480.webp 480w, /${id}-960.webp 960w`;
 
-const project = (id, name, extra = {}) => ({
+/**
+ * A project `id` named `name`, with a thumbnail and two tools unless the other fields replace them.
+ */
+const project = ({ id, name, ...extra }) => ({
   id,
   name,
   type: 'Application web',
@@ -60,16 +63,16 @@ const project = (id, name, extra = {}) => ({
 });
 
 const projects = [
-  project(1, 'Chess', { url: 'https://example.com/chess' }),
-  project(2, 'Calculator'),
-  project(3, 'Plugin store'),
-  project(4, 'Connect Four'),
+  project({ id: 1, name: 'Chess', url: 'https://example.com/chess' }),
+  project({ id: 2, name: 'Calculator' }),
+  project({ id: 3, name: 'Plugin store' }),
+  project({ id: 4, name: 'Connect Four' }),
 ];
 
 /** Project that is not in the list of the first render. */
-const ADDED_PROJECT = project(6, 'Weather app');
-const TOOLLESS_PROJECT = project(7, 'Landing page', { tools: undefined });
-const NAMELESS_PROJECT = project(8, undefined);
+const ADDED_PROJECT = project({ id: 6, name: 'Weather app' });
+const TOOLLESS_PROJECT = project({ id: 7, name: 'Landing page', tools: undefined });
+const NAMELESS_PROJECT = project({ id: 8, name: undefined });
 
 /** Box of a card in the viewport. */
 const CARD_BOX = { left: 100, top: 100, width: 200, height: 100 };
@@ -189,7 +192,9 @@ const inheritedWhiteSpace = element => {
   return 'normal';
 };
 
-const LONG_TECH_LINE_PROJECT = project(5, 'Chess engine', {
+const LONG_TECH_LINE_PROJECT = project({
+  id: 5,
+  name: 'Chess engine',
   tools: ['HTML 5', 'CSS 3', 'JavaScript', 'Gulp', 'Mocha', 'Babel', 'Webpack', 'TypeScript'],
 });
 
@@ -401,7 +406,7 @@ describe('Project', () => {
   });
 
   it.each([undefined, '', '   '])('renders no empty heading for a card whose name is %j', name => {
-    render(<Project projects={[project(9, name)]} />);
+    render(<Project projects={[project({ id: 9, name })]} />);
 
     expect(screen.queryByRole('heading')).not.toBeInTheDocument();
     expect(screen.getByText('Application web')).toBeInTheDocument();
@@ -438,7 +443,9 @@ describe('Project', () => {
   it('lists each tool once, without the entries of the data that are not names', () => {
     render(
       <Project
-        projects={[project(9, 'Draft', { tools: ['HTML 5', '', 42, null, 'HTML 5', 'Vite'] })]}
+        projects={[
+          project({ id: 9, name: 'Draft', tools: ['HTML 5', '', 42, null, 'HTML 5', 'Vite'] }),
+        ]}
       />,
     );
 
@@ -449,7 +456,7 @@ describe('Project', () => {
   it.each([undefined, null, [], ['', '  '], 'HTML 5', { 0: 'HTML 5' }])(
     'shows no list of tools for the tools %j',
     tools => {
-      render(<Project projects={[project(9, 'Draft', { tools })]} />);
+      render(<Project projects={[project({ id: 9, name: 'Draft', tools })]} />);
 
       expect(within(cardOf('Draft')).queryByRole('list')).not.toBeInTheDocument();
       expect(cardOf('Draft')).toHaveTextContent('Application web');
@@ -501,7 +508,7 @@ describe('Project', () => {
   });
 
   it('gives no link to a card whose url is empty', () => {
-    render(<Project projects={[project(9, 'Draft', { url: '' })]} />);
+    render(<Project projects={[project({ id: 9, name: 'Draft', url: '' })]} />);
 
     expect(screen.queryByRole('link')).not.toBeInTheDocument();
     expect(cardOf('Draft')).toHaveTextContent('Draft');
@@ -647,7 +654,7 @@ describe('Project', () => {
     it.each([undefined, null, [], [{ url: '', width: 480, height: 300 }], 'chess.webp'])(
       'shows no image for the files %j, the card keeping its name and its like button',
       thumbnails => {
-        render(<Project projects={[project(1, 'Chess', { thumbnails })]} />);
+        render(<Project projects={[project({ id: 1, name: 'Chess', thumbnails })]} />);
 
         expect(thumbnailOf('Chess')).toBeNull();
         expect(screen.getByRole('heading', { level: 3, name: 'Chess' })).toBeInTheDocument();
@@ -751,9 +758,9 @@ describe('Project', () => {
       render(
         <Project
           projects={[
-            project(1, 'Chess'),
-            project(2, 'Calculator', { thumbnails: undefined }),
-            project(3, 'Plugin store', { thumbnails: [{ url: '/3.webp' }] }),
+            project({ id: 1, name: 'Chess' }),
+            project({ id: 2, name: 'Calculator', thumbnails: undefined }),
+            project({ id: 3, name: 'Plugin store', thumbnails: [{ url: '/3.webp' }] }),
           ]}
         />,
       );

@@ -255,6 +255,15 @@ describe('measureHitAreas', () => {
       expect(scrollIntoView).toHaveBeenCalledOnce();
     });
 
+    it('names a control with an empty name when its text content is null', () => {
+      const get = renderPage('<button>Next</button>');
+      const box = boxAt({ width: 44, height: 44 });
+      Object.defineProperty(get('button'), 'textContent', { get: () => null });
+      fakeLayout({ boxes: new Map([[get('button'), box]]) });
+
+      expect(measureHitAreas(OPTIONS).map(({ name }) => name)).toEqual(['']);
+    });
+
     it('measures nothing on a page without controls', () => {
       renderPage('<p>Nothing to tap</p>');
       fakeLayout({});

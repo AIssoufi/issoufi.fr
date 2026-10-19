@@ -3,21 +3,39 @@ import { countBrowserNodes, listBrowserHeadingLevels, listBrowserTexts } from '.
 /** Node id of the document in the fake protocol. */
 const DOCUMENT_NODE_ID = 1;
 
-/** Node ids of the elements that the selector of the tree tests matches, in the order of the page. */
+/**
+ * Node ids of the elements that the selector of the tree tests matches, in the order of the page.
+ */
 const ROW_NODE_IDS = [11, 12];
 
 /** Selector of the elements read in the tree tests. */
 const ROW_SELECTOR = 'li';
 
+/** Parameters of {@link textNode}. */
+interface TextNodeParams {
+  /** Value of the name of the node, a string as the browser gives it, or any value to test. */
+  value?: unknown;
+  /** Whether the browser ignores the node. */
+  ignored?: boolean;
+}
+
 /** A `StaticText` node of the accessibility tree, ignored by the browser or not. */
-const textNode = (value: unknown, ignored = false) => ({
+const textNode = ({ value, ignored = false }: TextNodeParams) => ({
   role: { type: 'role', value: 'StaticText' },
   name: { type: 'computedString', value },
   ignored,
 });
 
+/** Parameters of {@link headingNode}. */
+interface HeadingNodeParams {
+  /** Level of the heading, an integer as the browser gives it, or any value to test. */
+  level?: unknown;
+  /** Whether the browser ignores the node. */
+  ignored?: boolean;
+}
+
 /** A heading node of the accessibility tree, at a level, ignored by the browser or not. */
-const headingNode = (level: unknown, ignored = false) => ({
+const headingNode = ({ level, ignored = false }: HeadingNodeParams) => ({
   role: { type: 'role', value: 'heading' },
   properties: [{ name: 'level', value: { type: 'integer', value: level } }],
   ignored,
@@ -75,8 +93,18 @@ describe('listBrowserTexts', () => {
   it('reads the texts of each element, without the ignored ones, in the order of the page', async () => {
     const { session, send } = createFakeTreeSession({
       nodesById: {
-        11: [textNode('août 2021'), textNode('↓', true), textNode('à'), textNode('Aujourd’hui')],
-        12: [textNode('sept. 2019'), textNode(' '), textNode('à'), textNode('juin 2021')],
+        11: [
+          textNode({ value: 'août 2021' }),
+          textNode({ value: '↓', ignored: true }),
+          textNode({ value: 'à' }),
+          textNode({ value: 'Aujourd’hui' }),
+        ],
+        12: [
+          textNode({ value: 'sept. 2019' }),
+          textNode({ value: ' ' }),
+          textNode({ value: 'à' }),
+          textNode({ value: 'juin 2021' }),
+        ],
       },
     });
 
@@ -96,7 +124,9 @@ describe('listBrowserTexts', () => {
 
   it('collapses the runs of white space of the texts, and trims them', async () => {
     const { session } = createFakeTreeSession({
-      nodesById: { 11: [textNode('  Owner et référent\n'), textNode('\t~15 équipes  ')] },
+      nodesById: {
+        11: [textNode({ value: '  Owner et référent\n' }), textNode({ value: '\t~15 équipes  ' })],
+      },
       nodeIds: [11],
     });
 
@@ -120,10 +150,10 @@ describe('listBrowserTexts', () => {
 
   describe('edge cases', () => {
     it.each([
-      ['a node without a name', [{}, textNode('à')]],
-      ['a name without a value', [{ name: { type: 'computedString' } }, textNode('à')]],
-      ['a name that is not a string', [textNode(3), textNode('à')]],
-      ['a null node', [null, textNode('à')]],
+      ['a node without a name', [{}, textNode({ value: 'à' })]],
+      ['a name without a value', [{ name: { type: 'computedString' } }, textNode({ value: 'à' })]],
+      ['a name that is not a string', [textNode({ value: 3 }), textNode({ value: 'à' })]],
+      ['a null node', [null, textNode({ value: 'à' })]],
     ])('reads the other texts next to %s', async (_case, nodes) => {
       const { session } = createFakeTreeSession({ nodesById: { 11: nodes }, nodeIds: [11] });
 
@@ -133,7 +163,7 @@ describe('listBrowserTexts', () => {
     it.each([
       ['missing', undefined],
       ['null', null],
-      ['a node rather than a list', textNode('à')],
+      ['a node rather than a list', textNode({ value: 'à' })],
       ['a string', 'à'],
     ])('reads an empty text when the nodes are %s', async (_case, nodes) => {
       const { session } = createFakeTreeSession({ nodesById: { 11: nodes }, nodeIds: [11] });
@@ -154,8 +184,13 @@ describe('listBrowserHeadingLevels', () => {
   it('reads the levels of the headings of the first element, without the ignored ones', async () => {
     const { session, send } = createFakeTreeSession({
       nodesById: {
-        11: [headingNode(1), headingNode(2), headingNode(3, true), headingNode(3)],
-        12: [headingNode(6)],
+        11: [
+          headingNode({ level: 1 }),
+          headingNode({ level: 2 }),
+          headingNode({ level: 3, ignored: true }),
+          headingNode({ level: 3 }),
+        ],
+        12: [headingNode({ level: 6 })],
       },
     });
 
@@ -179,7 +214,7 @@ describe('listBrowserHeadingLevels', () => {
       ['no properties', { role: { type: 'role', value: 'heading' } }],
       ['no level property', { properties: [{ name: 'busy', value: { value: false } }] }],
       ['a level without a value', { properties: [{ name: 'level' }] }],
-      ['a level that is not a number', headingNode('2')],
+      ['a level that is not a number', headingNode({ level: '2' })],
       ['a null property', { properties: [null] }],
     ])('reads level 0 for a heading with %s', async (_case, heading) => {
       const { session } = createFakeTreeSession({ nodesById: { 11: [heading] }, nodeIds: [11] });
