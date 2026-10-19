@@ -124,6 +124,7 @@ export const sizes = {
   240: '240px',
   640: '640px',
   1440: '1440px',
+  1600: '1600px',
 } as const;
 
 /** Widths and heights that follow the font size of the element; keys are hundredths of an em. */

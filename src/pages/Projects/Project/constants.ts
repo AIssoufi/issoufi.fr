@@ -24,9 +24,11 @@ export const MAX_THUMBNAIL_ASPECT_RATIO = 16 / 10;
  * Width that a thumbnail takes on the screen, the `sizes` of its `img`: the browser downloads the
  * narrowest file of its `srcset` at least this wide times the device pixels per CSS pixel. The
  * whole screen with one column of cards, a half with two, a third with three, then a third of the
- * app container, where the cards stop growing: always at least the width of the card.
+ * app container, where the cards stop growing, and a third of its larger width from the `wide`
+ * breakpoint: always at least the width of the card.
  */
 export const THUMBNAIL_SIZES = [
+  `(min-width: ${theme.screens.wide}) calc(${theme.sizes['container-wide']} / ${ROW_CARD_COUNT})`,
   `(min-width: ${theme.sizes.container}) calc(${theme.sizes.container} / ${ROW_CARD_COUNT})`,
   `(min-width: ${theme.screens['three-project-columns']}) 33vw`,
   `(min-width: ${theme.screens['two-project-columns']}) 50vw`,
