@@ -403,6 +403,10 @@ export const ProjectType = styled.div`
   ${projectMetadata}
 `;
 
+// Dot between two tools, as a CSS string: the no-break space before it keeps it at the end of the
+// line of its tool, so that a line breaks after the dot only, never before it
+const toolSeparator = `'\\00a0· '`;
+
 // A list that wraps as one line of text, its tools separated by dots
 export const ProjectTools = styled(List)`
   ${projectMetadata}
@@ -411,11 +415,10 @@ export const ProjectTools = styled(List)`
 export const ProjectTool = styled.li`
   display: inline;
 
-  /* A decoration between two tools, whose spaces wrap as those of a text: its empty alternative
-     text keeps screen readers from reading the dot. A browser without the alternative text drops
-     the second content and keeps the first */
+  /* A decoration between two tools, whose empty alternative text keeps screen readers from reading
+     the dot. A browser without the alternative text drops the second content and keeps the first */
   &:not(:last-child)::after {
-    content: ' · ';
-    content: ' · ' / '';
+    content: ${toolSeparator};
+    content: ${toolSeparator} / '';
   }
 `;

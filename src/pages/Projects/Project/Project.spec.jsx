@@ -423,7 +423,7 @@ describe('Project', () => {
     ).toEqual(LONG_TECH_LINE_PROJECT.tools);
   });
 
-  it('separates the tools with a dot that screen readers skip, after every tool but the last', () => {
+  it('separates the tools with a dot that screen readers skip, kept on the line of its tool', () => {
     render(<Project projects={[LONG_TECH_LINE_PROJECT]} />);
 
     const [firstTool] = within(cardOf(LONG_TECH_LINE_PROJECT.name)).getAllByRole('listitem');
@@ -433,8 +433,9 @@ describe('Project', () => {
       pseudo: ':not(:last-child)::after',
     });
 
-    // Stylis drops the optional spaces around the slash
-    expect(separator).toMatch(/^(['"]) · \1\s*\/\s*(['"])\2$/);
+    // A no-break space before the dot, which the CSSOM keeps as its escape; Stylis drops the
+    // optional spaces around the slash
+    expect(separator).toMatch(/^(['"])\\00a0· \1\s*\/\s*(['"])\2$/);
     expect(firstTool.textContent).toBe('HTML 5');
     expect(declaredStyle({ element: firstTool, property: 'display' })).toBe('inline');
   });
