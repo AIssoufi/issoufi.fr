@@ -3,16 +3,10 @@ import React from 'react';
 import VisuallyHidden from '../../../components/VisuallyHidden';
 import JobSummary from '../JobSummary';
 import Project from '../Project';
+import Technologies from '../Technologies';
 import TimelinePeriod from '../TimelinePeriod';
 
-import {
-  GroupItem,
-  RoleContent,
-  RoleDetails,
-  RoleItem,
-  RolesList,
-  RoleTechnologies,
-} from './ExperienceGroup.styled';
+import { GroupItem, RoleContent, RoleDetails, RoleItem, RolesList } from './ExperienceGroup.styled';
 
 /** Company details shared by every {@link Role} of an {@link ExperienceGroup}. */
 interface CompanyCtxValue {
@@ -47,9 +41,8 @@ interface RoleProps {
   /** End of the role in the same format, or "Aujourd'hui" / "Present". */
   endDate?: string;
   /**
-   * Technologies of the role, in display order, shown after its description, and under its
-   * summary from the `two-job-columns` breakpoint. None are shown when the list is empty or
-   * missing.
+   * Technologies of the role, in display order, shown under its description. None are shown when
+   * the list is empty or missing.
    */
   technologies?: string[];
   /** Description of the role: text, bullet lists and projects. */
@@ -94,7 +87,7 @@ const Role = ({
           />
         )}
         <RoleDetails>{children}</RoleDetails>
-        <RoleTechnologies technologies={technologies} />
+        <Technologies technologies={technologies} />
       </RoleContent>
     </RoleItem>
   );

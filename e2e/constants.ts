@@ -534,20 +534,6 @@ export const COLOR_CONTRAST_RULE = 'color-contrast';
 export const TEXT_SIZE_SCREEN_WIDTHS_PX = [320, 375, 768, 1440, 1920, 2560] as const;
 
 /**
- * Screen widths, in pixels, at which no line of text of the Experiences page may hold more than
- * {@link MAX_LINE_CHARACTERS}: a laptop (1440), where the cards of the timeline reach their largest
- * width below the `wide` breakpoint, then wider screens (1920 and 2560), past it, where the cards
- * and their texts are larger.
- */
-export const LINE_LENGTH_SCREEN_WIDTHS_PX = [1440, 1920, 2560] as const;
-
-/**
- * Most characters, spaces included, that a line of text may hold: 80, the upper end of the 50 to 80
- * that keep a long text easy to follow from one line to the next.
- */
-export const MAX_LINE_CHARACTERS = 80;
-
-/**
  * Screen widths, in pixels, at which forced colors mode, such as a contrast theme of Windows, must
  * still show the active language and a liked project: a phone (375) and a common desktop width
  * (1440).

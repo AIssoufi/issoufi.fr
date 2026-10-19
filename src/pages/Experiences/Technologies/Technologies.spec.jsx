@@ -16,17 +16,6 @@ describe('Technologies', () => {
     expect(container).toBeEmptyDOMElement();
   });
 
-  it('gives its list the class of a parent that places it', () => {
-    render(
-      <Technologies
-        className="placed"
-        technologies={['React.js']}
-      />,
-    );
-
-    expect(screen.getByRole('list')).toHaveClass('placed');
-  });
-
   it('keeps the line height of its chips wherever it stands', () => {
     render(<Technologies technologies={['React.js']} />);
 
