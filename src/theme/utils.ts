@@ -1,6 +1,6 @@
-import { isNonBlankString } from '../utils/strings';
-import { FONT_DISPLAY, FONT_FACES, FONT_FILE_FORMAT } from './constants';
-import type { FontFaceDeclaration } from './types';
+import { isNonBlankString } from '../utils/strings.ts';
+import { FONT_DISPLAY, FONT_FACES, FONT_FILE_FORMAT } from './constants.ts';
+import type { FontFaceDeclaration } from './types.ts';
 
 /** Characters that end or escape a CSS string between single quotes. */
 const CSS_STRING_BREAKER_PATTERN = /['\\]/g;

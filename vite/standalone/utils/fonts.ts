@@ -1,7 +1,7 @@
 import { existsSync, readFileSync, statSync } from 'node:fs';
 import { join, relative } from 'node:path';
 
-import { FONT_MEDIA_TYPE } from '../../../src/theme/constants';
+import { FONT_MEDIA_TYPE } from '../../../src/theme/constants.ts';
 import {
   DATA_URL_SCHEME,
   FONT_DESTINATION_PATTERN,
@@ -9,8 +9,8 @@ import {
   OPTIONAL_ESCAPE_PATTERN,
   PRELOAD_RELATION_PATTERN,
   QUOTE_PATTERN,
-} from '../constants';
-import { escapeRegExp, isFileName } from './strings';
+} from '../constants.ts';
+import { escapeRegExp, isFileName } from './strings.ts';
 
 /** A font file of the site and its content, which the standalone build writes in its place. */
 export interface EmbeddedFont {

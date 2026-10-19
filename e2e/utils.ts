@@ -223,7 +223,7 @@ export const groupCardsIntoRows = ({
 
   const rows: CardBox[][] = [];
   for (const card of cards.filter(isCardBox)) {
-    const currentRow: CardBox[] | undefined = rows[rows.length - 1];
+    const currentRow = rows.at(-1);
     const isInCurrentRow =
       currentRow !== undefined && Math.abs(card.top - currentRow[0].top) <= tolerancePx;
     if (isInCurrentRow) currentRow.push(card);

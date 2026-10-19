@@ -22,7 +22,7 @@ import {
   spacing,
   systemColors,
   zIndices,
-} from './tokens';
+} from './tokens.ts';
 
 /** White translucent fills, borders and glows. */
 const foregroundAlphas = alphaVariants({

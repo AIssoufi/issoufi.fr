@@ -1,0 +1,54 @@
+{
+  // Type-checks the app against the browsers of the build, BUILD_TARGET (vite/constants.ts): its
+  // target is APP_ECMASCRIPT_TARGET, the syntax that they all read, and its lib
+  // APP_ECMASCRIPT_LIBS, the APIs that they all ship, as vite.config.spec.ts checks; it knows no
+  // Node.js API. Its specs and test helpers run in Node.js, under tsconfig.node.json; the router of
+  // the standalone build runs in the app.
+  "compilerOptions": {
+    "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.app.tsbuildinfo",
+    "target": "ES2022",
+    "useDefineForClassFields": true,
+    "lib": [
+      "ES2021",
+      "ES2022.Array",
+      "ES2022.Error",
+      "ES2022.Object",
+      "ES2022.RegExp",
+      "ES2022.String",
+      "DOM",
+      "DOM.Iterable"
+    ],
+    "module": "ESNext",
+    "types": [],
+    "skipLibCheck": true,
+
+    /* Bundler mode */
+    "moduleResolution": "bundler",
+    "allowImportingTsExtensions": true,
+    "verbatimModuleSyntax": true,
+    "isolatedModules": true,
+    "moduleDetection": "force",
+    "noEmit": true,
+    "jsx": "react-jsx",
+
+    /* Linting */
+    "strict": true,
+    "noUnusedLocals": false,
+    "noUnusedParameters": false,
+    "erasableSyntaxOnly": true,
+    "noFallthroughCasesInSwitch": true,
+    "forceConsistentCasingInFileNames": true,
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "resolveJsonModule": true
+  },
+  "include": ["src", "vite/standalone/react-router.ts"],
+  "exclude": [
+    "src/**/*.spec.ts",
+    "src/**/*.spec.tsx",
+    "src/setupTests.ts",
+    "src/testErrors.ts",
+    "src/**/*testUtils.*",
+    "src/**/*TestUtils.*"
+  ]
+}

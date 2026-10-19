@@ -1,7 +1,7 @@
 import { existsSync, readdirSync, statSync } from 'node:fs';
 
-import { OPTIONAL_ESCAPE_PATTERN, QUOTE_PATTERN } from '../constants';
-import { escapeRegExp, isFileName } from './strings';
+import { OPTIONAL_ESCAPE_PATTERN, QUOTE_PATTERN } from '../constants.ts';
+import { escapeRegExp, isFileName } from './strings.ts';
 
 /**
  * Lists the names of the files at the root of a folder, such as `public/`, without its

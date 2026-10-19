@@ -1,4 +1,4 @@
-import type { FontFaceDeclaration } from './types';
+import type { FontFaceDeclaration } from './types.ts';
 
 /**
  * Characters of the `latin` subset of Google Fonts, the subset of the font files of

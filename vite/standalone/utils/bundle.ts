@@ -1,7 +1,7 @@
 import type { Rolldown } from 'vite';
 
-import { SITEMAP_FILE_NAME } from '../../../src/utils/sitemap';
-import { HEADERS_FILE_NAME } from '../../constants';
+import { SITEMAP_FILE_NAME } from '../../../src/utils/sitemap.ts';
+import { HEADERS_FILE_NAME } from '../../constants.ts';
 import {
   ESCAPED_INLINE_SCRIPT_BREAKER,
   HTML_FILE_PATTERN,
@@ -10,8 +10,8 @@ import {
   PRELOAD_MARKER_PATTERN,
   STANDALONE_PAGE_FILE_NAME,
   WEB_MANIFEST_FILE_PATTERN,
-} from '../constants';
-import { escapeRegExp, isFileName } from './strings';
+} from '../constants.ts';
+import { escapeRegExp, isFileName } from './strings.ts';
 
 /**
  * Tells whether a file of the build is one that only a web server needs: every HTML page but

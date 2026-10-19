@@ -1,6 +1,6 @@
-import { en } from './en';
-import { fr } from './fr';
-import type { Language, Translations } from './types';
+import { en } from './en.ts';
+import { fr } from './fr.ts';
+import type { Language, Translations } from './types.ts';
 
 /**
  * Languages of the site, in the order the language toggle shows them. Each one needs its

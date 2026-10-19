@@ -2,8 +2,8 @@ import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { defineConfig, mergeConfig, normalizePath, type Plugin } from 'vite';
 
-import { FONT_FACES } from './src/theme/constants';
-import productionConfig from './vite.config';
+import { FONT_FACES } from './src/theme/constants.ts';
+import productionConfig from './vite.config.ts';
 import {
   APP_DIR,
   HASH_ROUTER_MODULE,
@@ -11,23 +11,23 @@ import {
   STANDALONE_PAGE_FILE_NAME,
   STANDALONE_README_FILE_NAME,
   STANDALONE_README_SOURCE,
-} from './vite/standalone/constants';
+} from './vite/standalone/constants.ts';
 import {
   inlineScript,
   isEntryChunk,
   isServerOnlyFile,
   removePreloadMarkers,
-} from './vite/standalone/utils/bundle';
+} from './vite/standalone/utils/bundle.ts';
 import {
   type EmbeddedFont,
   findMissingFontUrls,
   readFontDataUrl,
   removeFontPreloads,
   toFontDataUrls,
-} from './vite/standalone/utils/fonts';
-import { listFileNames, toRelativePublicUrls } from './vite/standalone/utils/public-files';
-import { removeManifestLinks } from './vite/standalone/utils/manifest';
-import { isAppRouterImport } from './vite/standalone/utils/router';
+} from './vite/standalone/utils/fonts.ts';
+import { listFileNames, toRelativePublicUrls } from './vite/standalone/utils/public-files.ts';
+import { removeManifestLinks } from './vite/standalone/utils/manifest.ts';
+import { isAppRouterImport } from './vite/standalone/utils/router.ts';
 
 /**
  * Vite plugin that routes the app on the hash of the URL (`index.html#/projects`): the imports of

@@ -1,4 +1,4 @@
-import { getPageAlternates, getPageFiles, getPageUrl, type PageFile, SITE_URL } from './pages';
+import { getPageAlternates, getPageFiles, getPageUrl, type PageFile, SITE_URL } from './pages.ts';
 
 /**
  * Name of the sitemap in the build, served at the root of the site, where search engines look for

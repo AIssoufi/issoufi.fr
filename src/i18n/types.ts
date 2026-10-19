@@ -1,5 +1,5 @@
-import type { LANGUAGES } from './constants';
-import type { fr } from './fr';
+import type { LANGUAGES } from './constants.ts';
+import type { fr } from './fr.ts';
 
 /** Code of one of the site's {@link LANGUAGES}, as i18next and the `lang` attribute use it. */
 export type Language = (typeof LANGUAGES)[number];

@@ -1,7 +1,13 @@
 import type { TFunction } from 'i18next';
 
-import { DEFAULT_LANGUAGE, KEY_SEPARATOR, LANGUAGES, PATH_SEPARATOR, ROOT_PATH } from './constants';
-import type { Language } from './types';
+import {
+  DEFAULT_LANGUAGE,
+  KEY_SEPARATOR,
+  LANGUAGES,
+  PATH_SEPARATOR,
+  ROOT_PATH,
+} from './constants.ts';
+import type { Language } from './types.ts';
 
 /**
  * Tells whether a value is the code of one of the site's {@link LANGUAGES}. Codes are matched

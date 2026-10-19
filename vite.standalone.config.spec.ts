@@ -84,6 +84,8 @@ beforeAll(async () => {
   vi.stubEnv('NODE_ENV', 'production');
   const result = await build({
     configFile: 'vite.standalone.config.ts',
+    // Node.js loads the config, as in the scripts of package.json
+    configLoader: 'native',
     logLevel: 'silent',
     plugins: [recordAppImports()],
     build: { write: false },
