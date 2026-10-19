@@ -9,7 +9,7 @@ import {
   HERO_SCREENS,
   MAX_WORD_SHIFT_PX,
   PAGE_SELECTOR,
-  POINTER_REST_MS,
+  POINTER_REST_FRAME_COUNT,
 } from './constants';
 import { getButtonAimPoints, getScreenBox, isBoxInside } from './utils';
 
@@ -43,17 +43,36 @@ const openHomePage = async ({ page, route }: OpenHomePageParams) => {
   await page.locator(PAGE_SELECTOR).evaluate(waitForEndingAnimations);
 };
 
+/** Parameters of {@link recordLargestWordShift}, besides the words that Playwright gives it. */
+interface RecordLargestWordShiftParams {
+  /** Number of animation frames to wait, at the end of each of which the words are measured. */
+  frameCount: number;
+}
+
 /**
- * Measures how far each word of the home title stands from its place: the offset of the
- * `translate()` that `SplitWords` writes in its inline style, without the parallax and the float
- * animation that move the whole title. Runs in the browser, so it uses nothing from outside its
- * own body.
+ * Waits a number of animation frames, in which a word of the home title reacts to the pointer,
+ * and returns the largest distance that a word stood from its place at the end of any of them: the
+ * offset of the `translate()` that `SplitWords` writes in its inline style, without the parallax
+ * and the float animation that move the whole title. Counting frames rather than milliseconds
+ * keeps the check as strict on a loaded machine, which draws fewer frames per second. Runs in the
+ * browser, so it uses nothing from outside its own body.
+ *
+ * @returns The largest shift, in px, `0` without any word.
  */
-const listWordShifts = (words: Element[]) =>
-  words.map(word => {
-    const { e: x, f: y } = new DOMMatrixReadOnly((word as HTMLElement).style.transform);
-    return Math.hypot(x, y);
-  });
+const recordLargestWordShift = async (
+  words: Element[],
+  { frameCount }: RecordLargestWordShiftParams,
+) => {
+  let largestShift = 0;
+  for (let frame = 0; frame < frameCount; frame += 1) {
+    await new Promise(resolve => requestAnimationFrame(resolve));
+    for (const word of words) {
+      const { e: x, f: y } = new DOMMatrixReadOnly((word as HTMLElement).style.transform);
+      largestShift = Math.max(largestShift, Math.hypot(x, y));
+    }
+  }
+  return largestShift;
+};
 
 // jsdom computes no layout, so only a real browser sees the buttons fall below the screen
 for (const language of LANGUAGES) {
@@ -97,16 +116,17 @@ for (const language of LANGUAGES) {
         const words = page.getByRole('heading', { level: 1 }).locator('span');
         const buttons = page.locator(PAGE_SELECTOR).getByRole('link');
         await expect(buttons).toHaveCount(HERO_BUTTON_COUNT);
-        // Without any word, the largest shift would be -Infinity, and the check would pass
+        // Without any word, the largest shift would be 0, and the check would pass
         expect(await words.count(), 'words of the title').toBeGreaterThan(0);
 
         for (const button of await buttons.all()) {
           // Moved by the mouse rather than hovered, which would refuse the corners of the pill
           for (const point of getButtonAimPoints(await button.boundingBox())) {
             await page.mouse.move(point.x, point.y);
-            await page.waitForTimeout(POINTER_REST_MS);
 
-            const largestShift = Math.max(...(await words.evaluateAll(listWordShifts)));
+            const largestShift = await words.evaluateAll(recordLargestWordShift, {
+              frameCount: POINTER_REST_FRAME_COUNT,
+            });
             expect(
               largestShift,
               `largest shift of a word, in px, with the pointer at ${point.x}, ${point.y}`,
@@ -126,11 +146,11 @@ for (const language of LANGUAGES) {
           word.x + word.width / 2,
           word.y + word.height / 2 - word.height * WORD_AIM_HEIGHT_RATIO,
         );
-        await page.waitForTimeout(POINTER_REST_MS);
 
-        expect(Math.max(...(await words.evaluateAll(listWordShifts)))).toBeGreaterThan(
-          MAX_WORD_SHIFT_PX,
-        );
+        const largestShift = await words.evaluateAll(recordLargestWordShift, {
+          frameCount: POINTER_REST_FRAME_COUNT,
+        });
+        expect(largestShift, 'largest shift of a word, in px').toBeGreaterThan(MAX_WORD_SHIFT_PX);
       });
     });
   }

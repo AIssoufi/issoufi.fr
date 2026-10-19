@@ -414,8 +414,10 @@ export const HERO_POINTER_SCREENS = [
 export const MAX_WORD_SHIFT_PX = 2;
 
 /**
- * Time, in milliseconds, that the pointer rests at a point before the words of the home title are
- * measured: about 30 frames, in which a word within reach of the pointer moves by far more than
- * {@link MAX_WORD_SHIFT_PX}.
+ * Number of animation frames that the pointer rests at a point, each of which measures the words
+ * of the home title. A word pushed stays where it went until 900 ms after the last push, so the
+ * pushes of the points of a button add up: without the rule that a mouse over a control pushes
+ * nothing, the words within reach move 4.6 px at least over the top edge of a button, more than
+ * twice {@link MAX_WORD_SHIFT_PX}.
  */
-export const POINTER_REST_MS = 500;
+export const POINTER_REST_FRAME_COUNT = 4;
