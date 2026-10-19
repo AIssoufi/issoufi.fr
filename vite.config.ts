@@ -273,6 +273,7 @@ export default defineConfig(({ mode }) => {
           '**/*.spec.*',
           // The browser tests run in Playwright, not in Vitest
           '**/*.e2e.ts',
+          '**/*.visual.ts',
           '**/index.ts',
           '**/*.d.ts',
           'src/setupTests.ts',

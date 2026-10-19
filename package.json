@@ -60,6 +60,7 @@
     "test:watch": "vitest --configLoader native",
     "test:coverage": "vitest run --coverage --configLoader native",
     "test:browser": "playwright test",
+    "test:visual": "node scripts/ci/compare-screenshots.mjs",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "prepare": "husky"

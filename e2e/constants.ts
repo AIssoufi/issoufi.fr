@@ -638,3 +638,38 @@ export const MIN_CONTENT_SCREEN_SHARE = 0.6;
  * difference.
  */
 export const MAX_CONTENT_WIDTH_OFFSET_PX = 0.5;
+
+/** Screen of the screenshot comparison, named after the device it stands for. */
+interface VisualScreen {
+  /** Kind of device, which the title of each test starts with, e.g. `tablet`. */
+  name: string;
+  /** Width of the screen, in pixels. */
+  width: number;
+  /** Height of the screen, in pixels, which sizes what fills the first screen, such as the hero. */
+  height: number;
+}
+
+/**
+ * Screens of the screenshot comparison (`e2e/pages.visual.ts`): a common phone (375 × 812), a
+ * tablet held upright (768 × 1024), below the tablet breakpoint, a laptop (1280 × 800) and a
+ * desktop screen past the `wide` breakpoint (1920 × 1080).
+ */
+export const VISUAL_SCREENS: readonly VisualScreen[] = [
+  { name: 'phone', width: 375, height: 812 },
+  { name: 'tablet', width: 768, height: 1024 },
+  { name: 'laptop', width: 1280, height: 800 },
+  { name: 'desktop', width: 1920, height: 1080 },
+];
+
+/**
+ * Time at which the clock of the screenshot comparison stands, so the durations of the jobs and
+ * the years of experience, which count up to today, read the same from a run to the next: noon in
+ * the middle of a month, which is the same month in every time zone.
+ */
+export const VISUAL_CLOCK_TIME = '2026-10-15T12:00:00Z';
+
+/**
+ * Seed of the `Math.random` of the screenshot comparison (`seedRandom`, `e2e/screenshots.ts`), so
+ * the dots of the particle field of the home page stand at the same places on every load.
+ */
+export const VISUAL_RANDOM_SEED = 1;

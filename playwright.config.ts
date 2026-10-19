@@ -14,6 +14,19 @@ const { preview: port } = getServerPorts(
 const baseURL = `http://localhost:${port}`;
 
 /**
+ * Server of the browser tests: `pnpm preview`, which serves the production build of the folder it
+ * runs in, `dist/`, on the port of the worktree. The screenshot comparison
+ * (`playwright.visual.config.ts`) runs it in the checkout of the base of the change too.
+ */
+export const PREVIEW_SERVER = {
+  // A taken port fails at once rather than moving the server to another port
+  command: `pnpm preview --port ${port} --strictPort`,
+  url: baseURL,
+  // Never tests a server that already holds the port, such as pnpm dev or another worktree's
+  reuseExistingServer: false,
+};
+
+/**
  * Playwright configuration of the browser tests of `e2e/` (`pnpm test:browser`): Chromium only,
  * on the production build that `pnpm preview` serves on the port of the worktree (see
  * {@link getServerPorts}), so `pnpm build` must run first. A failed test saves a screenshot of the
@@ -32,11 +45,5 @@ export default defineConfig({
     screenshot: { mode: 'only-on-failure', fullPage: true },
   },
   projects: [{ name: 'chromium', use: { ...devices['Desktop Chrome'] } }],
-  webServer: {
-    // A taken port fails at once rather than moving the server to another port
-    command: `pnpm preview --port ${port} --strictPort`,
-    url: baseURL,
-    // Never tests a server that already holds the port, such as pnpm dev or another worktree's
-    reuseExistingServer: false,
-  },
+  webServer: PREVIEW_SERVER,
 });
