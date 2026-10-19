@@ -1,6 +1,7 @@
 import { useTranslation } from 'react-i18next';
 import { useLocation, useNavigate } from 'react-router';
 
+import VisuallyHidden from '../../../components/VisuallyHidden/index.ts';
 import { useUrlLanguage } from '../../../hooks/useUrlLanguage/index.ts';
 import { LANGUAGES } from '../../../i18n/constants.ts';
 import { storeLanguage } from '../../../i18n/storage.ts';
@@ -20,7 +21,9 @@ import { Btn, Indicator, Wrapper } from './LangToggle.styled.ts';
  * browser blocks the storage. Must be rendered inside a router.
  *
  * Screen readers announce a group labelled in the active language, and each button with its
- * language's own name, pronounced in that language, and its pressed state.
+ * visible code then its language's own name, "FR – Français", pronounced in that language, and
+ * its pressed state. The name starts with the visible text, so that a voice control user who says
+ * "EN" finds the button (WCAG 2.5.3, Label in Name).
  */
 const LangToggle = () => {
   const { t } = useTranslation();
@@ -49,12 +52,13 @@ const LangToggle = () => {
             key={lang}
             type="button"
             lang={lang}
-            aria-label={LANGUAGE_NAMES[lang]}
             aria-pressed={isActive}
             $active={isActive}
             onClick={() => selectLanguage(lang)}
           >
-            {lang.toUpperCase()}
+            {/* The space stays out of the hidden text, whose edge spaces some engines drop from
+                the name, as jsdom does: the name reads "FR – Français" in each of them */}
+            {lang.toUpperCase()} <VisuallyHidden>– {LANGUAGE_NAMES[lang]}</VisuallyHidden>
           </Btn>
         );
       })}

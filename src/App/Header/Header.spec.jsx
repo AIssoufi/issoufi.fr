@@ -229,7 +229,7 @@ describe('Header', () => {
         await userEvent.tab();
         expect(screen.getByRole('link', { name })).toHaveFocus();
       }
-      for (const name of ['Français', 'English']) {
+      for (const name of ['FR – Français', 'EN – English']) {
         await userEvent.tab();
         expect(within(getLanguageToggle()).getByRole('button', { name })).toHaveFocus();
       }
@@ -431,11 +431,13 @@ describe('Header', () => {
         renderHeader();
         await userEvent.click(getBurgerButton());
 
-        await userEvent.click(within(getLanguageToggle()).getByRole('button', { name: 'English' }));
+        await userEvent.click(
+          within(getLanguageToggle()).getByRole('button', { name: 'EN – English' }),
+        );
 
         expect(window.location.pathname).toBe('/en/');
         expect(
-          within(getLanguageToggle()).getByRole('button', { name: 'English' }),
+          within(getLanguageToggle()).getByRole('button', { name: 'EN – English' }),
         ).toHaveAttribute('aria-pressed', 'true');
         expect(getBurgerButton()).toHaveAttribute('aria-expanded', 'true');
         expect(getRootOverflow()).toBe('hidden');
@@ -597,10 +599,14 @@ describe('Header', () => {
       act(() => getCvLink().focus());
 
       await userEvent.tab();
-      expect(within(getLanguageToggle()).getByRole('button', { name: 'Français' })).toHaveFocus();
+      expect(
+        within(getLanguageToggle()).getByRole('button', { name: 'FR – Français' }),
+      ).toHaveFocus();
 
       await userEvent.tab();
-      expect(within(getLanguageToggle()).getByRole('button', { name: 'English' })).toHaveFocus();
+      expect(
+        within(getLanguageToggle()).getByRole('button', { name: 'EN – English' }),
+      ).toHaveFocus();
     });
 
     it('gives the focus back to the burger when a link is chosen with Enter', async () => {
