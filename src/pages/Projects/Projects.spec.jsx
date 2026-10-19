@@ -7,7 +7,8 @@ import { fr } from '../../i18n/fr';
 import { theme } from '../../theme';
 import { declaredStyle, serializeCssValue } from '../../styleTestUtils';
 import { getPage } from '../../utils/pages';
-import { INTERACTIVE_SELECTOR, readBackgroundImages, readPublicWebpSize } from '../testUtils';
+import { readPublicWebpSize } from '../../publicFileTestUtils';
+import { INTERACTIVE_SELECTOR, readBackgroundImages } from '../testUtils';
 import {
   MAX_THUMBNAIL_ASPECT_RATIO,
   ROW_CARD_COUNT,
