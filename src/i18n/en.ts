@@ -68,6 +68,9 @@ export const en = {
   header: {
     buildVersion: 'build {{version}}',
   },
+  skipLink: {
+    text: 'Skip to content',
+  },
   githubLink: {
     label: "ADAM Issoufi's GitHub profile",
   },
