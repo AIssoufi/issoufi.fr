@@ -29,6 +29,21 @@ export const GlobalStyle = createGlobalStyle`
     font-family: ${th.font('code')};
   }
 
+  /* Spreads the words of a heading evenly over its lines, and keeps a paragraph from ending on a
+     word alone, so that no line holds a single word where the text can avoid it */
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    text-wrap: balance;
+  }
+
+  p {
+    text-wrap: pretty;
+  }
+
   /* Without bullets, Safari no longer exposes a ul as a list: render lists with List
      (src/components/List), which gives them back their role */
   ul {

@@ -80,7 +80,7 @@ interface RecordLargestShiftOptions {
  * element has a translation.
  *
  * @example
- * await page.getByRole('heading', { level: 1 }).locator('span')
+ * await page.getByRole('heading', { level: 1 }).locator(HERO_WORD_SELECTOR)
  *   .evaluateAll(recordLargestShift, { frameCount: 4 });
  * // 0
  */

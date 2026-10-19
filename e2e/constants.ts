@@ -435,6 +435,12 @@ export const HERO_POINTER_SCREENS = [
 export const MAX_WORD_SHIFT_PX = 2;
 
 /**
+ * Animated words of the home title, inside its heading: the innermost spans, within the blocks of
+ * its lines and the groups that hold a word to an animated one ("l’UX").
+ */
+export const HERO_WORD_SELECTOR = 'span:not(:has(span))';
+
+/**
  * Number of animation frames that the pointer rests at a point, each of which measures the words
  * of the home title. A word pushed stays where it went until `RETURN_DELAY_MS`
  * (`src/pages/Home/SplitWords/constants.ts`) after the last push, so the pushes of the points of

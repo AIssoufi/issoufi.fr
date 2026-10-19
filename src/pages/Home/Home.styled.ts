@@ -74,11 +74,30 @@ export const Title = styled.h1`
   }
 `;
 
+/* Each line of the title is a block of its own, which the browser balances apart: Chrome balances
+   no block that a forced line break splits */
+export const TitleLine = styled.span`
+  display: block;
+`;
+
+/* The three long words of the job title wrap as they did before the title was balanced: on two
+   lines, one of them holds a single word either way, and balancing them would only move
+   "full-stack" to the second line on a desktop screen */
+export const JobTitleLine = styled(TitleLine)`
+  text-wrap: wrap;
+`;
+
+export const NoWrap = styled.span`
+  white-space: nowrap;
+`;
+
 export const Subtitle = styled.p`
   font-size: ${th.fontSize('hero-subtitle')};
   font-weight: ${th.fontWeight('regular')};
   color: ${th.color('foreground-secondary')};
   line-height: ${th.lineHeight(160)};
+  /* Lines of even lengths, as the title above it has, rather than a word alone on the last one */
+  text-wrap: balance;
   margin: 0 0 ${th.space(4)};
   animation: ${fadeUp} ${th.duration(900)} ${th.timingFunction('standard')} ${th.duration(200)} both;
 `;

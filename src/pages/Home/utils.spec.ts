@@ -1,5 +1,11 @@
 import { OFFSCREEN_POINTER } from './constants';
-import { easeTowards, getMagneticOffset, getParallaxOffset, isPointerOnScreen } from './utils';
+import {
+  easeTowards,
+  getMagneticOffset,
+  getParallaxOffset,
+  isPointerOnScreen,
+  splitLastWord,
+} from './utils';
 
 describe('easeTowards', () => {
   it('covers the given fraction of the distance', () => {
@@ -75,5 +81,29 @@ describe('isPointerOnScreen', () => {
     { x: -9999, y: 10 },
   ])('is true for %j', pointer => {
     expect(isPointerOnScreen(pointer)).toBe(true);
+  });
+});
+
+describe('splitLastWord', () => {
+  it.each([
+    ['a French start of the title', 'passionné par l’', 'passionné par ', 'l’'],
+    ['a French middle of the title', ' et l’', ' et ', 'l’'],
+    ['an English start, ending with a space', 'passionate about ', 'passionate about ', ''],
+    ['an English middle, between two spaces', ' and ', ' and ', ''],
+    ['a word alone', 'l’', '', 'l’'],
+    ['words joined by a no-break space', 'par l’UX\u00a0Design', 'par ', 'l’UX\u00a0Design'],
+    ['a text of a single space', ' ', ' ', ''],
+    ['an empty text', '', '', ''],
+  ])('splits %s before its last word', (_case, text, leading, lastWord) => {
+    expect(splitLastWord(text)).toEqual({ leading, lastWord });
+  });
+
+  it.each([
+    ['nothing', undefined],
+    ['null', null],
+    ['a number', 42],
+    ['an object', { text: 'par l’' }],
+  ])('gives two empty texts for %s', (_case, text) => {
+    expect(splitLastWord(text)).toEqual({ leading: '', lastWord: '' });
   });
 });

@@ -107,6 +107,15 @@ describe('GlobalStyle', () => {
     expect(getComputedStyle(screen.getByTestId('content-box')).boxSizing).toBe('content-box');
   });
 
+  it('balances the lines of every heading, and keeps a paragraph from ending on a word alone', () => {
+    renderWithGlobalStyle();
+
+    const [headingRule] = findRulesSelecting({ selectors: ['h1', 'h2', 'h3', 'h4', 'h5', 'h6'] });
+    const [paragraphRule] = findRulesSelecting({ selectors: ['p'] });
+    expect(headingRule.style.getPropertyValue('text-wrap')).toBe('balance');
+    expect(paragraphRule.style.getPropertyValue('text-wrap')).toBe('pretty');
+  });
+
   describe('with reduced motion', () => {
     it('makes every animation and transition instant, on the elements and pseudo-elements', () => {
       renderWithGlobalStyle();
