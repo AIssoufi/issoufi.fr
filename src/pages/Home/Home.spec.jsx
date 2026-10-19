@@ -12,6 +12,9 @@ import { Home } from './Home';
 /** Media query of the short screens, such as a phone held sideways. */
 const SHORT_SCREEN_MEDIA_QUERY = `(max-height: ${theme.screenHeights.short})`;
 
+/** Media query of the wide screens, from the `wide` breakpoint. */
+const WIDE_MEDIA_QUERY = `(min-width: ${theme.screens.wide})`;
+
 const renderHome = (path = '/') =>
   render(
     <MemoryRouter initialEntries={[path]}>
@@ -137,6 +140,25 @@ describe('Home', () => {
     );
     expect(shortScreenStyle({ element: title, property: 'margin-bottom' })).toBe(theme.space[4]);
     expect(shortScreenStyle({ element: buttons, property: 'gap' })).toBe(theme.space[8]);
+  });
+
+  it('enlarges the labels of its buttons from the wide breakpoint, and leaves the hero fluid', () => {
+    renderHome();
+    const wideFontSize = element =>
+      declaredStyle({ element, property: 'font-size', media: WIDE_MEDIA_QUERY });
+    const buttons = screen.getAllByRole('link');
+
+    expect(buttons).toHaveLength(2);
+    buttons.forEach(button => {
+      expect(declaredStyle({ element: button, property: 'font-size' })).toBe(theme.fontSizes[14]);
+      expect(wideFontSize(button)).toBe(theme.fontSizes[16]);
+    });
+    // The title and the subtitle already grow with the screen
+    expect(wideFontSize(screen.getByRole('heading', { level: 1 }))).toBe('');
+    expect(wideFontSize(screen.getByText('UX'))).toBe('');
+    expect(wideFontSize(screen.getByText('Je vous aide à développer vos applications web'))).toBe(
+      '',
+    );
   });
 
   it('fits the buttons to narrow screens instead of widening the page', () => {

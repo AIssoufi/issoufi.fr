@@ -3,12 +3,20 @@ import { act, render, screen } from '@testing-library/react';
 import i18n from '../../i18n';
 import { en } from '../../i18n/en';
 import { fr } from '../../i18n/fr';
+import { declaredStyle, serializeCssValue } from '../../styleTestUtils';
+import { theme } from '../../theme';
 import { getPage } from '../../utils/pages';
 import { readPublicWebpSize } from '../../publicFileTestUtils';
 import { getReadText, readBackgroundImages } from '../testUtils';
 import experiencesData from './.data/experiences.json';
 import { LOGO_SIZE_PX } from './JobSummary/constants';
 import { Experiences } from './Experiences';
+
+/** Media query of the desktop layout, from the tablet breakpoint. */
+const TABLET_MEDIA = `(min-width: ${theme.screens.tablet})`;
+
+/** Media query of the wide screens, from the `wide` breakpoint. */
+const WIDE_MEDIA = `(min-width: ${theme.screens.wide})`;
 
 /** Names of the fields of the data that hold a translation key, or a list of them. */
 const KEY_FIELD_PATTERN = /^key$|Keys?$/;
@@ -211,6 +219,46 @@ describe('Experiences', () => {
     const { container } = render(<Experiences />);
 
     expect(container.querySelectorAll('[data-timeline-line="before"]')).toHaveLength(1);
+  });
+
+  it('scales the timeline up from the wide breakpoint, its line along its wider period column', () => {
+    const { container } = render(<Experiences />);
+    const timeline = container.querySelector('[data-timeline-line]');
+    const row = container.querySelector('[data-timeline-dot="after"]').parentElement;
+    const lineLeftOf = columnWidth =>
+      serializeCssValue({
+        property: 'left',
+        value: `calc(${columnWidth} - ${theme.sizes[2]} / 2)`,
+      });
+    const styleAt = ({ media, element, property, pseudo }) =>
+      declaredStyle({ element, property, pseudo, media });
+
+    expect(styleAt({ media: TABLET_MEDIA, element: row, property: 'grid-template-columns' })).toBe(
+      `${theme.sizes[94]} 1fr`,
+    );
+    expect(styleAt({ media: WIDE_MEDIA, element: row, property: 'grid-template-columns' })).toBe(
+      `${theme.sizes[110]} 1fr`,
+    );
+    expect(
+      styleAt({ media: TABLET_MEDIA, element: timeline, property: 'left', pseudo: '::before' }),
+    ).toBe(lineLeftOf(theme.sizes[94]));
+    expect(
+      styleAt({ media: WIDE_MEDIA, element: timeline, property: 'left', pseudo: '::before' }),
+    ).toBe(lineLeftOf(theme.sizes[110]));
+    expect(
+      styleAt({
+        media: WIDE_MEDIA,
+        element: screen.getByRole('heading', { level: 1 }),
+        property: 'font-size',
+      }),
+    ).toBe(theme.fontSizes[44]);
+    expect(
+      styleAt({
+        media: WIDE_MEDIA,
+        element: screen.getAllByText('React.js')[0],
+        property: 'font-size',
+      }),
+    ).toBe(theme.fontSizes[14]);
   });
 
   it.each(['Sewan Groupe', 'Wibilong', 'Supralog', 'Beepeers'])(

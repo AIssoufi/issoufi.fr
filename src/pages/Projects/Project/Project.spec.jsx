@@ -989,6 +989,41 @@ describe('Project', () => {
         ]),
       );
 
+    it('scales the cards and the title up from the wide breakpoint, with the app container', () => {
+      render(
+        <Project
+          title="Projets personnels"
+          projects={projects}
+        />,
+      );
+      const card = within(cardOf('Chess'));
+      const sizesOf = ({ element, property }) => ({
+        belowWide: declaredStyle({ element, property }),
+        wide: declaredStyle({ element, property, media: WIDE_MEDIA }),
+      });
+
+      expect(sizesOf({ element: thumbnailOf('Chess').parentElement, property: 'height' })).toEqual({
+        belowWide: theme.sizes[222],
+        wide: theme.sizes[248],
+      });
+      expect(
+        sizesOf({ element: card.getByRole('heading', { level: 3 }), property: 'font-size' }),
+      ).toEqual({ belowWide: theme.fontSizes[16], wide: theme.fontSizes[18] });
+      for (const metadata of [card.getByText('Application web'), card.getByRole('list')]) {
+        expect(sizesOf({ element: metadata, property: 'font-size' })).toEqual({
+          belowWide: theme.fontSizes[13],
+          wide: theme.fontSizes[15],
+        });
+      }
+      expect(
+        declaredStyle({
+          element: screen.getByRole('heading', { level: 2 }),
+          property: 'font-size',
+          media: WIDE_MEDIA,
+        }),
+      ).toBe(theme.fontSizes[44]);
+    });
+
     it('stretches the title link over its card, above the thumbnail and under the like button', () => {
       render(<Project projects={projects} />);
 
