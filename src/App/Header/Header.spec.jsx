@@ -81,11 +81,11 @@ const CV_LINK_NAME = 'Télécharger CV';
 /** The link that downloads the CV, the last link of the navigation, after the profile icons. */
 const getCvLink = () => screen.getByRole('link', { name: CV_LINK_NAME, hidden: true });
 
-/** Name of the GitHub icon, the first of the profile icons. */
-const GITHUB_LINK_NAME = 'Profil GitHub d’ADAM Issoufi';
+/** Name of the GitHub icon, the first of the profile icons, which tells that it opens a new tab. */
+const GITHUB_LINK_NAME = 'Profil GitHub d’ADAM Issoufi (nouvel onglet)';
 
 /** Name of the LinkedIn icon, which follows the GitHub icon. */
-const LINKEDIN_LINK_NAME = 'Profil LinkedIn d’ADAM Issoufi';
+const LINKEDIN_LINK_NAME = 'Profil LinkedIn d’ADAM Issoufi (nouvel onglet)';
 
 /** The LinkedIn icon of the navigation. */
 const getLinkedInLink = () => screen.getByRole('link', { name: LINKEDIN_LINK_NAME, hidden: true });
@@ -212,6 +212,39 @@ describe('Header', () => {
       expect(desktopStyle({ element: floatingControls, property: 'transform' })).toBe(
         'translateY(-50%)',
       );
+    });
+
+    it('comes after the navigation with Tab, as on the screen from tablet up', async () => {
+      renderHeader();
+      showDesktopNavigation();
+      act(() => screen.getByRole('link', { name: 'Accueil' }).focus());
+
+      for (const name of [
+        'Projets',
+        'Expériences',
+        GITHUB_LINK_NAME,
+        LINKEDIN_LINK_NAME,
+        CV_LINK_NAME,
+      ]) {
+        await userEvent.tab();
+        expect(screen.getByRole('link', { name })).toHaveFocus();
+      }
+      for (const name of ['Français', 'English']) {
+        await userEvent.tab();
+        expect(within(getLanguageToggle()).getByRole('button', { name })).toHaveFocus();
+      }
+      await userEvent.tab();
+      expect(getPageLink()).toHaveFocus();
+    });
+
+    it('stays before the burger in the row of the header on mobile, which it follows in the page', () => {
+      renderHeader();
+
+      const isAfterBurger =
+        getBurgerButton().compareDocumentPosition(getFloatingControls()) &
+        Node.DOCUMENT_POSITION_FOLLOWING;
+      expect(isAfterBurger).toBeTruthy();
+      expect(declaredStyle({ element: getFloatingControls(), property: 'order' })).toBe('-1');
     });
 
     it('floats no link: the navigation holds the profile icons and the CV link', () => {
@@ -558,16 +591,16 @@ describe('Header', () => {
       expect(getHeaderControls()).toContainElement(document.activeElement);
     });
 
-    it('reaches the language toggle above the menu with Shift+Tab from the burger', async () => {
+    it('reaches the language toggle above the menu with Tab after the last link', async () => {
       renderHeader();
       await userEvent.click(getBurgerButton());
+      act(() => getCvLink().focus());
 
-      await userEvent.tab({ shift: true });
-
-      expect(within(getLanguageToggle()).getByRole('button', { name: 'English' })).toHaveFocus();
-
-      await userEvent.tab({ shift: true });
+      await userEvent.tab();
       expect(within(getLanguageToggle()).getByRole('button', { name: 'Français' })).toHaveFocus();
+
+      await userEvent.tab();
+      expect(within(getLanguageToggle()).getByRole('button', { name: 'English' })).toHaveFocus();
     });
 
     it('gives the focus back to the burger when a link is chosen with Enter', async () => {

@@ -11,6 +11,7 @@ import Header from './Header';
 import { useReloadOnStaleChunk } from './hooks/useReloadOnStaleChunk';
 import PageHeadingFocus from './PageHeadingFocus';
 import RouteErrorBoundary from './RouteErrorBoundary';
+import SkipLink from './SkipLink';
 import UrlLanguage from './UrlLanguage';
 import { keepPendingWhileReloading } from './utils';
 
@@ -26,9 +27,10 @@ const NotFound = lazy(() => import('../pages/NotFound').then(keepPendingWhileRel
 
 /**
  * Root of the application: the design-token theme and global styles, the router, the header,
- * the document metadata and the routes. Each page exists in every language, at its path in the
- * default language (`/projects`) and behind the prefix of each other language (`/en/projects`);
- * the texts follow the language of the URL (see {@link UrlLanguage}). Every page but the home page
+ * the document metadata, the skip link to the content (see {@link SkipLink}) and the routes. Each
+ * page exists in every language, at its path in the default language (`/projects`) and behind the
+ * prefix of each other language (`/en/projects`); the texts follow the language of the URL (see
+ * {@link UrlLanguage}). Every page but the home page
  * is loaded on its first visit; the header stays on screen meanwhile. Unknown paths render
  * {@link NotFound} at the requested URL, in the language of its prefix, without redirecting.
  * Reloads the page once when a page was deployed again since it was opened (see
@@ -46,6 +48,7 @@ function App() {
       <Router>
         <UrlLanguage />
         <DocumentMeta />
+        <SkipLink />
         <WebApp data-testid="app">
           <Header />
           <RouteErrorBoundary>

@@ -4,7 +4,10 @@
  *
  * Following French typography, a colon comes after a no-break space (`\u00a0`), and a semicolon,
  * question or exclamation mark after a narrow no-break space (`\u202f`), so that they never wrap
- * alone onto the next line. Apostrophes are typographic (’), never straight (').
+ * alone onto the next line. Apostrophes are typographic (’), never straight ('). A no-break space
+ * also joins the words that belong together on a line, such as "UI\u00a0Design",
+ * "applications\u00a0web" or a city and its department ("Paris\u00a0(75)"), and the same words in
+ * `en.ts`.
  */
 export const fr = {
   meta: {
@@ -29,6 +32,11 @@ export const fr = {
     },
     ogImageAlt: 'ADAM Issoufi, développeur full-stack JavaScript passionné par l’UX et l’UI Design',
     noScript: 'Activez JavaScript pour afficher ce site.',
+    // The names of the site and of its owner, which link previews (og:site_name) and search
+    // engines (the structured data of the pages) show: the same for now, kept apart so that
+    // either can change alone
+    siteName: 'ADAM Issoufi',
+    ownerName: 'ADAM Issoufi',
     // The texts of the installed app (its web app manifest): the title and the description of the
     // home page for now, kept apart so that either can change alone
     webApp: {
@@ -69,6 +77,9 @@ export const fr = {
   header: {
     buildVersion: 'build {{version}}',
   },
+  skipLink: {
+    text: 'Aller au contenu',
+  },
   githubLink: {
     label: 'Profil GitHub d’ADAM Issoufi',
   },
@@ -80,12 +91,16 @@ export const fr = {
     // Name of the document that the link downloads, which `pnpm cv` writes in its title
     documentName: 'CV',
   },
+  newTabLink: {
+    // Read by screen readers after the text of every link that opens a new tab
+    notice: '(nouvel onglet)',
+  },
   home: {
     title1: 'Développeur full-stack JavaScript',
     title2Pre: 'passionné par l’',
     title2Mid: ' et l’',
-    title2Post: ' Design',
-    subtitle: 'Je vous aide à développer vos applications web',
+    title2Post: '\u00a0Design',
+    subtitle: 'Je vous aide à développer vos applications\u00a0web',
     cta: 'Voir mes projets',
     secondary: 'Expériences professionnelles',
   },
@@ -132,7 +147,7 @@ export const fr = {
     sewan: {
       name: 'Sewan Groupe',
       contract: 'CDI',
-      city: 'Paris (75)',
+      city: 'Paris\u00a0(75)',
     },
     sewanLead: {
       title: 'Lead Frontend Engineer — UI Kit Owner & Architect',
@@ -176,7 +191,7 @@ export const fr = {
       title: 'Full-Stack JavaScript Engineer — React, Node.js, AWS',
       name: 'Wibilong',
       contract: 'CDI',
-      city: 'Paris (75)',
+      city: 'Paris\u00a0(75)',
       start: 'sept. 2019',
       end: 'juin 2021',
       intro:
@@ -189,7 +204,7 @@ export const fr = {
       title: 'Développeur Full-Stack JavaScript — Alternance',
       name: 'Supralog',
       contract: 'Alternance',
-      city: 'Antibes (06)',
+      city: 'Antibes\u00a0(06)',
       start: 'juin 2018',
       end: 'sept. 2019',
       proj1Title: 'MyFFBaD — Espace licencié FFBaD',
@@ -209,7 +224,7 @@ export const fr = {
       title: 'Développeur React.js — Stage',
       name: 'Beepeers',
       contract: 'Stage',
-      city: 'Valbonne (06)',
+      city: 'Valbonne\u00a0(06)',
       start: 'mai 2017',
       end: 'août 2017',
       proj1Title: 'Dream Nation Festival 2017 — Site événementiel',

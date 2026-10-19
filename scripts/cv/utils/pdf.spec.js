@@ -2,6 +2,8 @@
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 
+import { getDocument } from 'pdfjs-dist/legacy/build/pdf.mjs';
+
 import { CV_URLS } from '../../../src/App/Header/NavMenu/CvLink/constants';
 import { PUBLIC_DIR } from '../../utils/constants.mjs';
 import { findPdfProblems, isSamePdfApartFromDates, readPdf } from './pdf.mjs';
@@ -44,6 +46,10 @@ const buildPdf = pages => {
 };
 
 describe('readPdf', () => {
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
   it('reads the text, the links and the fonts of each page', async () => {
     const pdf = await readPdf(
       buildPdf([
@@ -73,6 +79,27 @@ describe('readPdf', () => {
     await readPdf(data);
 
     expect(data).toEqual(copy);
+  });
+
+  it('leaves out the marked-content items of the text, which hold none', async () => {
+    // pdf.js lists them only with `includeMarkedContent`: a spy on its page prototype adds them
+    const loadingTask = getDocument({ data: buildPdf([{ text: 'CV' }]) });
+    const pagePrototype = Object.getPrototypeOf(await (await loadingTask.promise).getPage(1));
+    await loadingTask.destroy();
+    const { getTextContent } = pagePrototype;
+    vi.spyOn(pagePrototype, 'getTextContent').mockImplementation(async function (...args) {
+      const content = await getTextContent.apply(this, args);
+      const items = [
+        { type: 'beginMarkedContentProps', tag: 'P', id: 'p1' },
+        ...content.items,
+        { type: 'endMarkedContent' },
+      ];
+      return { ...content, items };
+    });
+
+    const pdf = await readPdf(buildPdf([{ text: 'ADAM Issoufi' }, { text: 'Experiences' }]));
+
+    expect(pdf.text).toBe('ADAM Issoufi Experiences');
   });
 
   it('fails on data that is not a PDF', async () => {

@@ -9,6 +9,7 @@
       "roles": [
         {
           "titleKey": "exp.sewanLead.title",
+          "titleLanguage": "en",
           "startKey": "exp.sewanLead.start",
           "endKey": "exp.sewanLead.end",
           "intro": [
@@ -46,6 +47,7 @@
         },
         {
           "titleKey": "exp.sewanSenior.title",
+          "titleLanguage": "en",
           "startKey": "exp.sewanSenior.start",
           "endKey": "exp.sewanSenior.end",
           "intro": [
@@ -78,6 +80,7 @@
       "roles": [
         {
           "titleKey": "exp.wibilong.title",
+          "titleLanguage": "en",
           "startKey": "exp.wibilong.start",
           "endKey": "exp.wibilong.end",
           "intro": [{ "key": "exp.wibilong.intro" }],

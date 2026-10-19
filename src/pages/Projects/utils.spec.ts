@@ -33,7 +33,6 @@ const createT = async (resources: Record<string, object>) => {
     ),
     lng: 'en',
     fallbackLng: 'fr',
-    showSupportNotice: false,
   });
   return instance.t;
 };

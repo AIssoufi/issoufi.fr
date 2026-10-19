@@ -44,6 +44,24 @@ describe('NotFound', () => {
     ).toBeInTheDocument();
   });
 
+  // Kept out of i18next, which would read `$t(` as the start of a nested translation
+  it('names a path holding an unclosed $t( as it is, at once', () => {
+    const path = `/$t(${'a'.repeat(16)}`;
+
+    renderAt(path);
+
+    expect(screen.getByText(`La page ${path} n’existe pas.`)).toBeInTheDocument();
+  });
+
+  it.each(['/$&', "/$'", '/$`', '/$$', '/{{path}}'])(
+    'names the path %s as it is, without reading it as a pattern',
+    path => {
+      renderAt(path);
+
+      expect(screen.getByText(`La page ${path} n’existe pas.`)).toBeInTheDocument();
+    },
+  );
+
   it(`cuts a path longer than ${MAX_DISPLAYED_PATH_LENGTH_CHARS} characters`, () => {
     renderAt(`/${'a'.repeat(MAX_DISPLAYED_PATH_LENGTH_CHARS * 2)}`);
 

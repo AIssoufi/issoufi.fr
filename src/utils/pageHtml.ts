@@ -1,6 +1,4 @@
-import { DEFAULT_LANGUAGE, LANGUAGES, OPEN_GRAPH_LOCALES } from '../i18n/constants';
-import { en } from '../i18n/en';
-import { fr } from '../i18n/fr';
+import { DEFAULT_LANGUAGE, LANGUAGES, OPEN_GRAPH_LOCALES, TRANSLATIONS } from '../i18n/constants';
 import type { Language, Translations } from '../i18n/types';
 import {
   getOgImageUrl,
@@ -10,6 +8,7 @@ import {
   type PageAlternate,
 } from './pages';
 import { isNonBlankString } from './strings';
+import { renderStructuredDataScript } from './structuredData';
 import { getWebManifestUrl } from './webManifest';
 
 /** Escapes a value for use inside a double-quoted HTML attribute or a text node. */
@@ -17,17 +16,15 @@ const escapeHtml = (value: string) =>
   value.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 
 /**
- * `meta` translations of each language: the titles and descriptions of the pages, and the texts
- * shared by every page.
- */
-const META_TRANSLATIONS: Record<Language, Translations['meta']> = { fr: fr.meta, en: en.meta };
-
-/**
  * Key of a page's title and description in the `meta` translations: every key but those that all
  * pages share, `ogImageAlt`, the description of the link preview image, `noScript`, the message
- * shown without JavaScript, and `webApp`, the texts of the web app manifest.
+ * shown without JavaScript, `siteName` and `ownerName`, the names of the site and of its owner,
+ * and `webApp`, the texts of the web app manifest.
  */
-type PageMetaKey = Exclude<keyof Translations['meta'], 'ogImageAlt' | 'noScript' | 'webApp'>;
+type PageMetaKey = Exclude<
+  keyof Translations['meta'],
+  'ogImageAlt' | 'noScript' | 'siteName' | 'ownerName' | 'webApp'
+>;
 
 /** A `%PAGE_*%` placeholder of `index.html`. Its first group captures its name. */
 const PLACEHOLDER_PATTERN = /%(PAGE_[A-Z_]+)%/g;
@@ -48,16 +45,17 @@ interface FillPlaceholdersParams {
 
 /**
  * Replaces every `%PAGE_*%` placeholder with the metadata of a page in a language, HTML-escaped:
- * its language code (`<html lang>`), its Open Graph locale, its title, its description, its URL,
- * the URL and description of the link preview image of its language, and the message shown
- * without JavaScript. An unknown placeholder is left as it is.
+ * its language code (`<html lang>`), its Open Graph locale, the name of the site, its title, its
+ * description, its URL, the URL and description of the link preview image of its language, and the
+ * message shown without JavaScript. An unknown placeholder is left as it is.
  */
 function fillPlaceholders({ template, meta, language, url, years }: FillPlaceholdersParams) {
-  const translations = META_TRANSLATIONS[language];
+  const translations = TRANSLATIONS[language].meta;
   const { title, description } = translations[meta];
   const values: Record<string, string> = {
     PAGE_LANGUAGE: language,
     PAGE_LOCALE: OPEN_GRAPH_LOCALES[language],
+    PAGE_SITE_NAME: translations.siteName,
     PAGE_TITLE: title,
     PAGE_DESCRIPTION: description.replace(/{{years}}/g, String(years)),
     PAGE_URL: url,
@@ -137,7 +135,9 @@ interface RenderPageHtmlParams {
  * Fills the `%PAGE_*%` placeholders of `index.html` with the metadata of a page in a language
  * (see {@link fillPlaceholders}), its URL in that language as the canonical URL, and adds to its
  * head the links to its translations (see {@link renderAlternateTags}) and to the web app manifest
- * of its language (see {@link renderManifestLink}). Used by the Vite plugin at build time.
+ * of its language (see {@link renderManifestLink}), then its structured data, which describes the
+ * page, the site and its owner to search engines (see {@link renderStructuredDataScript}). Used by
+ * the Vite plugin at build time.
  *
  * @returns The HTML with every placeholder replaced and HTML-escaped.
  */
@@ -152,6 +152,7 @@ export function renderPageHtml({
   const tags = [
     ...renderAlternateTags({ path: page.path, language }),
     renderManifestLink(language),
+    renderStructuredDataScript({ page, language }),
   ];
   return addToHead({ html, tags });
 }
@@ -172,9 +173,9 @@ interface RenderNotFoundHtmlParams {
 
 /**
  * Builds a not found page from the `index.html` template: the "page not found" title and
- * description in its language, no canonical URL, `og:url` or translations (the page has no
- * address of its own), a `noindex` robots tag, and the link to the web app manifest of its
- * language. The app loads normally and shows its NotFound page at the requested URL.
+ * description in its language, no canonical URL, `og:url`, translations or structured data (the
+ * page has no address of its own), a `noindex` robots tag, and the link to the web app manifest
+ * of its language. The app loads normally and shows its NotFound page at the requested URL.
  *
  * @returns The HTML of the not found page, with every placeholder replaced.
  */

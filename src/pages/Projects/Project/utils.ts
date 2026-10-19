@@ -1,3 +1,4 @@
+import { isNonBlankString } from '../../../utils/strings';
 import { ROW_CARD_COUNT, WHOLE_CARD_TOLERANCE_PX } from './constants';
 import type { ProjectItemData, RowMeasures, ThumbnailFile, ThumbnailSources } from './types';
 
@@ -218,10 +219,6 @@ export function setLike({ likedIds, id, isLiked }: SetLikeParams): Set<number> {
   return nextLikedIds;
 }
 
-/** Whether a value is a string holding more than whitespace. */
-const isFilledString = (value: unknown): value is string =>
-  typeof value === 'string' && value.trim() !== '';
-
 /**
  * Returns the url that the card title links to, or `undefined` when the card gets no link: it
  * needs a url to open, and a name for the link text, without which screen readers would announce
@@ -238,7 +235,7 @@ export function getProjectLinkUrl(
   project?: Partial<Pick<ProjectItemData, 'url' | 'name'>> | null,
 ): string | undefined {
   const { url, name } = project ?? {};
-  const canLink = isFilledString(url) && isFilledString(name);
+  const canLink = isNonBlankString(url) && isNonBlankString(name);
   return canLink ? url : undefined;
 }
 
@@ -283,7 +280,7 @@ const isThumbnailFile = (file: unknown): file is ThumbnailFile => {
   if (!isObject) return false;
 
   const { url, width, height } = file as Partial<ThumbnailFile>;
-  const isSrcSetUrl = isFilledString(url) && !WHITE_SPACE_PATTERN.test(url);
+  const isSrcSetUrl = isNonBlankString(url) && !WHITE_SPACE_PATTERN.test(url);
   return isSrcSetUrl && isPixelCount(width) && isPixelCount(height);
 };
 

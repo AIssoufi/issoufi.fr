@@ -177,9 +177,13 @@ const hasFlag = ({ flags, flag }) => (flags & flag) !== 0;
 /**
  * Gives the size of the scale of a component of a composite glyph, from its flags.
  * @param {number} flags - Flags of the component.
- * @returns {number} The size of its scale in bytes, 0 without a scale.
+ * @returns {number} The size of its scale in bytes, 0 without a scale. A malformed font that sets
+ * several scale flags gets the first one of WE_HAVE_A_SCALE, WE_HAVE_AN_X_AND_Y_SCALE and
+ * WE_HAVE_A_TWO_BY_TWO.
+ * @example
+ * getComponentScaleBytes(WE_HAVE_AN_X_AND_Y_SCALE | MORE_COMPONENTS); // 4
  */
-const getComponentScaleBytes = flags => {
+export const getComponentScaleBytes = flags => {
   if (hasFlag({ flags, flag: WE_HAVE_A_SCALE })) return COMPONENT_SCALE_BYTES;
   if (hasFlag({ flags, flag: WE_HAVE_AN_X_AND_Y_SCALE })) return COMPONENT_X_AND_Y_SCALE_BYTES;
   if (hasFlag({ flags, flag: WE_HAVE_A_TWO_BY_TWO })) return COMPONENT_TWO_BY_TWO_BYTES;

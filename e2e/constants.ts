@@ -152,6 +152,27 @@ export const LINK_INITIATOR_TYPE = 'link';
 export const PROJECTS_ROUTE: Page['path'] = '/projects';
 
 /**
+ * Card of each project of the Projects page: an item of the list of cards of its section, which
+ * holds the list of its tools.
+ */
+export const PROJECT_CARD_SELECTOR = `${PAGE_SELECTOR} section > ul > li`;
+
+/** List of the tools of each project card. */
+export const PROJECT_TOOLS_SELECTOR = `${PROJECT_CARD_SELECTOR} ul`;
+
+/**
+ * Dot that the screen shows between two tools of a project card, a decoration that screen readers
+ * must not read. The texts of the cards use none.
+ */
+export const TOOL_SEPARATOR = '·';
+
+/**
+ * Screen widths, in pixels, at which the browser test of the Projects page reads its cards as
+ * screen readers do: a phone, with one column of cards, and a laptop, with three.
+ */
+export const PROJECT_READING_SCREEN_WIDTHS_PX = [375, 1440] as const;
+
+/**
  * Screen widths, in pixels, at which the browser test of the project cards compares the row of
  * each section with its "Show all" rows, and moves the row with its arrows: the narrowest phones
  * still in use (320), two common phone widths (375 and 414), with one column of cards, a tablet in
@@ -414,6 +435,12 @@ export const HERO_POINTER_SCREENS = [
 export const MAX_WORD_SHIFT_PX = 2;
 
 /**
+ * Animated words of the home title, inside its heading: the innermost spans, within the blocks of
+ * its lines and the groups that hold a word to an animated one ("l’UX").
+ */
+export const HERO_WORD_SELECTOR = 'span:not(:has(span))';
+
+/**
  * Number of animation frames that the pointer rests at a point, each of which measures the words
  * of the home title. A word pushed stays where it went until `RETURN_DELAY_MS`
  * (`src/pages/Home/SplitWords/constants.ts`) after the last push, so the pushes of the points of
@@ -501,3 +528,26 @@ export const LOW_RESOLUTION_PROJECT_NAME_KEYS: readonly string[] = [
   'trouilletDecors',
   'yyServicies',
 ];
+
+/**
+ * Screen widths, in pixels, at which no line of the passion or the subtitle of the home page may
+ * hold a single word, and no department of the Experiences page may wrap away from its city: the
+ * narrowest phones (320), then common phone widths (360, 375, 390 and 414), where those lines once
+ * broke badly.
+ */
+export const LINE_BREAK_SCREEN_WIDTHS_PX = [320, 360, 375, 390, 414] as const;
+
+/** Start of a line that begins with the number of a French department in brackets, as "(06)". */
+export const DEPARTMENT_LINE_START_PATTERN = /^\(\d{2}\)/u;
+
+/** Title of the home page: the job title, then the passion for UX and UI design. */
+export const HERO_TITLE_SELECTOR = `${PAGE_SELECTOR} h1`;
+
+/**
+ * Second line of the home title, "passionné par l’UX et l’UI Design", a block of its own after the
+ * job title, whose three long words leave one of them alone on a line on a phone whatever the wrap.
+ */
+export const HERO_PASSION_SELECTOR = `${HERO_TITLE_SELECTOR} > :last-child`;
+
+/** Subtitle of the home page, right after its title. */
+export const HERO_SUBTITLE_SELECTOR = `${HERO_TITLE_SELECTOR} + p`;

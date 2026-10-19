@@ -1,10 +1,19 @@
-import type { Language } from './types';
+import { en } from './en';
+import { fr } from './fr';
+import type { Language, Translations } from './types';
 
 /**
  * Languages of the site, in the order the language toggle shows them. Each one needs its
- * translations in the resources of `index.ts`.
+ * translations in {@link TRANSLATIONS}.
  */
 export const LANGUAGES = ['fr', 'en'] as const;
+
+/**
+ * Translations of each language of {@link LANGUAGES}: the resources that i18next loads
+ * (`index.ts`), and the texts of the files generated at build time, the HTML pages, their
+ * structured data and the web app manifests.
+ */
+export const TRANSLATIONS: Record<Language, Translations> = { fr, en };
 
 /**
  * Language of the URLs without a language prefix, such as `/` and `/projects`, and fallback for a

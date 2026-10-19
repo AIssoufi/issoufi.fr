@@ -73,10 +73,13 @@ export const BuildVersion = styled.span`
 
 /* Holds the language toggle in the row of the header on mobile, above the open menu like the
    burger, so the language can change while the menu is open, and floats it alone on the right
-   edge of the screen from tablet up, centered vertically */
+   edge of the screen from tablet up, centered vertically. It follows the navigation in the page,
+   so that Tab reaches it after the links, as on the screen from tablet up, but stays before the
+   burger in the row on mobile */
 export const FloatingControls = styled.div`
   position: relative;
   z-index: ${th.zIndex('header')};
+  order: -1;
 
   @media (min-width: ${th('screens.tablet')}) {
     position: fixed;

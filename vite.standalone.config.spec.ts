@@ -1,9 +1,12 @@
 // @vitest-environment node
 import { resolve } from 'node:path';
-import { build, normalizePath, type Plugin, type Rollup } from 'vite';
+import { build, normalizePath, type Plugin, type Rolldown } from 'vite';
 
 import { isGoogleHost } from './e2e/utils';
 import { FONT_FACES } from './src/theme/constants';
+import { HOME_PAGE } from './src/utils/pages';
+import { SITEMAP_FILE_NAME } from './src/utils/sitemap';
+import { renderStructuredDataScript } from './src/utils/structuredData';
 import { HEADERS_FILE_NAME } from './vite/constants';
 import {
   HASH_ROUTER_MODULE,
@@ -40,26 +43,27 @@ const INLINE_SCRIPT_CODE_PATTERN = /(<script[^>]*>)[\s\S]*?(<\/script>)/g;
 /** HTML of a page without the code of its inline scripts, which may name tags in strings. */
 const stripInlineScripts = (html: string) => html.replace(INLINE_SCRIPT_CODE_PATTERN, '$1$2');
 
-/** Parameters of {@link hasAbsoluteUrl}. */
-interface HasAbsoluteUrlParams {
+/** Parameters of {@link hasQuotedUrl}. */
+interface HasQuotedUrlParams {
   /** HTML of a page of the build. */
   html: string;
-  /** Name of a file of `public/`, e.g. `home.webp`. */
-  fileName: string;
+  /** URL of a file of `public/`, absolute or relative, e.g. `/home.webp` or `./home.webp`. */
+  url: string;
 }
 
 /**
- * Tells whether a page names a file of `public/` with an absolute URL, between any quotes, escaped
- * or not, as `toRelativePublicUrls` finds them.
+ * Tells whether a page names a URL as a whole string, between any quotes, escaped or not, as
+ * `toRelativePublicUrls` finds them: the HTML writes its attributes between double quotes, and the
+ * minifier the strings of the code between back quotes.
  */
-const hasAbsoluteUrl = ({ html, fileName }: HasAbsoluteUrlParams) => {
-  const name = fileName.replace(REGEXP_SPECIAL_CHARACTERS, '\\$&');
-  const url = `${QUOTE_PATTERN}/${name}${OPTIONAL_ESCAPE_PATTERN}${QUOTE_PATTERN}`;
-  return new RegExp(url).test(html);
+const hasQuotedUrl = ({ html, url }: HasQuotedUrlParams) => {
+  const escapedUrl = url.replace(REGEXP_SPECIAL_CHARACTERS, '\\$&');
+  const pattern = `${QUOTE_PATTERN}${escapedUrl}${OPTIONAL_ESCAPE_PATTERN}${QUOTE_PATTERN}`;
+  return new RegExp(pattern).test(html);
 };
 
 /** File of the build: a chunk of scripts or an asset, such as an HTML page. */
-type OutputFile = Rollup.OutputChunk | Rollup.OutputAsset;
+type OutputFile = Rolldown.OutputChunk | Rolldown.OutputAsset;
 
 /** Files of the build, written in memory only. */
 let output: OutputFile[] = [];
@@ -84,7 +88,7 @@ beforeAll(async () => {
     plugins: [recordAppImports()],
     build: { write: false },
   });
-  output = (Array.isArray(result) ? result[0] : (result as Rollup.RollupOutput)).output;
+  output = (Array.isArray(result) ? result[0] : (result as Rolldown.RolldownOutput)).output;
 }, BUILD_TIMEOUT_MS);
 
 afterAll(() => {
@@ -92,7 +96,7 @@ afterAll(() => {
 });
 
 /** Tells whether a file of the build is an asset, such as an HTML page. */
-const isAsset = (file: OutputFile): file is Rollup.OutputAsset => file.type === 'asset';
+const isAsset = (file: OutputFile): file is Rolldown.OutputAsset => file.type === 'asset';
 
 /** Reads an asset of the build, or an empty string when the build has no such asset. */
 const getSource = (fileName: string) =>
@@ -124,6 +128,12 @@ describe('standalone build', () => {
     expect(html).toMatch(/<title>[^<]+<\/title>/);
   });
 
+  it('keeps the structured data of the home page, apart from the script of the app', () => {
+    expect(getSource(STANDALONE_PAGE_FILE_NAME)).toContain(
+      renderStructuredDataScript({ page: HOME_PAGE }),
+    );
+  });
+
   it('routes the app on the hash of the URL', () => {
     const hashRouterModule = normalizePath(resolve(HASH_ROUTER_MODULE));
 
@@ -133,7 +143,7 @@ describe('standalone build', () => {
   it('refers to the files of public/ with URLs relative to the page', () => {
     const html = getSource(STANDALONE_PAGE_FILE_NAME);
     const fileNames = listFileNames(resolve('public'));
-    const absoluteUrls = fileNames.filter(fileName => hasAbsoluteUrl({ html, fileName }));
+    const absoluteUrls = fileNames.filter(fileName => hasQuotedUrl({ html, url: `/${fileName}` }));
 
     expect(fileNames.length).toBeGreaterThan(0);
     expect(absoluteUrls).toEqual([]);
@@ -148,7 +158,7 @@ describe('standalone build', () => {
       'favicon.svg',
       'apple-touch-icon.png',
     ].forEach(name => {
-      expect(html).toContain(`"./${name}"`);
+      expect(hasQuotedUrl({ html, url: `./${name}` }), name).toBe(true);
     });
   });
 
@@ -189,6 +199,10 @@ describe('standalone build', () => {
 
   it(`leaves out the ${HEADERS_FILE_NAME} of Cloudflare Pages, which no server reads from the disk`, () => {
     expect(output.map(file => file.fileName)).not.toContain(HEADERS_FILE_NAME);
+  });
+
+  it(`leaves out ${SITEMAP_FILE_NAME}, which no search engine reads from the disk`, () => {
+    expect(output.map(file => file.fileName)).not.toContain(SITEMAP_FILE_NAME);
   });
 
   it('tells how to open it in a README.txt', () => {

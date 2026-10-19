@@ -1,6 +1,7 @@
 import styled, { css, keyframes, th } from '@xstyled/styled-components';
 
 import List from '../../../components/List';
+import NewTabLink from '../../../components/NewTabLink';
 import { CARD_PERSPECTIVE_PX, LIKE_ANIMATION_MS } from './constants';
 
 const heartPop = keyframes`
@@ -311,7 +312,8 @@ export const ProjectInfo = styled.div`
   padding-left: ${th.space(4)};
 `;
 
-export const ProjectName = styled.div`
+export const ProjectName = styled.h3`
+  margin: 0;
   font-size: ${th.fontSize(16)};
   font-weight: ${th.fontWeight('bold')};
   letter-spacing: ${th.letterSpacing(1)};
@@ -320,7 +322,7 @@ export const ProjectName = styled.div`
 
 // Its ::after covers the whole card, so that a click anywhere on it opens the project, while the
 // like button stays outside the link
-export const ProjectLink = styled.a`
+export const ProjectLink = styled(NewTabLink)`
   &::after {
     content: '';
     position: absolute;
@@ -345,7 +347,20 @@ export const ProjectType = styled.div`
   color: ${th.color('foreground-muted')};
 `;
 
-export const ProjectTools = styled.div`
+// A list that wraps as one line of text, its tools separated by dots
+export const ProjectTools = styled(List)`
   font-size: ${th.fontSize(13)};
   color: ${th.color('foreground-muted')};
+`;
+
+export const ProjectTool = styled.li`
+  display: inline;
+
+  /* A decoration between two tools, whose spaces wrap as those of a text: its empty alternative
+     text keeps screen readers from reading the dot. A browser without the alternative text drops
+     the second content and keeps the first */
+  &:not(:last-child)::after {
+    content: ' · ';
+    content: ' · ' / '';
+  }
 `;

@@ -187,7 +187,6 @@ describe('translateKey', () => {
       },
       lng: 'en',
       fallbackLng: 'fr',
-      showSupportNotice: false,
     });
     return instance.t;
   };

@@ -1,4 +1,5 @@
 // @vitest-environment node
+import { SITEMAP_FILE_NAME } from '../../../src/utils/sitemap';
 import { HEADERS_FILE_NAME } from '../../constants';
 import { STANDALONE_PAGE_FILE_NAME } from '../constants';
 import { inlineScript, isEntryChunk, isServerOnlyFile, removePreloadMarkers } from './bundle';
@@ -46,6 +47,17 @@ describe('isServerOnlyFile', () => {
 
   it.each(['_headers.txt', 'headers', '_Headers', 'nested/_headers', ' _headers'])(
     'is false for %j, which Cloudflare Pages does not read as its headers',
+    fileName => {
+      expect(isServerOnlyFile(fileName)).toBe(false);
+    },
+  );
+
+  it('is true for the sitemap, at the root of the build, which no search engine reads from the disk', () => {
+    expect(isServerOnlyFile(SITEMAP_FILE_NAME)).toBe(true);
+  });
+
+  it.each(['sitemap.xml.bak', 'sitemap', 'Sitemap.xml', 'en/sitemap.xml', ' sitemap.xml'])(
+    'is false for %j, which is not the sitemap of the build',
     fileName => {
       expect(isServerOnlyFile(fileName)).toBe(false);
     },

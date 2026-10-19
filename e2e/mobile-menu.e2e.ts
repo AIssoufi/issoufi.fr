@@ -58,16 +58,16 @@ interface GetMenuLinksParams {
 }
 
 /**
- * Every link of the open menu, in its order: the pages, the GitHub and LinkedIn icons, then the CV
- * link.
+ * Every link of the open menu, in its order: the pages, the GitHub and LinkedIn icons, named with
+ * the notice that they open a new tab, then the CV link.
  */
 const getMenuLinks = ({ navigation, translations }: GetMenuLinksParams) =>
   [
     translations.nav.home,
     translations.nav.projects,
     translations.nav.experience,
-    translations.githubLink.label,
-    translations.linkedInLink.label,
+    `${translations.githubLink.label} ${translations.newTabLink.notice}`,
+    `${translations.linkedInLink.label} ${translations.newTabLink.notice}`,
     translations.cvLink.text,
   ].map(name => ({ name, link: navigation.getByRole('link', { name, exact: true }) }));
 
@@ -222,7 +222,7 @@ for (const viewport of MOBILE_LAYOUT_SCREENS) {
       }).toPass();
     });
 
-    test('the language toggle stays usable over the open mobile menu, with Shift+Tab and a tap', async ({
+    test('the language toggle stays usable over the open mobile menu, with Tab and a tap', async ({
       page,
     }) => {
       await page.goto(LONG_PAGE_ROUTE);
@@ -233,12 +233,14 @@ for (const viewport of MOBILE_LAYOUT_SCREENS) {
         burgerBox,
       );
 
-      // Named after its language whatever the language of the page
-      const englishButton = page
-        .getByRole('group', { name: fr.langToggle.label })
-        .getByRole('button', { name: LANGUAGE_NAMES.en });
-      await burger.focus();
-      await page.keyboard.press('Shift+Tab');
+      // Named after its language whatever the language of the page. The toggle follows the
+      // navigation in the page, so Tab reaches it after the CV link, the last link of the menu
+      const languageToggle = page.getByRole('group', { name: fr.langToggle.label });
+      const englishButton = languageToggle.getByRole('button', { name: LANGUAGE_NAMES.en });
+      await navigation.getByRole('link', { name: fr.cvLink.text }).focus();
+      await page.keyboard.press('Tab');
+      await expect(languageToggle.getByRole('button', { name: LANGUAGE_NAMES.fr })).toBeFocused();
+      await page.keyboard.press('Tab');
       await expect(englishButton).toBeFocused();
 
       // A tap fails when something covers the button, as the menu did

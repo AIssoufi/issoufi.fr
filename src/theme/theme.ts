@@ -241,6 +241,8 @@ export const theme = {
     overlay: zIndices[9],
     /** Header and burger icon, above the mobile menu. */
     header: zIndices[11],
+    /** Skip link, above the header while it has the focus. */
+    skipLink: zIndices[12],
     /** Cursor glow, above everything. */
     cursor: zIndices[9999],
   },

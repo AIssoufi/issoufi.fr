@@ -1,5 +1,7 @@
 import styled, { th } from '@xstyled/styled-components';
 
+import NewTabLink from '../../../../components/NewTabLink';
+
 export const Row = styled.div`
   display: flex;
   flex-direction: row;
@@ -11,7 +13,7 @@ export const Row = styled.div`
   }
 `;
 
-export const Link = styled.a`
+export const Link = styled(NewTabLink)`
   display: flex;
   color: ${th.color('foreground-a65')};
   transition: color ${th.duration(250)} ${th.timingFunction('standard')};

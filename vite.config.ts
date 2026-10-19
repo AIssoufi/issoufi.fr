@@ -23,13 +23,14 @@ import {
 import {
   ALL_ENV_VARIABLES_PREFIX,
   ASSETS_DIR,
+  CODE_SPLITTING_GROUPS,
   HEADERS_FILE_NAME,
   SECURITY_HEADERS,
 } from './vite/constants';
 import {
   getChunkName,
   getFontFaceTags,
-  getPageChunkFile,
+  getPageChunkFiles,
   getServerPorts,
   renderHeaderRules,
 } from './vite/utils';
@@ -45,8 +46,8 @@ const fontFaces = (): Plugin => ({
   transformIndexHtml: () => getFontFaceTags(),
 });
 
-/** Parameters of the `preloadPageChunk` helper of {@link pageMeta}. */
-interface PreloadPageChunkParams {
+/** Parameters of the `preloadPageChunks` helper of {@link pageMeta}. */
+interface PreloadPageChunksParams {
   /** HTML of a generated page. */
   html: string;
   /** Folder in `src/pages` of the page that the HTML shows. */
@@ -59,8 +60,8 @@ interface PreloadPageChunkParams {
  * (`projects.html`, `en/index.html`, `en/projects.html`…) and a not found page per language
  * (`404.html`, `en/404.html`). It runs after Vite's own HTML plugin (`enforce: 'post'`), so the
  * template already contains the hashed asset tags. Each emitted page also preloads the chunk of
- * the page it shows, so a direct visit downloads it at the same time as the main chunk; the home
- * page is in the main chunk and needs none.
+ * the page it shows, and the chunks that this one imports, so a direct visit downloads them at the
+ * same time as the main chunk; the home page is in the main chunk and needs none.
  */
 const pageMeta = (): Plugin => {
   let template = '';
@@ -84,11 +85,15 @@ const pageMeta = (): Plugin => {
     generateBundle(_options, bundle) {
       if (!template) this.error('index.html was not transformed before generateBundle');
 
-      /** Preloads in a generated page the chunk of the page in `folder`, when it has one. */
-      const preloadPageChunk = ({ html, folder }: PreloadPageChunkParams) => {
-        const chunkFile = getPageChunkFile({ bundle, folder });
-        return chunkFile ? addModulePreload({ html, href: `${base}${chunkFile}` }) : html;
-      };
+      /**
+       * Preloads in a generated page the chunk of the page in `folder`, when it has one, and the
+       * chunks that it imports statically.
+       */
+      const preloadPageChunks = ({ html, folder }: PreloadPageChunksParams) =>
+        getPageChunkFiles({ bundle, folder }).reduce(
+          (page, chunkFile) => addModulePreload({ html: page, href: `${base}${chunkFile}` }),
+          html,
+        );
 
       const years = getYearsOfExperience();
 
@@ -99,7 +104,7 @@ const pageMeta = (): Plugin => {
           this.emitFile({
             type: 'asset',
             fileName,
-            source: preloadPageChunk({ html, folder: page.folder }),
+            source: preloadPageChunks({ html, folder: page.folder }),
           });
         });
 
@@ -108,7 +113,7 @@ const pageMeta = (): Plugin => {
         this.emitFile({
           type: 'asset',
           fileName,
-          source: preloadPageChunk({ html, folder: NOT_FOUND_FOLDER }),
+          source: preloadPageChunks({ html, folder: NOT_FOUND_FOLDER }),
         });
       });
     },
@@ -185,9 +190,10 @@ const TEST_TIMEOUT_MS = 10_000;
 
 /**
  * Vite and Vitest configuration: React with SVG components, the web fonts, page metadata, sitemap,
- * web app manifests and HTTP headers plugins, the dev and preview servers on the port of the
- * worktree (see {@link getServerPorts}), which fail when it is taken, the preview server with the
- * security headers of the site, and the tests in jsdom with coverage.
+ * web app manifests and HTTP headers plugins, a chunk per lazy page and named chunks for the
+ * libraries and the shared modules (see {@link CODE_SPLITTING_GROUPS}), the dev and preview
+ * servers on the port of the worktree (see {@link getServerPorts}), which fail when it is taken,
+ * the preview server with the security headers of the site, and the tests in jsdom with coverage.
  * @see https://vitejs.dev/config/
  */
 export default defineConfig(({ mode }) => {
@@ -200,9 +206,13 @@ export default defineConfig(({ mode }) => {
     // (src/App/Header) and typed in src/vite-env.d.ts; the tests read it too
     define: { __APP_VERSION__: JSON.stringify(packageJson.version) },
     build: {
-      rollupOptions: {
-        // The chunk of each lazily loaded page is named after its folder, not after its index file
-        output: { chunkFileNames: chunk => `${ASSETS_DIR}/${getChunkName(chunk)}-[hash].js` },
+      rolldownOptions: {
+        output: {
+          // The chunk of each lazily loaded page is named after its folder, not its index file
+          chunkFileNames: chunk => `${ASSETS_DIR}/${getChunkName(chunk)}-[hash].js`,
+          // The libraries and the modules that the pages share get chunks named after them
+          codeSplitting: { groups: CODE_SPLITTING_GROUPS },
+        },
       },
     },
     // A taken port stops the server instead of moving it to the next free port, so a test never

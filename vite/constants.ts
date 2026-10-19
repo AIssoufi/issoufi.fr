@@ -1,3 +1,5 @@
+import type { Rolldown } from 'vite';
+
 import type { HeaderRule } from './types';
 
 /** Port of the dev server when no `PORT` is set, as in the main checkout. */
@@ -149,11 +151,60 @@ export const LINE_BREAK_PATTERN = /[\r\n]/;
 /** Indent of each header under the path of its rule, in {@link HEADERS_FILE_NAME}. */
 export const HEADER_INDENT = '  ';
 
-/** Name that Rollup gives to the chunk of an `index` module, after its file name. */
+/** Name that Rolldown gives to the chunk of an `index` module, after its file name. */
 export const INDEX_CHUNK_NAME = 'index';
 
-/** Name of a chunk when Rollup gives it none. */
+/** Name of a chunk when Rolldown gives it none. */
 export const FALLBACK_CHUNK_NAME = 'chunk';
+
+/**
+ * Name of the chunk of the libraries of `node_modules` that the first load of a page needs, such
+ * as React, styled-components or i18next. They change less often than the code of the site, so a
+ * browser keeps this chunk across most deploys.
+ */
+export const VENDOR_CHUNK_NAME = 'vendor';
+
+/**
+ * Name of the chunk of the modules of the site that the main chunk shares with the lazily loaded
+ * pages, such as the translations, the theme or the `Page` component.
+ */
+export const SHARED_CHUNK_NAME = 'shared';
+
+/** Path of a module of a library, in a `node_modules` folder, on every system. */
+export const NODE_MODULES_PATTERN = /[\\/]node_modules[\\/]/;
+
+/**
+ * Tag that Rolldown gives to the modules that an entry imports statically, directly or not: those
+ * of the first load of a page, as opposed to the modules that only the lazy pages import.
+ */
+export const INITIAL_MODULE_TAG = '$initial';
+
+/**
+ * Fewest chunks that must use a module of the first load for it to go to the
+ * {@link SHARED_CHUNK_NAME} chunk: the main chunk and at least one lazy page.
+ */
+export const MIN_SHARED_MODULE_USERS = 2;
+
+/**
+ * Groups of modules that the build puts in chunks of their own name, where Rolldown would name a
+ * shared chunk after one of its modules (`Page`, for a chunk of React and the translations):
+ * - the libraries of the first load, in the {@link VENDOR_CHUNK_NAME} chunk;
+ * - the other modules of the first load that a lazy page uses too, in the
+ *   {@link SHARED_CHUNK_NAME} chunk.
+ *
+ * Both take the modules of the first load only ({@link INITIAL_MODULE_TAG}), which every page
+ * loads anyway: a module that only lazy pages use keeps a chunk of its own, which only these
+ * pages preload.
+ * @see https://rolldown.rs/in-depth/manual-code-splitting
+ */
+export const CODE_SPLITTING_GROUPS: Rolldown.CodeSplittingGroup[] = [
+  { name: VENDOR_CHUNK_NAME, test: NODE_MODULES_PATTERN, tags: [INITIAL_MODULE_TAG] },
+  {
+    name: SHARED_CHUNK_NAME,
+    tags: [INITIAL_MODULE_TAG],
+    minShareCount: MIN_SHARED_MODULE_USERS,
+  },
+];
 
 /** Separators of the folders in a module path, on every system. */
 export const PATH_SEPARATOR_PATTERN = /[\\/]/;

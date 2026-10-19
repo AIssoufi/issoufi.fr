@@ -1,6 +1,8 @@
 import {
   describeSmallTexts,
   type DrawnCharacter,
+  findDetachedDepartmentLines,
+  findSingleWordLines,
   groupLines,
   listDrawnCharacters,
   listDrawnTexts,
@@ -102,6 +104,15 @@ describe('listDrawnTexts', () => {
     stubVisibility(new Map());
 
     expect(listDrawnTexts(document.body)).toEqual([]);
+  });
+
+  it('leaves out a text without a parent element, as in a fragment given as the root', () => {
+    const fragment = document.createRange().createContextualFragment('Accueil<p>Projets</p>');
+    stubVisibility(new Map());
+
+    const texts = listDrawnTexts(fragment);
+
+    expect(texts.map(({ text }) => text)).toEqual(['Projets']);
   });
 });
 
@@ -226,6 +237,16 @@ describe('listDrawnCharacters', () => {
 
     expect(listDrawnCharacters(document.querySelector('main') as Element)).toEqual([]);
   });
+
+  it('leaves out a text without a parent element, as in a fragment given as the root', () => {
+    const fragment = document.createRange().createContextualFragment('a<p>b</p>');
+    boxes.set('a:0', FIRST_LINE_BOX);
+    boxes.set('b:0', FIRST_LINE_BOX);
+
+    const characters = listDrawnCharacters(fragment);
+
+    expect(characters.map(({ character: text }) => text)).toEqual(['b']);
+  });
 });
 
 describe('groupLines', () => {
@@ -286,5 +307,78 @@ describe('groupLines', () => {
     ['an object', { character: 'a' }],
   ])('rebuilds no line from %s', (_case, characters) => {
     expect(groupLines(characters as never)).toEqual([]);
+  });
+});
+
+describe('findSingleWordLines', () => {
+  it('lists the lines that hold a single word, in their order', () => {
+    const lines = ['Je vous aide à développer vos applications', 'web', 'passionné par', 'Design'];
+
+    expect(findSingleWordLines(lines)).toEqual(['web', 'Design']);
+  });
+
+  it.each([
+    ['words joined by a no-break space', 'UI\u00a0Design'],
+    ['two words', 'UX and'],
+    ['words between spaces', '  passionné par  '],
+  ])('keeps a line of %s', (_case, line) => {
+    expect(findSingleWordLines([line])).toEqual([]);
+  });
+
+  it('counts a word with an apostrophe or a hyphen as one word', () => {
+    expect(findSingleWordLines(['l’UX', 'full-stack'])).toEqual(['l’UX', 'full-stack']);
+  });
+
+  it('skips the lines with no word and the entries that are not strings', () => {
+    expect(findSingleWordLines(['', '  ', 42, null, undefined, 'web'] as never)).toEqual(['web']);
+  });
+
+  it.each([
+    ['no lines', []],
+    ['nothing', undefined],
+    ['null', null],
+    ['a string', 'web'],
+  ])('finds no line in %s', (_case, lines) => {
+    expect(findSingleWordLines(lines as never)).toEqual([]);
+  });
+});
+
+describe('findDetachedDepartmentLines', () => {
+  it('lists the lines that start with a department, in their order', () => {
+    const lines = [
+      'Supralog · CDI · Antibes',
+      '(06)',
+      'Sewan Groupe · CDI · Paris',
+      '(75) et plus',
+    ];
+
+    expect(findDetachedDepartmentLines(lines)).toEqual(['(06)', '(75) et plus']);
+  });
+
+  it.each([
+    ['a department after its city', 'Antibes\u00a0(06)'],
+    ['a department of one digit', '(6)'],
+    ['a department of three digits', '(974)'],
+    ['a bracketed word', '(DX)'],
+    ['an empty line', ''],
+  ])('keeps a line with %s', (_case, line) => {
+    expect(findDetachedDepartmentLines([line])).toEqual([]);
+  });
+
+  it('finds a department after spaces at the start of the line', () => {
+    expect(findDetachedDepartmentLines(['  (06)'])).toEqual(['  (06)']);
+  });
+
+  it('skips the entries that are not strings', () => {
+    expect(findDetachedDepartmentLines([6, null, '(06)'] as never)).toEqual(['(06)']);
+  });
+
+  it.each([
+    ['no lines', []],
+    ['nothing', undefined],
+    ['null', null],
+    ['a string', '(06)'],
+  ])('finds no line in %s', (_case, lines) => {
+    expect(findDetachedDepartmentLines(lines as never)).toEqual([]);
   });
 });

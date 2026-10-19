@@ -13,3 +13,9 @@ export const STALE_CHUNK_RELOAD_STORAGE_KEY = 'staleChunkReloadAt';
  * reload is missing from the current deployment too: another reload would loop forever.
  */
 export const STALE_CHUNK_RELOAD_COOLDOWN_MS = 60_000;
+
+/** Selector of the main heading of a page, the one that takes the focus after a navigation. */
+export const PAGE_HEADING_SELECTOR = 'h1';
+
+/** `tabindex` that lets a script focus an element without adding it to the `Tab` order. */
+export const SCRIPT_ONLY_TAB_INDEX = -1;

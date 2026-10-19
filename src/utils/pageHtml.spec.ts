@@ -5,6 +5,7 @@ import { en } from '../i18n/en';
 import { fr } from '../i18n/fr';
 import { addModulePreload, renderNotFoundHtml, renderPageHtml } from './pageHtml';
 import { OG_IMAGE_PATHS, PAGES, SITE_URL, getNotFoundFiles, getPageFiles } from './pages';
+import { getStructuredData } from './structuredData';
 import { getWebManifestUrl } from './webManifest';
 
 const [home, projects, experiences] = PAGES;
@@ -86,6 +87,7 @@ describe('renderPageHtml', () => {
 
     expect(html.match(/%PAGE_LANGUAGE%/g)).toHaveLength(1);
     expect(html.match(/%PAGE_LOCALE%/g)).toHaveLength(1);
+    expect(html.match(/%PAGE_SITE_NAME%/g)).toHaveLength(1);
     expect(html.match(/%PAGE_TITLE%/g)).toHaveLength(3);
     expect(html.match(/%PAGE_DESCRIPTION%/g)).toHaveLength(3);
     expect(html.match(/%PAGE_URL%/g)).toHaveLength(2);
@@ -245,7 +247,7 @@ describe('link to the web app manifest', () => {
 
     expect(page).toContain(
       '\n    <meta property="og:locale:alternate" content="fr_FR" />' +
-        '\n    <link rel="manifest" href="/en/manifest.webmanifest" />\n  </head>',
+        '\n    <link rel="manifest" href="/en/manifest.webmanifest" />\n    <script type="application/ld+json">',
     );
   });
 
@@ -253,6 +255,55 @@ describe('link to the web app manifest', () => {
     expect(renderNotFoundHtml({ template: '<p>%PAGE_TITLE%</p>', years: 8 })).toBe(
       '<p>Page introuvable - ADAM Issoufi</p>',
     );
+  });
+});
+
+describe('structured data', () => {
+  const html = readFileSync('index.html', 'utf-8');
+
+  /** Reads the structured data that the script elements of a page declare. */
+  const getStructuredDataScripts = (page: string) =>
+    [...page.matchAll(/<script type="application\/ld\+json">(.*?)<\/script>/g)].map(([, json]) =>
+      JSON.parse(json),
+    );
+
+  it.each(getPageFiles())(
+    'declares the structured data of $fileName in its language, in its head',
+    ({ page, language }) => {
+      const pageHtml = renderPageHtml({ template: html, page, language, years: 8 });
+
+      expect(getStructuredDataScripts(pageHtml)).toEqual([getStructuredData({ page, language })]);
+      expect(pageHtml.indexOf('application/ld+json')).toBeLessThan(pageHtml.indexOf('</head>'));
+    },
+  );
+
+  it.each(LANGUAGES)('declares none on the %s not found page, which has no address', language => {
+    const page = renderNotFoundHtml({ template: html, language, years: 8 });
+
+    expect(getStructuredDataScripts(page)).toEqual([]);
+  });
+
+  it('is not in index.html, whose pages each declare their own', () => {
+    expect(html).not.toContain('application/ld+json');
+  });
+});
+
+describe.each(LANGUAGES)('name of the site on the %s pages', language => {
+  const html = readFileSync('index.html', 'utf-8');
+  const siteName = { fr, en }[language].meta.siteName;
+
+  it('names the site for link previews, on every page', () => {
+    PAGES.forEach(page => {
+      const pageHtml = renderPageHtml({ template: html, page, language, years: 8 });
+
+      expect(getMetaContent({ html: pageHtml, property: 'og:site_name' })).toBe(siteName);
+    });
+  });
+
+  it('names the site on the not found page', () => {
+    const page = renderNotFoundHtml({ template: html, language, years: 8 });
+
+    expect(getMetaContent({ html: page, property: 'og:site_name' })).toBe(siteName);
   });
 });
 

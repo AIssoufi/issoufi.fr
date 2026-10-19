@@ -1,7 +1,8 @@
 import type { ComponentType, SVGProps } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { GITHUB_PROFILE_URL, LINKEDIN_PROFILE_URL } from './constants';
+import VisuallyHidden from '../../../../components/VisuallyHidden';
+import { GITHUB_PROFILE_URL, LINKEDIN_PROFILE_URL } from '../../../../constants/profiles';
 import GitHubIcon from './icons/github.svg?react';
 import LinkedInIcon from './icons/linkedin.svg?react';
 import { Link, Row } from './ProfileLinks.styled';
@@ -11,8 +12,8 @@ interface Profile {
   /** URL of the profile. Also used as the React key, so it must be unique. */
   url: string;
   /**
-   * Translation key of the name of the link, which screen readers read, since the icon has no
-   * text.
+   * Translation key of the name of the link, a text that only screen readers read, since the icon
+   * has no text.
    */
   labelKey: string;
   /** Official icon of the site of the profile, drawn in the color of the link. */
@@ -36,13 +37,14 @@ interface ProfileLinksProps {
 }
 
 /**
- * Row of the official GitHub then LinkedIn icons, alone and without a frame, each linking to the
- * profile of the site owner in a new tab, which gets no access to the site. Light grey, an icon
- * turns to the accent color of the buttons on hover. Large in the mobile menu, they are as high as
- * the text of the links in the bar of the header on desktop.
+ * Row of the official GitHub then LinkedIn icons, alone and without a frame, each a `NewTabLink`
+ * to the profile of the site owner, which opens in a new tab with no access to the site. Light
+ * grey, an icon turns to the accent color of the buttons on hover. Large in the mobile menu, they
+ * are as high as the text of the links in the bar of the header on desktop.
  *
- * Screen readers announce each one by its translated name, such as "Profil GitHub d’ADAM
- * Issoufi", since the icons have no text.
+ * Screen readers announce each one by its translated name, a hidden text since the icons have
+ * none, followed by the notice of the new tab, such as "Profil GitHub d’ADAM Issoufi (nouvel
+ * onglet)".
  *
  * @example
  * const MenuProfileLinks = styled(ProfileLinks)`
@@ -60,12 +62,10 @@ const ProfileLinks = ({ onClick, className }: ProfileLinksProps) => {
         <Link
           key={url}
           href={url}
-          target="_blank"
-          rel="noopener noreferrer"
-          aria-label={t(labelKey)}
           onClick={onClick}
         >
           <Icon aria-hidden />
+          <VisuallyHidden>{t(labelKey)}</VisuallyHidden>
         </Link>
       ))}
     </Row>

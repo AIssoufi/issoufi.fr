@@ -15,10 +15,14 @@ import {
   CursorGlow,
   HomePage,
   Intro,
+  JobTitleLine,
   MagneticWrapper,
+  NoWrap,
   Subtitle,
   Title,
+  TitleLine,
 } from './Home.styled';
+import { splitLastWord } from './utils';
 
 /**
  * Home page: the animated job title and subtitle, with links to the projects and experiences
@@ -38,6 +42,8 @@ export const Home = () => {
   const jobTitle = t('home.title1');
   // The "UX" and "UI" words continue the shimmer sequence of the job title's words
   const jobTitleWordCount = jobTitle.split(' ').length;
+  const passionStart = splitLastWord(t('home.title2Pre'));
+  const passionMiddle = splitLastWord(t('home.title2Mid'));
 
   return (
     <HomePage backgroundPhoto={HOME_PAGE.backgroundPhoto}>
@@ -46,13 +52,25 @@ export const Home = () => {
       <Content ref={contentRef}>
         <Intro>
           <Title>
-            <SplitWords startIndex={0}>{jobTitle}</SplitWords>
-            <br />
-            {t('home.title2Pre')}
-            <SplitWords startIndex={jobTitleWordCount}>UX</SplitWords>
-            {t('home.title2Mid')}
-            <SplitWords startIndex={jobTitleWordCount + 1}>UI</SplitWords>
-            {t('home.title2Post')}
+            <JobTitleLine>
+              <SplitWords startIndex={0}>{jobTitle}</SplitWords>
+            </JobTitleLine>
+            {/* The browser may wrap on either side of an animated word, even next to a no-break
+                space, so the words around it that belong to it, as in "l’UX" and "l’UI Design",
+                stay on its line by their own style */}
+            <TitleLine>
+              {passionStart.leading}
+              <NoWrap>
+                {passionStart.lastWord}
+                <SplitWords startIndex={jobTitleWordCount}>UX</SplitWords>
+              </NoWrap>
+              {passionMiddle.leading}
+              <NoWrap>
+                {passionMiddle.lastWord}
+                <SplitWords startIndex={jobTitleWordCount + 1}>UI</SplitWords>
+                {t('home.title2Post')}
+              </NoWrap>
+            </TitleLine>
           </Title>
           <Subtitle>{t('home.subtitle')}</Subtitle>
         </Intro>

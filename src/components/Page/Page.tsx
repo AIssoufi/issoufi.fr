@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
 
+import { MAIN_CONTENT_ID } from '../../constants/landmarks';
 import type { BackgroundPhoto } from '../../utils/pages';
 import { Main } from './Page.styled';
 import { getBackgroundImages } from './utils';
@@ -21,10 +22,11 @@ interface PageProps {
 }
 
 /**
- * Layout shared by every page, rendered as its `<main>` landmark: it fills the main area of the
- * app grid, with the same page gutter on both sides, over a fixed background photo and a dark
- * overlay. Pages extend it with `styled(Page)` in their own style file. A page has a single
- * `<main>`, so the content inside it never renders another one.
+ * Layout shared by every page, rendered as its `<main>` landmark, which the skip link of the app
+ * points to (see {@link MAIN_CONTENT_ID}): it fills the main area of the app grid, with the same
+ * page gutter on both sides, over a fixed background photo and a dark overlay. Pages extend it with
+ * `styled(Page)` in their own style file. A page has a single `<main>`, so the content inside it
+ * never renders another one.
  *
  * @example
  * const ProjectsPage = styled(Page)`
@@ -38,6 +40,7 @@ const Page = ({ backgroundPhoto, children, className }: PageProps) => {
 
   return (
     <Main
+      id={MAIN_CONTENT_ID}
       className={className}
       $backgroundImage={image}
       $portraitBackgroundImage={portraitImage}

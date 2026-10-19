@@ -29,6 +29,21 @@ export const GlobalStyle = createGlobalStyle`
     font-family: ${th.font('code')};
   }
 
+  /* Spreads the words of a heading evenly over its lines, and keeps a paragraph from ending on a
+     word alone, so that no line holds a single word where the text can avoid it */
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    text-wrap: balance;
+  }
+
+  p {
+    text-wrap: pretty;
+  }
+
   /* Without bullets, Safari no longer exposes a ul as a list: render lists with List
      (src/components/List), which gives them back their role */
   ul {
@@ -74,7 +89,7 @@ export const GlobalStyle = createGlobalStyle`
 
   /* The heading of a page takes the focus after a navigation, but cannot be activated: a focus
      ring would make it look like a control. Keep the selector in line with PAGE_HEADING_SELECTOR
-     and SCRIPT_ONLY_TAB_INDEX (src/App/PageHeadingFocus/constants.ts); App.spec.jsx checks it */
+     and SCRIPT_ONLY_TAB_INDEX (src/App/constants.ts); App.spec.jsx checks it */
   h1[tabindex='-1']:focus {
     outline: none;
   }

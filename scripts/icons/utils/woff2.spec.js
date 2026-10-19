@@ -122,6 +122,13 @@ describe('readGlyphOutlines', () => {
     expect(o.contours.flat().some(({ onCurve }) => !onCurve)).toBe(true);
   });
 
+  it('gives a space no contour, and a character met twice the same glyph each time', () => {
+    const { glyphs } = readGlyphOutlines({ file: LOGO_FONT_FILE, text: 'I I' });
+
+    expect(glyphs.map(({ contours }) => contours.length)).toEqual([1, 0, 1]);
+    expect(glyphs[2]).toEqual(glyphs[0]);
+  });
+
   it('gives no glyph for an empty text', () => {
     expect(readGlyphOutlines({ file: LOGO_FONT_FILE, text: '' }).glyphs).toEqual([]);
   });

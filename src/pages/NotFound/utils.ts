@@ -1,7 +1,10 @@
+import type { TFunction } from 'i18next';
+
 import {
   ELLIPSIS,
   INVISIBLE_CHARACTER_PATTERN,
   MAX_DISPLAYED_PATH_LENGTH_CHARS,
+  PATH_PLACEHOLDER,
 } from './constants';
 
 /**
@@ -101,4 +104,69 @@ export const getDisplayedPath = (path?: string | null): string =>
   truncateText({
     text: encodeInvisibleCharacters(decodePath(path)),
     maxLength: MAX_DISPLAYED_PATH_LENGTH_CHARS,
+  });
+
+/** Parameters of {@link replacePlaceholder}. */
+interface ReplacePlaceholderParams {
+  /** Text holding the placeholder. Any value that is not a string counts as an empty text. */
+  text?: string | null;
+  /** Placeholder to replace. An empty one, or a value that is not a string, replaces nothing. */
+  placeholder?: string | null;
+  /**
+   * Text to put in place of each placeholder, as it is. Any value that is not a string counts as
+   * an empty text.
+   */
+  value?: string | null;
+}
+
+/**
+ * Replaces each placeholder of a text with a value, taken as it is: unlike `replaceAll` with a
+ * text, it reads no pattern such as `$&` or `$'` in the value.
+ *
+ * @returns The text with every placeholder replaced, the text as given when it holds none or the
+ * placeholder is empty, and an empty string when the text is not a string.
+ *
+ * @example
+ * replacePlaceholder({ text: 'La page # n’existe pas.', placeholder: '#', value: '/$&' });
+ * // 'La page /$& n’existe pas.'
+ */
+export const replacePlaceholder = ({
+  text,
+  placeholder,
+  value,
+}: ReplacePlaceholderParams = {}): string => {
+  if (typeof text !== 'string') return '';
+
+  const hasPlaceholder = typeof placeholder === 'string' && placeholder !== '';
+  if (!hasPlaceholder) return text;
+
+  const replacement = typeof value === 'string' ? value : '';
+  return text.split(placeholder).join(replacement);
+};
+
+/** Parameters of {@link getNotFoundMessage}. */
+interface GetNotFoundMessageParams {
+  /** Translation function of the language to show. */
+  t: TFunction;
+  /** Path of the current location, as the URL encodes it. */
+  path?: string | null;
+}
+
+/**
+ * Translates the message of the not found page, `errors.notFound.message`, naming the path as
+ * {@link getDisplayedPath} shows it. i18next only interpolates {@link PATH_PLACEHOLDER}, which the
+ * path then replaces: the path, which anyone can type in a URL, never goes through i18next, which
+ * would read a `$t(` in it as the start of a nested translation.
+ *
+ * @returns The translated message, in the language of `t`, with the path in place of its
+ * `{{path}}`.
+ *
+ * @example
+ * getNotFoundMessage({ t, path: '/$t(skills' }); // 'La page /$t(skills n’existe pas.'
+ */
+export const getNotFoundMessage = ({ t, path }: GetNotFoundMessageParams): string =>
+  replacePlaceholder({
+    text: t('errors.notFound.message', { path: PATH_PLACEHOLDER }),
+    placeholder: PATH_PLACEHOLDER,
+    value: getDisplayedPath(path),
   });

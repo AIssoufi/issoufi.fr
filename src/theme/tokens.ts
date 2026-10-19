@@ -293,6 +293,7 @@ export const zIndices = {
   3: 3,
   9: 9,
   11: 11,
+  12: 12,
   9999: 9999,
 } as const;
 
