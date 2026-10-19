@@ -19,7 +19,7 @@ On every pull request, and on every push to `develop` and `main`, GitHub Actions
 1. formatting, lint and type-check, and a lint of the workflows;
 2. the unit tests with coverage;
 3. the build, its size, and the browser tests over three parallel jobs;
-4. on pull requests, a check of the commit messages and of new dependencies;
+4. on pull requests, a check of the commit messages and of new dependencies, and a comparison of the screenshots of every page with the base branch, which only informs;
 5. the deployment and its smoke test.
 
 ## Daily release and deploy

@@ -438,7 +438,10 @@ export const MAIN_CI_RUN_LOOKUP_ATTEMPTS = 6;
 /** Pause between two lookups of the CI run of main, in milliseconds. */
 export const MAIN_CI_RUN_LOOKUP_DELAY_MS = 5000;
 
-/** Line break of any platform, which a step output of GitHub Actions cannot hold. */
+/**
+ * Line break of any platform, which a step output of GitHub Actions cannot hold, and before which
+ * the summary of the screenshot comparison cuts the error of a screen.
+ */
 export const LINE_BREAK_PATTERN = /[\r\n]/;
 
 /**
@@ -479,3 +482,49 @@ export const WORKFLOW_PROPERTY_ESCAPE_PATTERN = /[%\r\n:,]/g;
 
 /** Slash at the end of a URL path, removed before another segment is added. */
 export const TRAILING_SLASH_PATTERN = /\/$/;
+
+/**
+ * Git reference whose merge base with `HEAD` the screenshot comparison (`pnpm test:visual`) takes
+ * as the base of the change, unless `--base` names another: the branch that pull requests target.
+ */
+export const DEFAULT_VISUAL_BASE_REF = 'origin/develop';
+
+/** Playwright configuration of the screenshot comparison, relative to the project root. */
+export const VISUAL_CONFIG_FILE = 'playwright.visual.config.ts';
+
+/**
+ * Environment variable that tells {@link VISUAL_CONFIG_FILE} in which checkout to serve the build:
+ * its `SITE_DIR_VARIABLE`, which both must name the same.
+ */
+export const VISUAL_SITE_DIR_VARIABLE = 'VISUAL_SITE_DIR';
+
+/**
+ * Folder of the HTML report of the screenshot comparison, relative to the project root, which the
+ * CI uploads as an artifact of the same name. Ignored by git.
+ */
+export const VISUAL_REPORT_DIR = 'visual-report';
+
+/**
+ * Status that the JSON report of Playwright gives a test that ended as expected: here, a screen
+ * that the change draws as the base did.
+ */
+export const EXPECTED_TEST_STATUS = 'expected';
+
+/**
+ * Ends of the names of the images that `toHaveScreenshot` attaches to a test whose screen differs
+ * from the expected one: the screenshot of the base, the one of the change, and the image of
+ * their differences. A screen missing from the base lacks the first.
+ */
+export const SCREENSHOT_DIFF_ATTACHMENT_SUFFIXES = ['-expected.png', '-actual.png', '-diff.png'];
+
+/**
+ * End of the name of the image that `toHaveScreenshot` attaches when the page never stood still
+ * long enough for two screenshots in a row to match: a failure of the page, not a change.
+ */
+export const UNSTABLE_SCREENSHOT_ATTACHMENT_SUFFIX = '-previous.png';
+
+/** Text that joins the titles of a test and of its groups, as the reports of Playwright do. */
+export const TEST_TITLE_SEPARATOR = ' › ';
+
+/** Pipe that would end a cell of a Markdown table, written `\|` inside a cell. */
+export const TABLE_CELL_PIPE_PATTERN = /\|/g;

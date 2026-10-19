@@ -4,6 +4,7 @@
 | ------------------ | ------------------------------ | -------------------------------------- |
 | Unit and component | Vitest, Testing Library, jsdom | `pnpm test`                            |
 | Browser            | Playwright, Chromium, axe-core | `pnpm build`, then `pnpm test:browser` |
+| Screenshots        | Playwright, Chromium           | `pnpm test:visual`                     |
 
 ## Unit and component tests
 
@@ -24,6 +25,17 @@ They run in both languages, on screens from small phones to large desktops:
 | Images        | each screen downloads the right photo and screenshot sizes                                                                    |
 | Server        | each page in its language, the security headers and policy, no request to Google                                              |
 
+## Screenshot comparison
+
+`pnpm test:visual` shows what a change draws differently, page by page.
+
+- It builds the working tree and its base, the commit where it left `origin/develop`, then screenshots every page in both languages, on a phone, a tablet, a laptop and a desktop screen.
+  Run `git fetch origin` first; `--base <ref>` compares with another branch. It takes about a minute.
+- The screens of the base are the expected ones. A changed screen does not fail the run, since the change may mean it; a page that does not load does.
+- Both builds render alike: a fixed date, fixed random values, reduced motion, and every image and font loaded.
+- The HTML report shows each changed screen before and after the change, with their diff and a slider: `pnpm exec playwright show-report visual-report`.
+- On a pull request, the `visual` job lists the changed screens in its summary and uploads the report as its `visual-report` artifact. No ruleset requires it.
+
 ## Pitfalls
 
 ### Vitest and jsdom
@@ -40,3 +52,4 @@ They run in both languages, on screens from small phones to large desktops:
 
 - **Animations**: wait for them to end before measuring a box (`waitForEndingAnimations`), or open the page with reduced motion. An element still sliding in stands elsewhere.
 - **Proof**: check that a new test fails without its fix, at every size it covers.
+- **Screenshots**: a screen that changes with no change of the code draws something that moves from a run to the next, such as the time, a random value or a late image. Fix it in `e2e/pages.visual.ts` rather than tolerate a difference.
