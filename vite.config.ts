@@ -2,38 +2,38 @@ import react from '@vitejs/plugin-react';
 import { defineConfig, loadEnv, type Plugin } from 'vite';
 import svgr from 'vite-plugin-svgr';
 
-import packageJson from './package.json';
-import { DEFAULT_LANGUAGE } from './src/i18n/constants';
-import { getYearsOfExperience } from './src/utils/career';
-import { addModulePreload, renderNotFoundHtml, renderPageHtml } from './src/utils/pageHtml';
+import packageJson from './package.json' with { type: 'json' };
+import { DEFAULT_LANGUAGE } from './src/i18n/constants.ts';
+import { getYearsOfExperience } from './src/utils/career.ts';
+import { addModulePreload, renderNotFoundHtml, renderPageHtml } from './src/utils/pageHtml.ts';
 import {
   getNotFoundFiles,
   getPageFiles,
   HOME_PAGE,
   isTemplatePageFile,
   NOT_FOUND_FOLDER,
-} from './src/utils/pages';
-import { renderSitemap, SITEMAP_FILE_NAME } from './src/utils/sitemap';
+} from './src/utils/pages.ts';
+import { renderSitemap, SITEMAP_FILE_NAME } from './src/utils/sitemap.ts';
 import {
   findWebManifestLanguage,
   getWebManifestFiles,
   renderWebManifest,
   WEB_MANIFEST_MEDIA_TYPE,
-} from './src/utils/webManifest';
+} from './src/utils/webManifest.ts';
 import {
   ALL_ENV_VARIABLES_PREFIX,
   ASSETS_DIR,
   CODE_SPLITTING_GROUPS,
   HEADERS_FILE_NAME,
   SECURITY_HEADERS,
-} from './vite/constants';
+} from './vite/constants.ts';
 import {
   getChunkName,
   getFontFaceTags,
   getPageChunkFiles,
   getServerPorts,
   renderHeaderRules,
-} from './vite/utils';
+} from './vite/utils.ts';
 
 /**
  * Vite plugin that adds the web fonts of the site to the head of `index.html`, in development as
@@ -194,6 +194,9 @@ const TEST_TIMEOUT_MS = 10_000;
  * libraries and the shared modules (see {@link CODE_SPLITTING_GROUPS}), the dev and preview
  * servers on the port of the worktree (see {@link getServerPorts}), which fail when it is taken,
  * the preview server with the security headers of the site, and the tests in jsdom with coverage.
+ * Node.js loads it as it is, its types stripped (`--configLoader native` in the scripts of
+ * `package.json`): every relative import of the modules that it loads names its `.ts` file, and a
+ * JSON import says `with { type: 'json' }`.
  * @see https://vitejs.dev/config/
  */
 export default defineConfig(({ mode }) => {

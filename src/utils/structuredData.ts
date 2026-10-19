@@ -1,8 +1,8 @@
-import { GITHUB_PROFILE_URL, LINKEDIN_PROFILE_URL } from '../constants/profiles';
-import { DEFAULT_LANGUAGE, TRANSLATIONS } from '../i18n/constants';
-import type { Language } from '../i18n/types';
-import { isLanguage } from '../i18n/utils';
-import { getOgImageUrl, getPageUrl, HOME_PAGE, type Page, SITE_URL } from './pages';
+import { GITHUB_PROFILE_URL, LINKEDIN_PROFILE_URL } from '../constants/profiles.ts';
+import { DEFAULT_LANGUAGE, TRANSLATIONS } from '../i18n/constants.ts';
+import type { Language } from '../i18n/types.ts';
+import { isLanguage } from '../i18n/utils.ts';
+import { getOgImageUrl, getPageUrl, HOME_PAGE, type Page, SITE_URL } from './pages.ts';
 
 /** Vocabulary of the structured data of the pages, the `@context` of each of them. */
 export const SCHEMA_ORG_CONTEXT = 'https://schema.org';

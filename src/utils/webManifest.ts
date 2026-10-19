@@ -1,9 +1,9 @@
-import { DEFAULT_LANGUAGE, LANGUAGES, TEXT_DIRECTIONS, TRANSLATIONS } from '../i18n/constants';
-import type { Language } from '../i18n/types';
-import { isLanguage, localizePath } from '../i18n/utils';
-import { theme } from '../theme/theme';
-import { APP_ICONS, type AppIcon } from './icons';
-import { getLanguageFileName, HOME_PAGE } from './pages';
+import { DEFAULT_LANGUAGE, LANGUAGES, TEXT_DIRECTIONS, TRANSLATIONS } from '../i18n/constants.ts';
+import type { Language } from '../i18n/types.ts';
+import { isLanguage, localizePath } from '../i18n/utils.ts';
+import { theme } from '../theme/theme.ts';
+import { APP_ICONS, type AppIcon } from './icons.ts';
+import { getLanguageFileName, HOME_PAGE } from './pages.ts';
 
 /**
  * Name of the web app manifest of each language in the build: at its root for the default

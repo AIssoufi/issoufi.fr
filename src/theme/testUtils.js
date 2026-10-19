@@ -143,8 +143,11 @@ export const findRawValues = source => {
   );
 };
 
-/** Module of the primitives, the only values that the semantic theme may read. */
-const PRIMITIVES_MODULE = './tokens';
+/**
+ * Module of the primitives, the only values that the semantic theme may read, as `theme.ts` imports
+ * it: with the extension of its file, since Node.js loads `theme.ts` with the Vite config.
+ */
+const PRIMITIVES_MODULE = './tokens.ts';
 
 /**
  * Local names of what a source imports from a module: `values`, its default and named imports,

@@ -1,8 +1,13 @@
-import { DEFAULT_LANGUAGE, LANGUAGES } from '../i18n/constants';
-import type { Language } from '../i18n/types';
-import { getLanguagePrefix, isLanguage, localizePath, removeLanguagePrefix } from '../i18n/utils';
-import { theme } from '../theme/theme';
-import { isNonBlankString } from './strings';
+import { DEFAULT_LANGUAGE, LANGUAGES } from '../i18n/constants.ts';
+import type { Language } from '../i18n/types.ts';
+import {
+  getLanguagePrefix,
+  isLanguage,
+  localizePath,
+  removeLanguagePrefix,
+} from '../i18n/utils.ts';
+import { theme } from '../theme/theme.ts';
+import { isNonBlankString } from './strings.ts';
 
 /**
  * Production origin of the site, without a trailing slash. Used to build canonical URLs. The CI

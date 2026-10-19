@@ -1,6 +1,6 @@
 import type { Rolldown } from 'vite';
 
-import type { HeaderRule } from './types';
+import type { HeaderRule } from './types.ts';
 
 /** Port of the dev server when no `PORT` is set, as in the main checkout. */
 export const DEFAULT_DEV_PORT = 3000;

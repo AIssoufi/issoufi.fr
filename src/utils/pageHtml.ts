@@ -1,15 +1,20 @@
-import { DEFAULT_LANGUAGE, LANGUAGES, OPEN_GRAPH_LOCALES, TRANSLATIONS } from '../i18n/constants';
-import type { Language, Translations } from '../i18n/types';
+import {
+  DEFAULT_LANGUAGE,
+  LANGUAGES,
+  OPEN_GRAPH_LOCALES,
+  TRANSLATIONS,
+} from '../i18n/constants.ts';
+import type { Language, Translations } from '../i18n/types.ts';
 import {
   getOgImageUrl,
   getPageAlternates,
   getPageUrl,
   type Page,
   type PageAlternate,
-} from './pages';
-import { isNonBlankString } from './strings';
-import { renderStructuredDataScript } from './structuredData';
-import { getWebManifestUrl } from './webManifest';
+} from './pages.ts';
+import { isNonBlankString } from './strings.ts';
+import { renderStructuredDataScript } from './structuredData.ts';
+import { getWebManifestUrl } from './webManifest.ts';
 
 /** Escapes a value for use inside a double-quoted HTML attribute or a text node. */
 const escapeHtml = (value: string) =>

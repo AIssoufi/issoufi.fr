@@ -1,8 +1,8 @@
 import type { HtmlTagDescriptor } from 'vite';
 
-import { FONT_FACES, FONT_MEDIA_TYPE } from '../src/theme/constants';
-import type { FontFaceDeclaration } from '../src/theme/types';
-import { isDeclarableFontFace, renderFontFaces } from '../src/theme/utils';
+import { FONT_FACES, FONT_MEDIA_TYPE } from '../src/theme/constants.ts';
+import type { FontFaceDeclaration } from '../src/theme/types.ts';
+import { isDeclarableFontFace, renderFontFaces } from '../src/theme/utils.ts';
 import {
   DEFAULT_DEV_PORT,
   DEFAULT_PREVIEW_PORT,
@@ -19,8 +19,8 @@ import {
   PAGES_DIR,
   PATH_SEPARATOR_PATTERN,
   PORT_PATTERN,
-} from './constants';
-import type { HeaderRule } from './types';
+} from './constants.ts';
+import type { HeaderRule } from './types.ts';
 
 /** Environment variables, as Vite's `loadEnv` returns them. */
 type Env = Record<string, string | undefined>;
