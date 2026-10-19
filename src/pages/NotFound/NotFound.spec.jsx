@@ -44,6 +44,26 @@ describe('NotFound', () => {
     ).toBeInTheDocument();
   });
 
+  // Kept out of i18next, which would read `$t(` as the start of a nested translation: on an
+  // unclosed one, its nesting took seconds for a dozen characters, then twice as long for each
+  // more, from version 25.3.3 to 26.4.3, so this test then outlasts its timeout
+  it('names a path holding an unclosed $t( as it is, at once', () => {
+    const path = `/$t(${'a'.repeat(16)}`;
+
+    renderAt(path);
+
+    expect(screen.getByText(`La page ${path} n’existe pas.`)).toBeInTheDocument();
+  });
+
+  it.each(['/$&', "/$'", '/$`', '/$$', '/{{path}}'])(
+    'names the path %s as it is, without reading it as a pattern',
+    path => {
+      renderAt(path);
+
+      expect(screen.getByText(`La page ${path} n’existe pas.`)).toBeInTheDocument();
+    },
+  );
+
   it(`cuts a path longer than ${MAX_DISPLAYED_PATH_LENGTH_CHARS} characters`, () => {
     renderAt(`/${'a'.repeat(MAX_DISPLAYED_PATH_LENGTH_CHARS * 2)}`);
 

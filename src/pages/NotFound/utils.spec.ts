@@ -1,5 +1,18 @@
-import { ELLIPSIS, MAX_DISPLAYED_PATH_LENGTH_CHARS } from './constants';
-import { decodePath, encodeInvisibleCharacters, getDisplayedPath, truncateText } from './utils';
+import i18n from '../../i18n';
+import { en } from '../../i18n/en';
+import { fr } from '../../i18n/fr';
+import { ELLIPSIS, MAX_DISPLAYED_PATH_LENGTH_CHARS, PATH_PLACEHOLDER } from './constants';
+import {
+  decodePath,
+  encodeInvisibleCharacters,
+  getDisplayedPath,
+  getNotFoundMessage,
+  replacePlaceholder,
+  truncateText,
+} from './utils';
+
+/** Texts that `String.prototype.replace` reads as patterns in a replacement text. */
+const REPLACEMENT_PATTERNS = ['$&', "$'", '$`', '$$', '$1', '$<name>'];
 
 describe('decodePath', () => {
   it.each([
@@ -147,5 +160,134 @@ describe('getDisplayedPath', () => {
 
   it.each([undefined, null, 404])('returns an empty string for %j', path => {
     expect(getDisplayedPath(path as unknown as string)).toBe('');
+  });
+});
+
+describe('replacePlaceholder', () => {
+  it.each([
+    ['La page # n’existe pas.', 'La page /skills n’existe pas.'],
+    ['#', '/skills'],
+    ['# puis #', '/skills puis /skills'],
+    ['#début', '/skillsdébut'],
+    ['fin#', 'fin/skills'],
+  ])('replaces each placeholder of %j', (text, expected) => {
+    expect(replacePlaceholder({ text, placeholder: '#', value: '/skills' })).toBe(expected);
+  });
+
+  it('leaves a text without the placeholder as it is', () => {
+    expect(replacePlaceholder({ text: 'Introuvable.', placeholder: '#', value: '/skills' })).toBe(
+      'Introuvable.',
+    );
+  });
+
+  it.each(REPLACEMENT_PATTERNS)('puts the value %s as it is, without reading a pattern', value => {
+    expect(replacePlaceholder({ text: 'La page # n’existe pas.', placeholder: '#', value })).toBe(
+      `La page ${value} n’existe pas.`,
+    );
+  });
+
+  it('replaces no placeholder that the value brings', () => {
+    expect(replacePlaceholder({ text: 'a#b', placeholder: '#', value: '##' })).toBe('a##b');
+  });
+
+  it.each([undefined, null, 404])('removes the placeholder for the value %j', value => {
+    expect(
+      replacePlaceholder({ text: 'a#b', placeholder: '#', value: value as unknown as string }),
+    ).toBe('ab');
+  });
+
+  it.each(['', undefined, null, 404])(
+    'leaves the text as it is for the placeholder %j',
+    placeholder => {
+      expect(
+        replacePlaceholder({
+          text: 'a#b',
+          placeholder: placeholder as unknown as string,
+          value: '/skills',
+        }),
+      ).toBe('a#b');
+    },
+  );
+
+  it.each([undefined, null, 404, {}])('returns an empty string for the text %j', text => {
+    expect(
+      replacePlaceholder({ text: text as unknown as string, placeholder: '#', value: '/skills' }),
+    ).toBe('');
+  });
+
+  it('returns an empty string without any parameter', () => {
+    expect(replacePlaceholder()).toBe('');
+  });
+});
+
+describe('getNotFoundMessage', () => {
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it.each([
+    ['fr', 'La page /skills n’existe pas.'],
+    ['en', 'The page /skills does not exist.'],
+  ])('names the path in %s', (language, message) => {
+    expect(getNotFoundMessage({ t: i18n.getFixedT(language), path: '/skills' })).toBe(message);
+  });
+
+  it('names the path as the page shows it', () => {
+    expect(
+      getNotFoundMessage({ t: i18n.getFixedT('fr'), path: '/un%20lien%E2%80%8B%20partag%C3%A9' }),
+    ).toBe('La page /un lien%E2%80%8B partagé n’existe pas.');
+  });
+
+  it.each([
+    ['fr', fr],
+    ['en', en],
+  ])('uses a placeholder that no %s translation holds', (_language, translations) => {
+    expect(JSON.stringify(translations)).not.toContain(PATH_PLACEHOLDER);
+  });
+
+  it('gives i18next the placeholder, never the path', () => {
+    const translate = vi.spyOn(i18n, 't');
+
+    const message = getNotFoundMessage({ t: i18n.getFixedT('fr'), path: '/$t(skills' });
+
+    expect(message).toBe('La page /$t(skills n’existe pas.');
+    expect(translate).toHaveBeenCalledWith(
+      'errors.notFound.message',
+      expect.objectContaining({ path: PATH_PLACEHOLDER }),
+    );
+    expect(JSON.stringify(translate.mock.calls)).not.toContain('skills');
+  });
+
+  // On an unclosed `$t(`, the nesting of i18next 25.3.3 to 26.4.3 took seconds for a dozen
+  // characters, then twice as long for each more: this test would then outlast its timeout
+  it.each(['/$t(', `/$t(${'a'.repeat(16)}`, '/$t(errors.backHome)', '/{{path}}', '/$t(a, {"x": 1'])(
+    'names the path %s as it is, at once',
+    path => {
+      expect(getNotFoundMessage({ t: i18n.getFixedT('fr'), path })).toBe(
+        `La page ${path} n’existe pas.`,
+      );
+    },
+  );
+
+  it.each(REPLACEMENT_PATTERNS)('names the path /%s as it is', pattern => {
+    expect(getNotFoundMessage({ t: i18n.getFixedT('fr'), path: `/${pattern}` })).toBe(
+      `La page /${pattern} n’existe pas.`,
+    );
+  });
+
+  it.each([undefined, null, 404])('names an empty path for %j', path => {
+    expect(getNotFoundMessage({ t: i18n.getFixedT('fr'), path: path as unknown as string })).toBe(
+      'La page  n’existe pas.',
+    );
+  });
+
+  it('shows a message without the path when its translation leaves the path out', async () => {
+    const instance = i18n.createInstance();
+    await instance.init({
+      resources: { fr: { translation: { errors: { notFound: { message: 'Introuvable.' } } } } },
+      lng: 'fr',
+    });
+
+    expect(getNotFoundMessage({ t: instance.t, path: '/skills' })).toBe('Introuvable.');
   });
 });
