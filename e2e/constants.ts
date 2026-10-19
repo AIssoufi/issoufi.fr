@@ -612,8 +612,8 @@ export const COLOR_CONTRAST_RULE = 'color-contrast';
 /**
  * Rule of axe-core that checks that the accessible name of a control given by `aria-label` or
  * `aria-labelledby` holds its visible text, so that a voice control user who says what they see
- * finds it (success criterion 2.5.3, Label in Name, level A). Experimental, so axe-core runs it only
- * when it is named.
+ * finds it (success criterion 2.5.3, Label in Name, level A). Experimental, so axe-core runs it
+ * only when it is named.
  */
 export const LABEL_IN_NAME_RULE = 'label-content-name-mismatch';
 
