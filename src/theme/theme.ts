@@ -153,12 +153,6 @@ export const theme = {
     /** Largest width of the text of a status message, short enough to read at a glance. */
     message: measures[40],
     /**
-     * Largest width of the description of a job card from the `two-job-columns` breakpoint: its
-     * lines stay under 75 characters of Montserrat, whose zero is wider than most letters, within
-     * the 50 to 80 that keep a long text easy to follow.
-     */
-    'text-measure': measures[52],
-    /**
      * Largest width of the title and subtitle of the home page, given the font size of the words
      * of its title (`hero-title`): 640 px, or 15.25 times that size once larger, so the job title
      * keeps wrapping after the same word as it grows with the screen.
@@ -268,12 +262,6 @@ export const theme = {
      * than 260 px.
      */
     'three-project-columns': breakpoints['53.625'],
-    /**
-     * From this width, each job card of the Experiences page shows its summary and its technologies
-     * on the left of its description: 1024 px, where the description gets its whole measure
-     * (`text-measure`) next to a summary of more than 300 px.
-     */
-    'two-job-columns': breakpoints[64],
     /**
      * From this width, 1600 px, the layout scales up one step, so that a large screen shows the
      * content in proportion instead of a narrow column in its middle: the app container widens to

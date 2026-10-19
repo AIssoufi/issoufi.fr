@@ -1,7 +1,8 @@
 import JobSummary from '../JobSummary';
 import Project from '../Project';
+import Technologies from '../Technologies';
 
-import { Article, Details, JobTechnologies } from './Experience.styled';
+import { Article, Details } from './Experience.styled';
 
 /** Props of {@link Experience}. Every part is optional and is not rendered when missing. */
 interface ExperienceProps {
@@ -33,8 +34,8 @@ interface ExperienceProps {
    */
   endDate?: string;
   /**
-   * Technologies of the job, in display order, shown after its description, and under its summary
-   * from the `two-job-columns` breakpoint. None are shown when the list is empty or missing.
+   * Technologies of the job, in display order, shown under its description. None are shown when
+   * the list is empty or missing.
    */
   technologies?: string[];
   /** Description of the job: text, bullet lists and {@link Project}s. */
@@ -44,10 +45,8 @@ interface ExperienceProps {
 /**
  * `article` card for one job at one company: its {@link JobSummary} (logo, job title as a `h3`,
  * company details, period below the tablet breakpoint, computed duration), a free-form
- * description and the technologies of the job. Below the `two-job-columns` breakpoint they
- * follow each other; from it, the summary and the technologies stand on the left of the
- * description, whose lines stay short however wide the card. For several successive roles at the
- * same company, use `ExperienceGroup` instead.
+ * description and the technologies of the job, stacked at every width, each as wide as the
+ * card. For several successive roles at the same company, use `ExperienceGroup` instead.
  *
  * @example
  * <Experience
@@ -84,7 +83,7 @@ const Experience = ({
       endDate={endDate}
     />
     <Details>{children}</Details>
-    <JobTechnologies technologies={technologies} />
+    <Technologies technologies={technologies} />
   </Article>
 );
 

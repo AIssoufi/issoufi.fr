@@ -8,8 +8,6 @@ interface TechnologiesProps {
    * entry that is not a name, is left out, as data written by mistake could hold.
    */
   technologies?: string[];
-  /** Class of the list, for a parent that places it, such as `styled(Technologies)`. */
-  className?: string;
 }
 
 /**
@@ -21,12 +19,12 @@ interface TechnologiesProps {
  * @example
  * <Technologies technologies={['React.js', 'TypeScript']} />
  */
-const Technologies = ({ technologies, className }: TechnologiesProps) => {
+const Technologies = ({ technologies }: TechnologiesProps) => {
   const names = listUniqueNonBlankStrings(technologies);
   if (names.length === 0) return null;
 
   return (
-    <TechList className={className}>
+    <TechList>
       {names.map(name => (
         <TechChip key={name}>{name}</TechChip>
       ))}
