@@ -1,8 +1,6 @@
 import { GITHUB_PROFILE_URL, LINKEDIN_PROFILE_URL } from '../constants/profiles';
-import { DEFAULT_LANGUAGE } from '../i18n/constants';
-import { en } from '../i18n/en';
-import { fr } from '../i18n/fr';
-import type { Language, Translations } from '../i18n/types';
+import { DEFAULT_LANGUAGE, TRANSLATIONS } from '../i18n/constants';
+import type { Language } from '../i18n/types';
 import { isLanguage } from '../i18n/utils';
 import { getOgImageUrl, getPageUrl, HOME_PAGE, type Page, SITE_URL } from './pages';
 
@@ -25,9 +23,6 @@ export const PERSON_ID = `${SITE_URL}/#person`;
 
 /** End of the identifier of the site in a language, after the URL of its home page. */
 const WEB_SITE_ID_SUFFIX = '#website';
-
-/** Translations of each language, which name the site, its owner and each page. */
-const TRANSLATIONS: Record<Language, Translations> = { fr, en };
 
 /**
  * Characters that would end or change the script element holding a JSON text if written as they

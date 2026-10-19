@@ -1,6 +1,4 @@
-import { DEFAULT_LANGUAGE, LANGUAGES, OPEN_GRAPH_LOCALES } from '../i18n/constants';
-import { en } from '../i18n/en';
-import { fr } from '../i18n/fr';
+import { DEFAULT_LANGUAGE, LANGUAGES, OPEN_GRAPH_LOCALES, TRANSLATIONS } from '../i18n/constants';
 import type { Language, Translations } from '../i18n/types';
 import {
   getOgImageUrl,
@@ -16,12 +14,6 @@ import { getWebManifestUrl } from './webManifest';
 /** Escapes a value for use inside a double-quoted HTML attribute or a text node. */
 const escapeHtml = (value: string) =>
   value.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-
-/**
- * `meta` translations of each language: the titles and descriptions of the pages, and the texts
- * shared by every page.
- */
-const META_TRANSLATIONS: Record<Language, Translations['meta']> = { fr: fr.meta, en: en.meta };
 
 /**
  * Key of a page's title and description in the `meta` translations: every key but those that all
@@ -58,7 +50,7 @@ interface FillPlaceholdersParams {
  * message shown without JavaScript. An unknown placeholder is left as it is.
  */
 function fillPlaceholders({ template, meta, language, url, years }: FillPlaceholdersParams) {
-  const translations = META_TRANSLATIONS[language];
+  const translations = TRANSLATIONS[language].meta;
   const { title, description } = translations[meta];
   const values: Record<string, string> = {
     PAGE_LANGUAGE: language,
