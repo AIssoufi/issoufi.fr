@@ -390,14 +390,15 @@ describe('renderHeaderRules', () => {
     expect(renderHeaderRules().match(/X-Robots-Tag/g)).toHaveLength(1);
   });
 
-  it.each(['https://issoufi-fr.pages.dev/*', 'https://Issoufi-Fr.pages.dev/en/*', 'https://a.b/'])(
-    'writes a rule limited to the host of the absolute URL %s',
-    path => {
-      expect(render([{ path, headers: NO_INDEX_HEADERS }])).toBe(
-        `${path}\n  X-Robots-Tag: noindex\n`,
-      );
-    },
-  );
+  it.each([
+    'https://issoufi-fr.pages.dev/*',
+    'https://develop.issoufi-fr.pages.dev/en/*',
+    'https://a/',
+  ])('writes a rule limited to the host of the absolute URL %s', path => {
+    expect(render([{ path, headers: NO_INDEX_HEADERS }])).toBe(
+      `${path}\n  X-Robots-Tag: noindex\n`,
+    );
+  });
 
   it('trims the spaces around a value', () => {
     expect(render([{ path: '/', headers: { 'Cache-Control': '  no-cache \t' } }])).toBe(
@@ -429,6 +430,13 @@ describe('renderHeaderRules', () => {
       ['an absolute URL without a host', { ...cacheRule, path: 'https:///*' }],
       ['a host with a space', { ...cacheRule, path: 'https://issoufi fr.pages.dev/*' }],
       ['a host with an underscore', { ...cacheRule, path: 'https://issoufi_fr.pages.dev/*' }],
+      ['a host in capitals', { ...cacheRule, path: 'https://Issoufi-Fr.pages.dev/*' }],
+      ['a protocol in capitals', { ...cacheRule, path: 'HTTPS://issoufi-fr.pages.dev/*' }],
+      ['a placeholder in the host', { ...cacheRule, path: 'https://:project.pages.dev/*' }],
+      ['a host of dots only', { ...cacheRule, path: 'https://.../*' }],
+      ['an empty label in the host', { ...cacheRule, path: 'https://issoufi-fr..dev/*' }],
+      ['a label that starts with a hyphen', { ...cacheRule, path: 'https://-issoufi.dev/*' }],
+      ['a label that ends with a hyphen', { ...cacheRule, path: 'https://issoufi-.dev/*' }],
       ['no headers', { path: '/fonts/*' }],
       ['null headers', { path: '/fonts/*', headers: null }],
       ['headers in an array', { path: '/fonts/*', headers: ['Cache-Control: no-cache'] }],

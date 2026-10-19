@@ -124,7 +124,8 @@ const sitemap = (): Plugin => ({
 /**
  * Vite plugin that emits `_headers` at the root of the build, the HTTP headers that Cloudflare
  * Pages adds to the files it serves, by path (see {@link renderHeaderRules}): the security headers
- * of every file, such as its Content Security Policy, then the cache policy, under which browsers
+ * of every file, such as its Content Security Policy, `X-Robots-Tag: noindex` on the `pages.dev`
+ * host of the project (`PAGES_PROJECT_HOST`), then the cache policy, under which browsers
  * keep the hashed files of `assets/` a year, and revalidate every other file, as Cloudflare Pages
  * does by default.
  */

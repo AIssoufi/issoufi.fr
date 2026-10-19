@@ -132,10 +132,13 @@ export const HEADER_RULES: readonly HeaderRule[] = [
 
 /**
  * Path pattern of a rule of {@link HEADERS_FILE_NAME}: a path that starts with `/`, no space,
- * either alone or after `https://` and a host, which then limits the rule to that host. Cloudflare
- * Pages accepts no other protocol nor a port in an absolute URL.
+ * either alone or after `https://` and a host, which then limits the rule to that host: labels of
+ * lowercase letters, digits and inner hyphens, parted by dots, as the hosts of requests are
+ * written. Cloudflare Pages accepts no other protocol nor a port in an absolute URL, and the
+ * placeholders of a host (`https://:project.pages.dev/*`) are refused too: a rule names its host.
  */
-export const HEADER_PATH_PATTERN = /^(?:https:\/\/[a-z\d.-]+)?\/\S*$/i;
+export const HEADER_PATH_PATTERN =
+  /^(?:https:\/\/[a-z\d](?:[a-z\d-]*[a-z\d])?(?:\.[a-z\d](?:[a-z\d-]*[a-z\d])?)*)?\/\S*$/;
 
 /** Name of an HTTP header: a token of RFC 9110, such as `Cache-Control`. */
 export const HEADER_NAME_PATTERN = /^[\w!#$%&'*+.^`|~-]+$/;
