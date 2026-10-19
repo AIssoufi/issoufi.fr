@@ -1,6 +1,7 @@
 import { type RefObject, useEffect } from 'react';
 
 import { usePrefersReducedMotion } from '../../../../hooks/usePrefersReducedMotion';
+import { isFingerPointer } from '../../../../utils/pointer';
 import {
   PARALLAX_MAX_OFFSET_PX,
   PARALLAX_RESET_DURATION_MS,
@@ -9,10 +10,10 @@ import {
 import { getParallaxOffset } from '../../utils';
 
 /**
- * Shifts an element slightly away from the mouse, for a depth effect, and eases it back to the
- * center when the mouse leaves the window. With reduced motion, it does nothing, and puts back an
- * element it shifted before the visitor turned it on. Listeners and the pending reset timer are
- * removed on unmount.
+ * Shifts an element slightly away from a mouse or a pen, for a depth effect, and eases it back to
+ * the center when the mouse leaves the window. A finger hovers nothing: a tap leaves the element
+ * where it is. With reduced motion, it does nothing, and puts back an element it shifted before
+ * the visitor turned it on. Listeners and the pending reset timer are removed on unmount.
  *
  * @param elementRef - Ref to the element to shift.
  */
@@ -28,7 +29,8 @@ export function useParallax(elementRef: RefObject<HTMLElement | null>): void {
 
     let resetTimer: ReturnType<typeof setTimeout> | undefined;
 
-    const handleMove = (event: MouseEvent) => {
+    const handleMove = (event: PointerEvent) => {
+      if (isFingerPointer(event)) return;
       const element = elementRef.current;
       if (!element) return;
 
@@ -52,11 +54,11 @@ export function useParallax(elementRef: RefObject<HTMLElement | null>): void {
       }, PARALLAX_RESET_DURATION_MS);
     };
 
-    window.addEventListener('mousemove', handleMove);
+    window.addEventListener('pointermove', handleMove);
     document.addEventListener('mouseleave', handleLeave);
 
     return () => {
-      window.removeEventListener('mousemove', handleMove);
+      window.removeEventListener('pointermove', handleMove);
       document.removeEventListener('mouseleave', handleLeave);
       clearTimeout(resetTimer);
     };

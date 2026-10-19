@@ -27,8 +27,9 @@ import { splitLastWord } from './utils';
 /**
  * Home page: the animated job title and subtitle, with links to the projects and experiences
  * pages, over a particle background. A glow follows the cursor, the content shifts slightly with
- * it, and the buttons are pulled toward it. Listeners and animation frames are removed on unmount.
- * The links lead to the pages in the language of the current URL. Must be rendered inside a router.
+ * it, and the buttons are pulled toward it; a tap moves none of them, since a finger hovers
+ * nothing. Listeners and animation frames are removed on unmount. The links lead to the pages in
+ * the language of the current URL. Must be rendered inside a router.
  */
 export const Home = () => {
   const { t } = useTranslation();

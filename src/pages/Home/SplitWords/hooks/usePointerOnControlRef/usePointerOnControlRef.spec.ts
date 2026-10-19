@@ -31,7 +31,7 @@ describe('usePointerOnControlRef', () => {
     const { result } = renderHook(() => usePointerOnControlRef());
 
     [link, linkText, button].forEach(control => {
-      fireEvent.mouseMove(control);
+      fireEvent.pointerMove(control);
       expect(result.current.current).toBe(true);
     });
   });
@@ -40,12 +40,23 @@ describe('usePointerOnControlRef', () => {
     const { button, paragraph } = renderControls();
     const { result } = renderHook(() => usePointerOnControlRef());
 
-    fireEvent.mouseMove(button);
-    fireEvent.mouseMove(paragraph);
+    fireEvent.pointerMove(button);
+    fireEvent.pointerMove(paragraph);
     expect(result.current.current).toBe(false);
 
+    fireEvent.pointerMove(button);
+    fireEvent.pointerMove(window);
+    expect(result.current.current).toBe(false);
+  });
+
+  it('stays false under a finger, which hovers no control', () => {
+    const { button } = renderControls();
+    const { result } = renderHook(() => usePointerOnControlRef());
+
+    fireEvent.pointerMove(button, { pointerType: 'touch' });
+    // The mouse events that a browser sends after a tap
     fireEvent.mouseMove(button);
-    fireEvent.mouseMove(window);
+
     expect(result.current.current).toBe(false);
   });
 
@@ -53,7 +64,7 @@ describe('usePointerOnControlRef', () => {
     const { button } = renderControls();
     const { result } = renderHook(() => usePointerOnControlRef());
 
-    fireEvent.mouseMove(button);
+    fireEvent.pointerMove(button);
     fireEvent.mouseLeave(document);
 
     expect(result.current.current).toBe(false);
@@ -66,9 +77,9 @@ describe('usePointerOnControlRef', () => {
     const { result, unmount } = renderHook(() => usePointerOnControlRef());
 
     unmount();
-    fireEvent.mouseMove(button);
+    fireEvent.pointerMove(button);
 
-    expect(removeFromWindow).toHaveBeenCalledWith('mousemove', expect.any(Function));
+    expect(removeFromWindow).toHaveBeenCalledWith('pointermove', expect.any(Function));
     expect(removeFromDocument).toHaveBeenCalledWith('mouseleave', expect.any(Function));
     expect(result.current.current).toBe(false);
   });

@@ -20,15 +20,26 @@ describe('useParallax', () => {
     const element = document.createElement('div');
     renderHook(() => useParallax({ current: element }));
 
-    fireEvent.mouseMove(window, { clientX: 1000, clientY: 0 });
+    fireEvent.pointerMove(window, { clientX: 1000, clientY: 0 });
 
     expect(element.style.transform).toBe('translate(-10px, 7px)');
+  });
+
+  it('leaves the element in its place under a finger, which would leave it shifted after a tap', () => {
+    const element = document.createElement('div');
+    renderHook(() => useParallax({ current: element }));
+
+    fireEvent.pointerMove(window, { pointerType: 'touch', clientX: 1000, clientY: 0 });
+    // The mouse events that a browser sends after a tap
+    fireEvent.mouseMove(window, { clientX: 1000, clientY: 0 });
+
+    expect(element.style.transform).toBe('');
   });
 
   it('eases back to the center when the mouse leaves, then removes the transition', () => {
     const element = document.createElement('div');
     renderHook(() => useParallax({ current: element }));
-    fireEvent.mouseMove(window, { clientX: 1000, clientY: 0 });
+    fireEvent.pointerMove(window, { clientX: 1000, clientY: 0 });
 
     fireEvent.mouseLeave(document);
     expect(element.style.transform).toBe('');
@@ -42,7 +53,7 @@ describe('useParallax', () => {
     renderHook(() => useParallax({ current: null }));
 
     expect(() => {
-      fireEvent.mouseMove(window, { clientX: 10, clientY: 10 });
+      fireEvent.pointerMove(window, { clientX: 10, clientY: 10 });
       fireEvent.mouseLeave(document);
     }).not.toThrow();
   });
@@ -65,7 +76,7 @@ describe('useParallax', () => {
     fireEvent.mouseLeave(document);
 
     unmount();
-    fireEvent.mouseMove(window, { clientX: 1000, clientY: 0 });
+    fireEvent.pointerMove(window, { clientX: 1000, clientY: 0 });
     vi.advanceTimersByTime(PARALLAX_RESET_DURATION_MS);
 
     expect(element.style.transform).toBe('');
@@ -78,7 +89,7 @@ describe('useParallax', () => {
       const element = document.createElement('div');
       renderHook(() => useParallax({ current: element }));
 
-      fireEvent.mouseMove(window, { clientX: 1000, clientY: 0 });
+      fireEvent.pointerMove(window, { clientX: 1000, clientY: 0 });
       fireEvent.mouseLeave(document);
 
       expect(element.style.transform).toBe('');
@@ -89,12 +100,12 @@ describe('useParallax', () => {
       const { setMatches } = stubMatchMedia({ matches: false });
       const element = document.createElement('div');
       renderHook(() => useParallax({ current: element }));
-      fireEvent.mouseMove(window, { clientX: 1000, clientY: 0 });
+      fireEvent.pointerMove(window, { clientX: 1000, clientY: 0 });
 
       setMatches(true);
       expect(element.style.transform).toBe('');
 
-      fireEvent.mouseMove(window, { clientX: 0, clientY: 800 });
+      fireEvent.pointerMove(window, { clientX: 0, clientY: 800 });
       expect(element.style.transform).toBe('');
     });
 
@@ -111,7 +122,7 @@ describe('useParallax', () => {
       renderHook(() => useParallax({ current: element }));
 
       setMatches(false);
-      fireEvent.mouseMove(window, { clientX: 1000, clientY: 0 });
+      fireEvent.pointerMove(window, { clientX: 1000, clientY: 0 });
 
       expect(element.style.transform).toBe('translate(-10px, 7px)');
     });

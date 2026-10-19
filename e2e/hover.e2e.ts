@@ -3,7 +3,13 @@ import { expect, type Page, test } from '@playwright/test';
 import { fr } from '../src/i18n/fr';
 import { HOVER_POINTER_QUERY } from '../src/theme/constants';
 import { theme } from '../src/theme/theme';
-import { PROJECT_CARD_SELECTOR, PROJECTS_ROUTE } from './constants';
+import {
+  HERO_SUBTITLE_SELECTOR,
+  PAGE_SELECTOR,
+  PROJECT_CARD_SELECTOR,
+  PROJECTS_ROUTE,
+} from './constants';
+import { getBoxCenter } from './utils';
 
 /** Properties that the hover styles of the controls of the site change. */
 const HOVER_PROPERTIES = ['background-color', 'border-color', 'color', 'transform'];
@@ -30,6 +36,30 @@ const LIKE_BUTTON_NAME = new RegExp(`^${fr.projects.like.replace('{{name}}', '.+
  * Runs in the browser, passed to `locator.evaluate`, so it uses nothing from outside its own body.
  */
 const readInlineTransform = (card: HTMLElement) => card.style.transform;
+
+/**
+ * Number of animation frames after which the effects of the home page that follow the pointer have
+ * moved toward it: the glow covers a tenth of the way on each frame.
+ */
+const POINTER_EFFECT_FRAME_COUNT = 10;
+
+/**
+ * Reads the transform that the effects that follow the pointer write on each element of a page,
+ * in the order of the page. Runs in the browser, passed to `locator.evaluate`, so it uses nothing
+ * from outside its own body.
+ */
+const readInlineTransforms = (root: Element) =>
+  [...root.querySelectorAll<HTMLElement>('*')].map(element => element.style.transform);
+
+/**
+ * Waits for the given number of animation frames. Runs in the browser, passed to `page.evaluate`,
+ * so it uses nothing from outside its own body.
+ */
+const waitForFrames = async (count: number) => {
+  for (let frame = 0; frame < count; frame += 1) {
+    await new Promise(requestAnimationFrame);
+  }
+};
 
 /** Arrow that shows the next page of projects, in the first section of the Projects page. */
 const getNextPageButton = (page: Page) =>
@@ -70,6 +100,25 @@ test.describe('on a touch screen', () => {
       await card.getByRole('button', { name: LIKE_BUTTON_NAME }).tap();
 
       expect(await card.evaluate(readInlineTransform), 'transform of the card').toBe('');
+    });
+
+    test('a tap on the home page leaves the content, the glow, the words and the buttons in place', async ({
+      page,
+    }) => {
+      await page.goto('/');
+      const main = page.locator(PAGE_SELECTOR);
+      await expect(main).toBeVisible();
+      await page.evaluate(waitForFrames, POINTER_EFFECT_FRAME_COUNT);
+      const restTransforms = await main.evaluate(readInlineTransforms);
+
+      // The content floats without end, which a locator would wait for: tap where it stands now.
+      // Without a box, the coordinates are NaN, which the tap refuses, so the test fails
+      const subtitleBox = await page.locator(HERO_SUBTITLE_SELECTOR).boundingBox();
+      const { x, y } = getBoxCenter(subtitleBox) ?? { x: Number.NaN, y: Number.NaN };
+      await page.touchscreen.tap(x, y);
+      await page.evaluate(waitForFrames, POINTER_EFFECT_FRAME_COUNT);
+
+      expect(await main.evaluate(readInlineTransforms)).toEqual(restTransforms);
     });
   });
 });
