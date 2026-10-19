@@ -39,4 +39,4 @@ The agents read these rules, one line each, in [`CLAUDE.md`](../CLAUDE.md).
 - A text for screen readers only uses `VisuallyHidden`; a decoration drawn with a character is hidden from them.
 - A text in another language than the page gets its `lang`.
 - Texts reach the WCAG AA contrast. An accent text uses the light pink, never the plum.
-- With reduced motion, nothing moves. In forced colors mode, active states stay visible.
+- With reduced motion, nothing moves. In forced colors mode, active states stay visible, and so do the icons: that mode keeps the colors of an SVG, so an icon sets no stroke color of its own, and `GlobalStyle` draws its strokes in the text color of the palette of that mode.
