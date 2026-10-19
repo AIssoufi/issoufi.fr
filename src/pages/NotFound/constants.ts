@@ -9,6 +9,14 @@ export const MAX_DISPLAYED_PATH_LENGTH_CHARS = 100;
 export const ELLIPSIS = '…';
 
 /**
+ * Stands in for the path when i18next translates the not found message, which then gets the path
+ * in its place (`getNotFoundMessage`), so that i18next never reads the path, which anyone can type
+ * in a URL: it would take a `$t(` in it for the start of a nested translation. A character of the
+ * Unicode private use area, which no translation holds.
+ */
+export const PATH_PLACEHOLDER = '\uE000';
+
+/**
  * Control and format characters of Unicode, such as a line break, a zero width space or a
  * right-to-left override: once decoded, they would hide part of a path or reorder it.
  */

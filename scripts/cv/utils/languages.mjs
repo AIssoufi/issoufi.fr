@@ -70,7 +70,6 @@ export const buildCvContents = ({
         fallbackLng: defaultLanguage,
         // The template of the CV escapes every text itself
         interpolation: { escapeValue: false },
-        showSupportNotice: false,
       });
       const { t } = i18n;
 

@@ -1,11 +1,5 @@
 import { DEFAULT_LANGUAGE, LANGUAGE_STORAGE_KEY, LANGUAGES, TRANSLATIONS } from './constants';
 
-/**
- * Flag i18next sets on `globalThis` once it has shown its support notice, to show it only once:
- * the setup of `setupTests.ts` has already set it.
- */
-const SUPPORT_NOTICE_SHOWN_FLAG = '__i18next_supportNoticeShown';
-
 /** Runs the i18n setup again, as on a new page load, and returns its instance. */
 const loadI18n = async () => {
   vi.resetModules();
@@ -16,8 +10,6 @@ const loadI18n = async () => {
 describe('i18n', () => {
   afterEach(async () => {
     vi.restoreAllMocks();
-    vi.unstubAllEnvs();
-    vi.unstubAllGlobals();
     localStorage.clear();
     window.history.replaceState(null, '', '/');
     await loadI18n();
@@ -79,10 +71,9 @@ describe('i18n', () => {
     expect(i18n.t('nav.projects')).toBe('Projets');
   });
 
+  // i18next 25 printed an advertising notice in the console of every page unless told not to:
+  // version 26 removed it, along with the option that hid it
   it('logs no support notice to the console', async () => {
-    // Clears what would hide the notice even if it came back
-    vi.stubGlobal(SUPPORT_NOTICE_SHOWN_FLAG, undefined);
-    vi.stubEnv('I18NEXT_NO_SUPPORT_NOTICE', '');
     const consoleInfo = vi.spyOn(console, 'info').mockImplementation(() => {});
 
     await loadI18n();

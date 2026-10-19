@@ -6,10 +6,10 @@
   "packageManager": "pnpm@10.34.7",
   "dependencies": {
     "@xstyled/styled-components": "4.1.1",
-    "i18next": "^25.10.9",
+    "i18next": "^26.4.4",
     "react": "^19.2.8",
     "react-dom": "^19.2.8",
-    "react-i18next": "^16.6.6",
+    "react-i18next": "^17.0.16",
     "react-router": "^8.4.0",
     "styled-components": "^6.1.8"
   },

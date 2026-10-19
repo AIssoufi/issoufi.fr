@@ -16,8 +16,6 @@ i18n.use(initReactI18next).init({
   interpolation: {
     escapeValue: false,
   },
-  // Otherwise i18next prints an advertising notice in the console of every page
-  showSupportNotice: false,
 });
 
 export default i18n;
