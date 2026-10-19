@@ -671,14 +671,14 @@ describe('Project', () => {
       },
     );
 
-    it('downloads every thumbnail once the screen nears it, by default', () => {
+    it('downloads every thumbnail once the screen nears it, at a low priority, by default', () => {
       render(<Project projects={projects} />);
 
       cardList()
         .querySelectorAll('img')
         .forEach(thumbnail => {
           expect(thumbnail).toHaveAttribute('loading', 'lazy');
-          expect(thumbnail).not.toHaveAttribute('fetchpriority');
+          expect(thumbnail).toHaveAttribute('fetchpriority', 'low');
         });
     });
 
@@ -696,7 +696,7 @@ describe('Project', () => {
       expect(first).toHaveAttribute('fetchpriority', 'high');
       others.forEach(thumbnail => {
         expect(thumbnail).toHaveAttribute('loading', 'lazy');
-        expect(thumbnail).not.toHaveAttribute('fetchpriority');
+        expect(thumbnail).toHaveAttribute('fetchpriority', 'low');
       });
     });
 
@@ -711,7 +711,7 @@ describe('Project', () => {
 
       await userEvent.click(pageButtons().nextButton);
       expect(thumbnailOf('Calculator')).toHaveAttribute('loading', 'lazy');
-      expect(thumbnailOf('Calculator')).not.toHaveAttribute('fetchpriority');
+      expect(thumbnailOf('Calculator')).toHaveAttribute('fetchpriority', 'low');
 
       await userEvent.click(screen.getByRole('button', { name: 'Tout afficher (4)' }));
       expect(thumbnailOf('Chess')).toHaveAttribute('fetchpriority', 'high');
