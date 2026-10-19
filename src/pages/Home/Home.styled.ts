@@ -152,6 +152,10 @@ export const Btn = styled.a<{ $callToAction?: boolean }>`
     padding: ${th.space(13)} ${th.space(32)};
   }
 
+  @media (min-width: ${th('screens.wide')}) {
+    font-size: ${th.fontSize(16)};
+  }
+
   &:hover {
     color: ${th.color('foreground')};
     box-shadow: ${props =>
