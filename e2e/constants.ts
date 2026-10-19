@@ -634,6 +634,58 @@ export const LOW_RESOLUTION_PROJECT_NAME_KEYS: readonly string[] = [
 ];
 
 /**
+ * Screens on which the first thumbnail of the Projects page must download the narrowest of its
+ * files that covers the width it draws its 16:10 screenshot at, times the device pixels per CSS
+ * pixel: the width of its card, or 352 px where the card is narrower, the width of the screenshot
+ * cropped to cover the thumbnail. The phone that Lighthouse emulates (412 × 823 at 1.75), whose
+ * card, 364 px wide, needs 637 px, where the width of the whole screen once made it download the
+ * 960 px file; a Pixel 7 (412 × 915 at 2.625), which needs 956 px; an iPhone 12 to 15 (390 × 844
+ * at 3), whose card, 342 px wide, needs 1056 px; a phone 360 px wide at 3, whose card, 312 px
+ * wide, needs 1056 px too, where the width of the card alone made it download the 960 px file;
+ * and a laptop at 150 % (1024 × 768 at 1.5), whose cards, three of 315 px, need 528 px, where the
+ * width of the card alone made it download the 480 px file.
+ */
+export const THUMBNAIL_FILE_SCREENS = [
+  { width: 412, height: 823, deviceScaleFactor: 1.75, fileWidth: 720 },
+  { width: 412, height: 915, deviceScaleFactor: 2.625, fileWidth: 960 },
+  { width: 390, height: 844, deviceScaleFactor: 3, fileWidth: 1200 },
+  { width: 360, height: 780, deviceScaleFactor: 3, fileWidth: 1200 },
+  { width: 1024, height: 768, deviceScaleFactor: 1.5, fileWidth: 720 },
+] as const;
+
+/**
+ * Screen widths, in pixels, at which the `sizes` of the thumbnails must give the width that they
+ * draw their screenshot at: the narrowest phones still in use (320), a common phone (375), then
+ * each width where the layout of the cards changes, and the pixel before it: two columns (600),
+ * the tablet breakpoint (800), three columns (858), a tablet held sideways (1024), whose three
+ * cards are narrower than a screenshot that covers them, the widest app container below the
+ * `wide` breakpoint (1440) and the `wide` breakpoint (1600), then a desktop screen wider than its
+ * container (2560).
+ */
+export const THUMBNAIL_SIZES_SCREEN_WIDTHS_PX = [
+  320, 375, 599, 600, 799, 800, 857, 858, 1024, 1439, 1440, 1599, 1600, 2560,
+] as const;
+
+/**
+ * Largest difference, in pixels, allowed between the width that the `sizes` of a thumbnail gives
+ * and the width it should give: the browser tells the first as the natural width of the `img`, a
+ * whole number, while a card can take a fraction of a pixel.
+ */
+export const MAX_THUMBNAIL_SIZES_OFFSET_PX = 1;
+
+/**
+ * Start of the `max()` function in the `sizes` of the thumbnails, which a browser test replaces
+ * with {@link UNKNOWN_SIZES_FUNCTION} to see what a browser that refuses `max()` there gets.
+ */
+export const SIZES_MAX_FUNCTION = 'max(';
+
+/**
+ * Start of a function that no browser knows, which makes a browser skip each entry of `sizes`
+ * that uses it, as Safari before 26.4 skips an entry that uses `max()`.
+ */
+export const UNKNOWN_SIZES_FUNCTION = 'unknown-function(';
+
+/**
  * Screen widths, in pixels, at which no line of the passion or the subtitle of the home page may
  * hold a single word, and no department of the Experiences page may wrap away from its city: the
  * narrowest phones (320), then common phone widths (360, 375, 390 and 414), where those lines once
