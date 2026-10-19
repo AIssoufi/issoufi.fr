@@ -24,7 +24,7 @@ cwebp -q 50 -m 6 -resize 32 0 original.webp -o - | base64
 ## Project screenshots
 
 - Each card shows a screenshot in up to four widths: 480, 720, 960 and 1200 px.
-- The browser downloads the narrowest one that the card needs on its screen.
+- The browser downloads the narrowest one that the card needs on its screen: as wide as the card, or as a 16:10 screenshot cropped to cover it where the card is narrower (352 px).
 - Crop the original to 16:10 at most, then write its files, leaving out the widths above the original (W px):
 
 ```bash
