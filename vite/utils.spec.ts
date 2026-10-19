@@ -9,6 +9,8 @@ import {
   HSTS_MAX_AGE_SECONDS,
   MAX_PORT,
   MIN_PORT,
+  NO_INDEX_HEADERS,
+  PAGES_PROJECT_HOST,
   SECURITY_HEADERS,
 } from './constants';
 import type { HeaderRule } from './types';
@@ -380,6 +382,23 @@ describe('renderHeaderRules', () => {
     );
   });
 
+  it('keeps search engines off the pages.dev host of the project by default, only there', () => {
+    expect(PAGES_PROJECT_HOST).toBe('issoufi-fr.pages.dev');
+    expect(renderHeaderRules().split('\n\n')).toContain(
+      'https://issoufi-fr.pages.dev/*\n  X-Robots-Tag: noindex',
+    );
+    expect(renderHeaderRules().match(/X-Robots-Tag/g)).toHaveLength(1);
+  });
+
+  it.each(['https://issoufi-fr.pages.dev/*', 'https://Issoufi-Fr.pages.dev/en/*', 'https://a.b/'])(
+    'writes a rule limited to the host of the absolute URL %s',
+    path => {
+      expect(render([{ path, headers: NO_INDEX_HEADERS }])).toBe(
+        `${path}\n  X-Robots-Tag: noindex\n`,
+      );
+    },
+  );
+
   it('trims the spaces around a value', () => {
     expect(render([{ path: '/', headers: { 'Cache-Control': '  no-cache \t' } }])).toBe(
       '/\n  Cache-Control: no-cache\n',
@@ -404,6 +423,12 @@ describe('renderHeaderRules', () => {
       ['a path with a space', { ...cacheRule, path: '/assets /*' }],
       ['a path with a line break', { ...cacheRule, path: '/assets/*\n/x' }],
       ['a path that is not a string', { ...cacheRule, path: 42 }],
+      ['an absolute URL in http', { ...cacheRule, path: 'http://issoufi-fr.pages.dev/*' }],
+      ['an absolute URL with a port', { ...cacheRule, path: 'https://issoufi-fr.pages.dev:443/*' }],
+      ['an absolute URL without a path', { ...cacheRule, path: 'https://issoufi-fr.pages.dev' }],
+      ['an absolute URL without a host', { ...cacheRule, path: 'https:///*' }],
+      ['a host with a space', { ...cacheRule, path: 'https://issoufi fr.pages.dev/*' }],
+      ['a host with an underscore', { ...cacheRule, path: 'https://issoufi_fr.pages.dev/*' }],
       ['no headers', { path: '/fonts/*' }],
       ['null headers', { path: '/fonts/*', headers: null }],
       ['headers in an array', { path: '/fonts/*', headers: ['Cache-Control: no-cache'] }],

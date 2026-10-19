@@ -6,7 +6,8 @@
 export interface HeaderRule {
   /**
    * Path pattern of the URLs to answer with these headers, starting with `/`, where `*` matches
-   * any part of a path, e.g. `/assets/*`.
+   * any part of a path, e.g. `/assets/*`. It may start with `https://` and a host, to answer only
+   * the URLs of that host, e.g. `https://issoufi-fr.pages.dev/*`.
    */
   path: string;
   /** Value of each header, by name, e.g. `{ 'Cache-Control': 'no-store' }`. */
