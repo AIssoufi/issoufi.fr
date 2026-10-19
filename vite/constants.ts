@@ -55,8 +55,8 @@ export const CONTENT_SECURITY_POLICY_DIRECTIVES: readonly string[] = [
   // styled-components writes its rules in <style> elements, as the font-faces plugin of
   // vite.config.ts does for the @font-face rules
   "style-src 'self' 'unsafe-inline'",
-  // Lets a style draw an image written in the code as a data URL, which needs no request, such as
-  // a placeholder shown while a photo downloads
+  // Lets a style draw an image written in the code as a data URL, which needs no request, as the
+  // placeholder of each background photo is (placeholderUrl, src/utils/pages.ts)
   "img-src 'self' data:",
   "font-src 'self'",
   "connect-src 'self'",
