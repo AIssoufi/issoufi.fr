@@ -34,6 +34,8 @@ A new route needs its entry in `src/utils/pages.ts`: without its HTML file, a re
 - What depends on the visitor waits for the hydration (`useIsHydrated`): the likes, the durations of the jobs, which the build counts up to its own month, and the path typed on the not found page, whose language links lead to the home until then.
 - Without JavaScript, the header still leads to every page and to the other language: the language switch is made of links, and on phones two links stand for the burger button, which open and close the menu through the fragment of the URL (`#menu`).
   Their styles sit in a `(scripting: none)` media query, which a browser that runs scripts never matches, so nothing changes there; a browser that does not know it, such as Safari before 17, shows the burger button, which then does nothing, and Firefox 113 to 120, which knows it but not `:has()`, opens the menu but shows no cross to close it.
+- Without JavaScript, the projects page shows every project too: the build renders every card of each section, and those out of the page of the row stay hidden while scripts run, from the first paint, so that their lazy thumbnails download nothing.
+  Under the same media query, each section shows its cards on as many rows as they need, as "Show all" does, and hides its arrows and "Show all", which would do nothing; the like buttons stay, inert. Such a browser downloads every thumbnail at once, since browsers lazy load no image without scripts. A browser that does not know the query shows the first page of each row, with its buttons.
 - Each styled component gets an id from its module and its place in it, so the classes of the build are those that the browser computes.
 - Every Suspense boundary stays in place: React would move a large one to the end of the page, with an inline script that the Content Security Policy blocks.
 - The browser renders the app from scratch where the file holds another page than the one of its path: at the root URL that redirects to the stored language, on the not found pages, rendered without a path, and in the standalone build, whose page holds no render.
@@ -45,7 +47,7 @@ A new route needs its entry in `src/utils/pages.ts`: without its HTML file, a re
 - The libraries sit in a chunk of their own, which changes less often than the site, so browsers keep it longer.
 - The first paint of a page that the build rendered needs only its HTML, its font and its largest image: its scripts download at a low priority, since they only hydrate what already shows.
 - The HTML of a page that the build rendered preloads its background photo at a low priority, in a lighter portrait version on phones, with a media query that gives each screen one version; elsewhere, the main script of the app adds that preload.
-- On the projects page, the first thumbnail, at the top, downloads at a high priority, and the others at a low one.
+- On the projects page, the first thumbnail, at the top, downloads at a high priority, and the others at a low one; those of the cards hidden out of the first page of each row download nothing.
 - A tiny placeholder shows until the photo arrives, so a page never goes from black to its photo.
 - A page opened before a deployment reloads once when its chunk is gone.
 

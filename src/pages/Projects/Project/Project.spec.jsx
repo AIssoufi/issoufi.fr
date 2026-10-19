@@ -8,6 +8,7 @@ import {
   FORCED_COLORS_QUERY,
   FULL_MOTION_QUERY,
   HOVER_POINTER_QUERY,
+  NO_SCRIPT_QUERY,
 } from '../../../theme/constants.ts';
 import { holdsFunctionSource } from '../../../cssRuleGuard.ts';
 import { stubMatchMedia } from '../../../mediaQueryTestUtils.ts';
@@ -147,8 +148,14 @@ const linkOf = name => screen.getByRole('link', { name: `${name} ${NEW_TAB_NOTIC
 /** List of the cards of the section, the first list, which holds the list of tools of each card. */
 const cardList = () => screen.getAllByRole('list')[0];
 
-/** Cards shown, in their order: the items of the list of cards, without the tools in them. */
-const shownCards = () => [...cardList().children];
+/** Every card, in their order: the items of the list of cards, without the tools in them. */
+const allCards = () => [...cardList().children];
+
+/**
+ * Cards shown, in their order: every card but those out of the page of the row, which stay in the
+ * document, hidden.
+ */
+const shownCards = () => allCards().filter(card => getComputedStyle(card).display !== 'none');
 
 /** Name of a card, the text of its heading without the notice that only screen readers read. */
 const cardNameOf = card => card.querySelector('h3')?.textContent.replace(NEW_TAB_NOTICE, '').trim();
@@ -356,13 +363,29 @@ describe('Project', () => {
     );
 
     expect(screen.getByText('Projets personnels')).toBeInTheDocument();
-    expect(screen.getByText('Chess')).toBeInTheDocument();
-    expect(screen.queryByText('Connect Four')).not.toBeInTheDocument();
+    expect(cardOf('Chess')).toBeVisible();
+    expect(cardOf('Connect Four')).not.toBeVisible();
 
     await userEvent.click(screen.getByText('Tout afficher (4)'));
 
-    expect(screen.getByText('Connect Four')).toBeInTheDocument();
+    expect(cardOf('Connect Four')).toBeVisible();
     expect(screen.getByText('Afficher moins')).toBeInTheDocument();
+  });
+
+  it('renders every card, those out of the page hidden, so the build writes every project', async () => {
+    showWholeCards(1);
+    render(<Project projects={projects} />);
+
+    expect(allCards().map(cardNameOf)).toEqual(projects.map(({ name }) => name));
+    expect(shownCardNames()).toEqual(['Chess', 'Calculator', 'Plugin store']);
+    expect(screen.queryByRole('heading', { level: 3, name: 'Connect Four' })).toBeNull();
+    expect(screen.queryByRole('button', { name: 'Aimer Connect Four' })).toBeNull();
+
+    await userEvent.click(pageButtons().nextButton);
+
+    expect(allCards().map(cardNameOf)).toEqual(projects.map(({ name }) => name));
+    expect(shownCardNames()).toEqual(['Calculator', 'Plugin store', 'Connect Four']);
+    expect(screen.getByRole('heading', { level: 3, name: 'Connect Four' })).toBeVisible();
   });
 
   it('links the title of a project to its url, in a new tab, when it has one', () => {
@@ -785,18 +808,18 @@ describe('Project', () => {
     const { previousButton, nextButton } = pageButtons();
 
     await userEvent.click(previousButton);
-    expect(screen.getByText('Chess')).toBeInTheDocument();
+    expect(cardOf('Chess')).toBeVisible();
 
     await userEvent.click(nextButton);
-    expect(screen.getByText('Connect Four')).toBeInTheDocument();
-    expect(screen.queryByText('Chess')).not.toBeInTheDocument();
+    expect(cardOf('Connect Four')).toBeVisible();
+    expect(cardOf('Chess')).not.toBeVisible();
 
     await userEvent.click(nextButton);
-    expect(screen.getByText('Connect Four')).toBeInTheDocument();
+    expect(cardOf('Connect Four')).toBeVisible();
 
     await userEvent.click(previousButton);
-    expect(screen.getByText('Chess')).toBeInTheDocument();
-    expect(screen.queryByText('Connect Four')).not.toBeInTheDocument();
+    expect(cardOf('Chess')).toBeVisible();
+    expect(cardOf('Connect Four')).not.toBeVisible();
   });
 
   it.each([
@@ -1351,6 +1374,50 @@ describe('Project', () => {
           expect(declaredStyle({ element: button, property: 'order', media })).toBe(UNDECLARED);
         }
       }
+    });
+
+    it('shows the cards out of the page where no script runs only, which the arrows need', () => {
+      render(<Project projects={projects} />);
+      const display = ({ name, media = '' }) =>
+        declaredStyle({ element: cardOf(name), property: 'display', media });
+
+      expect(display({ name: 'Connect Four' })).toBe('none');
+      expect(display({ name: 'Connect Four', media: NO_SCRIPT_QUERY })).toBe('flex');
+      expect(mediaDeclaringStyle({ element: cardOf('Connect Four'), property: 'display' })).toEqual(
+        ['', NO_SCRIPT_QUERY],
+      );
+      expect(display({ name: 'Chess' })).toBe('flex');
+      expect(mediaDeclaringStyle({ element: cardOf('Chess'), property: 'display' })).toEqual(['']);
+    });
+
+    it('wraps every card onto as many rows as needed without JavaScript, as "Show all" does', () => {
+      render(<Project projects={projects} />);
+      const grid = gridOf('Chess');
+      const gridStyle = ({ property, media = '' }) =>
+        declaredStyle({ element: grid, property, media });
+
+      expect(gridStyle({ property: 'flex-wrap' })).toBe(UNDECLARED);
+      expect(gridStyle({ property: 'flex-wrap', media: NO_SCRIPT_QUERY })).toBe('wrap');
+      expect(gridStyle({ property: 'row-gap', media: NO_SCRIPT_QUERY })).toBe(theme.space[5]);
+    });
+
+    it('hides the section buttons without JavaScript, where they would do nothing', () => {
+      render(
+        <Project
+          title="Projets personnels"
+          projects={projects}
+        />,
+      );
+      const controls = screen.getByRole('group', { name: 'Projets personnels' });
+
+      expect(declaredStyle({ element: controls, property: 'display' })).toBe('flex');
+      expect(
+        declaredStyle({ element: controls, property: 'display', media: NO_SCRIPT_QUERY }),
+      ).toBe('none');
+      expect(mediaDeclaringStyle({ element: controls, property: 'display' })).toEqual([
+        '',
+        NO_SCRIPT_QUERY,
+      ]);
     });
 
     it('generates no function source text in the CSS of the "Show all" rows', async () => {

@@ -23,10 +23,10 @@ They run in both languages, on screens from small phones to large desktops:
 | ------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Layout        | no sideways scroll; the cards, the header, the menu and the home page hold their layout at every width; the buttons draw their text in the font of the site       |
 | Accessibility | contrast, names that hold their visible text, headings and what screen readers read, keyboard navigation, touch targets, text size, reduced motion, forced colors |
-| Images        | each screen downloads the right photo and screenshot sizes                                                                                                        |
+| Images        | each screen downloads the right photo and screenshot sizes, and no screenshot of a hidden project card                                                            |
 | Server        | each page in its language, the security headers and policy, no request to Google                                                                                  |
 | Hydration     | each page shows without JavaScript, then React takes it over with no error, for a visitor whose state differs from the build                                      |
-| No JavaScript | from each page, on a phone and a laptop, the header leads to every page of the navigation and to the other language                                               |
+| No JavaScript | from each page, on a phone and a laptop, the header leads to every page of the navigation and to the other language; the projects page shows every project        |
 
 ## Screenshot comparison
 
