@@ -5,7 +5,7 @@ import { MemoryRouter } from 'react-router';
 import { declaredStyle, serializeCssValue } from '../../../styleTestUtils.js';
 import { theme } from '../../../theme/index.ts';
 import { HOVER_POINTER_QUERY } from '../../../theme/constants.ts';
-import { DESKTOP_MEDIA_QUERY } from '../constants.ts';
+import { DESKTOP_MEDIA_QUERY, NO_SCRIPT_MOBILE_MEDIA_QUERY } from '../constants.ts';
 import NavMenu from './NavMenu.tsx';
 
 const items = [
@@ -334,6 +334,56 @@ describe('NavMenu', () => {
           media: DESKTOP_MEDIA_QUERY,
         }),
       ).toBe('visible');
+    });
+  });
+
+  describe('without JavaScript', () => {
+    /** What the full-screen mobile menu declares, which the burger button opens. */
+    const OPEN_MENU_PROPERTIES = [
+      'display',
+      'flex-direction',
+      'align-items',
+      'justify-content',
+      'position',
+      'inset',
+      'z-index',
+      'overflow-y',
+      'overscroll-behavior',
+      'padding',
+      'gap',
+      'background',
+      'backdrop-filter',
+    ];
+
+    /** Values that the navigation declares for the properties of the open menu. */
+    const styleOf = ({ media = '', pseudo = '' } = {}) =>
+      Object.fromEntries(
+        OPEN_MENU_PROPERTIES.map(property => [
+          property,
+          declaredStyle({ element: getNavigation(), property, media, pseudo }),
+        ]),
+      );
+
+    it('opens as the menu of the burger button while the fragment of the URL names it, on mobile', () => {
+      const { unmount } = renderNavMenu({ items, mobileMenuIsOpen: true });
+      const openMenuStyle = styleOf();
+      unmount();
+
+      renderNavMenu({ id: 'mobile-menu', items });
+
+      expect(openMenuStyle).toMatchObject({ display: 'flex', position: 'fixed' });
+      expect(styleOf({ media: NO_SCRIPT_MOBILE_MEDIA_QUERY, pseudo: ':target' })).toEqual(
+        openMenuStyle,
+      );
+      expect(getComputedStyle(getNavigation()).display).toBe('none');
+    });
+
+    it('stays as it is while scripts run, and on the desktop layout, whatever the URL names', () => {
+      renderNavMenu({ id: 'mobile-menu', items });
+      const noRule = Object.fromEntries(OPEN_MENU_PROPERTIES.map(property => [property, '']));
+
+      expect(styleOf({ pseudo: ':target' })).toEqual(noRule);
+      expect(styleOf({ media: DESKTOP_MEDIA_QUERY, pseudo: ':target' })).toEqual(noRule);
     });
   });
 

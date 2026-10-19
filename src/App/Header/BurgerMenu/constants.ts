@@ -1,11 +1,6 @@
 /**
- * Clockwise turn of the top bar of the burger icon when the menu opens, in degrees: from `-` to
- * `/`, past a half turn, so that the bar spins on its way.
+ * Fragment of the URL that the link closing the mobile menu without JavaScript leads to: it names
+ * no element, so the menu is no longer the target of the URL, and the page keeps its scroll, where
+ * `#` alone would scroll it to the top.
  */
-export const TOP_BAR_OPEN_ROTATION_DEG = 315;
-
-/**
- * Clockwise turn of the middle bar of the burger icon when the menu opens, in degrees: from `-`
- * to `\`, so that it crosses the top bar.
- */
-export const MIDDLE_BAR_OPEN_ROTATION_DEG = 225;
+export const CLOSED_MENU_FRAGMENT = '#menu-closed';

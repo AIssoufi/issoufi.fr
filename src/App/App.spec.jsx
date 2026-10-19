@@ -314,7 +314,7 @@ describe('App', () => {
         await screen.findByRole('heading', { name: 'Une erreur est survenue' }),
       ).toBeInTheDocument();
 
-      await user.click(screen.getByRole('button', { name: 'EN – English' }));
+      await user.click(screen.getByRole('link', { name: 'EN – English' }));
 
       expect(screen.getByRole('heading', { name: 'Something went wrong' })).toBeInTheDocument();
       expect(screen.getByRole('button', { name: 'Reload the page' })).toBeInTheDocument();
@@ -357,8 +357,8 @@ describe('App', () => {
       render(<App />);
 
       expect(await screen.findByRole('heading', { name: 'Personal projects' })).toBeInTheDocument();
-      expect(screen.getByRole('button', { name: 'EN – English' })).toHaveAttribute(
-        'aria-pressed',
+      expect(screen.getByRole('link', { name: 'EN – English' })).toHaveAttribute(
+        'aria-current',
         'true',
       );
       expect(document.documentElement.lang).toBe('en');
@@ -430,13 +430,13 @@ describe('App', () => {
       render(<App />);
       await screen.findByRole('heading', { name: 'Projets personnels' });
 
-      await user.click(screen.getByRole('button', { name: 'EN – English' }));
+      await user.click(screen.getByRole('link', { name: 'EN – English' }));
 
       expect(window.location.pathname).toBe('/en/projects');
       expect(await screen.findByRole('heading', { name: 'Personal projects' })).toBeInTheDocument();
       expect(document.title).toBe('Projects - ADAM Issoufi');
       // Only the language changed: the focus stays on the toggle
-      expect(screen.getByRole('button', { name: 'EN – English' })).toHaveFocus();
+      expect(screen.getByRole('link', { name: 'EN – English' })).toHaveFocus();
 
       await act(async () => window.history.back());
 

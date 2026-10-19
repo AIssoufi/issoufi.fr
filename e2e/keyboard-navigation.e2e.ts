@@ -106,8 +106,8 @@ for (const language of LANGUAGES) {
           translations.cvLink.text,
         ];
         const languageToggle = header.getByRole('group', { name: translations.langToggle.label });
-        const languageButtons = LANGUAGES.map(buttonLanguage =>
-          languageToggle.getByRole('button', { name: LANGUAGE_NAMES[buttonLanguage] }),
+        const languageLinks = LANGUAGES.map(linkLanguage =>
+          languageToggle.getByRole('link', { name: LANGUAGE_NAMES[linkLanguage] }),
         );
 
         await expectTabToFocus({
@@ -122,7 +122,7 @@ for (const language of LANGUAGES) {
           });
         }
         // Then the language toggle, which floats under the bar on the right edge of the screen
-        for (const element of languageButtons) {
+        for (const element of languageLinks) {
           await expectTabToFocus({ page, element });
         }
         const cvLinkBox = await header

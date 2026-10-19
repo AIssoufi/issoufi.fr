@@ -407,6 +407,16 @@ export const MOBILE_LAYOUT_SCREENS = [
 export const MENU_OPENING_SCROLL_Y_PX = 300;
 
 /**
+ * Screens at which the browser tests follow the links of the header with JavaScript off: a phone,
+ * whose navigation sits in the menu that the links of the burger open, and a laptop, whose
+ * navigation is a bar of the header.
+ */
+export const NO_SCRIPT_SCREENS = [
+  { width: 390, height: SCREEN_HEIGHT_PX, isMobileLayout: true },
+  { width: 1280, height: SCREEN_HEIGHT_PX, isMobileLayout: false },
+] as const;
+
+/**
  * Distance, in pixels, of each wheel scroll or swipe of the browser tests: more than half a phone
  * screen, so that a page left free to scroll visibly moves.
  */

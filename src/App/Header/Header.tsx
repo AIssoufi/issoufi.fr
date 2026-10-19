@@ -1,11 +1,11 @@
-import { useId, useRef, useState } from 'react';
+import { useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { useMediaQuery } from '../../hooks/useMediaQuery/index.ts';
 import { useUrlLanguage } from '../../hooks/useUrlLanguage/index.ts';
 import { localizePath } from '../../i18n/utils.ts';
 import BurgerMenu from './BurgerMenu/index.ts';
-import { DESKTOP_MEDIA_QUERY } from './constants.ts';
+import { DESKTOP_MEDIA_QUERY, MOBILE_MENU_ID } from './constants.ts';
 import { useEscapeKey } from './hooks/useEscapeKey/index.ts';
 import { useInertOutside } from './hooks/useInertOutside/index.ts';
 import { useScrollLock } from './hooks/useScrollLock/index.ts';
@@ -45,10 +45,14 @@ import {
  * `Escape` or a click on one of its links closes it and gives the focus back to the burger, rather
  * than leaving it on a hidden link. The toggle changes the language without closing it. None of
  * this applies to the desktop layout, where the links are a bar of the page.
+ *
+ * Without JavaScript, every link of the header still works, as the build renders it: the language
+ * toggle is made of links, and on mobile, links in place of the burger open and close the menu
+ * through the fragment of the URL (`#menu`, see `BurgerMenu`). The menu is then no dialog: the
+ * page behind it stays in the focus order and scrolls.
  */
 const Header = ({ testId, version = __APP_VERSION__ }: HeaderProps) => {
   const [mobileMenuIsOpen, setMobileMenuIsOpen] = useState(false);
-  const navMenuId = useId();
   const controlsRef = useRef<HTMLDivElement>(null);
   const burgerRef = useRef<HTMLButtonElement>(null);
   const { t } = useTranslation();
@@ -99,12 +103,12 @@ const Header = ({ testId, version = __APP_VERSION__ }: HeaderProps) => {
           <BurgerMenu
             ref={burgerRef}
             isOpen={mobileMenuIsOpen}
-            menuId={navMenuId}
+            menuId={MOBILE_MENU_ID}
             onOpen={() => setMobileMenuIsOpen(true)}
             onClose={() => setMobileMenuIsOpen(false)}
           />
           <NavMenu
-            id={navMenuId}
+            id={MOBILE_MENU_ID}
             items={items}
             mobileMenuIsOpen={mobileMenuIsOpen}
             onClick={closeMobileMenu}

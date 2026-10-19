@@ -26,6 +26,7 @@ They run in both languages, on screens from small phones to large desktops:
 | Images        | each screen downloads the right photo and screenshot sizes                                                                                                        |
 | Server        | each page in its language, the security headers and policy, no request to Google                                                                                  |
 | Hydration     | each page shows without JavaScript, then React takes it over with no error, for a visitor whose state differs from the build                                      |
+| No JavaScript | from each page, on a phone and a laptop, the header leads to every page of the navigation and to the other language                                               |
 
 ## Screenshot comparison
 
