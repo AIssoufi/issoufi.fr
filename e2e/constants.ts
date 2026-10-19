@@ -421,3 +421,37 @@ export const MAX_WORD_SHIFT_PX = 2;
  * twice {@link MAX_WORD_SHIFT_PX}.
  */
 export const POINTER_REST_FRAME_COUNT = 4;
+
+/**
+ * Screen widths, in pixels, at which no thumbnail or logo may be enlarged on a 2x screen: a phone,
+ * with one column of cards (375), and a laptop, with three (1440).
+ */
+export const SHARP_IMAGE_SCREEN_WIDTHS_PX = [375, 1440] as const;
+
+/** Device pixels per CSS pixel of the screens of {@link SHARP_IMAGE_SCREEN_WIDTHS_PX}. */
+export const HIGH_DENSITY_SCALE = 2;
+
+/**
+ * Most device pixels that a pixel of an image file may take on the screen, as `getImageEnlargement`
+ * (`e2e/images.ts`) computes it: more, the screen enlarges the image, which then looks blurred.
+ */
+export const MAX_IMAGE_ENLARGEMENT = 1;
+
+/** Width, in pixels, of the phone on which no image may download a file much wider than needed. */
+export const LIGHT_IMAGE_SCREEN_WIDTH_PX = 375;
+
+/**
+ * Largest ratio between the width of the file that an image downloads and the width that it shows
+ * at, on a screen of one device pixel per CSS pixel: a file twice as wide still serves a 2x screen.
+ */
+export const MAX_FILE_TO_SHOWN_WIDTH_RATIO = 2;
+
+/**
+ * `nameKey` of the projects whose screenshot is smaller than their card needs on a 2x screen: their
+ * site is offline, and its original the largest file there is, until the site owner replaces it
+ * (issue #238). The browser test of the image sizes leaves their thumbnails out.
+ */
+export const LOW_RESOLUTION_PROJECT_NAME_KEYS: readonly string[] = [
+  'trouilletDecors',
+  'yyServicies',
+];

@@ -2,7 +2,8 @@ import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router';
 
-import { isPublicFile, readBackgroundImages } from '../../pages/testUtils';
+import { readBackgroundImages } from '../../pages/testUtils';
+import { isPublicFile } from '../../publicFileTestUtils';
 import { declaredStyle } from '../../styleTestUtils';
 import { STATUS_PAGE_BACKGROUND_PHOTO } from '../../utils/pages';
 import StatusPage from './StatusPage';

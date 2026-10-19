@@ -4,7 +4,28 @@
       "id": 1,
       "nameKey": "chess",
       "typeKey": "webApp",
-      "imageUrl": "/chess.webp",
+      "thumbnails": [
+        {
+          "url": "/chess-480.webp",
+          "width": 480,
+          "height": 300
+        },
+        {
+          "url": "/chess-720.webp",
+          "width": 720,
+          "height": 450
+        },
+        {
+          "url": "/chess-960.webp",
+          "width": 960,
+          "height": 600
+        },
+        {
+          "url": "/chess-1200.webp",
+          "width": 1200,
+          "height": 750
+        }
+      ],
       "url": "https://aissoufi.github.io/chess/",
       "tools": ["HTML 5", "CSS 3", "JavaScript", "Gulp", "Mocha", "Babel"]
     },
@@ -12,21 +33,84 @@
       "id": 2,
       "nameKey": "audioPluginStore",
       "typeKey": "webApp",
-      "imageUrl": "/pedalboards.png",
+      "thumbnails": [
+        {
+          "url": "/pedalboards-480.webp",
+          "width": 480,
+          "height": 300
+        },
+        {
+          "url": "/pedalboards-720.webp",
+          "width": 720,
+          "height": 450
+        },
+        {
+          "url": "/pedalboards-960.webp",
+          "width": 960,
+          "height": 600
+        },
+        {
+          "url": "/pedalboards-1120.webp",
+          "width": 1120,
+          "height": 700
+        }
+      ],
       "tools": ["HTML 5", "SCSS", "React.js", "Redux.js"]
     },
     {
       "id": 3,
       "nameKey": "connectFour",
       "typeKey": "webApp",
-      "imageUrl": "/connect-four.png",
+      "thumbnails": [
+        {
+          "url": "/connect-four-480.webp",
+          "width": 480,
+          "height": 300
+        },
+        {
+          "url": "/connect-four-720.webp",
+          "width": 720,
+          "height": 450
+        },
+        {
+          "url": "/connect-four-960.webp",
+          "width": 960,
+          "height": 600
+        },
+        {
+          "url": "/connect-four-1200.webp",
+          "width": 1200,
+          "height": 750
+        }
+      ],
       "tools": ["HTML 5", "CSS 3", "Express", "Swagger"]
     },
     {
       "id": 4,
       "nameKey": "calculator",
       "typeKey": "webApp",
-      "imageUrl": "/calculatrice.webp",
+      "thumbnails": [
+        {
+          "url": "/calculatrice-480.webp",
+          "width": 480,
+          "height": 302
+        },
+        {
+          "url": "/calculatrice-720.webp",
+          "width": 720,
+          "height": 453
+        },
+        {
+          "url": "/calculatrice-960.webp",
+          "width": 960,
+          "height": 604
+        },
+        {
+          "url": "/calculatrice-1200.webp",
+          "width": 1200,
+          "height": 755
+        }
+      ],
       "tools": ["HTML 5", "CSS 3", "React.js", "Redux.js"]
     }
   ]

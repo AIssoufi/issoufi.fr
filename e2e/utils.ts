@@ -141,11 +141,11 @@ interface WholeCardsParams<Card extends CardBox> {
  * @example
  * filterWholeCards({
  *   cards: [
- *     { left: 24, top: 0, width: 327, height: 300, src: '/chess.webp' },
- *     { left: 361, top: 0, width: 327, height: 300, src: '/calculator.webp' },
+ *     { left: 24, top: 0, width: 327, height: 300, src: '/chess-960.webp' },
+ *     { left: 361, top: 0, width: 327, height: 300, src: '/calculatrice-960.webp' },
  *   ],
  *   container: { left: 0, top: 0, width: 375, height: 310 },
- * }); // [the card of /chess.webp]
+ * }); // [the card of /chess-960.webp]
  */
 export const filterWholeCards = <Card extends CardBox>({
   cards,

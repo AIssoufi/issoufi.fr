@@ -10,7 +10,7 @@ const WIBILONG = {
   nameKey: 'exp.wibilong.name',
   contractKey: 'exp.wibilong.contract',
   cityKey: 'exp.wibilong.city',
-  logoUrl: '/wibilong.png',
+  logoUrl: '/wibilong.webp',
   roles: [
     {
       titleKey: 'exp.wibilong.title',
@@ -27,7 +27,7 @@ const SEWAN = {
   nameKey: 'exp.sewan.name',
   contractKey: 'exp.sewan.contract',
   cityKey: 'exp.sewan.city',
-  logoUrl: '/sewan.png',
+  logoUrl: '/sewan.webp',
   roles: [
     {
       titleKey: 'exp.sewanLead.title',
@@ -55,7 +55,7 @@ describe('CompanyEntry', () => {
     render(<CompanyEntry experience={{ ...WIBILONG, roles: [] }} />);
 
     expect(screen.getByRole('heading', { level: 2, name: 'Wibilong' })).toBeInTheDocument();
-    expect(document.querySelector('img')).toHaveAttribute('src', '/wibilong.png');
+    expect(document.querySelector('img')).toHaveAttribute('src', '/wibilong.webp');
   });
 
   it.each([
@@ -96,7 +96,7 @@ describe('CompanyEntry', () => {
     it('shows the company, the job and its description', () => {
       render(<CompanyEntry experience={WIBILONG} />);
 
-      expect(document.querySelector('img')).toHaveAttribute('src', '/wibilong.png');
+      expect(document.querySelector('img')).toHaveAttribute('src', '/wibilong.webp');
       expect(
         screen.getByRole('heading', {
           level: 3,
@@ -171,7 +171,7 @@ describe('CompanyEntry', () => {
       render(<CompanyEntry experience={SEWAN} />);
 
       expect(screen.getAllByText('Sewan Groupe · CDI · Paris (75)')).toHaveLength(2);
-      expect(document.querySelectorAll('img[src="/sewan.png"]')).toHaveLength(2);
+      expect(document.querySelectorAll('img[src="/sewan.webp"]')).toHaveLength(2);
     });
 
     it('gives each job a level 3 heading under the level 2 one of the company', () => {

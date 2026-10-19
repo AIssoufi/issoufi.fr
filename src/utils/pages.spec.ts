@@ -1,6 +1,7 @@
-import { readFileSync, statSync } from 'node:fs';
+import { statSync } from 'node:fs';
 
 import { LANGUAGES } from '../i18n/constants';
+import { readPublicWebpSize, readWebpSize } from '../publicFileTestUtils';
 import { theme } from '../theme/theme';
 import {
   EXPERIENCES_PAGE,
@@ -44,55 +45,6 @@ const PORTRAIT_PHOTO_ASPECT_RATIO = 3 / 4;
 
 /** Pixels by which the width of a portrait version may differ from its 3:4 width, when rounded. */
 const PORTRAIT_PHOTO_ROUNDING_PX = 1;
-
-/** Offset of the type of the first chunk of a WebP file, after its RIFF header. */
-const WEBP_CHUNK_TYPE_OFFSET_BYTES = 12;
-
-/** Bytes of the type of a chunk of a WebP file, such as `VP8 `. */
-const WEBP_CHUNK_TYPE_BYTES = 4;
-
-/** Offsets of the width and height of a lossy WebP file without extended header (`VP8 `). */
-const WEBP_LOSSY_WIDTH_OFFSET_BYTES = 26;
-const WEBP_LOSSY_HEIGHT_OFFSET_BYTES = 28;
-
-/** Bits of a 16-bit field of a lossy WebP file that hold the width or height, without the scale. */
-const WEBP_LOSSY_SIZE_MASK = 0x3fff;
-
-/** Offsets of the canvas width and height, minus one, in an extended WebP file (`VP8X`). */
-const WEBP_EXTENDED_WIDTH_OFFSET_BYTES = 24;
-const WEBP_EXTENDED_HEIGHT_OFFSET_BYTES = 27;
-
-/** Bytes of the canvas width and height of an extended WebP file. */
-const WEBP_EXTENDED_SIZE_BYTES = 3;
-
-/**
- * Reads the width and height of a WebP file in its header, lossy (`VP8 `) or extended (`VP8X`).
- * Returns `undefined` for any other kind of WebP file.
- */
-const readWebpSize = (webp: Buffer) => {
-  const chunkType = webp.toString(
-    'ascii',
-    WEBP_CHUNK_TYPE_OFFSET_BYTES,
-    WEBP_CHUNK_TYPE_OFFSET_BYTES + WEBP_CHUNK_TYPE_BYTES,
-  );
-
-  if (chunkType === 'VP8 ') {
-    return {
-      width: webp.readUInt16LE(WEBP_LOSSY_WIDTH_OFFSET_BYTES) & WEBP_LOSSY_SIZE_MASK,
-      height: webp.readUInt16LE(WEBP_LOSSY_HEIGHT_OFFSET_BYTES) & WEBP_LOSSY_SIZE_MASK,
-    };
-  }
-  if (chunkType === 'VP8X') {
-    return {
-      width: webp.readUIntLE(WEBP_EXTENDED_WIDTH_OFFSET_BYTES, WEBP_EXTENDED_SIZE_BYTES) + 1,
-      height: webp.readUIntLE(WEBP_EXTENDED_HEIGHT_OFFSET_BYTES, WEBP_EXTENDED_SIZE_BYTES) + 1,
-    };
-  }
-  return undefined;
-};
-
-/** Reads the width and height of a WebP file of `public/`, named by its absolute URL. */
-const readPublicWebpSize = (url: string) => readWebpSize(readFileSync(`public${url}`));
 
 /** Start of the data URL of a placeholder: a WebP image in base64. */
 const PLACEHOLDER_URL_PREFIX = 'data:image/webp;base64,';
