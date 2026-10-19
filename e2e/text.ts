@@ -319,3 +319,104 @@ export const findWrappedSeparatorItems = (itemEnds?: readonly DrawnItemEnd[] | n
     endTop - textTop >= textHeight / 2;
   return itemEndList.filter(hasWrappedSeparator).map(({ text }) => text);
 };
+
+/** A word drawn in a box of its own, such as an animated word of the home title. */
+export interface DrawnWord {
+  /** Distance from the top of the viewport to the top of its box, in CSS pixels. */
+  top: number;
+  /** Height of its box, in CSS pixels. */
+  height: number;
+  /** Font size it is drawn in, in CSS pixels. */
+  fontSizePx: number;
+}
+
+/** A block of text with the words of it drawn in boxes of their own, such as a line of a title. */
+export interface WordBlock {
+  /** Distance from the top of the viewport to the bottom of the block, in CSS pixels. */
+  bottom: number;
+  /** Its words, in the order of the document. */
+  words: DrawnWord[];
+}
+
+/** Options of {@link measureWordBlock}, the argument that `locator.evaluate` passes to it. */
+interface MeasureWordBlockOptions {
+  /** Selector of the words of the block, such as `HERO_WORD_SELECTOR`. */
+  wordSelector: string;
+}
+
+/**
+ * Measures a block of text and the words of it drawn in boxes of their own, such as the animated
+ * words of the home title, so that {@link measureWordLineHeights} can find the height of their
+ * lines. Runs in the browser, passed to `locator.evaluate`, so it uses nothing from outside its
+ * own body.
+ *
+ * @param block - Element whose words are measured, such as the job title of the home page.
+ * @param options - The argument that `locator.evaluate` passes after the element.
+ * @returns The bottom of the block and the box and font size of each of its words, in the order of
+ * the document; no word when none matches the selector.
+ *
+ * @example
+ * await page.locator(HERO_JOB_TITLE_SELECTOR)
+ *   .evaluate(measureWordBlock, { wordSelector: HERO_WORD_SELECTOR });
+ * // { bottom: 431, words: [{ top: 316, height: 58, fontSizePx: 48 }, …] }
+ */
+export const measureWordBlock = (
+  block: Element,
+  { wordSelector }: MeasureWordBlockOptions,
+): WordBlock => {
+  const words = [...block.querySelectorAll(wordSelector)].map(word => {
+    const { top, height } = word.getBoundingClientRect();
+    return { top, height, fontSizePx: Number.parseFloat(getComputedStyle(word).fontSize) };
+  });
+  return { bottom: block.getBoundingClientRect().bottom, words };
+};
+
+/** Tells whether a value is a word whose box and font size are finite numbers. */
+const isDrawnWord = (value: unknown): value is DrawnWord => {
+  const word = value as Partial<DrawnWord> | null | undefined;
+  return [word?.top, word?.height, word?.fontSizePx].every(Number.isFinite);
+};
+
+/**
+ * Measures the height of each line of the words of a block, as a share of the font size of its
+ * first word: the distance from its top to the top of the next line of words, or to the bottom of
+ * the block for the last one, which must end the block, as a big word ends each line of the home
+ * title. A word joins the line of the word before it when its box stands at the same height, less
+ * than half of a line apart, and starts a new line otherwise, as after a wrap.
+ *
+ * @param block - Block and its words, as {@link measureWordBlock} measures them.
+ * @returns One ratio per line of words, from the first to the last; empty when the block is
+ * missing, has no list of words or no finite bottom. Entries that are not words with a finite box
+ * and font size are skipped. A line whose font size is zero or less has a ratio of `NaN`, so that
+ * a broken measure fails the test.
+ *
+ * @example
+ * measureWordLineHeights({
+ *   bottom: 132,
+ *   words: [
+ *     { top: 10, height: 58, fontSizePx: 48 },
+ *     { top: 70, height: 58, fontSizePx: 48 },
+ *   ],
+ * }); // [1.25, 1.29…]
+ */
+export const measureWordLineHeights = (block?: WordBlock | null): number[] => {
+  const words = Array.isArray(block?.words) ? block.words.filter(isDrawnWord) : [];
+  const bottom = block?.bottom;
+  const hasBottom = typeof bottom === 'number' && Number.isFinite(bottom);
+  if (!hasBottom) return [];
+
+  // Each line is known by its first word
+  const lines: DrawnWord[] = [];
+  for (const word of words) {
+    const lastLine = lines.at(-1);
+    const isOnLastLine =
+      lastLine !== undefined && Math.abs(word.top - lastLine.top) < lastLine.height / 2;
+    if (!isOnLastLine) lines.push(word);
+  }
+
+  return lines.map(({ top, fontSizePx }, index) => {
+    const lineBottom = lines[index + 1]?.top ?? bottom;
+    const hasFontSize = fontSizePx > 0;
+    return hasFontSize ? (lineBottom - top) / fontSizePx : Number.NaN;
+  });
+};

@@ -595,6 +595,21 @@ export const HERO_WORD_SELECTOR = 'span:not(:has(span))';
 export const POINTER_REST_FRAME_COUNT = 4;
 
 /**
+ * Largest height of a line of the job title of the home page, as a share of the font size of its
+ * words: the 1.2 of a heading, with room for the rounding of the boxes. The 1.7 of the running text
+ * of the title, which its words once took, left a third of a line empty between its two lines.
+ */
+export const MAX_JOB_TITLE_LINE_HEIGHT_RATIO = 1.25;
+
+/**
+ * Largest height of the line of the big "UX" and "UI" of the home title, as a share of their font
+ * size: the 1.2 of a heading, plus the room that the running text around them keeps under its
+ * baseline on a phone, where it is almost as large as they are (1.31 at 320 px). They once took
+ * the 1.7 of that running text, and made the line far taller than they need.
+ */
+export const MAX_PASSION_LINE_HEIGHT_RATIO = 1.35;
+
+/**
  * Screen widths, in pixels, at which axe-core checks every page with {@link PAGE_AXE_RULES}: a
  * phone (375) and a tablet held upright (768), with the mobile menu closed then open, a tablet
  * held sideways (1024), a laptop (1280) and a common desktop width (1440).
@@ -742,6 +757,9 @@ export const DEPARTMENT_LINE_START_PATTERN = /^\(\d{2}\)/u;
 
 /** Title of the home page: the job title, then the passion for UX and UI design. */
 export const HERO_TITLE_SELECTOR = `${PAGE_SELECTOR} h1`;
+
+/** First line of the home title, the job title, "Développeur full-stack JavaScript". */
+export const HERO_JOB_TITLE_SELECTOR = `${HERO_TITLE_SELECTOR} > :first-child`;
 
 /**
  * Second line of the home title, "passionné par l’UX et l’UI Design", a block of its own after the

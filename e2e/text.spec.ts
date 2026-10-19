@@ -9,6 +9,8 @@ import {
   listDrawnCharacters,
   listDrawnItemEnds,
   listDrawnTexts,
+  measureWordBlock,
+  measureWordLineHeights,
 } from './text.ts';
 
 /** Box of a character drawn on the first line of its block. */
@@ -516,5 +518,158 @@ describe('findWrappedSeparatorItems', () => {
     ['a string', 'Mocha'],
   ])('finds no item in %s', (_case, itemEnds) => {
     expect(findWrappedSeparatorItems(itemEnds as never)).toEqual([]);
+  });
+});
+
+describe('measureWordBlock', () => {
+  /** Box of each element of the document, by its id. */
+  let boxes: Map<string, { top: number; height: number; bottom: number }>;
+
+  // jsdom lays nothing out, and gives every element an empty box: each test places its elements
+  beforeEach(() => {
+    boxes = new Map();
+    vi.spyOn(Element.prototype, 'getBoundingClientRect').mockImplementation(function (
+      this: Element,
+    ) {
+      return (boxes.get(this.id) ?? { top: 0, height: 0, bottom: 0 }) as DOMRect;
+    });
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+    document.body.innerHTML = '';
+  });
+
+  it('measures the bottom of the block and the box and font size of each word, in order', () => {
+    document.body.innerHTML = `
+      <span id="block">
+        <span id="first" style="font-size: 48px">Full-stack</span>
+        <em>and</em>
+        <span id="second" style="font-size: 24px">Developer</span>
+      </span>
+    `;
+    boxes.set('block', { top: 10, height: 122, bottom: 132 });
+    boxes.set('first', { top: 10, height: 58, bottom: 68 });
+    boxes.set('second', { top: 70, height: 29, bottom: 99 });
+
+    const block = measureWordBlock(document.getElementById('block') as Element, {
+      wordSelector: 'span',
+    });
+
+    expect(block).toEqual({
+      bottom: 132,
+      words: [
+        { top: 10, height: 58, fontSizePx: 48 },
+        { top: 70, height: 29, fontSizePx: 24 },
+      ],
+    });
+  });
+
+  it('measures no word when none matches the selector', () => {
+    document.body.innerHTML = '<p id="block">Design</p>';
+    boxes.set('block', { top: 10, height: 30, bottom: 40 });
+
+    const block = measureWordBlock(document.getElementById('block') as Element, {
+      wordSelector: 'span',
+    });
+
+    expect(block).toEqual({ bottom: 40, words: [] });
+  });
+});
+
+describe('measureWordLineHeights', () => {
+  /** Font size of the words of the tests, in CSS pixels. */
+  const FONT_SIZE_PX = 40;
+
+  /** Height of the box of a word of the tests, 1.2 times its font size. */
+  const WORD_HEIGHT_PX = 48;
+
+  /** A word of {@link FONT_SIZE_PX}, as `measureWordBlock` measures it. */
+  const drawnWord = ({ top, fontSizePx = FONT_SIZE_PX }: { top: number; fontSizePx?: number }) => ({
+    top,
+    height: WORD_HEIGHT_PX,
+    fontSizePx,
+  });
+
+  it('measures each line to the top of the next one, and the last one to the bottom of the block', () => {
+    const block = {
+      bottom: 150,
+      words: [drawnWord({ top: 10 }), drawnWord({ top: 10 }), drawnWord({ top: 70 })],
+    };
+
+    // 60 px to the next line, then 80 px to the bottom of the block
+    expect(measureWordLineHeights(block)).toEqual([1.5, 2]);
+  });
+
+  it('measures a single line to the bottom of the block', () => {
+    const block = { bottom: 58, words: [drawnWord({ top: 10 }), drawnWord({ top: 10 })] };
+
+    expect(measureWordLineHeights(block)).toEqual([1.2]);
+  });
+
+  it('keeps on one line the words less than half a line apart, as a word pushed a little', () => {
+    const block = { bottom: 82, words: [drawnWord({ top: 10 }), drawnWord({ top: 33.9 })] };
+
+    expect(measureWordLineHeights(block)).toEqual([1.8]);
+  });
+
+  it('starts a new line half a line lower', () => {
+    const block = { bottom: 82, words: [drawnWord({ top: 10 }), drawnWord({ top: 34 })] };
+
+    expect(measureWordLineHeights(block)).toEqual([0.6, 1.2]);
+  });
+
+  it('divides the height of each line by the font size of its first word', () => {
+    const block = {
+      bottom: 110,
+      words: [
+        drawnWord({ top: 10, fontSizePx: 20 }),
+        drawnWord({ top: 10 }),
+        drawnWord({ top: 70 }),
+      ],
+    };
+
+    expect(measureWordLineHeights(block)).toEqual([3, 1]);
+  });
+
+  it.each([
+    ['zero', 0],
+    ['negative', -40],
+  ])(
+    'gives a line whose font size is %s a ratio of NaN, so a broken measure fails',
+    (_case, fontSizePx) => {
+      const block = { bottom: 58, words: [drawnWord({ top: 10, fontSizePx })] };
+
+      expect(measureWordLineHeights(block)).toEqual([Number.NaN]);
+    },
+  );
+
+  it('skips the entries that are not words with a finite box and font size', () => {
+    const block = {
+      bottom: 58,
+      words: [
+        { ...drawnWord({ top: 0 }), top: Number.NaN },
+        { ...drawnWord({ top: 0 }), height: Number.POSITIVE_INFINITY },
+        { top: 0, height: WORD_HEIGHT_PX },
+        { ...drawnWord({ top: 0 }), fontSizePx: '40px' },
+        null,
+        'UX',
+        drawnWord({ top: 10 }),
+      ],
+    };
+
+    expect(measureWordLineHeights(block as never)).toEqual([1.2]);
+  });
+
+  it.each([
+    ['nothing', undefined],
+    ['null', null],
+    ['a block without words', { bottom: 58, words: [] }],
+    ['words that are not a list', { bottom: 58, words: drawnWord({ top: 10 }) }],
+    ['a block without a bottom', { words: [drawnWord({ top: 10 })] }],
+    ['a bottom of NaN', { bottom: Number.NaN, words: [drawnWord({ top: 10 })] }],
+    ['a bottom that is a string', { bottom: '58', words: [drawnWord({ top: 10 })] }],
+  ])('measures no line from %s', (_case, block) => {
+    expect(measureWordLineHeights(block as never)).toEqual([]);
   });
 });
