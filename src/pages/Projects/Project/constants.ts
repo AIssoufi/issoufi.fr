@@ -8,10 +8,10 @@ import { theme } from '../../../theme/theme';
  */
 export const ROW_CARD_COUNT = 3;
 /**
- * Widths of the files of each thumbnail, from the narrowest, in pixels: each original is encoded
- * at these widths, but those wider than itself, and at its own width in their place (see the
- * README). With {@link THUMBNAIL_SIZES}, they serve every card of every screen of one or two device
- * pixels per CSS pixel without enlarging it, and a phone of one with a file at most twice its width.
+ * Widths of the files of each thumbnail, in pixels, from the narrowest: each original is encoded
+ * at these widths but those wider than itself, and at its own width in their place (see the
+ * README). With {@link THUMBNAIL_SIZES}, they serve the card of any screen of one or two device
+ * pixels per CSS pixel without enlarging it, and a phone of one with a file at most twice as wide.
  */
 export const THUMBNAIL_FILE_WIDTHS_PX = [480, 720, 960, 1200] as const;
 /**
