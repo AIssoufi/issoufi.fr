@@ -46,7 +46,7 @@ describe('ExperienceGroup', () => {
     render(
       <ExperienceGroup
         entityName="Sewan Groupe"
-        entityLogoUrl="/sewan.png"
+        entityLogoUrl="/sewan.webp"
         contractType="CDI"
         city="Paris (75)"
       >
@@ -63,7 +63,7 @@ describe('ExperienceGroup', () => {
     expect(screen.getByText('Lead Frontend Engineer')).toBeInTheDocument();
     expect(screen.getByText('Sewan Groupe · CDI · Paris (75)')).toBeInTheDocument();
     expect(screen.getByText('2 ans')).toBeInTheDocument();
-    expect(document.querySelector('img')).toHaveAttribute('src', '/sewan.png');
+    expect(document.querySelector('img')).toHaveAttribute('src', '/sewan.webp');
     expect(screen.getByText("Owner de l'UI Kit")).toBeInTheDocument();
   });
 
