@@ -62,7 +62,7 @@ export const GlobalStyle = createGlobalStyle`
 
   @media (min-width: ${th('screens.tablet')}) {
     a:hover {
-      color: ${th.color('accent')};
+      color: ${th.color('accent-foreground')};
     }
   }
 

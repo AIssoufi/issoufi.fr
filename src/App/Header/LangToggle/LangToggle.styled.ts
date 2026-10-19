@@ -46,6 +46,12 @@ export const Indicator = styled.div<{ $index: number }>`
   @media (min-width: ${th('screens.tablet')}) {
     transform: translateY(calc(${({ $index }) => $index} * (100% + ${th.space(4)})));
   }
+
+  /* Forced colors mode removes its fill and its glow: a thicker border, in the color of a
+     selection, still marks the active language */
+  @media (forced-colors: active) {
+    border: ${th.borderWidth('thick')} solid ${th.color('forced-active')};
+  }
 `;
 
 export const Btn = styled.button<{ $active: boolean }>`
@@ -57,13 +63,15 @@ export const Btn = styled.button<{ $active: boolean }>`
   width: ${BUTTON_WIDTH_PX}px;
   height: ${BUTTON_HEIGHT_PX}px;
   border-radius: ${th.radius(24)};
-  font-size: ${th.fontSize(11)};
+  font-size: ${th.fontSize(12)};
   font-weight: ${th.fontWeight('bold')};
   letter-spacing: ${th.letterSpacing(8)};
-  color: ${({ $active }) => ($active ? th.color('accent-soft') : th.color('foreground-a35'))};
+  /* The inactive language stays dimmer, still 4.5:1 on the dark background */
+  color: ${({ $active }) => ($active ? th.color('accent-foreground') : th.color('foreground-a55'))};
   transition: color ${th.duration(250)} ${th.timingFunction('standard')};
 
   &:hover {
-    color: ${({ $active }) => ($active ? th.color('accent-soft') : th.color('foreground-a70'))};
+    color: ${({ $active }) =>
+      $active ? th.color('accent-foreground') : th.color('foreground-a70')};
   }
 `;

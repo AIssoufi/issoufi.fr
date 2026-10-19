@@ -1,5 +1,6 @@
 import { render, screen, within } from '@testing-library/react';
 
+import { theme } from '../../../theme';
 import Technologies from './Technologies';
 
 describe('Technologies', () => {
@@ -13,6 +14,45 @@ describe('Technologies', () => {
     const { container } = render(<Technologies technologies={[]} />);
 
     expect(container).toBeEmptyDOMElement();
+  });
+
+  it('gives its list the class of a parent that places it', () => {
+    render(
+      <Technologies
+        className="placed"
+        technologies={['React.js']}
+      />,
+    );
+
+    expect(screen.getByRole('list')).toHaveClass('placed');
+  });
+
+  it('keeps the line height of its chips wherever it stands', () => {
+    render(<Technologies technologies={['React.js']} />);
+
+    expect(getComputedStyle(screen.getByRole('list')).lineHeight).toBe(
+      String(theme.lineHeights[160]),
+    );
+  });
+
+  it.each([
+    ['a name written without its brackets', 'React.js'],
+    ['an object', { name: 'React.js' }],
+    ['null', null],
+    ['a list without any name', ['', 42]],
+  ])('renders nothing for %s, without crashing', (_case, technologies) => {
+    const { container } = render(<Technologies technologies={technologies} />);
+
+    expect(container).toBeEmptyDOMElement();
+  });
+
+  it('shows each name once, leaving out the entries that are not names', () => {
+    render(<Technologies technologies={['React.js', 42, 'Vite', 'React.js']} />);
+
+    expect(screen.getAllByRole('listitem').map(({ textContent }) => textContent)).toEqual([
+      'React.js',
+      'Vite',
+    ]);
   });
 
   it('renders one chip per technology', () => {

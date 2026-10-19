@@ -140,7 +140,7 @@ describe('ProfileLinks', () => {
       expect(iconHeight).toBe(theme.fontSizes[15]);
     });
 
-    it('turns an icon to the accent color of the buttons on hover', () => {
+    it('turns an icon to the accent color of the texts on hover', () => {
       render(<ProfileLinks />);
 
       const hoverColor = declaredStyle({
@@ -148,7 +148,9 @@ describe('ProfileLinks', () => {
         property: 'color',
         pseudo: ':hover',
       });
-      expect(hoverColor).toBe(serializeCssValue({ property: 'color', value: theme.colors.accent }));
+      expect(hoverColor).toBe(
+        serializeCssValue({ property: 'color', value: theme.colors['accent-foreground'] }),
+      );
     });
   });
 });

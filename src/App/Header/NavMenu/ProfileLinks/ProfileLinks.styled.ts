@@ -17,7 +17,7 @@ export const Link = styled.a`
   transition: color ${th.duration(250)} ${th.timingFunction('standard')};
 
   &:hover {
-    color: ${th.color('accent')};
+    color: ${th.color('accent-foreground')};
   }
 
   svg {

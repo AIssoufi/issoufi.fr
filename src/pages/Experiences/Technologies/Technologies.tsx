@@ -1,26 +1,34 @@
 import { TechChip, TechList } from './Technologies.styled';
+import { listTechnologyNames } from './utils';
 
 /** Props of {@link Technologies}. */
 interface TechnologiesProps {
-  /** Technology names, in display order. Also used as React keys, so they must be unique. */
+  /**
+   * Technology names, in display order, each shown once. A value that is not an array, or an
+   * entry that is not a name, is left out, as data written by mistake could hold.
+   */
   technologies?: string[];
+  /** Class of the list, for a parent that places it, such as `styled(Technologies)`. */
+  className?: string;
 }
 
 /**
  * Row of chips listing the technologies of a job or a project, a list that screen readers
- * announce with its number of items. Renders nothing when the list is empty or missing. Also
- * exposed as `Experience.Technologies` and `ExperienceGroup.Role.Technologies`.
+ * announce with its number of items. Renders nothing when there is no name to show. A job card
+ * renders the technologies of its job from its own `technologies` prop, and a `Project` those of
+ * the project.
  *
  * @example
  * <Technologies technologies={['React.js', 'TypeScript']} />
  */
-const Technologies = ({ technologies }: TechnologiesProps) => {
-  if (!technologies?.length) return null;
+const Technologies = ({ technologies, className }: TechnologiesProps) => {
+  const names = listTechnologyNames(technologies);
+  if (names.length === 0) return null;
 
   return (
-    <TechList>
-      {technologies.map(tech => (
-        <TechChip key={tech}>{tech}</TechChip>
+    <TechList className={className}>
+      {names.map(name => (
+        <TechChip key={name}>{name}</TechChip>
       ))}
     </TechList>
   );
