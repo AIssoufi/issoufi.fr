@@ -60,7 +60,7 @@ src/
   i18n/         translations and language helpers
   theme/        design tokens, global styles and fonts
   utils/        pages, generated HTML, sitemap and manifests
-e2e/            browser tests
+e2e/            browser tests and the screenshot comparison
 scripts/        CI scripts, and the generators of the link preview, the icons and the CV
 vite/           build helpers and the standalone build
 public/         images, fonts, icons and CVs

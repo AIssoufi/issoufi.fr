@@ -15,7 +15,7 @@ pnpm dev        # http://localhost:3000
 ```
 
 - Each worktree gets its own port, written as `PORT` in its `.env.local`.
-- `pnpm dev`, `pnpm preview` and the browser tests use it.
+- `pnpm dev`, `pnpm preview`, the browser tests and the screenshot comparison use it.
 - A server stops at once when its port is taken, rather than moving to another one.
 
 ## Scripts
@@ -28,6 +28,7 @@ pnpm dev        # http://localhost:3000
 | `pnpm test`, `test:watch`     | Unit tests                                              |
 | `pnpm test:coverage`          | Unit tests with coverage, which must stay at 100 %      |
 | `pnpm test:browser`           | Browser tests, on the build                             |
+| `pnpm test:visual [--base]`   | Compare the screenshots of every page with `develop`    |
 | `pnpm typecheck`              | Type-check the app, the Node.js code and the scripts    |
 | `pnpm lint`                   | ESLint                                                  |
 | `pnpm format`, `format:check` | Prettier                                                |

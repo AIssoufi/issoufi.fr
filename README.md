@@ -15,7 +15,7 @@ A bilingual React app, built and maintained with a team of AI agents.
 ## Highlights
 
 - **Fast and accessible**: Lighthouse 100 in accessibility, best practices and SEO, 98 to 100 in performance.
-- **Tested in depth**: over 5,000 unit tests at 100 % coverage, and over 600 browser tests in Chromium, from phones to large screens.
+- **Tested in depth**: over 5,000 unit tests at 100 % coverage, and over 600 browser tests in Chromium, from phones to large screens. Each pull request compares the screenshots of every page with `develop`.
 - **A page per route**: each page gets its own HTML file in each language, with its title, description, preview image and structured data, for search engines and link previews.
 - **Shipped every morning**: a scheduled workflow releases `develop` and deploys it to production.
 - **Built with AI agents**: one Claude agent per ticket, each change reviewed by other agents.
