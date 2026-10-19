@@ -80,7 +80,9 @@ jobs:
     needs: [schedule, release]
     if: ${{ !cancelled() && needs.schedule.outputs.due == 'true' }}
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    # Waits up to 20 minutes for a run of the CI of develop still going (RUN_WAIT_ATTEMPTS), after
+    # the checkout of the whole history
+    timeout-minutes: 30
     outputs:
       sha: ${{ steps.ci.outputs.sha }}
     steps:

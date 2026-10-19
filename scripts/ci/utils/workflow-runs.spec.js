@@ -15,6 +15,7 @@ import {
   readRuns,
   shortenSha,
   waitForLatestRun,
+  waitForLatestRunToFinish,
   waitForRun,
 } from './workflow-runs.mjs';
 
@@ -775,6 +776,137 @@ describe('the API calls on runs', () => {
       async runId => {
         const fetch = stubFetch(apiRun());
         await expect(waitForRun({ runId, delayMs: 0 })).rejects.toThrow('Invalid workflow run');
+        expect(fetch).not.toHaveBeenCalled();
+      },
+    );
+  });
+
+  describe('waitForLatestRunToFinish', () => {
+    const filters = { branch: 'develop', event: null, sha: SHA };
+    const LIST_URL = `${RUNS_API_URL}/workflows/ci.yml/runs?branch=develop&head_sha=${SHA}&per_page=1`;
+    const RUN_API_URL = `${RUNS_API_URL}/runs/123`;
+    const runningApiRun = (status = 'in_progress') => apiRun({ status, conclusion: null });
+
+    beforeEach(() => {
+      vi.spyOn(console, 'log').mockImplementation(() => {});
+    });
+
+    afterEach(() => {
+      vi.restoreAllMocks();
+    });
+
+    it.each([
+      ['passed', apiRun()],
+      ['failed', apiRun({ conclusion: 'failure' })],
+      ['waits for approval', apiRun({ conclusion: 'action_required' })],
+    ])('gives a run that %s at once', async (_, listedRun) => {
+      const fetch = stubFetch({ workflow_runs: [listedRun] });
+      await expect(waitForLatestRunToFinish(filters)).resolves.toEqual(readRun(listedRun));
+      expect(fetch.mock.calls.map(([url]) => url)).toEqual([LIST_URL]);
+      expect(console.log).not.toHaveBeenCalled();
+    });
+
+    it('resolves to undefined at once when the commit has no run', async () => {
+      const fetch = stubFetch({ workflow_runs: [] });
+      await expect(waitForLatestRunToFinish(filters)).resolves.toBeUndefined();
+      expect(fetch).toHaveBeenCalledTimes(1);
+    });
+
+    it.each(['queued', 'waiting', 'in_progress'])(
+      'waits for a run that is %s until it finishes',
+      async status => {
+        const fetch = stubFetch(
+          { workflow_runs: [runningApiRun(status)] },
+          runningApiRun(),
+          apiRun({ conclusion: 'failure' }),
+        );
+        await expect(
+          waitForLatestRunToFinish({ ...filters, runWait: { delayMs: 0 } }),
+        ).resolves.toEqual(run({ conclusion: 'failure' }));
+        expect(fetch.mock.calls.map(([url]) => url)).toEqual([LIST_URL, RUN_API_URL, RUN_API_URL]);
+        expect(console.log).toHaveBeenCalledWith(
+          `Waiting for the run still going on 58ff9ea (${status}): ${RUN_URL}`,
+        );
+      },
+    );
+
+    it('gives the run as last read when it is still going after the wait', async () => {
+      const fetch = stubFetch({ workflow_runs: [runningApiRun('queued')] }, runningApiRun());
+      await expect(
+        waitForLatestRunToFinish({ ...filters, runWait: { attempts: 2, delayMs: 0 } }),
+      ).resolves.toEqual(run({ status: 'in_progress', conclusion: null }));
+      expect(fetch).toHaveBeenCalledTimes(3);
+    });
+
+    it('gives the run as listed when no answer of the wait is a run', async () => {
+      stubFetch({ workflow_runs: [runningApiRun()] }, { message: 'odd' });
+      await expect(
+        waitForLatestRunToFinish({ ...filters, runWait: { attempts: 2, delayMs: 0 } }),
+      ).resolves.toEqual(run({ status: 'in_progress', conclusion: null }));
+    });
+
+    it('gives the run as listed when the wait has no attempt', async () => {
+      const fetch = stubFetch({ workflow_runs: [runningApiRun()] });
+      await expect(
+        waitForLatestRunToFinish({ ...filters, runWait: { attempts: 0 } }),
+      ).resolves.toEqual(run({ status: 'in_progress', conclusion: null }));
+      expect(fetch).toHaveBeenCalledTimes(1);
+    });
+
+    it('waits 30 seconds between two reads by default', async () => {
+      vi.useFakeTimers();
+      const fetch = stubFetch({ workflow_runs: [runningApiRun()] }, runningApiRun(), apiRun());
+      const promise = waitForLatestRunToFinish(filters);
+      await vi.advanceTimersByTimeAsync(29_999);
+      expect(fetch).toHaveBeenCalledTimes(2);
+      await vi.advanceTimersByTimeAsync(1);
+      await expect(promise).resolves.toEqual(run());
+      expect(fetch).toHaveBeenCalledTimes(3);
+    });
+
+    it('reads the run of the wait from the same API, repository and token', async () => {
+      const fetch = stubFetch({ workflow_runs: [runningApiRun()] }, apiRun());
+      await waitForLatestRunToFinish({
+        ...filters,
+        apiUrl: 'https://example.com/api/v3',
+        repository: 'owner/repo',
+        token: 'other',
+        runWait: { delayMs: 0 },
+      });
+      const [[listUrl], [runUrl, { headers }]] = fetch.mock.calls;
+      expect(listUrl).toMatch(/^https:\/\/example\.com\/api\/v3\/repos\/owner\/repo\/actions\//);
+      expect(runUrl).toBe('https://example.com/api/v3/repos/owner/repo/actions/runs/123');
+      expect(headers.Authorization).toBe('Bearer other');
+    });
+
+    it('throws when the runs cannot be listed', async () => {
+      vi.stubGlobal(
+        'fetch',
+        vi.fn(async () => new Response('{}', { status: 500 })),
+      );
+      await expect(waitForLatestRunToFinish(filters)).rejects.toThrow(
+        'The GitHub API answered 500',
+      );
+    });
+
+    it('throws when every read of the wait failed', async () => {
+      const answers = [new Response(JSON.stringify({ workflow_runs: [runningApiRun()] }))];
+      vi.stubGlobal(
+        'fetch',
+        vi.fn(async () => answers.shift() ?? new Response('{}', { status: 502 })),
+      );
+      await expect(
+        waitForLatestRunToFinish({ ...filters, runWait: { attempts: 2, delayMs: 0 } }),
+      ).rejects.toThrow('The GitHub API answered 502');
+    });
+
+    it.each([undefined, '', '58ff9ea'])(
+      'throws without asking the API for the commit %o',
+      async sha => {
+        const fetch = stubFetch({ workflow_runs: [apiRun()] });
+        await expect(waitForLatestRunToFinish({ ...filters, sha })).rejects.toThrow(
+          'Cannot list the workflow runs',
+        );
         expect(fetch).not.toHaveBeenCalled();
       },
     );
