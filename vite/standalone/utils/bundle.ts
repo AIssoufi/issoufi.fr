@@ -1,5 +1,6 @@
 import type { Rolldown } from 'vite';
 
+import { SITEMAP_FILE_NAME } from '../../../src/utils/sitemap';
 import { HEADERS_FILE_NAME } from '../../constants';
 import {
   ESCAPED_INLINE_SCRIPT_BREAKER,
@@ -15,18 +16,19 @@ import { escapeRegExp, isFileName } from './strings';
 /**
  * Tells whether a file of the build is one that only a web server needs: every HTML page but
  * `index.html`, such as `projects.html` or `404.html`, the web app manifests, such as
- * `en/manifest.webmanifest`, and the `_headers` of Cloudflare Pages at its root. Opened from the
- * disk, the standalone build shows every route from `index.html`, no browser installs it as an app,
- * and no server reads its headers.
+ * `en/manifest.webmanifest`, the `_headers` of Cloudflare Pages and the sitemap at its root. Opened
+ * from the disk, the standalone build shows every route from `index.html`, no browser installs it
+ * as an app, no server reads its headers, and no search engine reads its sitemap.
  *
  * @param fileName - Path of the file in the build, e.g. `projects.html`.
- * @returns `true` for an HTML page other than `index.html`, for a web app manifest and for
- * `_headers`, `false` otherwise, and when the name is missing or not a string.
+ * @returns `true` for an HTML page other than `index.html`, for a web app manifest, for `_headers`
+ * and for `sitemap.xml`, `false` otherwise, and when the name is missing or not a string.
  *
  * @example
  * isServerOnlyFile('404.html'); // true
  * isServerOnlyFile('manifest.webmanifest'); // true
  * isServerOnlyFile('_headers'); // true
+ * isServerOnlyFile('sitemap.xml'); // true
  * isServerOnlyFile('index.html'); // false
  */
 export const isServerOnlyFile = (fileName?: unknown): boolean => {
@@ -36,7 +38,8 @@ export const isServerOnlyFile = (fileName?: unknown): boolean => {
   const isServerOnlyPage = isHtmlFile && !isStandalonePage;
   const isWebManifest = isName && WEB_MANIFEST_FILE_PATTERN.test(fileName);
   const isHeadersFile = fileName === HEADERS_FILE_NAME;
-  return isServerOnlyPage || isWebManifest || isHeadersFile;
+  const isSitemap = fileName === SITEMAP_FILE_NAME;
+  return isServerOnlyPage || isWebManifest || isHeadersFile || isSitemap;
 };
 
 /**

@@ -5,6 +5,7 @@ import { build, normalizePath, type Plugin, type Rolldown } from 'vite';
 import { isGoogleHost } from './e2e/utils';
 import { FONT_FACES } from './src/theme/constants';
 import { HOME_PAGE } from './src/utils/pages';
+import { SITEMAP_FILE_NAME } from './src/utils/sitemap';
 import { renderStructuredDataScript } from './src/utils/structuredData';
 import { HEADERS_FILE_NAME } from './vite/constants';
 import {
@@ -198,6 +199,10 @@ describe('standalone build', () => {
 
   it(`leaves out the ${HEADERS_FILE_NAME} of Cloudflare Pages, which no server reads from the disk`, () => {
     expect(output.map(file => file.fileName)).not.toContain(HEADERS_FILE_NAME);
+  });
+
+  it(`leaves out ${SITEMAP_FILE_NAME}, which no search engine reads from the disk`, () => {
+    expect(output.map(file => file.fileName)).not.toContain(SITEMAP_FILE_NAME);
   });
 
   it('tells how to open it in a README.txt', () => {
