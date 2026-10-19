@@ -216,6 +216,20 @@ describe('Home', () => {
     expect(glowStyle.display).not.toBe('none');
   });
 
+  it('places the cursor glow off the screen in its style, as in the page that the build renders', () => {
+    const { container } = renderHome();
+
+    const [glow] = [...container.querySelectorAll('*')].filter(
+      element =>
+        declaredStyle({ element, property: 'display', media: REDUCED_MOTION_QUERY }) === 'none',
+    );
+
+    // Where the cursor follower starts it, its corner at -100 px minus its radius
+    expect(declaredStyle({ element: glow, property: 'transform' })).toBe(
+      'translate(-120px, -120px)',
+    );
+  });
+
   it('shows the background photo of its entry in PAGES, over its placeholder', () => {
     const { url, portraitUrl, placeholderUrl } = getPage('/').backgroundPhoto;
     renderHome();

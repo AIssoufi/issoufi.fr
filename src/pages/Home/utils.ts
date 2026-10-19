@@ -1,4 +1,4 @@
-import { LINE_BREAKING_SPACE, OFFSCREEN_POINTER } from './constants.ts';
+import { CURSOR_GLOW_RADIUS_PX, LINE_BREAKING_SPACE, OFFSCREEN_POINTER } from './constants.ts';
 import type { Point } from './types.ts';
 
 /** Parameters of {@link easeTowards}. */
@@ -19,6 +19,20 @@ interface EaseTowardsParams {
  */
 export function easeTowards({ from, to, factor }: EaseTowardsParams): Point {
   return { x: from.x + (to.x - from.x) * factor, y: from.y + (to.y - from.y) * factor };
+}
+
+/**
+ * Writes the CSS transform that centers the cursor glow, placed at the top-left corner of the
+ * viewport, on a point of the viewport (see {@link CURSOR_GLOW_RADIUS_PX}).
+ *
+ * @param point - Point to center the glow on, in pixels from the top-left corner of the viewport.
+ * @returns The `translate` of the glow.
+ *
+ * @example
+ * getCursorGlowTransform({ x: 100, y: 50 }); // 'translate(80px, 30px)'
+ */
+export function getCursorGlowTransform({ x, y }: Point): string {
+  return `translate(${x - CURSOR_GLOW_RADIUS_PX}px, ${y - CURSOR_GLOW_RADIUS_PX}px)`;
 }
 
 /** Parameters of {@link getParallaxOffset}. */
