@@ -4,6 +4,7 @@ import List from '../../../components/List/index.ts';
 import { theme } from '../../../theme/index.ts';
 import { HOVER_POINTER_QUERY } from '../../../theme/constants.ts';
 import { fingerTarget, fingerTargetSize } from '../../../theme/targets.styled.ts';
+import { NO_SCRIPT_MOBILE_MEDIA_QUERY } from '../constants.ts';
 import CvLink from './CvLink/index.ts';
 import ProfileLinks from './ProfileLinks/index.ts';
 
@@ -19,37 +20,46 @@ const fadeSlideIn = keyframes`
   }
 `;
 
+/* The full-screen mobile menu */
+const openMenu = css`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  /* Centered while it fits, and from its top once it is higher than the screen, as on a phone
+     held sideways, so that scrolling reaches all of it: plain centering would push its top
+     above the screen. Browsers without the safe keyword keep the centering */
+  justify-content: center;
+  justify-content: safe center;
+  position: fixed;
+  inset: 0;
+  z-index: ${th.zIndex('overlay')};
+  overflow-y: auto;
+  /* A scroll that reaches an end of the menu stops there, rather than scrolling the page */
+  overscroll-behavior: contain;
+  padding: ${th.space(20)} 0;
+  /* Spaces the links, the profile icons and the CV link */
+  gap: ${th.space(28)};
+  background: ${th.color('overlay-mobile-menu')};
+  backdrop-filter: ${th('blurs.20')};
+  -webkit-backdrop-filter: ${th('blurs.20')};
+
+  @media (max-height: ${th('screenHeights.short')}) {
+    gap: ${th.space(16)};
+  }
+`;
+
 export const Nav = styled.nav<{ $mobileMenuIsOpen: boolean }>`
   display: none;
 
-  ${props =>
-    props.$mobileMenuIsOpen &&
-    css`
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      /* Centered while it fits, and from its top once it is higher than the screen, as on a phone
-         held sideways, so that scrolling reaches all of it: plain centering would push its top
-         above the screen. Browsers without the safe keyword keep the centering */
-      justify-content: center;
-      justify-content: safe center;
-      position: fixed;
-      inset: 0;
-      z-index: ${th.zIndex('overlay')};
-      overflow-y: auto;
-      /* A scroll that reaches an end of the menu stops there, rather than scrolling the page */
-      overscroll-behavior: contain;
-      padding: ${th.space(20)} 0;
-      /* Spaces the links, the profile icons and the CV link */
-      gap: ${th.space(28)};
-      background: ${th.color('overlay-mobile-menu')};
-      backdrop-filter: ${th('blurs.20')};
-      -webkit-backdrop-filter: ${th('blurs.20')};
+  ${props => props.$mobileMenuIsOpen && openMenu}
 
-      @media (max-height: ${th('screenHeights.short')}) {
-        gap: ${th.space(16)};
-      }
-    `}
+  /* Opens without JavaScript while the fragment of the URL names it, as the links of the burger
+     do (see BurgerMenu) */
+  @media ${NO_SCRIPT_MOBILE_MEDIA_QUERY} {
+    &:target {
+      ${openMenu}
+    }
+  }
 
   @media (min-width: ${th('screens.tablet')}) {
     display: flex;

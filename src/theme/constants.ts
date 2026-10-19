@@ -86,6 +86,15 @@ export const HOVER_POINTER_QUERY = '(hover: hover) and (pointer: fine)';
 export const FORCED_COLORS_QUERY = '(forced-colors: active)';
 
 /**
+ * Media query of the browsers that run no script, as when the visitor turned JavaScript off: the
+ * page that the build rendered stays as it is, and CSS stands in for the controls that need a
+ * script, such as the burger button of the mobile menu. It decides before the first paint, so a
+ * page that runs scripts never shows these styles. Browsers that do not know it never match it,
+ * as Safari before 17 and Chrome before 120.
+ */
+export const NO_SCRIPT_QUERY = '(scripting: none)';
+
+/**
  * Smallest font size of the site, in pixels: the size of its metadata (dates, badges, tags, the
  * version of the build), under which a text gets hard to read. `theme.spec.jsx` checks every font
  * size of the theme against it, and `readable-text.e2e.ts` every text that a page shows.

@@ -29,8 +29,9 @@ interface Item {
 /** Props of {@link NavMenu}. */
 interface NavMenuProps {
   /**
-   * `id` of the navigation element, so the button that opens it can name it in `aria-controls`.
-   * Left out when empty, as an empty `id` is invalid.
+   * `id` of the navigation element, so the button that opens it can name it in `aria-controls`,
+   * and the fragment of the URL can open the mobile menu without JavaScript. Left out when empty,
+   * as an empty `id` is invalid.
    */
   id?: string;
   /** Links to render, in display order. @default [] */
@@ -59,6 +60,10 @@ const NO_ITEMS: Item[] = [];
  * then the CV link as a pill with a download icon. On a short screen, as on a phone held sideways,
  * the overlay is more compact, and it scrolls whenever its content is higher than the screen. Must
  * be rendered inside a router, because the links are `NavLink`s.
+ *
+ * In a browser that runs no script, the mobile menu also opens while the fragment of the URL names
+ * its `id` (`/projects#menu`), which the links of `BurgerMenu` lead to, so its links stay within
+ * reach; `mobileMenuIsOpen` never changes there.
  */
 const NavMenu = ({ id, items = NO_ITEMS, onClick, mobileMenuIsOpen = false }: NavMenuProps) => {
   // Without links, the bar starts with the icons, and no line stands before them

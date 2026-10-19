@@ -31,7 +31,9 @@ A new route needs its entry in `src/utils/pages.ts`: without its HTML file, a re
 - The build renders the app at the path of each page, in its language, and writes it into the HTML file with its styles: the page shows before any script runs, and without JavaScript.
 - React then hydrates it: it takes over the elements of the page instead of drawing them again.
 - The render runs in Node.js, in a thread of its own, through a Vite environment with the plugins that the app needs (`vite/prerender/`).
-- What depends on the visitor waits for the hydration (`useIsHydrated`): the likes, the durations of the jobs, which the build counts up to its own month, and the path typed on the not found page.
+- What depends on the visitor waits for the hydration (`useIsHydrated`): the likes, the durations of the jobs, which the build counts up to its own month, and the path typed on the not found page, whose language links lead to the home until then.
+- Without JavaScript, the header still leads to every page and to the other language: the language switch is made of links, and on phones two links stand for the burger button, which open and close the menu through the fragment of the URL (`#menu`).
+  Their styles sit in a `(scripting: none)` media query, which a browser that runs scripts never matches, so nothing changes there; a browser that does not know it, such as Safari before 17, shows the burger button, which then does nothing, and Firefox 113 to 120, which knows it but not `:has()`, opens the menu but shows no cross to close it.
 - Each styled component gets an id from its module and its place in it, so the classes of the build are those that the browser computes.
 - Every Suspense boundary stays in place: React would move a large one to the end of the page, with an inline script that the Content Security Policy blocks.
 - The browser renders the app from scratch where the file holds another page than the one of its path: at the root URL that redirects to the stored language, on the not found pages, rendered without a path, and in the standalone build, whose page holds no render.

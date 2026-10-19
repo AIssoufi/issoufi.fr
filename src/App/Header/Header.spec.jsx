@@ -524,6 +524,15 @@ describe('Header', () => {
       expect(getBurgerButton()).toHaveAttribute('aria-controls', getNavigation().id);
     });
 
+    it('leads the link that opens the menu without JavaScript to the fragment of the navigation', () => {
+      renderHeader();
+      // Hidden while scripts run, so the queries by role and name skip it
+      const openLink = getMenu().querySelector('a[aria-label="Ouvrir le menu"]');
+
+      expect(openLink).toHaveAttribute('href', `#${getNavigation().id}`);
+      expect(openLink).toHaveAttribute('aria-controls', getNavigation().id);
+    });
+
     it('opens with Enter, goes on to its links with Tab, and closes with Space', async () => {
       renderHeader();
       act(() => getBurgerButton().focus());

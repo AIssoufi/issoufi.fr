@@ -5,8 +5,11 @@ import { createRef } from 'react';
 import i18n from '../../../i18n/index.ts';
 import { declaredStyle } from '../../../styleTestUtils.js';
 import { theme } from '../../../theme/index.ts';
+import { NO_SCRIPT_QUERY } from '../../../theme/constants.ts';
+import { NO_SCRIPT_MOBILE_MEDIA_QUERY } from '../constants.ts';
 import BurgerMenu from './BurgerMenu.tsx';
 import { TOP_BAR_OPEN_ROTATION_DEG } from './BurgerIcon/constants.ts';
+import { CLOSED_MENU_FRAGMENT } from './constants.ts';
 
 /** The top, middle and bottom bars of the icon, in this order. */
 const getBars = () => [...screen.getByRole('button').children];
@@ -94,6 +97,119 @@ describe('BurgerMenu', () => {
 
       expect(declaredStyle({ element: getBars()[0], property: 'rotate' })).toBe('');
       expect(screen.getByRole('button')).toHaveAttribute('aria-expanded', 'false');
+    });
+  });
+
+  describe('without JavaScript', () => {
+    /**
+     * The links that stand for the button without JavaScript, the one that opens the menu then the
+     * one that closes it. Hidden while scripts run, they have no accessible name to query them by.
+     */
+    const getLinks = () => [...document.querySelectorAll('a')];
+    const getOpenLink = () => getLinks()[0];
+    const getCloseLink = () => getLinks()[1];
+
+    it('leaves the links out without a menu id, or with an empty one, as they would lead nowhere', () => {
+      const { rerender } = render(<BurgerMenu />);
+      expect(getLinks()).toEqual([]);
+
+      rerender(<BurgerMenu menuId="" />);
+      expect(getLinks()).toEqual([]);
+    });
+
+    it('opens the menu with a link to its fragment, and closes it with a link to a fragment of no element', () => {
+      render(<BurgerMenu menuId="mobile-menu" />);
+
+      expect(getOpenLink()).toHaveAttribute('href', '#mobile-menu');
+      expect(getCloseLink()).toHaveAttribute('href', CLOSED_MENU_FRAGMENT);
+      expect(CLOSED_MENU_FRAGMENT).toMatch(/^#./);
+      expect(document.getElementById(CLOSED_MENU_FRAGMENT.slice(1))).toBeNull();
+    });
+
+    it('names the menu that each link controls, collapsed before it opens and expanded after', () => {
+      render(<BurgerMenu menuId="mobile-menu" />);
+
+      expect(getOpenLink()).toHaveAttribute('aria-controls', 'mobile-menu');
+      expect(getOpenLink()).toHaveAttribute('aria-expanded', 'false');
+      expect(getCloseLink()).toHaveAttribute('aria-controls', 'mobile-menu');
+      expect(getCloseLink()).toHaveAttribute('aria-expanded', 'true');
+    });
+
+    it('names the links as the button', () => {
+      render(<BurgerMenu menuId="mobile-menu" />);
+
+      expect(getLinks()).toHaveLength(2);
+      expect(getOpenLink()).toHaveAttribute('aria-label', 'Ouvrir le menu');
+      expect(getCloseLink()).toHaveAttribute('aria-label', 'Fermer le menu');
+    });
+
+    it('names the links as the button in English', async () => {
+      await act(() => i18n.changeLanguage('en'));
+      render(<BurgerMenu menuId="mobile-menu" />);
+
+      expect(getOpenLink()).toHaveAttribute('aria-label', 'Open menu');
+      expect(getCloseLink()).toHaveAttribute('aria-label', 'Close menu');
+    });
+
+    it('draws the bars of a closed menu in the link that opens it, and a cross in the other one', () => {
+      render(<BurgerMenu menuId="mobile-menu" />);
+      const topBarOf = link => link.firstElementChild;
+
+      expect(getOpenLink().children).toHaveLength(3);
+      expect(declaredStyle({ element: topBarOf(getOpenLink()), property: 'rotate' })).toBe('');
+      expect(declaredStyle({ element: topBarOf(getCloseLink()), property: 'rotate' })).toBe(
+        `${TOP_BAR_OPEN_ROTATION_DEG}deg`,
+      );
+    });
+
+    it('hides the links while scripts run, so that only the button shows and takes the focus', async () => {
+      render(<BurgerMenu menuId="mobile-menu" />);
+
+      expect(getOpenLink()).not.toBeVisible();
+      expect(getCloseLink()).not.toBeVisible();
+      await userEvent.tab();
+      expect(screen.getByRole('button')).toHaveFocus();
+      await userEvent.tab();
+      expect(document.body).toHaveFocus();
+    });
+
+    it('shows a link in place of the button on mobile: the cross while the URL names the menu', () => {
+      render(<BurgerMenu menuId="mobile-menu" />);
+      const display = ({ element, media = '', pseudo = '' }) =>
+        declaredStyle({ element, property: 'display', media, pseudo });
+      const shownMedia = NO_SCRIPT_MOBILE_MEDIA_QUERY;
+      const menuIsTarget = ':has(~ :target)';
+
+      expect(display({ element: screen.getByRole('button'), media: NO_SCRIPT_QUERY })).toBe('none');
+      expect(display({ element: getOpenLink() })).toBe('none');
+      expect(display({ element: getOpenLink(), media: shownMedia })).toBe('block');
+      expect(display({ element: getOpenLink(), media: shownMedia, pseudo: menuIsTarget })).toBe(
+        'none',
+      );
+      expect(display({ element: getCloseLink() })).toBe('none');
+      expect(display({ element: getCloseLink(), media: shownMedia })).toBe('');
+      expect(display({ element: getCloseLink(), media: shownMedia, pseudo: menuIsTarget })).toBe(
+        'block',
+      );
+    });
+
+    it('gives the links the size of the button, and its smaller one on a short screen', () => {
+      render(<BurgerMenu menuId="mobile-menu" />);
+      const shortScreenMedia = `(max-height: ${theme.screenHeights.short})`;
+
+      for (const link of [getOpenLink(), getCloseLink()]) {
+        expect(declaredStyle({ element: link, property: 'position' })).toBe('relative');
+        for (const property of ['width', 'height']) {
+          expect(declaredStyle({ element: link, property })).toBe(theme.sizes['burger-icon']);
+          expect(declaredStyle({ element: link, property, media: shortScreenMedia })).toBe(
+            theme.sizes['burger-icon-compact'],
+          );
+        }
+        // Above the open menu, as the button
+        expect(declaredStyle({ element: link, property: 'z-index' })).toBe(
+          String(theme.zIndices.header),
+        );
+      }
     });
   });
 
