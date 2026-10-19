@@ -303,7 +303,7 @@ describe.each(LANGUAGES)('name of the site on the %s pages', language => {
   it('names the site on the not found page', () => {
     const page = renderNotFoundHtml({ template: html, language, years: 8 });
 
-    expect(getMetaContent({ html: page, property: 'og:site_name' })).toBe('ADAM Issoufi');
+    expect(getMetaContent({ html: page, property: 'og:site_name' })).toBe(siteName);
   });
 });
 

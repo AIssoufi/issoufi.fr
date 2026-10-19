@@ -146,8 +146,8 @@ describe('getStructuredData', () => {
       .filter(({ page }) => page !== HOME_PAGE)
       .map(({ page, language }) => getPageNode(getStructuredData({ page, language })).about);
 
-    expect(declaredIds).toEqual([PERSON_ID, PERSON_ID]);
-    expect(referredIds).toHaveLength(4);
+    expect(declaredIds).toEqual(LANGUAGES.map(() => PERSON_ID));
+    expect(referredIds).toHaveLength(getPageFiles().length - LANGUAGES.length);
     referredIds.forEach(reference => expect(reference).toEqual({ '@id': PERSON_ID }));
   });
 
