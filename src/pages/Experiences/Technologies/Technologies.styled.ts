@@ -10,7 +10,7 @@ export const TechList = styled(List)`
 `;
 
 export const TechChip = styled.li`
-  font-size: ${th.fontSize(11)};
+  font-size: ${th.fontSize(12)};
   font-weight: ${th.fontWeight('medium')};
   border-radius: ${th.radius(20)};
   padding: ${th.space(3)} ${th.space(9)};

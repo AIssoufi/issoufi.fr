@@ -17,6 +17,7 @@ import {
   shadowShapes,
   sizes,
   spacing,
+  systemColors,
   zIndices,
 } from './tokens';
 
@@ -49,6 +50,17 @@ const colors = {
   /** Light pink companion of the accent: gradients, timeline dots, soft glows. */
   'accent-soft': palette.pink,
   ...alphaVariants({ name: 'accent-soft', rgb: rgb.pink, opacities: [65, 85, 95] as const }),
+  /**
+   * Accent of a text or an icon on the dark background, such as the active link: the light pink,
+   * 9.6:1 on black, where the plum of `accent` reaches only 2.7:1. The plum stays for the
+   * backgrounds, the underlines and the glows.
+   */
+  'accent-foreground': palette.pink,
+  /**
+   * Dark plum fill behind an accent icon laid over a photo, such as the heart of a liked project:
+   * dark enough for `accent-foreground` to keep 3:1 over a white photo.
+   */
+  'accent-backdrop': palette.darkPlum80,
   /** Black translucent layers: shadows, scrims, button backgrounds over images. */
   ...alphaVariants({
     name: 'shade',
@@ -60,6 +72,13 @@ const colors = {
   ...alphaVariants({ name: 'success', rgb: rgb.green, opacities: [10, 20] as const }),
   /** Background of the full-screen mobile menu. */
   'overlay-mobile-menu': palette.deepViolet92,
+  /**
+   * Active or selected state in forced colors mode, which removes the backgrounds and the shadows
+   * that show it otherwise, such as the pill under the active language.
+   */
+  'forced-active': systemColors.highlight,
+  /** Icon of a button in forced colors mode, as its text. */
+  'forced-icon': systemColors.buttonText,
 } as const;
 
 /**

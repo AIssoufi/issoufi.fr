@@ -1,4 +1,11 @@
-import { declaredStyle, listStyleRules, serializeCssValue } from './styleTestUtils';
+import {
+  blendColors,
+  declaredStyle,
+  getContrastRatio,
+  listStyleRules,
+  parseColor,
+  serializeCssValue,
+} from './styleTestUtils';
 
 describe('declaredStyle', () => {
   const TABLET_MEDIA = '(min-width: 50em)';
@@ -66,6 +73,34 @@ describe('declaredStyle', () => {
     expect(declaredStyle({ element, property: 'position', pseudo: undefined })).toBe('relative');
     expect(declaredStyle({ element, property: 'position', pseudo: null })).toBe('');
     expect(declaredStyle({ element, property: 'position', pseudo: 42 })).toBe('');
+  });
+
+  it('reads the rules of a child, however the combinator is spaced', () => {
+    const element = setUp({
+      css: `.card >svg { stroke: red; } .card:hover> svg { stroke: blue; }
+        .card svg { fill: green; }`,
+    });
+
+    expect(declaredStyle({ element, property: 'stroke', pseudo: ' > svg' })).toBe('red');
+    expect(declaredStyle({ element, property: 'stroke', pseudo: '>svg' })).toBe('red');
+    expect(declaredStyle({ element, property: 'stroke', pseudo: ':hover > svg' })).toBe('blue');
+    // A descendant is not a child
+    expect(declaredStyle({ element, property: 'fill', pseudo: ' > svg' })).toBe('');
+  });
+
+  it('reads a rule whose selector list holds the selector among others', () => {
+    const element = setUp({
+      css: `@media ${TABLET_MEDIA} { .card >svg,.card:hover>svg { stroke: red; } }
+        @keyframes pop { from { opacity: 0; } }`,
+    });
+
+    expect(
+      declaredStyle({ element, property: 'stroke', media: TABLET_MEDIA, pseudo: '>svg' }),
+    ).toBe('red');
+    expect(
+      declaredStyle({ element, property: 'stroke', media: TABLET_MEDIA, pseudo: ':hover > svg' }),
+    ).toBe('red');
+    expect(declaredStyle({ element, property: 'stroke', pseudo: '>svg' })).toBe('');
   });
 
   it('returns an empty string for a missing element or property', () => {
@@ -143,5 +178,109 @@ describe('serializeCssValue', () => {
     expect(serializeCssValue({ property: 'inset', value: null })).toBe('');
     expect(serializeCssValue({ property: 'inset', value: 0 })).toBe('');
     expect(serializeCssValue({ property: 42, value: '0' })).toBe('');
+  });
+});
+
+describe('parseColor', () => {
+  it.each([
+    ['rgb(139, 49, 104)', { red: 139, green: 49, blue: 104, alpha: 1 }],
+    ['rgba(139, 49, 104, 0.55)', { red: 139, green: 49, blue: 104, alpha: 0.55 }],
+    ['rgb(139 49 104 / 55%)', { red: 139, green: 49, blue: 104, alpha: 0.55 }],
+    ['  rgba(0, 0, 0, 0)  ', { red: 0, green: 0, blue: 0, alpha: 0 }],
+    ['rgba(127.5, 127.5, 127.5, 1)', { red: 127.5, green: 127.5, blue: 127.5, alpha: 1 }],
+    ['#8b3168', { red: 139, green: 49, blue: 104, alpha: 1 }],
+    ['#FFF', { red: 255, green: 255, blue: 255, alpha: 1 }],
+  ])('reads the channels of %s', (value, expected) => {
+    expect(parseColor(value)).toEqual(expected);
+  });
+
+  it.each([
+    ['a named color', 'white'],
+    ['a system color', 'Highlight'],
+    ['an empty string', ''],
+    ['a hexadecimal color of 4 digits', '#ffff'],
+    ['a channel over 255', 'rgb(256, 0, 0)'],
+    ['an alpha over 1', 'rgba(0, 0, 0, 1.5)'],
+    ['a negative channel', 'rgb(-1, 0, 0)'],
+    ['two channels', 'rgb(0, 0)'],
+    ['a number', 255],
+    ['null', null],
+    ['nothing', undefined],
+  ])('reads nothing from %s', (_case, value) => {
+    expect(parseColor(value)).toBeNull();
+  });
+});
+
+describe('blendColors', () => {
+  it('keeps an opaque color drawn over another one', () => {
+    expect(blendColors({ foreground: '#8b3168', background: '#ffffff' })).toBe(
+      'rgba(139, 49, 104, 1)',
+    );
+  });
+
+  it('mixes a translucent color with the opaque color under it', () => {
+    expect(blendColors({ foreground: 'rgba(0, 0, 0, 0.5)', background: '#ffffff' })).toBe(
+      'rgba(127.5, 127.5, 127.5, 1)',
+    );
+  });
+
+  it('gives a translucent result when both colors are translucent', () => {
+    expect(
+      blendColors({ foreground: 'rgba(255, 255, 255, 0.5)', background: 'rgba(0, 0, 0, 0.5)' }),
+    ).toBe('rgba(170, 170, 170, 0.75)');
+  });
+
+  it('gives a transparent color when both colors are transparent', () => {
+    expect(
+      blendColors({ foreground: 'rgba(255, 255, 255, 0)', background: 'rgba(0, 0, 0, 0)' }),
+    ).toBe('rgba(0, 0, 0, 0)');
+  });
+
+  it('rounds the channels rather than writing them with an exponent', () => {
+    const blended = blendColors({ foreground: 'rgba(1, 1, 1, 0.0000001)', background: '#000' });
+
+    expect(blended).toBe('rgba(0, 0, 0, 1)');
+  });
+
+  it.each([
+    ['no colors', undefined],
+    ['no foreground', { background: '#000' }],
+    ['no background', { foreground: '#000' }],
+    ['a foreground it cannot read', { foreground: 'Highlight', background: '#000' }],
+    ['a background it cannot read', { foreground: '#000', background: 'black' }],
+  ])('blends nothing with %s', (_case, params) => {
+    expect(blendColors(params)).toBe('');
+  });
+});
+
+describe('getContrastRatio', () => {
+  it('gives 21 for white on black, whichever is the foreground', () => {
+    expect(getContrastRatio({ foreground: '#ffffff', background: '#000000' })).toBeCloseTo(21);
+    expect(getContrastRatio({ foreground: '#000000', background: '#ffffff' })).toBeCloseTo(21);
+  });
+
+  it('gives 1 for the same color', () => {
+    expect(getContrastRatio({ foreground: '#8b3168', background: '#8b3168' })).toBe(1);
+  });
+
+  it('measures the plum and the light pink of the theme on black', () => {
+    expect(getContrastRatio({ foreground: '#8b3168', background: '#000000' })).toBeCloseTo(2.74);
+    expect(getContrastRatio({ foreground: '#d4a0c0', background: '#000000' })).toBeCloseTo(9.6, 1);
+  });
+
+  it('blends a translucent foreground over the background first', () => {
+    // White at 35 %, the former inactive language button, which axe-core measured at 2.99:1
+    const ratio = getContrastRatio({ foreground: 'rgba(255, 255, 255, 0.35)', background: '#000' });
+
+    expect(ratio).toBeCloseTo(2.99, 1);
+  });
+
+  it.each([
+    ['no colors', undefined],
+    ['a translucent background', { foreground: '#fff', background: 'rgba(0, 0, 0, 0.5)' }],
+    ['a background it cannot read', { foreground: '#fff', background: 'black' }],
+    ['a foreground it cannot read', { foreground: 'white', background: '#000' }],
+  ])('cannot measure with %s', (_case, params) => {
+    expect(getContrastRatio(params)).toBeNaN();
   });
 });

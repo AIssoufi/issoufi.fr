@@ -237,7 +237,7 @@ describe('NavMenu', () => {
       renderNavMenu({ items });
 
       expect(desktopStyle({ element: getCvLink(), property: 'color', pseudo: ':hover' })).toBe(
-        serializeCssValue({ property: 'color', value: theme.colors.accent }),
+        serializeCssValue({ property: 'color', value: theme.colors['accent-foreground'] }),
       );
       expect(desktopStyle({ element: getCvLink(), property: 'transform', pseudo: ':hover' })).toBe(
         'scale(1.06)',

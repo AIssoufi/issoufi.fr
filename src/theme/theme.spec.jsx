@@ -4,9 +4,13 @@ import { join } from 'node:path';
 import { render } from '@testing-library/react';
 import styled, { th, ThemeProvider } from '@xstyled/styled-components';
 
-import { declaredStyle } from '../styleTestUtils';
+import { declaredStyle, getContrastRatio } from '../styleTestUtils';
+import { MIN_FONT_SIZE_PX } from './constants';
 import { findRawThemeValues, findRawValues } from './testUtils';
 import { theme } from './theme';
+
+/** Smallest contrast that the Web Content Accessibility Guidelines ask of a text (1.4.3, AA). */
+const MIN_TEXT_CONTRAST_RATIO = 4.5;
 
 /** Source of the semantic tokens, which may only read the primitives of tokens.ts. */
 const THEME_FILE = join('src', 'theme', 'theme.ts');
@@ -105,6 +109,23 @@ describe('theme', () => {
     const directImport = new RegExp("from '" + 'styled-components' + "'");
     const directImports = sourceFiles.filter(file => directImport.test(readFileSync(file, 'utf8')));
     expect(directImports).toEqual([]);
+  });
+
+  it(`keeps every font size at ${MIN_FONT_SIZE_PX} px or more, so that every text stays readable`, () => {
+    const isReadable = size => Number.parseFloat(size) >= MIN_FONT_SIZE_PX;
+    const smallSizes = Object.entries(theme.fontSizes).filter(([, size]) => !isReadable(size));
+
+    expect(smallSizes).toEqual([]);
+  });
+
+  it('gives the accent of the texts 4.5:1 on the background, which the plum of backgrounds lacks', () => {
+    const contrastOnBackground = color =>
+      getContrastRatio({ foreground: theme.colors[color], background: theme.colors.background });
+
+    expect(contrastOnBackground('accent-foreground')).toBeGreaterThanOrEqual(
+      MIN_TEXT_CONTRAST_RATIO,
+    );
+    expect(contrastOnBackground('accent')).toBeLessThan(MIN_TEXT_CONTRAST_RATIO);
   });
 
   it('has no empty token', () => {

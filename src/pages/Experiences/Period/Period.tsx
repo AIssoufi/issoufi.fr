@@ -36,7 +36,7 @@ interface PeriodProps {
   end?: string;
   /**
    * Look of the period: `'job'` for the period column of a job, its dates stacked under each
-   * other, `'role'` for the smaller and dimmer one of several roles at the same company, or
+   * other, `'role'` for the dimmer one of several roles at the same company, or
    * `'inline'` for the colors of a job on one line, sized by its parent, with a dash rather
    * than an arrow. Any other value falls back to `'job'`.
    * @default 'job'

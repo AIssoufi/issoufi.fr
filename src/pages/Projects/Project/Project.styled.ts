@@ -254,7 +254,8 @@ export const LikeButton = styled.button<{ $liked: boolean; $animating: boolean }
   border-radius: ${th.radius('circle')};
   border: ${th.borderWidth('thin')} solid
     ${props => (props.$liked ? th.color('accent-a60') : th.color('foreground-a20'))};
-  background: ${props => (props.$liked ? th.color('accent-a25') : th.color('shade-a45'))};
+  /* Dark enough in every state for the heart to keep 3:1 even over a white thumbnail */
+  background: ${props => (props.$liked ? th.color('accent-backdrop') : th.color('shade-a45'))};
   backdrop-filter: ${th('blurs.10')};
   -webkit-backdrop-filter: ${th('blurs.10')};
   cursor: pointer;
@@ -267,8 +268,8 @@ export const LikeButton = styled.button<{ $liked: boolean; $animating: boolean }
     width: ${th.size(15)};
     height: ${th.size(15)};
     flex-shrink: 0;
-    stroke: ${props => (props.$liked ? th.color('accent') : th.color('foreground-a85'))};
-    fill: ${props => (props.$liked ? th.color('accent') : 'transparent')};
+    stroke: ${props => (props.$liked ? th.color('accent-foreground') : th.color('foreground'))};
+    fill: ${props => (props.$liked ? th.color('accent-foreground') : 'transparent')};
     transition:
       stroke ${th.duration(200)},
       fill ${th.duration(200)};
@@ -281,16 +282,27 @@ export const LikeButton = styled.button<{ $liked: boolean; $animating: boolean }
 
   &:hover {
     border-color: ${th.color('accent-a70')};
-    background: ${th.color('accent-a20')};
+    background: ${th.color('accent-backdrop')};
     transform: scale(1.06);
 
     > svg {
-      stroke: ${th.color('accent')};
+      stroke: ${th.color('accent-foreground')};
     }
   }
 
   &:active {
     transform: scale(0.93);
+  }
+
+  /* Forced colors mode turns the background of the button into the color of the page, and keeps
+     the colors of the heart, which could then vanish: it draws the heart in the colors of its
+     palette, filled in the color of a selection once liked */
+  @media (forced-colors: active) {
+    > svg,
+    &:hover > svg {
+      stroke: ${props => (props.$liked ? th.color('forced-active') : th.color('forced-icon'))};
+      fill: ${props => (props.$liked ? th.color('forced-active') : 'transparent')};
+    }
   }
 `;
 

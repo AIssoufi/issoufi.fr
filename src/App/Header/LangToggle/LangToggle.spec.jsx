@@ -4,8 +4,16 @@ import { MemoryRouter, useLocation } from 'react-router';
 
 import i18n from '../../../i18n';
 import { LANGUAGE_STORAGE_KEY } from '../../../i18n/constants';
+import { declaredStyle, getContrastRatio } from '../../../styleTestUtils';
+import { theme } from '../../../theme';
 import UrlLanguage from '../../UrlLanguage';
 import LangToggle from './LangToggle';
+
+/** Smallest contrast that the Web Content Accessibility Guidelines ask of a text (1.4.3, AA). */
+const MIN_TEXT_CONTRAST_RATIO = 4.5;
+
+/** Media query of forced colors mode, such as a contrast theme of Windows. */
+const FORCED_COLORS_MEDIA = '(forced-colors: active)';
 
 /** The indicator is the first child of the toggle, before the language buttons. */
 const getIndicator = () => screen.getByRole('group').firstElementChild;
@@ -135,6 +143,27 @@ describe('LangToggle', () => {
     const wrapperStyle = getComputedStyle(screen.getByRole('group'));
     expect(wrapperStyle.position).toBe('relative');
     expect(wrapperStyle.flexDirection).toBe('row');
+  });
+
+  it('keeps the inactive language at 4.5:1 on the dark background, hovered or not', () => {
+    renderAt();
+    const inactiveColor = pseudo =>
+      declaredStyle({ element: getEnglishButton(), property: 'color', pseudo });
+
+    for (const color of [inactiveColor(''), inactiveColor(':hover')]) {
+      expect(
+        getContrastRatio({ foreground: color, background: theme.colors.background }),
+      ).toBeGreaterThanOrEqual(MIN_TEXT_CONTRAST_RATIO);
+    }
+  });
+
+  it('marks the active language with a border of the color of a selection in forced colors mode', () => {
+    renderAt();
+
+    // Forced colors mode removes the fill and the glow of the indicator
+    expect(
+      declaredStyle({ element: getIndicator(), property: 'border', media: FORCED_COLORS_MEDIA }),
+    ).toBe(`${theme.borderWidths.thick} solid highlight`);
   });
 
   describe('accessibility', () => {
