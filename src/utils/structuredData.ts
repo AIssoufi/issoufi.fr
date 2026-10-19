@@ -111,6 +111,23 @@ export interface StructuredData {
   '@graph': (WebSiteNode | WebPageNode)[];
 }
 
+/**
+ * Describes the owner of the site in a language, as the home page of that language declares them:
+ * their name, the job title that the home page shows, the home page itself, the link preview image
+ * of the language, and the profiles that the header links to.
+ *
+ * @param language - Language of the job title, the home page and the image.
+ */
+const getPersonNode = (language: Language): PersonNode => ({
+  '@type': 'Person',
+  '@id': PERSON_ID,
+  name: TRANSLATIONS[language].meta.ownerName,
+  jobTitle: TRANSLATIONS[language].home.title1,
+  url: getPageUrl({ path: HOME_PAGE.path, language }),
+  image: getOgImageUrl(language),
+  sameAs: [GITHUB_PROFILE_URL, LINKEDIN_PROFILE_URL],
+});
+
 /** Parameters of {@link getStructuredData} and {@link renderStructuredDataScript}. */
 interface GetStructuredDataParams {
   /** Page to describe. */
@@ -146,7 +163,7 @@ interface GetStructuredDataParams {
  */
 export function getStructuredData({ page, language }: GetStructuredDataParams): StructuredData {
   const pageLanguage = isLanguage(language) ? language : DEFAULT_LANGUAGE;
-  const { meta, home } = TRANSLATIONS[pageLanguage];
+  const { meta } = TRANSLATIONS[pageLanguage];
   const homeUrl = getPageUrl({ path: HOME_PAGE.path, language: pageLanguage });
   const url = getPageUrl({ path: page.path, language: pageLanguage });
   const webSiteId = `${homeUrl}${WEB_SITE_ID_SUFFIX}`;
@@ -174,19 +191,12 @@ export function getStructuredData({ page, language }: GetStructuredDataParams): 
     name: meta.siteName,
     inLanguage: pageLanguage,
   };
-  const person: PersonNode = {
-    '@type': 'Person',
-    '@id': PERSON_ID,
-    name: meta.ownerName,
-    jobTitle: home.title1,
-    url: homeUrl,
-    image: getOgImageUrl(pageLanguage),
-    sameAs: [GITHUB_PROFILE_URL, LINKEDIN_PROFILE_URL],
+  const profilePage: WebPageNode = {
+    ...webPage,
+    '@type': 'ProfilePage',
+    mainEntity: getPersonNode(pageLanguage),
   };
-  return {
-    '@context': SCHEMA_ORG_CONTEXT,
-    '@graph': [webSite, { ...webPage, '@type': 'ProfilePage', mainEntity: person }],
-  };
+  return { '@context': SCHEMA_ORG_CONTEXT, '@graph': [webSite, profilePage] };
 }
 
 /** Writes a character as the `\uXXXX` escape of JSON, e.g. `<` as `\u003c`. */
