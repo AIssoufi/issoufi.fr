@@ -2,7 +2,7 @@
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 
-import { CV_URLS } from '../../src/App/Header/CvLink/constants';
+import { CV_URLS } from '../../src/App/Header/NavMenu/CvLink/constants';
 import { theme } from '../../src/theme/theme';
 import { PUBLIC_DIR } from '../utils/constants.mjs';
 import { getFirstFontFamily } from '../utils/fonts.mjs';

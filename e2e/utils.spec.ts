@@ -14,6 +14,7 @@ import {
   getCenterDistanceX,
   getCheckedRoutes,
   getQuadCenterX,
+  getRowBox,
   getScreenBox,
   getScreenCenter,
   groupCardsIntoRows,
@@ -568,6 +569,57 @@ describe('getBoxRight', () => {
       { x: '10', y: 0, width: 10, height: 10 },
     ])('returns NaN for the box %j', box => {
       expect(getBoxRight(box as never)).toBeNaN();
+    });
+  });
+});
+
+describe('getRowBox', () => {
+  const gitHub = { x: 239, y: 414, width: 32, height: 32 };
+  const linkedIn = { x: 299, y: 414, width: 32, height: 32 };
+
+  it('spans the row from the left of its first element to the right of its last', () => {
+    expect(getRowBox({ first: gitHub, last: linkedIn })).toEqual({
+      x: 239,
+      y: 414,
+      width: 92,
+      height: 32,
+    });
+  });
+
+  it('keeps the top and the height of the first element', () => {
+    const lowerLast = { x: 299, y: 420, width: 32, height: 20 };
+    expect(getRowBox({ first: gitHub, last: lowerLast })).toEqual({
+      x: 239,
+      y: 414,
+      width: 92,
+      height: 32,
+    });
+  });
+
+  it('gives the box of an element that is both the first and the last', () => {
+    expect(getRowBox({ first: gitHub, last: gitHub })).toEqual(gitHub);
+  });
+
+  it('spans the first element alone when the last one sits inside it', () => {
+    const inside = { x: 240, y: 414, width: 10, height: 32 };
+    expect(getRowBox({ first: gitHub, last: inside })).toEqual(gitHub);
+  });
+
+  describe('edge cases', () => {
+    it.each([
+      ['no parameters', undefined],
+      ['no first element', { last: linkedIn }],
+      ['no last element', { first: gitHub }],
+      ['a null first element', { first: null, last: linkedIn }],
+      ['a null last element', { first: gitHub, last: null }],
+      ['a first element that is not a box', { first: { x: 1 }, last: linkedIn }],
+      [
+        'a last element whose width is not finite',
+        { first: gitHub, last: { ...linkedIn, width: Number.NaN } },
+      ],
+      ['a last element that starts before the first', { first: linkedIn, last: gitHub }],
+    ])('returns null for %s', (_case, params) => {
+      expect(getRowBox(params as never)).toBeNull();
     });
   });
 });

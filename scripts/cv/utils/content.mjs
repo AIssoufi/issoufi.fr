@@ -191,10 +191,9 @@ const buildContacts = ({ contact, texts }) => {
 /**
  * Parameters of {@link buildProfiles}.
  * @typedef {object} BuildProfilesParams
- * @property {Record<string, any>} contact - Contact details shared by every language, `contact`
- * of `scripts/cv/.data/cv.json`.
  * @property {string} siteUrl - URL of the home page of the site in the language.
  * @property {string} siteDomain - Domain of the site, written for that link.
+ * @property {unknown} linkedInUrl - LinkedIn profile of the site owner.
  * @property {unknown} gitHubUrl - GitHub profile of the site owner.
  */
 
@@ -204,10 +203,10 @@ const buildContacts = ({ contact, texts }) => {
  * @param {BuildProfilesParams} params
  * @returns {CvLink[]} The links whose text is filled, in that order.
  */
-const buildProfiles = ({ contact, siteUrl, siteDomain, gitHubUrl }) =>
+const buildProfiles = ({ siteUrl, siteDomain, linkedInUrl, gitHubUrl }) =>
   [
     { text: siteDomain, url: toLinkUrl(siteUrl) },
-    { text: toLinkText(contact.linkedInUrl), url: toLinkUrl(contact.linkedInUrl) },
+    { text: toLinkText(linkedInUrl), url: toLinkUrl(linkedInUrl) },
     { text: toLinkText(gitHubUrl), url: toLinkUrl(gitHubUrl) },
   ].filter(({ text }) => isFilled(text));
 
@@ -224,6 +223,7 @@ const buildProfiles = ({ contact, siteUrl, siteDomain, gitHubUrl }) =>
  * @property {unknown} personalProjects - Personal projects, translated by `translateProjects`.
  * @property {unknown} freelanceProjects - Freelance projects, translated by `translateProjects`.
  * @property {string} siteUrl - URL of the home page of the site in that language.
+ * @property {unknown} linkedInUrl - LinkedIn profile of the site owner.
  * @property {unknown} gitHubUrl - GitHub profile of the site owner.
  */
 
@@ -247,11 +247,12 @@ export const buildCvContent = ({
   personalProjects,
   freelanceProjects,
   siteUrl,
+  linkedInUrl,
   gitHubUrl,
 }) => {
   const texts = isEntry(cvData?.languages?.[language]) ? cvData.languages[language] : {};
   const contact = isEntry(cvData?.contact) ? cvData.contact : {};
-  const documentName = translate('cvLink.text');
+  const documentName = translate('cvLink.documentName');
 
   return {
     language,
@@ -261,7 +262,12 @@ export const buildCvContent = ({
     passion: homeTexts.passion,
     subtitle: homeTexts.subtitle,
     contacts: buildContacts({ contact, texts }),
-    profiles: buildProfiles({ contact, siteUrl, siteDomain: homeTexts.site, gitHubUrl }),
+    profiles: buildProfiles({
+      siteUrl,
+      siteDomain: homeTexts.site,
+      linkedInUrl,
+      gitHubUrl,
+    }),
     experiences: {
       title: translate('exp.pageTitle'),
       items: buildExperiences({ translate, experiences }),
