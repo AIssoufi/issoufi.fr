@@ -2,11 +2,11 @@ name: Deploy to production
 
 on:
   schedule:
-    # 6:00 in Paris: 4:00 UTC in summer (UTC+2) and 5:00 UTC in winter (UTC+1). Both run every day,
-    # and the schedule step lets only the one of the day's offset go on. Keep them equal to
-    # DEPLOY_CRON_BY_UTC_OFFSET_MINUTES (scripts/ci/constants.mjs), which a test checks.
-    - cron: '0 4 * * *'
-    - cron: '0 5 * * *'
+    # Every 30 minutes from 4:07 to 6:37 UTC: 6:07 to 8:37 in Paris in summer (UTC+2), 5:07 to
+    # 7:37 in winter (UTC+1). GitHub may drop a scheduled run under load, mostly at the start of
+    # an hour, so the next one catches it. The schedule step stops the runs before 6:00 in Paris
+    # (DEPLOY_START_MINUTES, scripts/ci/constants.mjs) and those after a run of the day that passed.
+    - cron: '7,37 4-6 * * *'
   # Deploys at once, from the Actions tab or with gh workflow run deploy-production.yml
   workflow_dispatch:
     inputs:
@@ -35,27 +35,35 @@ jobs:
       - uses: actions/setup-node@v7
         with:
           node-version-file: .nvmrc
+      # Reads the scheduled runs of this workflow (actions: read), and warns when GitHub skipped
+      # every one of a day
       - id: schedule
         name: Check the schedule
         run: node scripts/ci/check-deploy-schedule.mjs
         env:
-          DEPLOY_SCHEDULE: ${{ github.event.schedule }}
+          GITHUB_TOKEN: ${{ github.token }}
 
   release:
-    # Merges the release pull request once its whole CI passed, so that production gets the new
-    # version, then publishes the release and runs the CI on develop: the merge, made with the
-    # GITHUB_TOKEN, starts no push run. It never fails, and leaves a notice when no release is made.
+    # Merges the release pull request once the CI of its pull request event passed, so that
+    # production gets the new version, then publishes the release and runs the CI on develop: the
+    # merge, made with the GITHUB_TOKEN, starts no push run. It never fails, and leaves a notice
+    # when no release is made, or a warning when someone has to act.
     needs: schedule
     if: needs.schedule.outputs.due == 'true'
     runs-on: ubuntu-latest
-    # Two runs of the CI, each waited for up to 20 minutes (RUN_WAIT_ATTEMPTS)
-    timeout-minutes: 50
+    # Two attempts on the release pull request (RELEASE_MERGE_ATTEMPTS), each looking for its run
+    # for up to a minute, waiting for it up to 20 minutes (RUN_WAIT_ATTEMPTS) and up to 5 minutes
+    # for the pull request to become mergeable (MERGEABLE_WAIT_ATTEMPTS), then the CI of develop
+    timeout-minutes: 75
     permissions:
       # Merges the release pull request
       contents: write
       pull-requests: write
-      # Starts ci.yml and release.yml, and follows their runs
+      # Approves the held CI of the release pull request, starts ci.yml and release.yml, and
+      # follows their runs
       actions: write
+      # Names the required checks that did not pass when the release pull request cannot merge
+      checks: read
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-node@v7

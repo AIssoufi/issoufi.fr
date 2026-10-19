@@ -1,0 +1,9 @@
+# Read by actionlint in the workflows job of ci.yml.
+paths:
+  .github/workflows/release.yml:
+    ignore:
+      # actionlint 1.7.12 still describes actions/create-github-app-token@v3 as it was at v3.0.0,
+      # with a required app-id. v3.3.0 added client-id and deprecated app-id: drop these once the
+      # data of actionlint knows client-id.
+      - 'missing input "app-id" which is required by action "actions/create-github-app-token@v3"'
+      - 'input "client-id" is not defined in action "actions/create-github-app-token@v3"'
