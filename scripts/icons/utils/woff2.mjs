@@ -12,6 +12,9 @@ import {
   ARBITRARY_TAG_INDEX,
   COLLECTION_FLAVOR,
   HEAD_UNITS_PER_EM_OFFSET,
+  HHEA_ASCENDER_OFFSET,
+  HHEA_DESCENDER_OFFSET,
+  HHEA_LINE_GAP_OFFSET,
   KNOWN_TABLE_TAGS,
   NULL_GLYF_TRANSFORM_VERSION,
   TABLE_TAG_BYTES,
@@ -36,9 +39,14 @@ import { readTransformedGlyphs } from './glyf.mjs';
  */
 
 /**
- * Glyphs of a text, as {@link readGlyphOutlines} gives them.
+ * Glyphs of a text, as {@link readGlyphOutlines} gives them, with the vertical metrics of the
+ * font, from its hhea table, from which browsers set the height of a line of text in it.
  * @typedef {object} FontOutlines
  * @property {number} unitsPerEm - Font units in an em, the font size.
+ * @property {number} ascender - Height of a line above its baseline, in font units.
+ * @property {number} descender - Depth of a line below its baseline, in font units, negative.
+ * @property {number} lineGap - Space between two lines, in font units, which a browser shares
+ * between the top and the bottom of a line.
  * @property {GlyphOutline[]} glyphs - Glyph of each character of the text, in its order.
  */
 
@@ -168,6 +176,9 @@ export const readGlyphOutlines = ({ file, text }) => {
 
   return {
     unitsPerEm: getPlainTable({ tables, tag: 'head' }).readUInt16BE(HEAD_UNITS_PER_EM_OFFSET),
+    ascender: hhea.readInt16BE(HHEA_ASCENDER_OFFSET),
+    descender: hhea.readInt16BE(HHEA_DESCENDER_OFFSET),
+    lineGap: hhea.readInt16BE(HHEA_LINE_GAP_OFFSET),
     glyphs: characters.map((character, index) => ({
       character,
       advanceWidth: readAdvanceWidth({ hhea, hmtx, glyphIndex: glyphIndices[index] }),

@@ -6,6 +6,7 @@ import { ICON_LAYOUTS, MASKABLE_SAFE_ZONE_RADIUS_RATIO } from '../constants.mjs'
 import {
   contourToPathData,
   formatCoordinate,
+  getHeaderLogo,
   getLogoTransform,
   getMismatchRatio,
   layoutLogo,
@@ -32,14 +33,14 @@ const squareGlyph = ({ character, advanceWidth }) => ({
   ],
 });
 
-/** The logo of the site, laid out as `pnpm icons` does. */
-const siteLogo = layoutLogo({
-  outlines: readGlyphOutlines({
-    file: readFileSync('public/fonts/saira-stencil-one-latin.woff2'),
-    text: 'AI',
-  }),
-  letterSpacingEm: 0.02,
+/** The glyphs of the logo of the site, in its font. */
+const siteOutlines = readGlyphOutlines({
+  file: readFileSync('public/fonts/saira-stencil-one-latin.woff2'),
+  text: 'AI',
 });
+
+/** The logo of the site, laid out as `pnpm icons` does. */
+const siteLogo = layoutLogo({ outlines: siteOutlines, letterSpacingEm: 0.02 });
 
 describe('parseEmLength', () => {
   it.each([
@@ -94,6 +95,8 @@ describe('layoutLogo', () => {
 
     expect(logo.contours.map(contour => contour[0].x)).toEqual([0, 200]);
     expect(logo.box).toEqual({ minX: 0, minY: -100, maxX: 300, maxY: 0 });
+    // The letter spacing follows the last glyph too, as in the text
+    expect(logo.advance).toBe(400);
   });
 
   it('flips the y axis, from the font to SVG', () => {
@@ -123,18 +126,22 @@ describe('layoutLogo', () => {
     });
 
     expect(logo.box.minX).toBe(250);
+    expect(logo.advance).toBe(350);
   });
 
   it('gives an empty box to a logo without contours', () => {
     expect(layoutLogo({ outlines: { unitsPerEm: 1000, glyphs: [] }, letterSpacingEm: 0 })).toEqual({
       contours: [],
       box: { minX: 0, minY: 0, maxX: 0, maxY: 0 },
+      advance: 0,
     });
   });
 
   it('lays out the logo of the site on its baseline, as wide as its two letters', () => {
     // The A starts 2 units after its origin, and the I ends 65 units before its advance
     expect(siteLogo.box).toEqual({ minX: 2, minY: -688, maxX: 972, maxY: 0 });
+    // The advances of the A and the I, 687 and 330 units, each followed by 20 units of spacing
+    expect(siteLogo.advance).toBe(1057);
   });
 });
 
@@ -268,6 +275,91 @@ describe('toLogoPathData', () => {
       toLogoPathData({ contours: [], transform: { scale: 1, translateX: 0, translateY: 0 } }),
     ).toBe('');
   });
+});
+
+describe('getHeaderLogo', () => {
+  /** Glyphs of a square letter, in a font of the vertical metrics given. */
+  const squareOutlines = ({
+    unitsPerEm = 1000,
+    ascender = 800,
+    descender = -200,
+    lineGap = 0,
+  }) => ({
+    unitsPerEm,
+    ascender,
+    descender,
+    lineGap,
+    glyphs: [squareGlyph({ character: 'I', advanceWidth: 150 })],
+  });
+
+  /** Gives the logo of the header of the glyphs given, laid out with a letter spacing of 0.05em. */
+  const getLogo = outlines =>
+    getHeaderLogo({ outlines, logo: layoutLogo({ outlines, letterSpacingEm: 0.05 }) });
+
+  it('covers the line of the text, from the ascender to the descender, as wide as its advance', () => {
+    expect(getLogo(squareOutlines({}))).toEqual({
+      viewBox: '0 -800 200 1000',
+      widthEm: 0.2,
+      heightEm: 1,
+      descentEm: 0.2,
+      pathData: 'M0 0L0 -100L100 -100L100 0Z',
+    });
+  });
+
+  it('shares the line gap of the font between the top and the bottom of the line', () => {
+    expect(getLogo(squareOutlines({ lineGap: 100 }))).toMatchObject({
+      viewBox: '0 -850 200 1100',
+      heightEm: 1.1,
+      descentEm: 0.25,
+    });
+  });
+
+  it('measures its sizes in ems of the font, rounded to a hundred thousandth', () => {
+    // The 150 units of the advance and the 102.4 of the spacing, in an em of 2048 units
+    expect(getLogo(squareOutlines({ unitsPerEm: 2048 }))).toMatchObject({
+      widthEm: 0.12324,
+      heightEm: 0.48828,
+      descentEm: 0.09766,
+    });
+  });
+
+  it('draws the logo of the site in the box of the line of its text', () => {
+    const logo = getHeaderLogo({ outlines: siteOutlines, logo: siteLogo });
+
+    expect(logo).toMatchObject({
+      viewBox: '0 -1135 1057 1574',
+      widthEm: 1.057,
+      heightEm: 1.574,
+      descentEm: 0.439,
+    });
+    expect(logo.pathData).toBe(
+      toLogoPathData({
+        contours: siteLogo.contours,
+        transform: { scale: 1, translateX: 0, translateY: 0 },
+      }),
+    );
+  });
+
+  it('draws nothing for a logo without contours', () => {
+    const outlines = { ...squareOutlines({}), glyphs: [] };
+
+    expect(getLogo(outlines)).toEqual({
+      viewBox: '0 -800 0 1000',
+      widthEm: 0,
+      heightEm: 1,
+      descentEm: 0.2,
+      pathData: '',
+    });
+  });
+
+  it.each([0, -1000, Number.NaN, undefined])(
+    'throws on a font of %s units per em, which no em could measure',
+    unitsPerEm => {
+      const outlines = { ...squareOutlines({}), unitsPerEm };
+
+      expect(() => getHeaderLogo({ outlines, logo: siteLogo })).toThrow('no units per em');
+    },
+  );
 });
 
 describe('renderIconSvg', () => {
