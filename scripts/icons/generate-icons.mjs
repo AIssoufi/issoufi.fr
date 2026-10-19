@@ -68,14 +68,17 @@ const ICO_MEDIA_TYPE = 'image/x-icon';
 /**
  * Draws the logo as text in its font and as its outline, each on a canvas, and counts the pixels
  * where they differ. Runs in the browser.
- * @param {OutlineCheck} check
+ * @param {OutlineCheck} check - What to draw, and where.
  * @returns {Promise<import('./utils/logo.mjs').InkComparison>} The pixels counted.
  */
 const compareOutlineWithText = async check => {
   const font = `${check.fontSizePx}px "${check.family}"`;
   await document.fonts.load(font, check.text);
 
-  /** @param {(context: CanvasRenderingContext2D) => void} draw */
+  /**
+   * Draws on a new canvas of the size of the check, and gives its pixels.
+   * @param {(context: CanvasRenderingContext2D) => void} draw - Draws the logo on the canvas.
+   */
   const paint = draw => {
     const canvas = document.createElement('canvas');
     canvas.width = check.width;
@@ -125,7 +128,12 @@ const colors = { background: theme.colors.background, foreground: theme.colors.f
 
 /** @type {Record<string, { url: string, type: string, sizePx?: number }>} */
 const icons = sources.icons.APP_ICONS;
-const missingLayouts = Object.keys(icons).filter(role => !(role in ICON_LAYOUTS));
+/**
+ * Tells whether `scripts/icons/constants.mjs` lays out the icon of a role.
+ * @param {string} role - Role of the icon in `APP_ICONS`.
+ */
+const hasLayout = role => role in ICON_LAYOUTS;
+const missingLayouts = Object.keys(icons).filter(role => !hasLayout(role));
 if (missingLayouts.length > 0) {
   throw new Error(`No layout in scripts/icons/constants.mjs for: ${missingLayouts.join(', ')}`);
 }

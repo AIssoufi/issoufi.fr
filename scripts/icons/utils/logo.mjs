@@ -2,7 +2,7 @@
 // Lays out the "AI" logo from the outlines of its glyphs, and draws each icon of the site around
 // it as an SVG: the favicon as it is, the other icons as the page that Chromium saves as a PNG.
 
-/** @typedef {import('./woff2.mjs').OutlinePoint} OutlinePoint */
+/** @typedef {import('./glyf.mjs').OutlinePoint} OutlinePoint */
 /** @typedef {import('./woff2.mjs').FontOutlines} FontOutlines */
 
 /** Decimals of the coordinates of the paths: a hundredth of a unit of the icon. */

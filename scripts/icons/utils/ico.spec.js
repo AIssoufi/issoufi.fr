@@ -1,5 +1,5 @@
 // @vitest-environment node
-import { toIco } from './ico.mjs';
+import { readIcoImages, toIco } from './ico.mjs';
 
 /** Stands for a PNG file: the packer stores the bytes as they are. */
 const fakePng = ({ length, byte }) => Buffer.alloc(length, byte);
@@ -53,5 +53,34 @@ describe('toIco', () => {
 
   it.each([0, -16, 257, 1.5, Number.NaN, undefined, '16'])('throws on the size %o', size => {
     expect(() => toIco([{ size, png: small }])).toThrow(RangeError);
+  });
+});
+
+describe('readIcoImages', () => {
+  const small = fakePng({ length: 10, byte: 1 });
+  const large = fakePng({ length: 20, byte: 2 });
+
+  it('reads back the images that toIco packs, with their sizes, in order', () => {
+    const images = [
+      { size: 16, png: small },
+      { size: 48, png: large },
+    ];
+
+    expect(readIcoImages(toIco(images))).toEqual(images);
+  });
+
+  it('reads a size written as 0 as 256', () => {
+    expect(readIcoImages(toIco([{ size: 256, png: small }]))).toEqual([{ size: 256, png: small }]);
+  });
+
+  it('reads no image from a file whose directory is empty', () => {
+    expect(readIcoImages(Buffer.from([0, 0, 1, 0, 0, 0]))).toEqual([]);
+  });
+
+  it('throws on a file shorter than its directory says', () => {
+    const ico = toIco([{ size: 16, png: large }]);
+
+    expect(() => readIcoImages(ico.subarray(0, ico.length - 1))).toThrow(RangeError);
+    expect(() => readIcoImages(ico.subarray(0, 10))).toThrow(RangeError);
   });
 });

@@ -10,6 +10,12 @@ import {
   WEB_MANIFEST_FILE_NAME,
 } from './webManifest';
 
+/**
+ * Longest short name, in characters, that the home screens of Android and iOS show without cutting
+ * it, as web.dev recommends it.
+ */
+const MAX_SHORT_NAME_CHARACTERS = 12;
+
 /** Reads the manifest of a language as an object. */
 const readManifest = (language: Language, years = 8) =>
   JSON.parse(renderWebManifest({ language, years }));
@@ -123,7 +129,9 @@ describe('renderWebManifest', () => {
 
   it('keeps a short name that the home screens show whole', () => {
     LANGUAGES.forEach(language => {
-      expect(readManifest(language).short_name.length).toBeLessThanOrEqual(12);
+      expect(readManifest(language).short_name.length).toBeLessThanOrEqual(
+        MAX_SHORT_NAME_CHARACTERS,
+      );
     });
   });
 
