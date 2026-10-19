@@ -8,7 +8,7 @@ const textFlow = keyframes`
 export const StrongWord = styled.span<{ $delay: string; $reverse: boolean }>`
   display: inline-block;
   will-change: transform;
-  font-size: ${th.fontSize(28)};
+  font-size: ${th.fontSize('hero-title')};
   font-weight: ${th.fontWeight('bold')};
   letter-spacing: ${th.letterSpacing('tight')};
   background: linear-gradient(
@@ -26,8 +26,4 @@ export const StrongWord = styled.span<{ $delay: string; $reverse: boolean }>`
   animation: ${textFlow} ${th.duration(5000)} ${th.timingFunction('linear')} infinite;
   animation-delay: ${({ $delay }) => $delay};
   animation-direction: ${({ $reverse }) => ($reverse ? 'reverse' : 'normal')};
-
-  @media (min-width: ${th('screens.tablet')}) {
-    font-size: ${th.fontSize(42)};
-  }
 `;
