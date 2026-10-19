@@ -4,6 +4,8 @@ import { TechChip, TechList } from './Technologies.styled';
 interface TechnologiesProps {
   /** Technology names, in display order. Also used as React keys, so they must be unique. */
   technologies?: string[];
+  /** Class of the list, for a parent that places it, such as `styled(Technologies)`. */
+  className?: string;
 }
 
 /**
@@ -14,11 +16,11 @@ interface TechnologiesProps {
  * @example
  * <Technologies technologies={['React.js', 'TypeScript']} />
  */
-const Technologies = ({ technologies }: TechnologiesProps) => {
+const Technologies = ({ technologies, className }: TechnologiesProps) => {
   if (!technologies?.length) return null;
 
   return (
-    <TechList>
+    <TechList className={className}>
       {technologies.map(tech => (
         <TechChip key={tech}>{tech}</TechChip>
       ))}

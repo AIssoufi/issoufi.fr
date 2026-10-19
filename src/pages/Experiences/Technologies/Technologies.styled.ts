@@ -7,6 +7,8 @@ export const TechList = styled(List)`
   flex-wrap: wrap;
   gap: ${th.space(6)};
   margin-top: ${th.space(10)};
+  /* The height of its chips, wherever it stands in the card */
+  line-height: ${th.lineHeight(160)};
 `;
 
 export const TechChip = styled.li`

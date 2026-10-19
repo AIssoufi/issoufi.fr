@@ -77,3 +77,39 @@ export const card = css`
     box-shadow: ${th.shadow('cardHover')};
   }
 `;
+
+/* Two columns of a job card from the two-job-columns breakpoint: its summary, then its
+   technologies, on the left, and its description on the right, as high as both, sharing the card
+   two to three, so that the lines of the description, kept short by its measure, start near the
+   summary. Below it, the card stacks them in the order of the page. The summary places itself in
+   the first free cell; the description and the technologies place themselves with cardDetails
+   and cardTechnologies */
+export const cardColumns = css`
+  @media (min-width: ${th('screens.two-job-columns')}) {
+    display: grid;
+    grid-template-columns: minmax(${th.size(240)}, 2fr) minmax(0, 3fr);
+    grid-template-rows: auto 1fr;
+    column-gap: ${th.space(32)};
+    align-items: start;
+  }
+`;
+
+/* Description of a job card: on the right of the card from the two-job-columns breakpoint, lined
+   up with the top of the summary, its lines kept short however wide the card */
+export const cardDetails = css`
+  @media (min-width: ${th('screens.two-job-columns')}) {
+    grid-column: 2;
+    grid-row: 1 / span 2;
+    max-width: ${th.size('text-measure')};
+    margin-top: 0;
+  }
+`;
+
+/* Technologies of a job card: under its summary, on the left, from the two-job-columns
+   breakpoint */
+export const cardTechnologies = css`
+  @media (min-width: ${th('screens.two-job-columns')}) {
+    grid-column: 1;
+    grid-row: 2;
+  }
+`;

@@ -135,6 +135,7 @@ export const relativeSizes = {
 /** Line lengths of text blocks; keys are numbers of characters. */
 export const measures = {
   40: '40ch',
+  52: '52ch',
 } as const;
 
 /** Corner radii; keys are pixel values, except `half`, which rounds a square into a circle. */
@@ -305,5 +306,6 @@ export const breakpoints = {
   37.5: '37.5em',
   50: '50em',
   53.625: '53.625em',
+  64: '64em',
   100: '100em',
 } as const;

@@ -1,4 +1,4 @@
-import { act, render, screen } from '@testing-library/react';
+import { act, render, screen, within } from '@testing-library/react';
 
 import i18n from '../../../i18n';
 import { getReadText } from '../../testUtils';
@@ -111,6 +111,19 @@ describe('CompanyEntry', () => {
       ).toBeInTheDocument();
     });
 
+    it('lists the technologies of its role in its card', () => {
+      const [role] = WIBILONG.roles;
+      render(
+        <CompanyEntry
+          experience={{ ...WIBILONG, roles: [{ ...role, technologies: ['React.js'] }] }}
+        />,
+      );
+
+      // After the list of its bullet points
+      const lists = within(screen.getByRole('article')).getAllByRole('list');
+      expect(lists[lists.length - 1].textContent).toBe('React.js');
+    });
+
     it('writes the period of its role on the timeline, read "sept. 2019 à juin 2021"', () => {
       const { container } = render(<CompanyEntry experience={WIBILONG} />);
       const column = container.querySelector('[data-timeline-dot="after"]');
@@ -165,6 +178,22 @@ describe('CompanyEntry', () => {
         'Lead Frontend Engineer — UI Kit Owner & Architect',
         'Senior Full-Stack Engineer — Core Platform (React, Node.js, GraphQL)',
       ]);
+    });
+
+    it('lists the technologies of each role in its own card', () => {
+      const [lead, senior] = SEWAN.roles;
+      const roles = [
+        { ...lead, technologies: ['React.js', 'Storybook'] },
+        { ...senior, technologies: ['GraphQL'] },
+      ];
+      render(<CompanyEntry experience={{ ...SEWAN, roles }} />);
+
+      const cardTechnologies = screen.getAllByRole('article').map(card =>
+        within(card)
+          .getAllByRole('listitem')
+          .map(({ textContent }) => textContent),
+      );
+      expect(cardTechnologies).toEqual([['React.js', 'Storybook'], ['GraphQL']]);
     });
 
     it('writes the company with each job', () => {

@@ -41,7 +41,7 @@ describe('RoleDescription', () => {
     expect(container.querySelector('strong')).toHaveTextContent(/^~15 équipes produit$/);
   });
 
-  it('lists the bullet points of the role, then shows its project and its technologies', () => {
+  it('lists the bullet points of the role, then shows its project', () => {
     render(<RoleDescription role={ROLE} />);
 
     const [roleBullets, projectBullets] = screen.getAllByRole('list');
@@ -49,8 +49,15 @@ describe('RoleDescription', () => {
     expect(within(projectBullets).getByRole('listitem')).toHaveTextContent(
       'Refonte intégrale du pipeline CI/CD GitLab',
     );
-    expect(screen.getByText('React.js')).toBeInTheDocument();
-    expect(screen.getByText('TypeScript')).toBeInTheDocument();
+  });
+
+  it('leaves the technologies of the role to its card, which shows them apart', () => {
+    render(<RoleDescription role={ROLE} />);
+
+    expect(screen.queryByText('React.js')).not.toBeInTheDocument();
+    expect(screen.queryByText('TypeScript')).not.toBeInTheDocument();
+    // The technologies of its projects stay with them
+    expect(screen.getByText('Vitest')).toBeInTheDocument();
   });
 
   it('shows the title, the status, the description and the technologies of each project', () => {

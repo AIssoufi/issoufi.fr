@@ -1,5 +1,6 @@
 import { render, screen, within } from '@testing-library/react';
 
+import { theme } from '../../../theme';
 import Technologies from './Technologies';
 
 describe('Technologies', () => {
@@ -13,6 +14,25 @@ describe('Technologies', () => {
     const { container } = render(<Technologies technologies={[]} />);
 
     expect(container).toBeEmptyDOMElement();
+  });
+
+  it('gives its list the class of a parent that places it', () => {
+    render(
+      <Technologies
+        className="placed"
+        technologies={['React.js']}
+      />,
+    );
+
+    expect(screen.getByRole('list')).toHaveClass('placed');
+  });
+
+  it('keeps the line height of its chips wherever it stands', () => {
+    render(<Technologies technologies={['React.js']} />);
+
+    expect(getComputedStyle(screen.getByRole('list')).lineHeight).toBe(
+      String(theme.lineHeights[160]),
+    );
   });
 
   it('renders one chip per technology', () => {
