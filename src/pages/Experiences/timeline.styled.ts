@@ -79,15 +79,17 @@ export const card = css`
 `;
 
 /* Two columns of a job card from the two-job-columns breakpoint: its summary, then its
-   technologies, on the left, and its description on the right, as high as both, sharing the card
-   two to three, so that the lines of the description, kept short by its measure, start near the
-   summary. Below it, the card stacks them in the order of the page. The summary places itself in
-   the first free cell; the description and the technologies place themselves with cardDetails
-   and cardTechnologies */
+   technologies, on the left, and its description on the right, as high as both. The description
+   column is as wide as its lines, which its measure keeps short, against the right edge of the
+   card, and the left column takes the rest of the card. The measure stays on the description
+   rather than in the column, since a width in `ch` follows the font size of its own element.
+   Below it, the card stacks them in the order of the page. The summary places itself in the
+   first free cell; the description and the technologies place themselves with cardDetails and
+   cardTechnologies */
 export const cardColumns = css`
   @media (min-width: ${th('screens.two-job-columns')}) {
     display: grid;
-    grid-template-columns: minmax(${th.size(240)}, 2fr) minmax(0, 3fr);
+    grid-template-columns: minmax(${th.size(240)}, 1fr) auto;
     grid-template-rows: auto 1fr;
     column-gap: ${th.space(32)};
     align-items: start;

@@ -263,7 +263,7 @@ export const theme = {
     /**
      * From this width, each job card of the Experiences page shows its summary and its technologies
      * on the left of its description: 1024 px, where the description gets its whole measure
-     * (`text-measure`) next to a summary of 320 px, three fifths and two fifths of the card.
+     * (`text-measure`) next to a summary of more than 300 px.
      */
     'two-job-columns': breakpoints[64],
     /** Wide screens. */
