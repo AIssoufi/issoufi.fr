@@ -21,6 +21,7 @@ import {
   isBoxInside,
   isGoogleHost,
   isGoogleUrl,
+  isSecurityPolicyMessage,
 } from './utils';
 
 describe('getCheckedRoutes', () => {
@@ -853,6 +854,39 @@ describe('isGoogleUrl', () => {
   ])('finds no Google request in %j, not an absolute URL', url => {
     expect(isGoogleUrl(url)).toBe(false);
   });
+});
+
+describe('isSecurityPolicyMessage', () => {
+  it.each([
+    "Executing inline script violates the following Content Security Policy directive 'script-src 'self''. The action has been blocked.",
+    "Loading the image 'https://example.org/a.png' violates the following Content Security Policy directive: \"img-src 'self' data:\". The action has been blocked.",
+    "Refused to load the script 'https://example.org/a.js' because it violates the following Content Security Policy directive: \"script-src 'self'\".",
+    'Refused to apply inline style because it violates the following Content Security Policy directive: "style-src \'self\'".',
+    'Refused to execute inline script because it violates the following Content Security Policy directive: "script-src \'self\'".',
+    "The Content Security Policy directive 'frame-ancestors' is ignored when delivered via a <meta> element.",
+    "Unrecognized Content-Security-Policy directive 'navigate-to'.",
+    "Error with Permissions-Policy header: Unrecognized feature: 'interest-cohort'.",
+    'Potential permissions policy violation: camera is not allowed in this document.',
+  ])('finds that %j is about a security policy', text => {
+    expect(isSecurityPolicyMessage(text)).toBe(true);
+  });
+
+  it.each([
+    'Failed to load resource: the server responded with a status of 404 (Not Found)',
+    'Download the React DevTools for a better development experience',
+    'The security of this page is fine',
+    'Content policy updated',
+    '',
+  ])('finds that %j is about no security policy', text => {
+    expect(isSecurityPolicyMessage(text)).toBe(false);
+  });
+
+  it.each([undefined, null, 42, {}, ['Content Security Policy']])(
+    'finds no security policy message in %j, not a string',
+    text => {
+      expect(isSecurityPolicyMessage(text)).toBe(false);
+    },
+  );
 });
 
 describe('getScreenCenter', () => {
