@@ -90,6 +90,16 @@ export const TYPE3_FONT_TYPE = 'Type3';
  */
 export const FONT_SUBSET_PREFIX_PATTERN = /^[A-Z]{6}\+/;
 
+/**
+ * Creation and modification dates of a PDF, with the key that names each one in its information
+ * dictionary, e.g. `/CreationDate (D:20261019034028+00'00')`: Chromium writes the time of the
+ * print, the only bytes that change when it prints the same page again.
+ */
+export const PDF_DATE_PATTERN = /(\/(?:CreationDate|ModDate)\s*)\((?:[^()\\]|\\.)*\)/g;
+
+/** Argument of `pnpm cv` that prints and checks the CVs without writing any file. */
+export const CHECK_ONLY_FLAG = '--check';
+
 /** Spaces of any kind, which the text of a PDF breaks, joins or drops at the end of the lines. */
 export const WHITESPACE_PATTERN = /\s+/g;
 
