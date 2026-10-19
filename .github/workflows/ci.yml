@@ -142,6 +142,9 @@ jobs:
           key: playwright-${{ runner.os }}-${{ steps.playwright.outputs.version }}
       - run: pnpm exec playwright install --with-deps --only-shell chromium
       - run: pnpm test:browser
+      # Fails once Chromium prints the same CV twice with other bytes than its dates, which would
+      # make every run of pnpm cv change the PDFs in git
+      - run: pnpm cv:check
       # Holds a screenshot of each page that failed
       - if: failure()
         uses: actions/upload-artifact@v7

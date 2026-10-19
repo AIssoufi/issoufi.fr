@@ -3,6 +3,7 @@ import { getDocument, OPS, VerbosityLevel } from 'pdfjs-dist/legacy/build/pdf.mj
 
 import {
   FONT_SUBSET_PREFIX_PATTERN,
+  PDF_DATE_PATTERN,
   QUOTED_TEXT_LENGTH,
   TYPE3_FONT_TYPE,
   WHITESPACE_PATTERN,
@@ -155,4 +156,37 @@ export const findPdfProblems = ({
     ...texts.filter(isMissingText).map(text => `the text "${quote(text)}" is missing`),
     ...links.filter(isMissingLink).map(link => `the link ${link} is missing`),
   ];
+};
+
+/**
+ * Writes the bytes of a PDF as text, one character per byte, with empty creation and
+ * modification dates.
+ * @param {Uint8Array} pdf - Content of the PDF file.
+ * @returns {string} The PDF without its dates.
+ */
+const removePdfDates = pdf => Buffer.from(pdf).toString('latin1').replace(PDF_DATE_PATTERN, '$1()');
+
+/**
+ * Parameters of {@link isSamePdfApartFromDates}.
+ * @typedef {object} IsSamePdfApartFromDatesParams
+ * @property {Uint8Array} pdf - Content of a PDF file.
+ * @property {Uint8Array} [otherPdf] - Content of the PDF file to compare it with, none when there
+ * is no such file yet.
+ */
+
+/**
+ * Tells whether two PDF files hold the same bytes but their creation and modification dates, as
+ * when Chromium prints the same page twice: keeping the file already written then leaves git
+ * clean when the CV did not change.
+ * @param {IsSamePdfApartFromDatesParams} params
+ * @returns {boolean} Whether only the dates differ, or nothing.
+ * @example
+ * const otherPdf = readFileSync('public/CV - Adam Issoufi.pdf');
+ * isSamePdfApartFromDates({ pdf: printed, otherPdf });
+ * // true
+ */
+export const isSamePdfApartFromDates = ({ pdf, otherPdf }) => {
+  if (!otherPdf) return false;
+
+  return removePdfDates(pdf) === removePdfDates(otherPdf);
 };

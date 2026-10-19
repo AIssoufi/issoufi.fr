@@ -7,8 +7,11 @@
 // then commit the PDFs and the fingerprints of their content (scripts/cv/fingerprints.json):
 // scripts/cv/cvs.spec.js fails while a CV no longer says what the site says. Chromium, from
 // Playwright, prints each CV, in the font and colors of the site: the static font files of
-// scripts/cv/fonts, so it needs no network.
-import { readFileSync, writeFileSync } from 'node:fs';
+// scripts/cv/fonts, so it needs no network. It prints each CV twice, and stops unless both prints
+// hold the same bytes but their dates, then keeps a PDF of public/ that differs from the new one
+// by its dates only, so a CV that did not change leaves git clean. `pnpm cv:check` (`--check`)
+// prints and checks the CVs without writing any file, as the CI does.
+import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 
 import { chromium } from '@playwright/test';
@@ -19,6 +22,7 @@ import { getFirstFontFamily, listFontsInUse } from '../utils/fonts.mjs';
 import { hasUnresolvedValue, toDataUrl } from '../utils/html.mjs';
 import { loadSiteModules } from '../utils/site-modules.mjs';
 import {
+  CHECK_ONLY_FLAG,
   CV_FINGERPRINTS_FILE,
   CV_FONT_FILES,
   CV_FONTS_DIR,
@@ -31,7 +35,7 @@ import {
 import { getCvFingerprint } from './utils/fingerprint.mjs';
 import { renderFontFaces } from './utils/fonts.mjs';
 import { buildCvContents } from './utils/languages.mjs';
-import { findPdfProblems, readPdf } from './utils/pdf.mjs';
+import { findPdfProblems, isSamePdfApartFromDates, readPdf } from './utils/pdf.mjs';
 import { renderCvStyles } from './utils/styles.mjs';
 import { renderCvHtml } from './utils/template.mjs';
 import { findMissingCvTexts, listCvLinks, listCvTexts } from './utils/texts.mjs';
@@ -64,6 +68,8 @@ const printPdf = async ({ html, fonts }) => {
     await browser.close();
   }
 };
+
+const isCheckOnly = process.argv.slice(2).includes(CHECK_ONLY_FLAG);
 
 const { sources, data, translations } = await loadSiteModules({
   sources: SOURCE_MODULES,
@@ -120,7 +126,8 @@ const files = [];
 // One after the other, so that only one Chromium runs at a time
 for (const content of contents) {
   const fileName = join(PUBLIC_DIR, cvUrls[content.language]);
-  const file = await printPdf({ html: renderCvHtml({ content, styles, fontFaces }), fonts });
+  const html = renderCvHtml({ content, styles, fontFaces });
+  const file = await printPdf({ html, fonts });
   const problems = findPdfProblems({
     pdf: await readPdf(file),
     byteCount: file.length,
@@ -133,16 +140,41 @@ for (const content of contents) {
   if (problems.length > 0) {
     throw new Error(`${fileName} would be wrong:\n- ${problems.join('\n- ')}`);
   }
+  // A second browser, as the next run of the script would launch
+  const reprint = await printPdf({ html, fonts });
+  if (!isSamePdfApartFromDates({ pdf: file, otherPdf: reprint })) {
+    throw new Error(
+      `Chromium printed ${fileName} twice with other bytes than its dates: each run would change ` +
+        'it in git. Compare two prints (`cmp -l`) and handle the bytes that change as the dates.',
+    );
+  }
   files.push({ fileName, file });
 }
 
-// Written once every CV is printed and checked, so a failure leaves none of them changed
-files.forEach(({ fileName, file }) => {
-  writeFileSync(fileName, file);
-  console.log(`Wrote ${fileName}: ${file.length} bytes (limit ${CV_MAX_BYTES})`);
-});
-const fingerprints = Object.fromEntries(
-  contents.map(content => [content.language, getCvFingerprint(content)]),
-);
-writeFileSync(CV_FINGERPRINTS_FILE, `${JSON.stringify(fingerprints, null, 2)}\n`);
-console.log(`Wrote ${CV_FINGERPRINTS_FILE}`);
+/**
+ * Writes the PDFs and the fingerprints of their content, once every CV is printed and checked,
+ * so a failure leaves none of them changed. A PDF of public/ that differs from the new one by its
+ * dates only stays as it is.
+ */
+const writeCvs = () => {
+  files.forEach(({ fileName, file }) => {
+    const previousFile = existsSync(fileName) ? readFileSync(fileName) : undefined;
+    if (isSamePdfApartFromDates({ pdf: file, otherPdf: previousFile })) {
+      console.log(`Kept ${fileName}: only its dates would change`);
+      return;
+    }
+    writeFileSync(fileName, file);
+    console.log(`Wrote ${fileName}: ${file.length} bytes (limit ${CV_MAX_BYTES})`);
+  });
+  const fingerprints = Object.fromEntries(
+    contents.map(content => [content.language, getCvFingerprint(content)]),
+  );
+  writeFileSync(CV_FINGERPRINTS_FILE, `${JSON.stringify(fingerprints, null, 2)}\n`);
+  console.log(`Wrote ${CV_FINGERPRINTS_FILE}`);
+};
+
+if (isCheckOnly) {
+  console.log(`Printed each of the ${files.length} CVs twice, with the same bytes but the dates`);
+} else {
+  writeCvs();
+}
