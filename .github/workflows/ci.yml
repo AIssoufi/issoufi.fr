@@ -194,6 +194,31 @@ jobs:
         env:
           SHARDS_RESULT: ${{ needs.browser-test-shard.result }}
 
+  # Compares the screenshots of every page with those of the base of the pull request, at four
+  # widths in each language, and lists the changed screens in the job summary (pnpm test:visual).
+  # It only informs: no ruleset requires it, and a changed screen does not fail it, since the pull
+  # request may mean it. A screen that could not be compared does
+  visual:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      # The merge commit of the pull request, whose first parent is the base branch it merges into
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 2
+      - uses: ./.github/actions/setup
+      - uses: ./.github/actions/playwright
+      - run: pnpm test:visual --base HEAD^1
+      # The HTML report shows each changed screen before and after the change, with their diff
+      - if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: visual-report
+          path: visual-report/
+          retention-days: 14
+          if-no-files-found: ignore
+
   credentials:
     # Pull requests from forks and from Dependabot get no repository secrets
     if: >-
