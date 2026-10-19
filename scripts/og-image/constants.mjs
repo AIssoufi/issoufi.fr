@@ -31,14 +31,13 @@ export const FONTS_IN_USE = [
 /**
  * Modules of the site read by the script through Vite (`loadSiteModules`), which compiles their
  * TypeScript, with the translations of `TRANSLATION_MODULES` (`scripts/utils/constants.mjs`): the
- * design tokens, the `@font-face` rules of the web fonts, the background photo and the particle
- * field of the home page, and the domain of the site and the path of the image of each language.
- * Paths are relative to the project root.
+ * design tokens, the `@font-face` rules of the web fonts, the particle field of the home page, and
+ * the domain of the site, the path of the image of each language and the background photo of the
+ * home page. Paths are relative to the project root.
  */
 export const SOURCE_MODULES = {
   theme: '/src/theme/theme.ts',
   fonts: '/src/theme/utils.ts',
-  home: '/src/pages/Home/constants.ts',
   particleConstants: '/src/pages/Home/ParticleField/constants.ts',
   particleUtils: '/src/pages/Home/ParticleField/utils.ts',
   pages: '/src/utils/pages.ts',

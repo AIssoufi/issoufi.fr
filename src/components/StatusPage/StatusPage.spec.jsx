@@ -2,9 +2,9 @@ import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router';
 
-import { isPublicFile } from '../../pages/testUtils';
+import { isPublicFile, readBackgroundImages } from '../../pages/testUtils';
 import { declaredStyle } from '../../styleTestUtils';
-import { BACKGROUND_IMAGE_URL } from './constants';
+import { STATUS_PAGE_BACKGROUND_PHOTO } from '../../utils/pages';
 import StatusPage from './StatusPage';
 
 const getMain = () => screen.getByRole('main');
@@ -47,16 +47,19 @@ describe('StatusPage', () => {
     expect(onAction).toHaveBeenCalledTimes(1);
   });
 
-  it('shows the photo of the status pages behind the page', () => {
+  it('shows the photo of the status pages behind the page, over its placeholder', () => {
+    const { url, portraitUrl, placeholderUrl } = STATUS_PAGE_BACKGROUND_PHOTO;
     render(<StatusPage title="Page introuvable" />);
 
-    expect(mainStyle({ property: 'background-image', pseudo: '::before' })).toBe(
-      `url("${BACKGROUND_IMAGE_URL}")`,
-    );
+    expect(readBackgroundImages(getMain())).toEqual({
+      image: `url("${url}"), url("${placeholderUrl}")`,
+      portraitImage: `url("${portraitUrl}"), url("${placeholderUrl}")`,
+    });
   });
 
-  it('serves its background from public/', () => {
-    expect(isPublicFile(BACKGROUND_IMAGE_URL)).toBe(true);
+  it('serves both versions of its background from public/', () => {
+    expect(isPublicFile(STATUS_PAGE_BACKGROUND_PHOTO.url)).toBe(true);
+    expect(isPublicFile(STATUS_PAGE_BACKGROUND_PHOTO.portraitUrl)).toBe(true);
   });
 
   it('centers the message in the height of the page', () => {

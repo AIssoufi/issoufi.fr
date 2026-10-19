@@ -1,12 +1,12 @@
 import { expect, type Page, test } from '@playwright/test';
 
 import { STALE_CHUNK_RELOAD_STORAGE_KEY } from '../src/App/constants';
-import { BACKGROUND_IMAGE_URL } from '../src/components/StatusPage/constants';
 import { LANGUAGES } from '../src/i18n/constants';
 import { en } from '../src/i18n/en';
 import { fr } from '../src/i18n/fr';
 import type { Language, Translations } from '../src/i18n/types';
 import { localizePath } from '../src/i18n/utils';
+import { PORTRAIT_PHOTO_MEDIA_QUERY, STATUS_PAGE_BACKGROUND_PHOTO } from '../src/utils/pages';
 import {
   ERROR_MESSAGE_SELECTOR,
   ERROR_PAGE_SCREENS,
@@ -82,13 +82,23 @@ for (const language of LANGUAGES) {
           });
 
           const main = page.locator(PAGE_SELECTOR);
-          const photoUrl = new URL(BACKGROUND_IMAGE_URL, page.url()).href;
+          // Phones held upright show the portrait version of the photo, the other screens the whole
+          const isPortraitScreen = await page.evaluate(
+            query => matchMedia(query).matches,
+            PORTRAIT_PHOTO_MEDIA_QUERY,
+          );
+          const { url, portraitUrl, placeholderUrl } = STATUS_PAGE_BACKGROUND_PHOTO;
+          const photoPath = isPortraitScreen ? portraitUrl : url;
+          const photoUrl = new URL(photoPath, page.url()).href;
           const backgroundImage = await main.evaluate(
             element => getComputedStyle(element, '::before').backgroundImage,
           );
-          expect.soft(backgroundImage, 'background of the page').toBe(`url("${photoUrl}")`);
+          // The photo, over the placeholder that shows until it is downloaded
+          expect
+            .soft(backgroundImage, 'background of the page')
+            .toBe(`url("${photoUrl}"), url("${placeholderUrl}")`);
           const photoResponse = await page.request.get(photoUrl);
-          expect.soft(photoResponse.ok(), `${BACKGROUND_IMAGE_URL} served`).toBe(true);
+          expect.soft(photoResponse.ok(), `${photoPath} served`).toBe(true);
 
           const mainBox = await main.boundingBox();
           const messageBox = await page.locator(ERROR_MESSAGE_SELECTOR).boundingBox();
