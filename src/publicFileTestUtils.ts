@@ -91,7 +91,7 @@ const isByteArray = (value: unknown): value is Uint8Array =>
  * @returns `false` for a relative URL, a missing file, a folder, a path leaving `public/` or a
  * value that is not a string.
  */
-export const isPublicFile = (url: unknown): url is string => {
+export const isPublicFile = (url: unknown): boolean => {
   const isAbsoluteUrl = typeof url === 'string' && url.startsWith('/');
   if (!isAbsoluteUrl) return false;
 
@@ -161,5 +161,7 @@ export const readWebpSize = (bytes: unknown): ImageFileSize | null => {
  * @returns `null` when the URL names no file of `public/` (see {@link isPublicFile}), or a file
  * that is not a WebP image.
  */
-export const readPublicWebpSize = (url: unknown): ImageFileSize | null =>
-  isPublicFile(url) ? readWebpSize(readFileSync(join(PUBLIC_DIR, url))) : null;
+export const readPublicWebpSize = (url: unknown): ImageFileSize | null => {
+  const isPublicUrl = typeof url === 'string' && isPublicFile(url);
+  return isPublicUrl ? readWebpSize(readFileSync(join(PUBLIC_DIR, url))) : null;
+};
