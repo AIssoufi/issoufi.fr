@@ -1,8 +1,8 @@
 import { act, render } from '@testing-library/react';
 import { MemoryRouter } from 'react-router';
 
-import i18n from '../../i18n';
-import DocumentMeta from './DocumentMeta';
+import i18n from '../../i18n/index.ts';
+import DocumentMeta from './DocumentMeta.tsx';
 
 const renderAt = path =>
   render(

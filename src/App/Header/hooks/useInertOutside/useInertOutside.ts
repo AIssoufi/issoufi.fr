@@ -1,7 +1,7 @@
 import { type RefObject, useEffect } from 'react';
 
-import { INERT_ATTRIBUTE } from '../../constants';
-import { getAncestorsInBody, getElementsOutside } from '../../utils';
+import { INERT_ATTRIBUTE } from '../../constants.ts';
+import { getAncestorsInBody, getElementsOutside } from '../../utils.ts';
 
 /** Parameters of {@link useInertOutside}. */
 interface UseInertOutsideParams {

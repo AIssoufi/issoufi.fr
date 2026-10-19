@@ -1,8 +1,8 @@
-import JobSummary from '../JobSummary';
-import Project from '../Project';
-import Technologies from '../Technologies';
+import JobSummary from '../JobSummary/index.ts';
+import Project from '../Project/index.ts';
+import Technologies from '../Technologies/index.ts';
 
-import { Article, Details } from './Experience.styled';
+import { Article, Details } from './Experience.styled.ts';
 
 /** Props of {@link Experience}. Every part is optional and is not rendered when missing. */
 interface ExperienceProps {

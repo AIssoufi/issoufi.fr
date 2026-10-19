@@ -1,5 +1,5 @@
-import { declaredStyle } from '../styleTestUtils';
-import { PORTRAIT_PHOTO_MEDIA_QUERY } from '../utils/pages';
+import { declaredStyle } from '../styleTestUtils.js';
+import { PORTRAIT_PHOTO_MEDIA_QUERY } from '../utils/pages.ts';
 
 /**
  * CSS selector of the interactive content of the HTML specification, plus the elements made

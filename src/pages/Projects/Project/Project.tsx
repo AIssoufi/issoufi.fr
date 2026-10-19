@@ -5,12 +5,12 @@ import LikeIcon from './icons/heart.svg?react';
 import NextIcon from './icons/next.svg?react';
 import PreviousIcon from './icons/previous.svg?react';
 
-import { isNonBlankString, listUniqueNonBlankStrings } from '../../../utils/strings';
-import { ROW_CARD_COUNT, THUMBNAIL_SIZES } from './constants';
-import { useCardTilt } from './hooks/useCardTilt';
-import { useLikes } from './hooks/useLikes';
-import { usePreloadThumbnails } from './hooks/usePreloadThumbnails';
-import { useWholeCardCount } from './hooks/useWholeCardCount';
+import { isNonBlankString, listUniqueNonBlankStrings } from '../../../utils/strings.ts';
+import { ROW_CARD_COUNT, THUMBNAIL_SIZES } from './constants.ts';
+import { useCardTilt } from './hooks/useCardTilt/index.ts';
+import { useLikes } from './hooks/useLikes/index.ts';
+import { usePreloadThumbnails } from './hooks/usePreloadThumbnails/index.ts';
+import { useWholeCardCount } from './hooks/useWholeCardCount/index.ts';
 import {
   CtrlItem,
   IconBtn,
@@ -29,8 +29,8 @@ import {
   SectionHeader,
   SectionTitle,
   Thumbnail,
-} from './Project.styled';
-import type { ProjectItemData } from './types';
+} from './Project.styled.ts';
+import type { ProjectItemData } from './types.ts';
 import {
   getLastPageStart,
   getNextPageStart,
@@ -38,7 +38,7 @@ import {
   getPreviousPageStart,
   getProjectLinkUrl,
   getThumbnailSources,
-} from './utils';
+} from './utils.ts';
 
 /** Props of {@link Project}. */
 interface ProjectProps {

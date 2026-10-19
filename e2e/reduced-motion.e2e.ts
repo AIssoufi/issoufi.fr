@@ -1,10 +1,10 @@
 import { expect, type Page, test } from '@playwright/test';
 
-import { LANGUAGES } from '../src/i18n/constants';
-import { fr } from '../src/i18n/fr';
-import { localizePath } from '../src/i18n/utils';
-import { HOME_PAGE, PAGES } from '../src/utils/pages';
-import { listLastingAnimations, waitForEndingAnimations } from './animations';
+import { LANGUAGES } from '../src/i18n/constants.ts';
+import { fr } from '../src/i18n/fr.ts';
+import { localizePath } from '../src/i18n/utils.ts';
+import { HOME_PAGE, PAGES } from '../src/utils/pages.ts';
+import { listLastingAnimations, waitForEndingAnimations } from './animations.ts';
 import {
   INSTANT_ANIMATION_MAX_MS,
   MOBILE_SCREEN_WIDTHS_PX,
@@ -13,8 +13,8 @@ import {
   REDUCED_MOTION_SCREEN_WIDTHS_PX,
   SCREEN_HEIGHT_PX,
   STILLNESS_DELAY_MS,
-} from './constants';
-import { getCheckedRoutes } from './utils';
+} from './constants.ts';
+import { getCheckedRoutes } from './utils.ts';
 
 /** Desktop width of the screen of the control test, without reduced motion. */
 const [, DESKTOP_WIDTH_PX] = REDUCED_MOTION_SCREEN_WIDTHS_PX;

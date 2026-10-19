@@ -1,4 +1,4 @@
-import { isNonBlankString, listUniqueNonBlankStrings } from './strings';
+import { isNonBlankString, listUniqueNonBlankStrings } from './strings.ts';
 
 describe('isNonBlankString', () => {
   it.each(['/home.webp', 'a', ' padded ', '\tx\n'])('is true for %j', value => {

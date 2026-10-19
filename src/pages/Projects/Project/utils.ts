@@ -1,6 +1,6 @@
-import { isNonBlankString } from '../../../utils/strings';
-import { ROW_CARD_COUNT, WHOLE_CARD_TOLERANCE_PX } from './constants';
-import type { ProjectItemData, RowMeasures, ThumbnailFile, ThumbnailSources } from './types';
+import { isNonBlankString } from '../../../utils/strings.ts';
+import { ROW_CARD_COUNT, WHOLE_CARD_TOLERANCE_PX } from './constants.ts';
+import type { ProjectItemData, RowMeasures, ThumbnailFile, ThumbnailSources } from './types.ts';
 
 /** Parameters of {@link getLastPageStart}. */
 interface GetLastPageStartParams {

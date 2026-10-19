@@ -1,7 +1,7 @@
 import { render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router';
 
-import { Forbidden } from './Forbidden';
+import { Forbidden } from './Forbidden.tsx';
 
 const renderForbidden = props =>
   render(

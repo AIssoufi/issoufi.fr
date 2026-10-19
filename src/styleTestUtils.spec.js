@@ -5,7 +5,7 @@ import {
   listStyleRules,
   parseColor,
   serializeCssValue,
-} from './styleTestUtils';
+} from './styleTestUtils.js';
 
 describe('declaredStyle', () => {
   const TABLET_MEDIA = '(min-width: 50em)';

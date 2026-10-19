@@ -1,6 +1,6 @@
 import styled, { th } from '@xstyled/styled-components';
 
-import { companyBlock, mobileContentIndent, timelineRow } from '../timeline.styled';
+import { companyBlock, mobileContentIndent, timelineRow } from '../timeline.styled.ts';
 
 export const TimelineEntry = styled.li`
   ${companyBlock}

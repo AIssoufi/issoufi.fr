@@ -1,10 +1,15 @@
 import { expect, test } from '@playwright/test';
 
-import { LANGUAGES } from '../src/i18n/constants';
-import { PAGES } from '../src/utils/pages';
-import { PAGE_SELECTOR, VISUAL_CLOCK_TIME, VISUAL_RANDOM_SEED, VISUAL_SCREENS } from './constants';
-import { loadAllImages, seedRandom } from './screenshots';
-import { getCheckedRoutes } from './utils';
+import { LANGUAGES } from '../src/i18n/constants.ts';
+import { PAGES } from '../src/utils/pages.ts';
+import {
+  PAGE_SELECTOR,
+  VISUAL_CLOCK_TIME,
+  VISUAL_RANDOM_SEED,
+  VISUAL_SCREENS,
+} from './constants.ts';
+import { loadAllImages, seedRandom } from './screenshots.ts';
+import { getCheckedRoutes } from './utils.ts';
 
 // The screenshots of the build of the base of the change are the expected ones, which this test
 // writes first, then compares with those of the working tree (pnpm test:visual,

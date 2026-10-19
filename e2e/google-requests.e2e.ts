@@ -1,10 +1,10 @@
 import { expect, test } from '@playwright/test';
 
-import { LANGUAGES } from '../src/i18n/constants';
-import { FONT_FACES } from '../src/theme/constants';
-import { PAGES } from '../src/utils/pages';
-import { PAGE_SELECTOR } from './constants';
-import { getCheckedRoutes, isGoogleUrl } from './utils';
+import { LANGUAGES } from '../src/i18n/constants.ts';
+import { FONT_FACES } from '../src/theme/constants.ts';
+import { PAGES } from '../src/utils/pages.ts';
+import { PAGE_SELECTOR } from './constants.ts';
+import { getCheckedRoutes, isGoogleUrl } from './utils.ts';
 
 // The site serves its fonts itself: no page may send a request to Google, whose fonts every visit
 // used to load, nor to any other Google service

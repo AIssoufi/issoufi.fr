@@ -1,8 +1,8 @@
 import type { ComponentProps } from 'react';
 
-import { STATUS_PAGE_BACKGROUND_PHOTO } from '../../utils/pages';
-import StatusMessage from './StatusMessage';
-import { StatusPageMain } from './StatusPage.styled';
+import { STATUS_PAGE_BACKGROUND_PHOTO } from '../../utils/pages.ts';
+import StatusMessage from './StatusMessage/index.ts';
+import { StatusPageMain } from './StatusPage.styled.ts';
 
 /**
  * Props of {@link StatusPage}: those of its {@link StatusMessage}, every one optional and not

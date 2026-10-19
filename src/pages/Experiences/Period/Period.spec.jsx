@@ -1,11 +1,11 @@
 import { act, render, screen } from '@testing-library/react';
 
-import i18n from '../../../i18n';
-import { blendColors, getContrastRatio, MIN_TEXT_CONTRAST_RATIO } from '../../../styleTestUtils';
-import { theme } from '../../../theme';
-import { getReadText } from '../../testUtils';
-import { PERIOD_VARIANTS } from './constants';
-import Period from './Period';
+import i18n from '../../../i18n/index.ts';
+import { blendColors, getContrastRatio, MIN_TEXT_CONTRAST_RATIO } from '../../../styleTestUtils.js';
+import { theme } from '../../../theme/index.ts';
+import { getReadText } from '../../testUtils.js';
+import { PERIOD_VARIANTS } from './constants.ts';
+import Period from './Period.tsx';
 
 /** Color of the start of a job's period, and of a role's dimmer one. */
 const JOB_START_COLOR = 'rgba(212, 160, 192, 0.95)';

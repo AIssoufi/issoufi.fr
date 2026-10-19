@@ -1,7 +1,7 @@
 import { type RefObject, useEffect, useRef } from 'react';
 
-import { isFingerPointer } from '../../../../../utils/pointer';
-import { isOnControl } from '../../utils';
+import { isFingerPointer } from '../../../../../utils/pointer.ts';
+import { isOnControl } from '../../utils.ts';
 
 /**
  * Tracks in a ref whether a mouse or a pen is over a link or a button (see `isOnControl`), for

@@ -1,6 +1,6 @@
-import i18n from '../../i18n';
-import type { ProjectData } from './types';
-import { translateProjects } from './utils';
+import i18n from '../../i18n/index.ts';
+import type { ProjectData } from './types.ts';
+import { translateProjects } from './utils.ts';
 
 /** A project of the JSON data, with the keys of its texts. */
 const CHESS: ProjectData = {

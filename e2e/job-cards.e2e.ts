@@ -1,9 +1,9 @@
 import { expect, test } from '@playwright/test';
 
-import { LANGUAGES } from '../src/i18n/constants';
-import { localizePath } from '../src/i18n/utils';
+import { LANGUAGES } from '../src/i18n/constants.ts';
+import { localizePath } from '../src/i18n/utils.ts';
 import experiencesData from '../src/pages/Experiences/.data/experiences.json' with { type: 'json' };
-import type { ExperienceData } from '../src/pages/Experiences/types';
+import type { ExperienceData } from '../src/pages/Experiences/types.ts';
 import {
   JOB_CARD_SELECTOR,
   MAX_CARD_PART_WIDTH_OFFSET_PX,
@@ -11,8 +11,8 @@ import {
   STACKED_JOB_CARD_SCREEN_WIDTHS_PX,
   TIMELINE_LINE_ATTRIBUTE,
   TIMELINE_ROUTE,
-} from './constants';
-import { isBoxBelow, type ScreenBox } from './utils';
+} from './constants.ts';
+import { isBoxBelow, type ScreenBox } from './utils.ts';
 
 /** Number of job cards of the page: one per job, company after company. */
 const JOB_COUNT = (experiencesData.experiences as ExperienceData[]).flatMap(

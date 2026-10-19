@@ -1,8 +1,8 @@
 import { renderHook } from '@testing-library/react';
 
-import { stubMatchMedia } from '../../../../mediaQueryTestUtils';
-import { MAGNET_FOLLOW_TRANSITION, MAGNET_RELEASE_TRANSITION } from '../../constants';
-import { useMagneticHover } from './useMagneticHover';
+import { stubMatchMedia } from '../../../../mediaQueryTestUtils.ts';
+import { MAGNET_FOLLOW_TRANSITION, MAGNET_RELEASE_TRANSITION } from '../../constants.ts';
+import { useMagneticHover } from './useMagneticHover.ts';
 
 const elementAt = rect => {
   const element = document.createElement('div');

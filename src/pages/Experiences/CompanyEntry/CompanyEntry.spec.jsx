@@ -1,8 +1,8 @@
 import { act, render, screen, within } from '@testing-library/react';
 
-import i18n from '../../../i18n';
-import { getReadText } from '../../testUtils';
-import CompanyEntry from './CompanyEntry';
+import i18n from '../../../i18n/index.ts';
+import { getReadText } from '../../testUtils.js';
+import CompanyEntry from './CompanyEntry.tsx';
 
 /** A company with a single role, shown as one card after its period. */
 const WIBILONG = {

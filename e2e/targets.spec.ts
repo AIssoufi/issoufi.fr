@@ -1,4 +1,4 @@
-import { measureHitAreas, type MeasureHitAreasOptions } from './targets';
+import { measureHitAreas, type MeasureHitAreasOptions } from './targets.ts';
 
 /** Box that catches the points of an element, in pixels, and the element that the points hit. */
 interface HitBox {

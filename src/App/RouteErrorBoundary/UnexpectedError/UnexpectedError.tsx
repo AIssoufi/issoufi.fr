@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next';
 
-import StatusPage from '../../../components/StatusPage';
+import StatusPage from '../../../components/StatusPage/index.ts';
 
 /** Reloads the page, which fetches its HTML and the chunks of the current deployment again. */
 const reloadPage = () => window.location.reload();

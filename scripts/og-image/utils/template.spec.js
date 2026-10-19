@@ -1,7 +1,7 @@
-import { en } from '../../../src/i18n/en';
-import { fr } from '../../../src/i18n/fr';
-import { theme } from '../../../src/theme/theme';
-import { SITE_URL } from '../../../src/utils/pages';
+import { en } from '../../../src/i18n/en.ts';
+import { fr } from '../../../src/i18n/fr.ts';
+import { theme } from '../../../src/theme/theme.ts';
+import { SITE_URL } from '../../../src/utils/pages.ts';
 import { listFontsInUse } from '../../utils/fonts.mjs';
 import { getHomeTexts } from '../../utils/home-texts.mjs';
 import { hasUnresolvedValue } from '../../utils/html.mjs';

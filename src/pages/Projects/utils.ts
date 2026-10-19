@@ -1,10 +1,10 @@
 import type { TFunction } from 'i18next';
 
-import { translateKey } from '../../i18n/utils';
-import { isNonBlankString } from '../../utils/strings';
-import type { ProjectItemData } from './Project/types';
-import { PROJECT_NAMES_KEY, PROJECT_TYPES_KEY } from './constants';
-import type { ProjectData } from './types';
+import { translateKey } from '../../i18n/utils.ts';
+import { isNonBlankString } from '../../utils/strings.ts';
+import type { ProjectItemData } from './Project/types.ts';
+import { PROJECT_NAMES_KEY, PROJECT_TYPES_KEY } from './constants.ts';
+import type { ProjectData } from './types.ts';
 
 /** Parameters of {@link translateChild}. */
 interface TranslateChildParams {

@@ -1,8 +1,8 @@
 import { existsSync, readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 
-import { FONT_FACES } from './constants';
-import { theme } from './theme';
+import { FONT_FACES } from './constants.ts';
+import { theme } from './theme.ts';
 
 /** Folder whose files the site serves at its root. */
 const PUBLIC_DIR = 'public';

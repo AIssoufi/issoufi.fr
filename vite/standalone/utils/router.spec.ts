@@ -1,6 +1,6 @@
 // @vitest-environment node
-import { ROUTER_MODULE } from '../constants';
-import { isAppRouterImport } from './router';
+import { ROUTER_MODULE } from '../constants.ts';
+import { isAppRouterImport } from './router.ts';
 
 const APP_DIR = '/app/src';
 

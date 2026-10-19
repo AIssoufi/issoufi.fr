@@ -1,4 +1,4 @@
-import { describeLoggedErrors } from './testErrors';
+import { describeLoggedErrors } from './testErrors.ts';
 
 /** First line of the failure message of a test that logged errors, for one error. */
 const ONE_ERROR_HEADER =

@@ -2,7 +2,7 @@ import { createRef } from 'react';
 import { render, screen, within } from '@testing-library/react';
 import styled from '@xstyled/styled-components';
 
-import List from './List';
+import List from './List.tsx';
 
 const getList = () => screen.getByRole('list');
 

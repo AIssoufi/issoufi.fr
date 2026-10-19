@@ -1,5 +1,5 @@
-import { CV_URLS } from './constants';
-import { getCvUrl } from './utils';
+import { CV_URLS } from './constants.ts';
+import { getCvUrl } from './utils.ts';
 
 describe('getCvUrl', () => {
   it.each([

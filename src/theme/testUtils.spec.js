@@ -3,7 +3,7 @@ import {
   findRawValues,
   findUnguardedHovers,
   getSmallestFontSizePx,
-} from './testUtils';
+} from './testUtils.js';
 
 /** Values found in a source, as `kind value` strings, to compare them at a glance. */
 const valuesIn = source => findRawValues(source).map(({ kind, value }) => `${kind} ${value}`);

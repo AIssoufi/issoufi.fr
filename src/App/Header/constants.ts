@@ -1,4 +1,4 @@
-import { theme } from '../../theme';
+import { theme } from '../../theme/index.ts';
 
 /**
  * Media query of the desktop layout, the one of the style files: the navigation is a bar of the

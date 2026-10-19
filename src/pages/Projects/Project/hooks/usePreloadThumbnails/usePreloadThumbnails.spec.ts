@@ -1,8 +1,8 @@
 import { renderHook } from '@testing-library/react';
 
-import { THUMBNAIL_SIZES } from '../../constants';
-import type { ProjectItemData } from '../../types';
-import { usePreloadThumbnails } from './usePreloadThumbnails';
+import { THUMBNAIL_SIZES } from '../../constants.ts';
+import type { ProjectItemData } from '../../types.ts';
+import { usePreloadThumbnails } from './usePreloadThumbnails.ts';
 
 /** Attributes that the hook gives an image, which a stub records in place of downloading it. */
 interface RecordedImage {

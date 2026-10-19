@@ -1,6 +1,6 @@
 import { defineConfig } from '@playwright/test';
 
-import browserTestConfig, { PREVIEW_SERVER } from './playwright.config';
+import browserTestConfig, { PREVIEW_SERVER } from './playwright.config.ts';
 
 /**
  * Environment variable naming the folder of the checkout whose build the screenshots show, which

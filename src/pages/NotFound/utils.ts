@@ -5,7 +5,7 @@ import {
   INVISIBLE_CHARACTER_PATTERN,
   MAX_DISPLAYED_PATH_LENGTH_CHARS,
   PATH_PLACEHOLDER,
-} from './constants';
+} from './constants.ts';
 
 /**
  * Decodes the percent-encoded characters of a path, such as the spaces and accents of a link shared

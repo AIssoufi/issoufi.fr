@@ -1,11 +1,11 @@
 import type { ComponentType, SVGProps } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import VisuallyHidden from '../../../../components/VisuallyHidden';
-import { GITHUB_PROFILE_URL, LINKEDIN_PROFILE_URL } from '../../../../constants/profiles';
+import VisuallyHidden from '../../../../components/VisuallyHidden/index.ts';
+import { GITHUB_PROFILE_URL, LINKEDIN_PROFILE_URL } from '../../../../constants/profiles.ts';
 import GitHubIcon from './icons/github.svg?react';
 import LinkedInIcon from './icons/linkedin.svg?react';
-import { Link, Row } from './ProfileLinks.styled';
+import { Link, Row } from './ProfileLinks.styled.ts';
 
 /** A profile of the site owner that {@link ProfileLinks} links to. */
 interface Profile {

@@ -1,16 +1,16 @@
 import { act, render, screen } from '@testing-library/react';
 
-import i18n from '../../i18n';
-import { en } from '../../i18n/en';
-import { fr } from '../../i18n/fr';
-import { declaredStyle, serializeCssValue } from '../../styleTestUtils';
-import { theme } from '../../theme';
-import { getPage } from '../../utils/pages';
-import { readPublicWebpSize } from '../../publicFileTestUtils';
-import { getReadText, readBackgroundImages } from '../testUtils';
+import i18n from '../../i18n/index.ts';
+import { en } from '../../i18n/en.ts';
+import { fr } from '../../i18n/fr.ts';
+import { declaredStyle, serializeCssValue } from '../../styleTestUtils.js';
+import { theme } from '../../theme/index.ts';
+import { getPage } from '../../utils/pages.ts';
+import { readPublicWebpSize } from '../../publicFileTestUtils.ts';
+import { getReadText, readBackgroundImages } from '../testUtils.js';
 import experiencesData from './.data/experiences.json';
-import { LOGO_SIZE_PX } from './JobSummary/constants';
-import { Experiences } from './Experiences';
+import { LOGO_SIZE_PX } from './JobSummary/constants.ts';
+import { Experiences } from './Experiences.tsx';
 
 /** Media query of the desktop layout, from the tablet breakpoint. */
 const TABLET_MEDIA = `(min-width: ${theme.screens.tablet})`;

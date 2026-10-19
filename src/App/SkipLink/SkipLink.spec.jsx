@@ -1,10 +1,10 @@
 import { act, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
-import i18n from '../../i18n';
-import { declaredStyle } from '../../styleTestUtils';
-import { theme } from '../../theme';
-import SkipLink from './SkipLink';
+import i18n from '../../i18n/index.ts';
+import { declaredStyle } from '../../styleTestUtils.js';
+import { theme } from '../../theme/index.ts';
+import SkipLink from './SkipLink.tsx';
 
 const getLink = () => screen.getByRole('link', { name: 'Aller au contenu' });
 

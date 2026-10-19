@@ -1,9 +1,9 @@
 import { expect, type Page, test } from '@playwright/test';
 
-import { LANGUAGES } from '../src/i18n/constants';
-import { localizePath } from '../src/i18n/utils';
-import { HOME_PAGE } from '../src/utils/pages';
-import { recordLargestShift, waitForEndingAnimations } from './animations';
+import { LANGUAGES } from '../src/i18n/constants.ts';
+import { localizePath } from '../src/i18n/utils.ts';
+import { HOME_PAGE } from '../src/utils/pages.ts';
+import { recordLargestShift, waitForEndingAnimations } from './animations.ts';
 import {
   HERO_POINTER_SCREENS,
   HERO_SCREENS,
@@ -11,8 +11,8 @@ import {
   MAX_WORD_SHIFT_PX,
   PAGE_SELECTOR,
   POINTER_REST_FRAME_COUNT,
-} from './constants';
-import { getButtonAimPoints, getScreenBox, isBoxInside } from './utils';
+} from './constants.ts';
+import { getButtonAimPoints, getScreenBox, isBoxInside } from './utils.ts';
 
 /** Number of buttons of the home page, the links under its title. */
 const HERO_BUTTON_COUNT = 2;

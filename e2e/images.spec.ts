@@ -1,4 +1,4 @@
-import { getImageEnlargement } from './images';
+import { getImageEnlargement } from './images.ts';
 
 describe('getImageEnlargement', () => {
   it('scales a file wider than its box by its height, which it must cover', () => {

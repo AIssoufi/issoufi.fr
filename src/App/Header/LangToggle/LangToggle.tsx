@@ -1,13 +1,13 @@
 import { useTranslation } from 'react-i18next';
 import { useLocation, useNavigate } from 'react-router';
 
-import { useUrlLanguage } from '../../../hooks/useUrlLanguage';
-import { LANGUAGES } from '../../../i18n/constants';
-import { storeLanguage } from '../../../i18n/storage';
-import type { Language } from '../../../i18n/types';
-import { localizePath } from '../../../i18n/utils';
-import { LANGUAGE_NAMES } from './constants';
-import { Btn, Indicator, Wrapper } from './LangToggle.styled';
+import { useUrlLanguage } from '../../../hooks/useUrlLanguage/index.ts';
+import { LANGUAGES } from '../../../i18n/constants.ts';
+import { storeLanguage } from '../../../i18n/storage.ts';
+import type { Language } from '../../../i18n/types.ts';
+import { localizePath } from '../../../i18n/utils.ts';
+import { LANGUAGE_NAMES } from './constants.ts';
+import { Btn, Indicator, Wrapper } from './LangToggle.styled.ts';
 
 /**
  * FR/EN switch that goes to the same page in the other language, `/projects` to `/en/projects`

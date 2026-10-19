@@ -1,7 +1,7 @@
 import { useTranslation } from 'react-i18next';
 
-import { translateKey } from '../../../../../i18n/utils';
-import { BulletItem, BulletList } from './BulletPoints.styled';
+import { translateKey } from '../../../../../i18n/utils.ts';
+import { BulletItem, BulletList } from './BulletPoints.styled.ts';
 
 /** Props of {@link BulletPoints}. */
 interface BulletPointsProps {

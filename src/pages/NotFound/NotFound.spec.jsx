@@ -1,9 +1,9 @@
 import { render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router';
 
-import { declaredStyle } from '../../styleTestUtils';
-import { ELLIPSIS, MAX_DISPLAYED_PATH_LENGTH_CHARS } from './constants';
-import { NotFound } from './NotFound';
+import { declaredStyle } from '../../styleTestUtils.js';
+import { ELLIPSIS, MAX_DISPLAYED_PATH_LENGTH_CHARS } from './constants.ts';
+import { NotFound } from './NotFound.tsx';
 
 const renderAt = ({ path, props }) =>
   render(

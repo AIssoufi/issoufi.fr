@@ -1,6 +1,6 @@
 import { render, screen, within } from '@testing-library/react';
 
-import RoleDescription from './RoleDescription';
+import RoleDescription from './RoleDescription.tsx';
 
 /** A role with every part: introduction, bullet points, a project and technologies. */
 const ROLE = {

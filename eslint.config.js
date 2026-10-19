@@ -49,9 +49,9 @@ export default defineConfig([
           ],
           patterns: [
             {
-              // A component's style file (Name.styled), anywhere but in the importing folder.
+              // A component's style file (Name.styled.ts), anywhere but in the importing folder.
               // Shared style modules (timeline.styled) at the root of a parent stay allowed.
-              regex: String.raw`^(?!\./[^/]*$)(.*/)?[A-Z][^/]*\.styled$`,
+              regex: String.raw`^(?!\./[^/]*$)(.*/)?[A-Z][^/]*\.styled\.ts$`,
               caseSensitive: true,
               message:
                 'Only a component imports its own styles: move what several components share to the root of their parent, or to src/components/ when pages share it.',

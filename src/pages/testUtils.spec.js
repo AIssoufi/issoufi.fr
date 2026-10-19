@@ -1,8 +1,8 @@
 import { render, screen } from '@testing-library/react';
 import { createElement } from 'react';
 
-import Page from '../components/Page';
-import { getReadText, INTERACTIVE_SELECTOR, readBackgroundImages } from './testUtils';
+import Page from '../components/Page/index.ts';
+import { getReadText, INTERACTIVE_SELECTOR, readBackgroundImages } from './testUtils.js';
 
 describe('INTERACTIVE_SELECTOR', () => {
   afterEach(() => {

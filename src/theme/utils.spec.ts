@@ -1,6 +1,6 @@
-import { FONT_FACES, LATIN_UNICODE_RANGE } from './constants';
-import type { FontFaceDeclaration } from './types';
-import { isDeclarableFontFace, renderFontFaces } from './utils';
+import { FONT_FACES, LATIN_UNICODE_RANGE } from './constants.ts';
+import type { FontFaceDeclaration } from './types.ts';
+import { isDeclarableFontFace, renderFontFaces } from './utils.ts';
 
 const montserrat: FontFaceDeclaration = {
   family: 'Montserrat',

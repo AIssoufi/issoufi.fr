@@ -1,14 +1,14 @@
 import styled, { th } from '@xstyled/styled-components';
 
-import List from '../../components/List';
-import Page from '../../components/Page';
+import List from '../../components/List/index.ts';
+import Page from '../../components/Page/index.ts';
 
 import {
   lineWidth,
   mobileLineLeft,
   periodColumnWidth,
   widePeriodColumnWidth,
-} from './timeline.styled';
+} from './timeline.styled.ts';
 
 export const ExperiencesPage = styled(Page)``;
 

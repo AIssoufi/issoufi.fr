@@ -8,7 +8,7 @@ import {
   localizePath,
   removeLanguagePrefix,
   translateKey,
-} from './utils';
+} from './utils.ts';
 
 /** Values that are not a path, for which the helpers fall back to the root path. */
 const NOT_PATHS = [undefined, null, '', 0, 42, NaN, true, {}, ['/en/']];

@@ -1,10 +1,10 @@
 import { useTranslation } from 'react-i18next';
 
-import { isLanguage } from '../../../i18n/utils';
-import Period from '../Period';
-import { computeDuration, formatDuration } from '../utils/duration';
+import { isLanguage } from '../../../i18n/utils.ts';
+import Period from '../Period/index.ts';
+import { computeDuration, formatDuration } from '../utils/duration.ts';
 
-import { LOGO_SIZE_PX } from './constants';
+import { LOGO_SIZE_PX } from './constants.ts';
 
 import {
   EntityLogo,
@@ -16,7 +16,7 @@ import {
   JobTiming,
   RoleName,
   Summary,
-} from './JobSummary.styled';
+} from './JobSummary.styled.ts';
 
 /** Props of {@link JobSummary}. Every part is optional and is not rendered when missing. */
 interface JobSummaryProps {

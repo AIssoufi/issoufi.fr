@@ -4,15 +4,15 @@ import { resolve } from 'node:path';
 import ts from 'typescript';
 import { build, normalizePath, type Plugin, resolveConfig, type Rolldown } from 'vite';
 
-import { isGoogleHost } from './e2e/utils';
-import { GITHUB_PROFILE_URL, LINKEDIN_PROFILE_URL } from './src/constants/profiles';
-import { DEFAULT_LANGUAGE, LANGUAGES } from './src/i18n/constants';
-import { en } from './src/i18n/en';
-import { fr } from './src/i18n/fr';
-import { FONT_FACES } from './src/theme/constants';
-import { renderFontFaces } from './src/theme/utils';
-import { getYearsOfExperience } from './src/utils/career';
-import { APP_ICONS } from './src/utils/icons';
+import { isGoogleHost } from './e2e/utils.ts';
+import { GITHUB_PROFILE_URL, LINKEDIN_PROFILE_URL } from './src/constants/profiles.ts';
+import { DEFAULT_LANGUAGE, LANGUAGES } from './src/i18n/constants.ts';
+import { en } from './src/i18n/en.ts';
+import { fr } from './src/i18n/fr.ts';
+import { FONT_FACES } from './src/theme/constants.ts';
+import { renderFontFaces } from './src/theme/utils.ts';
+import { getYearsOfExperience } from './src/utils/career.ts';
+import { APP_ICONS } from './src/utils/icons.ts';
 import {
   getNotFoundFiles,
   getOgImageUrl,
@@ -21,9 +21,13 @@ import {
   NOT_FOUND_FOLDER,
   PAGES,
   SITE_URL,
-} from './src/utils/pages';
-import { renderSitemap, SITEMAP_FILE_NAME } from './src/utils/sitemap';
-import { getWebManifestFiles, getWebManifestUrl, renderWebManifest } from './src/utils/webManifest';
+} from './src/utils/pages.ts';
+import { renderSitemap, SITEMAP_FILE_NAME } from './src/utils/sitemap.ts';
+import {
+  getWebManifestFiles,
+  getWebManifestUrl,
+  renderWebManifest,
+} from './src/utils/webManifest.ts';
 import {
   APP_ECMASCRIPT_LIBS,
   APP_ECMASCRIPT_TARGET,
@@ -37,8 +41,8 @@ import {
   SECURITY_HEADERS,
   SHARED_CHUNK_NAME,
   VENDOR_CHUNK_NAME,
-} from './vite/constants';
-import { renderHeaderRules } from './vite/utils';
+} from './vite/constants.ts';
+import { renderHeaderRules } from './vite/utils.ts';
 
 /** Longest time the production build may take in this test, coverage included. */
 const BUILD_TIMEOUT_MS = 60_000;

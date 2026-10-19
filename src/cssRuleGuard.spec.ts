@@ -1,4 +1,4 @@
-import { holdsFunctionSource, logDroppedCssRules } from './cssRuleGuard';
+import { holdsFunctionSource, logDroppedCssRules } from './cssRuleGuard.ts';
 
 /** A rule as styled-components writes it for a `th` helper interpolated outside a `css` block. */
 const FUNCTION_SOURCE_RULE = '.a:hover background-color:(props) => getValue(props){}';

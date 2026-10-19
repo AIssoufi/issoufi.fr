@@ -1,1 +1,1 @@
-export { default } from './PageHeadingFocus';
+export { default } from './PageHeadingFocus.tsx';

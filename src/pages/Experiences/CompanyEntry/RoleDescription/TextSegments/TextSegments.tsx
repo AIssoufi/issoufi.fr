@@ -1,8 +1,8 @@
 import { Fragment } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { translateKey } from '../../../../../i18n/utils';
-import type { TextSegmentData } from '../../../types';
+import { translateKey } from '../../../../../i18n/utils.ts';
+import type { TextSegmentData } from '../../../types.ts';
 
 /** Props of {@link TextSegments}. */
 interface TextSegmentsProps {

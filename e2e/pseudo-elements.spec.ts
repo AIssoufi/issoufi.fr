@@ -1,4 +1,4 @@
-import { getMarkedPseudoElementQuads } from './pseudo-elements';
+import { getMarkedPseudoElementQuads } from './pseudo-elements.ts';
 
 /** Attribute that marks the measured elements in these tests. */
 const ATTRIBUTE = 'data-timeline-dot';

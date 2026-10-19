@@ -1,12 +1,12 @@
 import { readFileSync, statSync } from 'node:fs';
 
-import { LANGUAGES } from '../i18n/constants';
-import { en } from '../i18n/en';
-import { fr } from '../i18n/fr';
-import { addModulePreload, renderNotFoundHtml, renderPageHtml } from './pageHtml';
-import { OG_IMAGE_PATHS, PAGES, SITE_URL, getNotFoundFiles, getPageFiles } from './pages';
-import { getStructuredData } from './structuredData';
-import { getWebManifestUrl } from './webManifest';
+import { LANGUAGES } from '../i18n/constants.ts';
+import { en } from '../i18n/en.ts';
+import { fr } from '../i18n/fr.ts';
+import { addModulePreload, renderNotFoundHtml, renderPageHtml } from './pageHtml.ts';
+import { OG_IMAGE_PATHS, PAGES, SITE_URL, getNotFoundFiles, getPageFiles } from './pages.ts';
+import { getStructuredData } from './structuredData.ts';
+import { getWebManifestUrl } from './webManifest.ts';
 
 const [home, projects, experiences] = PAGES;
 

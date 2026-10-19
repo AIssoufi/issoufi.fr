@@ -1,1 +1,1 @@
-export * from './useCursorFollower';
+export * from './useCursorFollower.ts';

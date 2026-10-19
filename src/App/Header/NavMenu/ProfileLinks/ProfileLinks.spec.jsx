@@ -1,12 +1,12 @@
 import { act, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
-import { DESKTOP_MEDIA_QUERY } from '../../constants';
-import i18n from '../../../../i18n';
-import { declaredStyle, serializeCssValue } from '../../../../styleTestUtils';
-import { theme } from '../../../../theme';
-import { HOVER_POINTER_QUERY } from '../../../../theme/constants';
-import ProfileLinks from './ProfileLinks';
+import { DESKTOP_MEDIA_QUERY } from '../../constants.ts';
+import i18n from '../../../../i18n/index.ts';
+import { declaredStyle, serializeCssValue } from '../../../../styleTestUtils.js';
+import { theme } from '../../../../theme/index.ts';
+import { HOVER_POINTER_QUERY } from '../../../../theme/constants.ts';
+import ProfileLinks from './ProfileLinks.tsx';
 
 /**
  * Each profile of the site owner: the name of its link in each language, which ends with the

@@ -4,15 +4,15 @@ import { join } from 'node:path';
 import { render } from '@testing-library/react';
 import styled, { th, ThemeProvider } from '@xstyled/styled-components';
 
-import { declaredStyle, getContrastRatio, MIN_TEXT_CONTRAST_RATIO } from '../styleTestUtils';
-import { MIN_FONT_SIZE_PX } from './constants';
+import { declaredStyle, getContrastRatio, MIN_TEXT_CONTRAST_RATIO } from '../styleTestUtils.js';
+import { MIN_FONT_SIZE_PX } from './constants.ts';
 import {
   findRawThemeValues,
   findRawValues,
   findUnguardedHovers,
   getSmallestFontSizePx,
-} from './testUtils';
-import { theme } from './theme';
+} from './testUtils.js';
+import { theme } from './theme.ts';
 
 /** Source of the semantic tokens, which may only read the primitives of tokens.ts. */
 const THEME_FILE = join('src', 'theme', 'theme.ts');

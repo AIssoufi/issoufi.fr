@@ -1,20 +1,20 @@
 import { expect, type Page, test } from '@playwright/test';
 
-import { LANGUAGES } from '../src/i18n/constants';
-import { en } from '../src/i18n/en';
-import { fr } from '../src/i18n/fr';
-import type { Language, Translations } from '../src/i18n/types';
-import { PAGES } from '../src/utils/pages';
-import { waitForEndingAnimations } from './animations';
-import { describeAxeViolations, runAxeRules } from './axe';
+import { LANGUAGES } from '../src/i18n/constants.ts';
+import { en } from '../src/i18n/en.ts';
+import { fr } from '../src/i18n/fr.ts';
+import type { Language, Translations } from '../src/i18n/types.ts';
+import { PAGES } from '../src/utils/pages.ts';
+import { waitForEndingAnimations } from './animations.ts';
+import { describeAxeViolations, runAxeRules } from './axe.ts';
 import {
   COLOR_CONTRAST_RULE,
   CONTRAST_SCREEN_WIDTHS_PX,
   MENU_CONTRAST_SCREEN_WIDTHS_PX,
   PAGE_SELECTOR,
   SCREEN_HEIGHT_PX,
-} from './constants';
-import { getCheckedRoutes } from './utils';
+} from './constants.ts';
+import { getCheckedRoutes } from './utils.ts';
 
 /** Translations of each language, to find the burger button of the mobile menu. */
 const TRANSLATIONS = { fr, en } satisfies Record<Language, Translations>;

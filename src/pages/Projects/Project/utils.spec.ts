@@ -1,5 +1,5 @@
-import { ROW_CARD_COUNT } from './constants';
-import type { ProjectItemData } from './types';
+import { ROW_CARD_COUNT } from './constants.ts';
+import type { ProjectItemData } from './types.ts';
 import {
   countWholeCards,
   getCardTilt,
@@ -11,7 +11,7 @@ import {
   getThumbnailSources,
   parseLikedIds,
   setLike,
-} from './utils';
+} from './utils.ts';
 
 describe('getLastPageStart', () => {
   it.each([

@@ -1,6 +1,6 @@
 import styled, { th } from '@xstyled/styled-components';
 
-import { PORTRAIT_PHOTO_MEDIA_QUERY } from '../../utils/pages';
+import { PORTRAIT_PHOTO_MEDIA_QUERY } from '../../utils/pages.ts';
 
 export const Main = styled.main<{ $backgroundImage: string; $portraitBackgroundImage: string }>`
   padding: ${th.space('page-top')} ${th.space('page')} 0;

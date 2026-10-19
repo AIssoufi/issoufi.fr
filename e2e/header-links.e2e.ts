@@ -1,12 +1,12 @@
 import { type BrowserContext, expect, type Locator, type Page, test } from '@playwright/test';
 
-import { GITHUB_PROFILE_URL, LINKEDIN_PROFILE_URL } from '../src/constants/profiles';
-import { LANGUAGES } from '../src/i18n/constants';
-import { en } from '../src/i18n/en';
-import { fr } from '../src/i18n/fr';
-import type { Language, Translations } from '../src/i18n/types';
-import { localizePath } from '../src/i18n/utils';
-import { waitForEndingAnimations } from './animations';
+import { GITHUB_PROFILE_URL, LINKEDIN_PROFILE_URL } from '../src/constants/profiles.ts';
+import { LANGUAGES } from '../src/i18n/constants.ts';
+import { en } from '../src/i18n/en.ts';
+import { fr } from '../src/i18n/fr.ts';
+import type { Language, Translations } from '../src/i18n/types.ts';
+import { localizePath } from '../src/i18n/utils.ts';
+import { waitForEndingAnimations } from './animations.ts';
 import {
   CV_FILE_NAMES,
   DESKTOP_SCREEN_WIDTHS_PX,
@@ -14,7 +14,7 @@ import {
   MAX_ALIGNMENT_OFFSET_PX,
   MOBILE_SCREEN_WIDTHS_PX,
   SCREEN_HEIGHT_PX,
-} from './constants';
+} from './constants.ts';
 import {
   getBoxBottom,
   getBoxCenterDistanceX,
@@ -23,7 +23,7 @@ import {
   getRowBox,
   getScreenBox,
   isBoxInside,
-} from './utils';
+} from './utils.ts';
 
 /** Translations of each language, to find the links of the header by their names. */
 const TRANSLATIONS = { fr, en } satisfies Record<Language, Translations>;

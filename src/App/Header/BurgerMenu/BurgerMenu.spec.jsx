@@ -2,11 +2,11 @@ import { act, fireEvent, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { createRef } from 'react';
 
-import i18n from '../../../i18n';
-import { declaredStyle, serializeCssValue } from '../../../styleTestUtils';
-import { theme } from '../../../theme';
-import BurgerMenu from './BurgerMenu';
-import { MIDDLE_BAR_OPEN_ROTATION_DEG, TOP_BAR_OPEN_ROTATION_DEG } from './constants';
+import i18n from '../../../i18n/index.ts';
+import { declaredStyle, serializeCssValue } from '../../../styleTestUtils.js';
+import { theme } from '../../../theme/index.ts';
+import BurgerMenu from './BurgerMenu.tsx';
+import { MIDDLE_BAR_OPEN_ROTATION_DEG, TOP_BAR_OPEN_ROTATION_DEG } from './constants.ts';
 
 /** The top, middle and bottom bars of the icon, in this order. */
 const getBars = () => [...screen.getByRole('button').children];

@@ -1,6 +1,6 @@
 import * as reactRouter from 'react-router';
 
-import * as standaloneRouter from './react-router';
+import * as standaloneRouter from './react-router.ts';
 
 /** Exports of a module, by name. */
 type ModuleExports = Record<string, unknown>;

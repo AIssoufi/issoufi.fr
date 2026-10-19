@@ -1,8 +1,8 @@
 import { expect, test } from '@playwright/test';
 
-import { LANGUAGES } from '../src/i18n/constants';
-import { localizePath } from '../src/i18n/utils';
-import { HOME_PAGE } from '../src/utils/pages';
+import { LANGUAGES } from '../src/i18n/constants.ts';
+import { localizePath } from '../src/i18n/utils.ts';
+import { HOME_PAGE } from '../src/utils/pages.ts';
 import {
   HERO_PASSION_SELECTOR,
   HERO_SUBTITLE_SELECTOR,
@@ -11,13 +11,13 @@ import {
   SCREEN_HEIGHT_PX,
   TIMELINE_LINE_ATTRIBUTE,
   TIMELINE_ROUTE,
-} from './constants';
+} from './constants.ts';
 import {
   findDetachedDepartmentLines,
   findSingleWordLines,
   groupLines,
   listDrawnCharacters,
-} from './text';
+} from './text.ts';
 
 // jsdom lays out no line: only a real browser tells where the lines of a text wrap
 for (const language of LANGUAGES) {

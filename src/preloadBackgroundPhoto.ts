@@ -1,4 +1,4 @@
-import { getBackgroundPhotoUrl, PORTRAIT_PHOTO_MEDIA_QUERY } from './utils/pages';
+import { getBackgroundPhotoUrl, PORTRAIT_PHOTO_MEDIA_QUERY } from './utils/pages.ts';
 
 /**
  * Tells whether the screen shows the portrait version of the background photos, the screens of

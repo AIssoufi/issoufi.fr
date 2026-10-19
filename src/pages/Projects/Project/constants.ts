@@ -1,5 +1,5 @@
 // The theme module alone, without the global styles, so that the browser tests can import this
-import { theme } from '../../../theme/theme';
+import { theme } from '../../../theme/theme.ts';
 
 /**
  * Number of cards that the row of a section holds before "Show all" is used: three, which a wide

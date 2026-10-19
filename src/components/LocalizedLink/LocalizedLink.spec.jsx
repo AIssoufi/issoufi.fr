@@ -4,7 +4,7 @@ import userEvent from '@testing-library/user-event';
 import { MemoryRouter, useLocation } from 'react-router';
 import styled from '@xstyled/styled-components';
 
-import LocalizedLink from './LocalizedLink';
+import LocalizedLink from './LocalizedLink.tsx';
 
 /** Renders a link in a router opened at a path. */
 const renderAt = ({ path = '/', link }) =>

@@ -1,4 +1,4 @@
-import type { Language } from '../../../i18n/types';
+import type { Language } from '../../../i18n/types.ts';
 
 /**
  * Name of each language written in that language: the accessible name of its button, read

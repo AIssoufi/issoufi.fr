@@ -1,8 +1,8 @@
 import type { ComponentPropsWithRef } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { isNonBlankString } from '../../utils/strings';
-import VisuallyHidden from '../VisuallyHidden';
+import { isNonBlankString } from '../../utils/strings.ts';
+import VisuallyHidden from '../VisuallyHidden/index.ts';
 
 /**
  * Props of {@link NewTabLink}: those of an `a`, but its `target` and `rel`, which it sets, and its

@@ -1,16 +1,16 @@
 import { expect, test } from '@playwright/test';
 
-import { LANGUAGES } from '../src/i18n/constants';
-import { theme } from '../src/theme/theme';
-import { PAGES } from '../src/utils/pages';
+import { LANGUAGES } from '../src/i18n/constants.ts';
+import { theme } from '../src/theme/theme.ts';
+import { PAGES } from '../src/utils/pages.ts';
 import {
   MAX_CONTENT_WIDTH_OFFSET_PX,
   MIN_CONTENT_SCREEN_SHARE,
   PAGE_SELECTOR,
   SCREEN_HEIGHT_PX,
   WIDE_SCREEN_WIDTHS_PX,
-} from './constants';
-import { getCheckedRoutes } from './utils';
+} from './constants.ts';
+import { getCheckedRoutes } from './utils.ts';
 
 /** Largest width of the app container from the `wide` breakpoint, in pixels. */
 const WIDE_CONTAINER_WIDTH_PX = Number.parseFloat(theme.sizes['container-wide']);

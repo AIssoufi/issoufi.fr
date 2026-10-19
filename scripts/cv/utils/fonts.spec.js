@@ -2,7 +2,7 @@
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 
-import { theme } from '../../../src/theme/theme';
+import { theme } from '../../../src/theme/theme.ts';
 import { CV_FONT_FILES, CV_FONTS_DIR } from '../constants.mjs';
 import { renderFontFaces } from './fonts.mjs';
 

@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 
-import { LIKE_ANIMATION_MS } from '../../constants';
-import { getStoredLikedIds, storeLike } from '../../storage';
-import { setLike } from '../../utils';
+import { LIKE_ANIMATION_MS } from '../../constants.ts';
+import { getStoredLikedIds, storeLike } from '../../storage.ts';
+import { setLike } from '../../utils.ts';
 
 /** Value returned by {@link useLikes}. */
 interface UseLikesResult {

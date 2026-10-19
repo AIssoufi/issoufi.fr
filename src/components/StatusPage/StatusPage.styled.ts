@@ -1,6 +1,6 @@
 import styled, { th } from '@xstyled/styled-components';
 
-import Page from '../Page';
+import Page from '../Page/index.ts';
 
 export const StatusPageMain = styled(Page)`
   display: flex;

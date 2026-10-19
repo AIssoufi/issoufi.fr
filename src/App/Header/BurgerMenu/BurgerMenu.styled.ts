@@ -1,7 +1,7 @@
 import styled, { css, th } from '@xstyled/styled-components';
 
-import { HOVER_POINTER_QUERY } from '../../../theme/constants';
-import { MIDDLE_BAR_OPEN_ROTATION_DEG, TOP_BAR_OPEN_ROTATION_DEG } from './constants';
+import { HOVER_POINTER_QUERY } from '../../../theme/constants.ts';
+import { MIDDLE_BAR_OPEN_ROTATION_DEG, TOP_BAR_OPEN_ROTATION_DEG } from './constants.ts';
 
 export const Button = styled.button`
   position: relative;

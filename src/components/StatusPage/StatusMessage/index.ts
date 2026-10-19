@@ -1,1 +1,1 @@
-export { default } from './StatusMessage';
+export { default } from './StatusMessage.tsx';

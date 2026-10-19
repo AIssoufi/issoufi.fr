@@ -1,7 +1,7 @@
 import type { Ref } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { BottomBar, Button, MiddleBar, TopBar } from './BurgerMenu.styled';
+import { BottomBar, Button, MiddleBar, TopBar } from './BurgerMenu.styled.ts';
 
 /** Props of {@link BurgerMenu}. */
 interface BurgerMenuProps {

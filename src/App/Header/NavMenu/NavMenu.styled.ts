@@ -1,11 +1,11 @@
 import styled, { css, keyframes, th } from '@xstyled/styled-components';
 
-import List from '../../../components/List';
-import { theme } from '../../../theme';
-import { HOVER_POINTER_QUERY } from '../../../theme/constants';
-import { fingerTarget, fingerTargetSize } from '../../../theme/targets.styled';
-import CvLink from './CvLink';
-import ProfileLinks from './ProfileLinks';
+import List from '../../../components/List/index.ts';
+import { theme } from '../../../theme/index.ts';
+import { HOVER_POINTER_QUERY } from '../../../theme/constants.ts';
+import { fingerTarget, fingerTargetSize } from '../../../theme/targets.styled.ts';
+import CvLink from './CvLink/index.ts';
+import ProfileLinks from './ProfileLinks/index.ts';
 
 // Keyframes have no theme context, so they read the theme object rather than the th helpers
 const fadeSlideIn = keyframes`

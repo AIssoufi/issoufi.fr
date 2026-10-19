@@ -1,4 +1,4 @@
-import { isLanguageSwitch } from './utils';
+import { isLanguageSwitch } from './utils.ts';
 
 describe('isLanguageSwitch', () => {
   it.each([

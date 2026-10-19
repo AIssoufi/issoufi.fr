@@ -1,7 +1,7 @@
 import { expect, test } from '@playwright/test';
 
-import { LANGUAGES } from '../src/i18n/constants';
-import { localizePath } from '../src/i18n/utils';
+import { LANGUAGES } from '../src/i18n/constants.ts';
+import { localizePath } from '../src/i18n/utils.ts';
 import {
   MAX_DOT_OFFSET_PX,
   MAX_TEXT_OVERFLOW_PX,
@@ -12,9 +12,9 @@ import {
   TIMELINE_LINE_ATTRIBUTE,
   TIMELINE_ROUTE,
   TIMELINE_SCREEN_WIDTHS_PX,
-} from './constants';
-import { getMarkedPseudoElementQuads } from './pseudo-elements';
-import { getCenterDistanceX } from './utils';
+} from './constants.ts';
+import { getMarkedPseudoElementQuads } from './pseudo-elements.ts';
+import { getCenterDistanceX } from './utils.ts';
 
 // The line and the dots are pseudo-elements placed by hand, whose offsets depend on the size, the
 // border and the box-sizing of the dots: jsdom computes no layout, so only a real browser sees a

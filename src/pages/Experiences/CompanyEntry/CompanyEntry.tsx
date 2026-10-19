@@ -1,13 +1,13 @@
 import { useTranslation } from 'react-i18next';
 
-import VisuallyHidden from '../../../components/VisuallyHidden';
-import { translateKey } from '../../../i18n/utils';
-import Experience from '../Experience';
-import ExperienceGroup from '../ExperienceGroup';
-import RoleDescription from './RoleDescription';
-import TimelinePeriod from '../TimelinePeriod';
-import type { ExperienceData, RoleData } from '../types';
-import { TimelineContent, TimelineEntry } from './CompanyEntry.styled';
+import VisuallyHidden from '../../../components/VisuallyHidden/index.ts';
+import { translateKey } from '../../../i18n/utils.ts';
+import Experience from '../Experience/index.ts';
+import ExperienceGroup from '../ExperienceGroup/index.ts';
+import RoleDescription from './RoleDescription/index.ts';
+import TimelinePeriod from '../TimelinePeriod/index.ts';
+import type { ExperienceData, RoleData } from '../types.ts';
+import { TimelineContent, TimelineEntry } from './CompanyEntry.styled.ts';
 
 /** Props of {@link CompanyEntry}. */
 interface CompanyEntryProps {

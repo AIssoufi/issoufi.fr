@@ -1,1 +1,1 @@
-export { default } from './CvLink';
+export { default } from './CvLink.tsx';

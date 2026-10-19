@@ -1,13 +1,13 @@
 import { act, render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router';
 
-import i18n from '../../i18n';
-import { theme } from '../../theme';
-import { HOVER_POINTER_QUERY, REDUCED_MOTION_QUERY } from '../../theme/constants';
-import { declaredStyle, serializeCssValue } from '../../styleTestUtils';
-import { getPage } from '../../utils/pages';
-import { readBackgroundImages } from '../testUtils';
-import { Home } from './Home';
+import i18n from '../../i18n/index.ts';
+import { theme } from '../../theme/index.ts';
+import { HOVER_POINTER_QUERY, REDUCED_MOTION_QUERY } from '../../theme/constants.ts';
+import { declaredStyle, serializeCssValue } from '../../styleTestUtils.js';
+import { getPage } from '../../utils/pages.ts';
+import { readBackgroundImages } from '../testUtils.js';
+import { Home } from './Home.tsx';
 
 /** Media query of the short screens, such as a phone held sideways. */
 const SHORT_SCREEN_MEDIA_QUERY = `(max-height: ${theme.screenHeights.short})`;

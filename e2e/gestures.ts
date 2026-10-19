@@ -1,6 +1,6 @@
 import type { CDPSession } from '@playwright/test';
 
-import { SCROLL_GESTURE_DISTANCE_PX, SCROLL_GESTURE_SPEED_PX_PER_S } from './constants';
+import { SCROLL_GESTURE_DISTANCE_PX, SCROLL_GESTURE_SPEED_PX_PER_S } from './constants.ts';
 
 /**
  * DevTools protocol session of a page, from `page.context().newCDPSession(page)`. Only its `send`

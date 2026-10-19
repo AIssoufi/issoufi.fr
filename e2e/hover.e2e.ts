@@ -1,15 +1,15 @@
 import { expect, type Page, test } from '@playwright/test';
 
-import { fr } from '../src/i18n/fr';
-import { HOVER_POINTER_QUERY } from '../src/theme/constants';
-import { theme } from '../src/theme/theme';
+import { fr } from '../src/i18n/fr.ts';
+import { HOVER_POINTER_QUERY } from '../src/theme/constants.ts';
+import { theme } from '../src/theme/theme.ts';
 import {
   HERO_SUBTITLE_SELECTOR,
   PAGE_SELECTOR,
   PROJECT_CARD_SELECTOR,
   PROJECTS_ROUTE,
-} from './constants';
-import { getBoxCenter } from './utils';
+} from './constants.ts';
+import { getBoxCenter } from './utils.ts';
 
 /** Properties that the hover styles of the controls of the site change. */
 const HOVER_PROPERTIES = ['background-color', 'border-color', 'color', 'transform'];

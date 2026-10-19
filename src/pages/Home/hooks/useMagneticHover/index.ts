@@ -1,1 +1,1 @@
-export * from './useMagneticHover';
+export * from './useMagneticHover.ts';

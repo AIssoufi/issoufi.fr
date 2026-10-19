@@ -1,6 +1,6 @@
 import { css, th } from '@xstyled/styled-components';
 
-import { HOVER_POINTER_QUERY } from '../../theme/constants';
+import { HOVER_POINTER_QUERY } from '../../theme/constants.ts';
 
 /* Width of the timeline line, which Timeline (Experiences.styled.ts) draws. */
 export const lineWidth = th.size(2);

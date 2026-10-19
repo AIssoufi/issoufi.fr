@@ -1,9 +1,9 @@
 import { renderHook } from '@testing-library/react';
 import type { PointerEvent } from 'react';
 
-import { stubMatchMedia } from '../../../../../mediaQueryTestUtils';
-import { CARD_HOVER_LIFT_PX, CARD_MAX_TILT_DEG, CARD_PERSPECTIVE_PX } from '../../constants';
-import { useCardTilt } from './useCardTilt';
+import { stubMatchMedia } from '../../../../../mediaQueryTestUtils.ts';
+import { CARD_HOVER_LIFT_PX, CARD_MAX_TILT_DEG, CARD_PERSPECTIVE_PX } from '../../constants.ts';
+import { useCardTilt } from './useCardTilt.ts';
 
 /** Box of the card in the viewport. */
 const CARD_BOX = { left: 100, top: 100, width: 200, height: 100 };

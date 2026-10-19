@@ -1,4 +1,4 @@
-import { CAREER_START_DATE, getFullYearsSince, getYearsOfExperience } from './career';
+import { CAREER_START_DATE, getFullYearsSince, getYearsOfExperience } from './career.ts';
 
 describe('getFullYearsSince', () => {
   const start = new Date(2018, 5, 1);

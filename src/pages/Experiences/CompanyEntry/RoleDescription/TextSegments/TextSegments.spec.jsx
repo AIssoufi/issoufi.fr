@@ -1,7 +1,7 @@
 import { act, render } from '@testing-library/react';
 
-import i18n from '../../../../../i18n';
-import TextSegments from './TextSegments';
+import i18n from '../../../../../i18n/index.ts';
+import TextSegments from './TextSegments.tsx';
 
 /** Renders the segments in a paragraph, to read the text and the markup they write. */
 const renderSegments = segments => render(<TextSegments segments={segments} />).container;

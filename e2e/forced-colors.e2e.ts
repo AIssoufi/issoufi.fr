@@ -1,10 +1,10 @@
 import { expect, test } from '@playwright/test';
 
-import { LANGUAGE_NAMES } from '../src/App/Header/LangToggle/constants';
-import { DEFAULT_LANGUAGE, LANGUAGES } from '../src/i18n/constants';
-import { fr } from '../src/i18n/fr';
-import type { Language } from '../src/i18n/types';
-import { FORCED_COLORS_SCREEN_WIDTHS_PX, PROJECTS_ROUTE, SCREEN_HEIGHT_PX } from './constants';
+import { LANGUAGE_NAMES } from '../src/App/Header/LangToggle/constants.ts';
+import { DEFAULT_LANGUAGE, LANGUAGES } from '../src/i18n/constants.ts';
+import { fr } from '../src/i18n/fr.ts';
+import type { Language } from '../src/i18n/types.ts';
+import { FORCED_COLORS_SCREEN_WIDTHS_PX, PROJECTS_ROUTE, SCREEN_HEIGHT_PX } from './constants.ts';
 
 /** A language of the site other than the default one, whose button the toggle test presses. */
 const OTHER_LANGUAGE: Language =

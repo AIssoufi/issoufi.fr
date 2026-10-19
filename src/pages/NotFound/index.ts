@@ -1,2 +1,2 @@
-export * from './NotFound';
-export { NotFound as default } from './NotFound';
+export * from './NotFound.tsx';
+export { NotFound as default } from './NotFound.tsx';

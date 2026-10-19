@@ -9,7 +9,7 @@ import {
   readFontDataUrl,
   removeFontPreloads,
   toFontDataUrls,
-} from './fonts';
+} from './fonts.ts';
 
 describe('readFontDataUrl', () => {
   let projectDir = '';

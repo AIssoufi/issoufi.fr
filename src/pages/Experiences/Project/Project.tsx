@@ -1,6 +1,6 @@
-import Technologies from '../Technologies';
+import Technologies from '../Technologies/index.ts';
 
-import { Body, Container, Description, Header, State, Title } from './Project.styled';
+import { Body, Container, Description, Header, State, Title } from './Project.styled.ts';
 
 /** Props of {@link Project}. Every part is optional and is not rendered when missing. */
 interface ProjectProps {

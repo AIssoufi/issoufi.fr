@@ -1,8 +1,8 @@
 import { act, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
-import i18n from '../../../i18n';
-import UnexpectedError from './UnexpectedError';
+import i18n from '../../../i18n/index.ts';
+import UnexpectedError from './UnexpectedError.tsx';
 
 describe('UnexpectedError', () => {
   let reload;

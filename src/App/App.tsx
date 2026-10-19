@@ -2,28 +2,30 @@ import { lazy, Suspense } from 'react';
 import { Route, BrowserRouter as Router, Routes } from 'react-router';
 import { ThemeProvider } from '@xstyled/styled-components';
 
-import { LANGUAGES, ROOT_PATH } from '../i18n/constants';
-import { localizePath } from '../i18n/utils';
-import { Home } from '../pages/Home';
-import { GlobalStyle, theme } from '../theme';
-import DocumentMeta from './DocumentMeta';
-import Header from './Header';
-import { useReloadOnStaleChunk } from './hooks/useReloadOnStaleChunk';
-import PageHeadingFocus from './PageHeadingFocus';
-import RouteErrorBoundary from './RouteErrorBoundary';
-import SkipLink from './SkipLink';
-import UrlLanguage from './UrlLanguage';
-import { keepPendingWhileReloading } from './utils';
+import { LANGUAGES, ROOT_PATH } from '../i18n/constants.ts';
+import { localizePath } from '../i18n/utils.ts';
+import { Home } from '../pages/Home/index.ts';
+import { GlobalStyle, theme } from '../theme/index.ts';
+import DocumentMeta from './DocumentMeta/index.ts';
+import Header from './Header/index.ts';
+import { useReloadOnStaleChunk } from './hooks/useReloadOnStaleChunk/index.ts';
+import PageHeadingFocus from './PageHeadingFocus/index.ts';
+import RouteErrorBoundary from './RouteErrorBoundary/index.ts';
+import SkipLink from './SkipLink/index.ts';
+import UrlLanguage from './UrlLanguage/index.ts';
+import { keepPendingWhileReloading } from './utils.ts';
 
-import { WebApp } from './App.styled';
+import { WebApp } from './App.styled.ts';
 
 // The other pages are loaded on their first visit, each from its own chunk, so the home page
 // only downloads its own code. Import them from their folder, never through a shared barrel,
 // which would put them back in the main bundle. A page stays loading while the page reloads for a
 // missing chunk.
-const Projects = lazy(() => import('../pages/Projects').then(keepPendingWhileReloading));
-const Experiences = lazy(() => import('../pages/Experiences').then(keepPendingWhileReloading));
-const NotFound = lazy(() => import('../pages/NotFound').then(keepPendingWhileReloading));
+const Projects = lazy(() => import('../pages/Projects/index.ts').then(keepPendingWhileReloading));
+const Experiences = lazy(() =>
+  import('../pages/Experiences/index.ts').then(keepPendingWhileReloading),
+);
+const NotFound = lazy(() => import('../pages/NotFound/index.ts').then(keepPendingWhileReloading));
 
 /**
  * Root of the application: the design-token theme and global styles, the router, the header,

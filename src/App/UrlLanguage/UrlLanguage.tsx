@@ -1,7 +1,7 @@
 import { useLayoutEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { useUrlLanguage } from '../../hooks/useUrlLanguage';
+import { useUrlLanguage } from '../../hooks/useUrlLanguage/index.ts';
 
 /**
  * Keeps the i18next language in line with the language of the current URL (see

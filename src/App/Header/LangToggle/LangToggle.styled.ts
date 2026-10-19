@@ -1,8 +1,8 @@
 import styled, { css, th } from '@xstyled/styled-components';
 
-import { HOVER_POINTER_QUERY } from '../../../theme/constants';
-import { fingerTargetCenteringOffset, fingerTargetSize } from '../../../theme/targets.styled';
-import { BUTTON_HEIGHT_PX, BUTTON_WIDTH_PX } from './constants';
+import { HOVER_POINTER_QUERY } from '../../../theme/constants.ts';
+import { fingerTargetCenteringOffset, fingerTargetSize } from '../../../theme/targets.styled.ts';
+import { BUTTON_HEIGHT_PX, BUTTON_WIDTH_PX } from './constants.ts';
 
 /* Space between the two buttons */
 const buttonGap = th.space(4);

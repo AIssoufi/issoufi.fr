@@ -1,7 +1,7 @@
 import styled, { th } from '@xstyled/styled-components';
 
-import { HOVER_POINTER_QUERY } from '../../theme/constants';
-import { fingerTarget } from '../../theme/targets.styled';
+import { HOVER_POINTER_QUERY } from '../../theme/constants.ts';
+import { fingerTarget } from '../../theme/targets.styled.ts';
 
 export const Container = styled.header`
   display: flex;

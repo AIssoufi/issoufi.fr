@@ -1,4 +1,4 @@
-import { ActionButton, Code, Container, HomeLink, Message, Title } from './StatusMessage.styled';
+import { ActionButton, Code, Container, HomeLink, Message, Title } from './StatusMessage.styled.ts';
 
 /** Props of {@link StatusMessage}. Every part is optional and is not rendered when missing. */
 interface StatusMessageProps {

@@ -1,6 +1,6 @@
 import { createGlobalStyle, th } from '@xstyled/styled-components';
 
-import { HOVER_POINTER_QUERY, REDUCED_MOTION_QUERY } from './constants';
+import { HOVER_POINTER_QUERY, REDUCED_MOTION_QUERY } from './constants.ts';
 
 /**
  * Base styles of the document (box sizing, body, links, buttons, lists, icons), built from the
