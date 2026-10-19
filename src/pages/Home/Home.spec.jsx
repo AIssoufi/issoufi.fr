@@ -1,6 +1,7 @@
-import { render, screen } from '@testing-library/react';
+import { act, render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router';
 
+import i18n from '../../i18n';
 import { theme } from '../../theme';
 import { REDUCED_MOTION_QUERY } from '../../theme/constants';
 import { declaredStyle, serializeCssValue } from '../../styleTestUtils';
@@ -19,6 +20,10 @@ const renderHome = (path = '/') =>
   );
 
 describe('Home', () => {
+  afterEach(async () => {
+    await act(() => i18n.changeLanguage('fr'));
+  });
+
   it('renders the job title and the subtitle', () => {
     renderHome();
 
@@ -35,6 +40,43 @@ describe('Home', () => {
     );
     expect(screen.getByText('UX')).toBeInTheDocument();
     expect(screen.getByText('UI')).toBeInTheDocument();
+  });
+
+  it.each([
+    ['French', 'fr', 'l’UX', 'l’UI Design'],
+    ['English', 'en', 'UX', 'UI Design'],
+  ])(
+    'holds the words that belong to UX and UI on their line, in %s',
+    async (_language, language, uxWords, uiWords) => {
+      renderHome();
+      await act(() => i18n.changeLanguage(language));
+      // The text of the page, its no-break spaces as plain ones
+      const readWords = element => element.textContent.replace(/\s+/gu, ' ');
+      const uxGroup = screen.getByText('UX').parentElement;
+      const uiGroup = screen.getByText('UI').parentElement;
+
+      expect(readWords(uxGroup)).toBe(uxWords);
+      expect(readWords(uiGroup)).toBe(uiWords);
+      for (const group of [uxGroup, uiGroup]) {
+        expect(declaredStyle({ element: group, property: 'white-space' })).toBe('nowrap');
+      }
+    },
+  );
+
+  it('balances the lines of the passion and the subtitle, but not those of the job title', () => {
+    renderHome();
+    const title = screen.getByRole('heading', { level: 1 });
+    const [jobTitleLine, passionLine] = title.children;
+    const subtitle = screen.getByText('Je vous aide à développer vos applications web');
+    const textWrap = element => declaredStyle({ element, property: 'text-wrap' });
+
+    expect(textWrap(jobTitleLine)).toBe('wrap');
+    // The passion keeps the balance of every heading (GlobalStyle)
+    expect(textWrap(passionLine)).toBe('');
+    expect(textWrap(subtitle)).toBe('balance');
+    for (const line of [jobTitleLine, passionLine]) {
+      expect(getComputedStyle(line).display).toBe('block');
+    }
   });
 
   it('has a single main landmark and a single level 1 heading', () => {

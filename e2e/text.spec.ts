@@ -1,6 +1,8 @@
 import {
   describeSmallTexts,
   type DrawnCharacter,
+  findDetachedDepartmentLines,
+  findSingleWordLines,
   groupLines,
   listDrawnCharacters,
   listDrawnTexts,
@@ -286,5 +288,78 @@ describe('groupLines', () => {
     ['an object', { character: 'a' }],
   ])('rebuilds no line from %s', (_case, characters) => {
     expect(groupLines(characters as never)).toEqual([]);
+  });
+});
+
+describe('findSingleWordLines', () => {
+  it('lists the lines that hold a single word, in their order', () => {
+    const lines = ['Je vous aide à développer vos applications', 'web', 'passionné par', 'Design'];
+
+    expect(findSingleWordLines(lines)).toEqual(['web', 'Design']);
+  });
+
+  it.each([
+    ['words joined by a no-break space', 'UI\u00a0Design'],
+    ['two words', 'UX and'],
+    ['words between spaces', '  passionné par  '],
+  ])('keeps a line of %s', (_case, line) => {
+    expect(findSingleWordLines([line])).toEqual([]);
+  });
+
+  it('counts a word with an apostrophe or a hyphen as one word', () => {
+    expect(findSingleWordLines(['l’UX', 'full-stack'])).toEqual(['l’UX', 'full-stack']);
+  });
+
+  it('skips the lines with no word and the entries that are not strings', () => {
+    expect(findSingleWordLines(['', '  ', 42, null, undefined, 'web'] as never)).toEqual(['web']);
+  });
+
+  it.each([
+    ['no lines', []],
+    ['nothing', undefined],
+    ['null', null],
+    ['a string', 'web'],
+  ])('finds no line in %s', (_case, lines) => {
+    expect(findSingleWordLines(lines as never)).toEqual([]);
+  });
+});
+
+describe('findDetachedDepartmentLines', () => {
+  it('lists the lines that start with a department, in their order', () => {
+    const lines = [
+      'Supralog · CDI · Antibes',
+      '(06)',
+      'Sewan Groupe · CDI · Paris',
+      '(75) et plus',
+    ];
+
+    expect(findDetachedDepartmentLines(lines)).toEqual(['(06)', '(75) et plus']);
+  });
+
+  it.each([
+    ['a department after its city', 'Antibes\u00a0(06)'],
+    ['a department of one digit', '(6)'],
+    ['a department of three digits', '(974)'],
+    ['a bracketed word', '(DX)'],
+    ['an empty line', ''],
+  ])('keeps a line with %s', (_case, line) => {
+    expect(findDetachedDepartmentLines([line])).toEqual([]);
+  });
+
+  it('finds a department after spaces at the start of the line', () => {
+    expect(findDetachedDepartmentLines(['  (06)'])).toEqual(['  (06)']);
+  });
+
+  it('skips the entries that are not strings', () => {
+    expect(findDetachedDepartmentLines([6, null, '(06)'] as never)).toEqual(['(06)']);
+  });
+
+  it.each([
+    ['no lines', []],
+    ['nothing', undefined],
+    ['null', null],
+    ['a string', '(06)'],
+  ])('finds no line in %s', (_case, lines) => {
+    expect(findDetachedDepartmentLines(lines as never)).toEqual([]);
   });
 });

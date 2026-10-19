@@ -4,7 +4,10 @@
  *
  * Following French typography, a colon comes after a no-break space (`\u00a0`), and a semicolon,
  * question or exclamation mark after a narrow no-break space (`\u202f`), so that they never wrap
- * alone onto the next line. Apostrophes are typographic (’), never straight (').
+ * alone onto the next line. Apostrophes are typographic (’), never straight ('). A no-break space
+ * also joins the words that belong together on a line, such as "UI\u00a0Design",
+ * "applications\u00a0web" or a city and its department ("Paris\u00a0(75)"), and the same words in
+ * `en.ts`.
  */
 export const fr = {
   meta: {
@@ -93,8 +96,8 @@ export const fr = {
     title1: 'Développeur full-stack JavaScript',
     title2Pre: 'passionné par l’',
     title2Mid: ' et l’',
-    title2Post: ' Design',
-    subtitle: 'Je vous aide à développer vos applications web',
+    title2Post: '\u00a0Design',
+    subtitle: 'Je vous aide à développer vos applications\u00a0web',
     cta: 'Voir mes projets',
     secondary: 'Expériences professionnelles',
   },
@@ -141,7 +144,7 @@ export const fr = {
     sewan: {
       name: 'Sewan Groupe',
       contract: 'CDI',
-      city: 'Paris (75)',
+      city: 'Paris\u00a0(75)',
     },
     sewanLead: {
       title: 'Lead Frontend Engineer — UI Kit Owner & Architect',
@@ -185,7 +188,7 @@ export const fr = {
       title: 'Full-Stack JavaScript Engineer — React, Node.js, AWS',
       name: 'Wibilong',
       contract: 'CDI',
-      city: 'Paris (75)',
+      city: 'Paris\u00a0(75)',
       start: 'sept. 2019',
       end: 'juin 2021',
       intro:
@@ -198,7 +201,7 @@ export const fr = {
       title: 'Développeur Full-Stack JavaScript — Alternance',
       name: 'Supralog',
       contract: 'Alternance',
-      city: 'Antibes (06)',
+      city: 'Antibes\u00a0(06)',
       start: 'juin 2018',
       end: 'sept. 2019',
       proj1Title: 'MyFFBaD — Espace licencié FFBaD',
@@ -218,7 +221,7 @@ export const fr = {
       title: 'Développeur React.js — Stage',
       name: 'Beepeers',
       contract: 'Stage',
-      city: 'Valbonne (06)',
+      city: 'Valbonne\u00a0(06)',
       start: 'mai 2017',
       end: 'août 2017',
       proj1Title: 'Dream Nation Festival 2017 — Site événementiel',

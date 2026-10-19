@@ -7,6 +7,7 @@ import { recordLargestShift, waitForEndingAnimations } from './animations';
 import {
   HERO_POINTER_SCREENS,
   HERO_SCREENS,
+  HERO_WORD_SELECTOR,
   MAX_WORD_SHIFT_PX,
   PAGE_SELECTOR,
   POINTER_REST_FRAME_COUNT,
@@ -82,7 +83,7 @@ for (const language of LANGUAGES) {
 
       test(`aiming at a button of ${route} moves no word of its title`, async ({ page }) => {
         await openHomePage({ page, route });
-        const words = page.getByRole('heading', { level: 1 }).locator('span');
+        const words = page.getByRole('heading', { level: 1 }).locator(HERO_WORD_SELECTOR);
         const buttons = page.locator(PAGE_SELECTOR).getByRole('link');
         await expect(buttons).toHaveCount(HERO_BUTTON_COUNT);
         // Without any word, the largest shift would be 0, and the check would pass
@@ -107,7 +108,7 @@ for (const language of LANGUAGES) {
       // The check above would pass with words that never move: this one sees them move
       test(`the words of ${route} still move away from the pointer`, async ({ page }) => {
         await openHomePage({ page, route });
-        const words = page.getByRole('heading', { level: 1 }).locator('span');
+        const words = page.getByRole('heading', { level: 1 }).locator(HERO_WORD_SELECTOR);
         const word = await words.first().boundingBox();
         if (!word) throw new Error('The first word of the title has no box');
 

@@ -1,3 +1,5 @@
+import { DEPARTMENT_LINE_START_PATTERN } from './constants';
+
 /** A text that a page shows, with the size of its font. */
 export interface DrawnText {
   /** Text of a text node, without the spaces around it. */
@@ -188,4 +190,42 @@ export const groupLines = (characters?: readonly DrawnCharacter[] | null): strin
     lastLineOfBlock.set(blockIndex, newLine);
   }
   return lines.map(({ text }) => text.trim()).filter(Boolean);
+};
+
+/** The lines of a list that are strings, or none when it is not an array. */
+const toLineList = (lines?: readonly string[] | null): string[] =>
+  Array.isArray(lines) ? lines.filter(line => typeof line === 'string') : [];
+
+/**
+ * Lists the lines that hold a single word, such as a word left alone after a wrap. A no-break space
+ * keeps the words it joins on one line, and counts here as the space between two words, so a line
+ * of words joined by one, such as "UI Design", holds two of them.
+ *
+ * @param lines - Lines of text, as {@link groupLines} rebuilds them.
+ * @returns The lines of a single word, in the order of the lines; empty when the lines are not an
+ * array. Entries that are not strings, and lines with no word, are skipped.
+ *
+ * @example
+ * findSingleWordLines(['Je vous aide à développer vos applications', 'web']); // ['web']
+ */
+export const findSingleWordLines = (lines?: readonly string[] | null): string[] => {
+  const lineList = toLineList(lines);
+  const countWords = (line: string) => line.split(/\s+/u).filter(Boolean).length;
+  return lineList.filter(line => countWords(line) === 1);
+};
+
+/**
+ * Lists the lines that start with the number of a French department in brackets, such as "(06)",
+ * left on its own line, away from the city it follows ("Antibes (06)").
+ *
+ * @param lines - Lines of text, as {@link groupLines} rebuilds them.
+ * @returns The lines starting with a department, in the order of the lines; empty when the lines
+ * are not an array. Entries that are not strings are skipped.
+ *
+ * @example
+ * findDetachedDepartmentLines(['Supralog · CDI · Antibes', '(06)']); // ['(06)']
+ */
+export const findDetachedDepartmentLines = (lines?: readonly string[] | null): string[] => {
+  const lineList = toLineList(lines);
+  return lineList.filter(line => DEPARTMENT_LINE_START_PATTERN.test(line.trim()));
 };

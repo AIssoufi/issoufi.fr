@@ -75,9 +75,9 @@ const getSiteDomain = siteUrl =>
  * @returns {HomeTexts} The texts, empty where a translation is missing.
  * @example
  * getHomeTexts({ translations: fr, siteUrl: SITE_URL }).subtitle;
- * // 'Je vous aide à développer vos applications web'
+ * // 'Je vous aide à développer vos applications\u00a0web'
  * getHomeTexts({ translations: en, siteUrl: SITE_URL }).subtitle;
- * // 'I help you build web applications'
+ * // 'I help you build web\u00a0applications'
  */
 export const getHomeTexts = ({ translations, siteUrl }) => {
   const home = translations?.home;

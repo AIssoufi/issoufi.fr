@@ -25,3 +25,9 @@ export const MAGNET_FOLLOW_TRANSITION = `transform ${theme.durations[100]} ${the
 export const RELEASE_EASING = theme.timingFunctions.out;
 /** Transition of a magnetic button returning to its place. */
 export const MAGNET_RELEASE_TRANSITION = `transform ${theme.durations[700]} ${RELEASE_EASING}`;
+
+/**
+ * Space at which the browser may wrap the title of the home page: a plain space, unlike the
+ * no-break space (`\u00a0`) of the translations, which holds the words it joins together.
+ */
+export const LINE_BREAKING_SPACE = ' ';

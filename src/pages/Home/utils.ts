@@ -1,4 +1,4 @@
-import { OFFSCREEN_POINTER } from './constants';
+import { LINE_BREAKING_SPACE, OFFSCREEN_POINTER } from './constants';
 import type { Point } from './types';
 
 /** Parameters of {@link easeTowards}. */
@@ -72,4 +72,32 @@ export function getMagneticOffset({ pointer, rect, strength }: GetMagneticOffset
 export function isPointerOnScreen(pointer: Point): boolean {
   const isParkedOffscreen = pointer.x === OFFSCREEN_POINTER.x && pointer.y === OFFSCREEN_POINTER.y;
   return !isParkedOffscreen;
+}
+
+/** A text split before its last word, by {@link splitLastWord}. */
+export interface SplitText {
+  /** Text up to its last word, the space before it included. */
+  leading: string;
+  /** Last word of the text, or an empty text when the text ends with a space. */
+  lastWord: string;
+}
+
+/**
+ * Splits a text before its last word, at its last {@link LINE_BREAKING_SPACE}, so that the last
+ * word can be held to what follows it, such as the "l’" of "par l’" to the animated "UX": the
+ * browser may wrap before an animated word, which is an inline block, even after a no-break space.
+ *
+ * @param text - Text to split, such as a translation.
+ * @returns The text before and from its last word. A text without a space is a word alone, and a
+ * text ending with a space has no last word. A value that is not a text gives two empty texts.
+ *
+ * @example
+ * splitLastWord('passionné par l’'); // { leading: 'passionné par ', lastWord: 'l’' }
+ * splitLastWord('passionate about '); // { leading: 'passionate about ', lastWord: '' }
+ */
+export function splitLastWord(text?: unknown): SplitText {
+  if (typeof text !== 'string') return { leading: '', lastWord: '' };
+
+  const lastWordStart = text.lastIndexOf(LINE_BREAKING_SPACE) + 1;
+  return { leading: text.slice(0, lastWordStart), lastWord: text.slice(lastWordStart) };
 }

@@ -435,6 +435,12 @@ export const HERO_POINTER_SCREENS = [
 export const MAX_WORD_SHIFT_PX = 2;
 
 /**
+ * Animated words of the home title, inside its heading: the innermost spans, within the blocks of
+ * its lines and the groups that hold a word to an animated one ("l’UX").
+ */
+export const HERO_WORD_SELECTOR = 'span:not(:has(span))';
+
+/**
  * Number of animation frames that the pointer rests at a point, each of which measures the words
  * of the home title. A word pushed stays where it went until `RETURN_DELAY_MS`
  * (`src/pages/Home/SplitWords/constants.ts`) after the last push, so the pushes of the points of
@@ -522,3 +528,26 @@ export const LOW_RESOLUTION_PROJECT_NAME_KEYS: readonly string[] = [
   'trouilletDecors',
   'yyServicies',
 ];
+
+/**
+ * Screen widths, in pixels, at which no line of the passion or the subtitle of the home page may
+ * hold a single word, and no department of the Experiences page may wrap away from its city: the
+ * narrowest phones (320), then common phone widths (360, 375, 390 and 414), where those lines once
+ * broke badly.
+ */
+export const LINE_BREAK_SCREEN_WIDTHS_PX = [320, 360, 375, 390, 414] as const;
+
+/** Start of a line that begins with the number of a French department in brackets, as "(06)". */
+export const DEPARTMENT_LINE_START_PATTERN = /^\(\d{2}\)/u;
+
+/** Title of the home page: the job title, then the passion for UX and UI design. */
+export const HERO_TITLE_SELECTOR = `${PAGE_SELECTOR} h1`;
+
+/**
+ * Second line of the home title, "passionné par l’UX et l’UI Design", a block of its own after the
+ * job title, whose three long words leave one of them alone on a line on a phone whatever the wrap.
+ */
+export const HERO_PASSION_SELECTOR = `${HERO_TITLE_SELECTOR} > :last-child`;
+
+/** Subtitle of the home page, right after its title. */
+export const HERO_SUBTITLE_SELECTOR = `${HERO_TITLE_SELECTOR} + p`;

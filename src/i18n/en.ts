@@ -2,7 +2,8 @@ import type { Translations } from './types';
 
 /**
  * English translations. Typed with {@link Translations}, so they must keep exactly the keys of the
- * French ones in `fr.ts`: `tsc` names a key missing from either file.
+ * French ones in `fr.ts`: `tsc` names a key missing from either file. As in `fr.ts`, a no-break
+ * space joins the words that belong together on a line, such as "UI\u00a0Design".
  */
 export const en = {
   meta: {
@@ -84,8 +85,8 @@ export const en = {
     title1: 'Full-stack JavaScript Developer',
     title2Pre: 'passionate about ',
     title2Mid: ' and ',
-    title2Post: ' Design',
-    subtitle: 'I help you build web applications',
+    title2Post: '\u00a0Design',
+    subtitle: 'I help you build web\u00a0applications',
     cta: 'View my projects',
     secondary: 'Professional experience',
   },
@@ -128,7 +129,7 @@ export const en = {
     sewan: {
       name: 'Sewan Groupe',
       contract: 'Permanent',
-      city: 'Paris (75)',
+      city: 'Paris\u00a0(75)',
     },
     sewanLead: {
       title: 'Lead Frontend Engineer — UI Kit Owner & Architect',
@@ -172,7 +173,7 @@ export const en = {
       title: 'Full-Stack JavaScript Engineer — React, Node.js, AWS',
       name: 'Wibilong',
       contract: 'Permanent',
-      city: 'Paris (75)',
+      city: 'Paris\u00a0(75)',
       start: 'Sept. 2019',
       end: 'June 2021',
       intro:
@@ -185,7 +186,7 @@ export const en = {
       title: 'Full-Stack JavaScript Developer — Apprenticeship',
       name: 'Supralog',
       contract: 'Apprenticeship',
-      city: 'Antibes (06)',
+      city: 'Antibes\u00a0(06)',
       start: 'June 2018',
       end: 'Sept. 2019',
       proj1Title: 'MyFFBaD — FFBaD Licensee Portal',
@@ -205,7 +206,7 @@ export const en = {
       title: 'React.js Developer — Internship',
       name: 'Beepeers',
       contract: 'Internship',
-      city: 'Valbonne (06)',
+      city: 'Valbonne\u00a0(06)',
       start: 'May 2017',
       end: 'Aug. 2017',
       proj1Title: 'Dream Nation Festival 2017 — Event Website',

@@ -50,7 +50,7 @@ describe('renderCvHtml', () => {
     const document = renderDocument(FRENCH_CV);
 
     expect(document.querySelector('.tagline').textContent).toBe(
-      'passionné par l’UX et l’UI Design · Je vous aide à développer vos applications web',
+      'passionné par l’UX et l’UI\u00a0Design · Je vous aide à développer vos applications\u00a0web',
     );
     expect(getTexts({ document, selector: '.tagline strong' })).toEqual(['UX', 'UI']);
   });
@@ -72,10 +72,10 @@ describe('renderCvHtml', () => {
     const document = renderDocument(FRENCH_CV);
 
     expect(getTexts({ document, selector: '.company-name' })).toEqual([
-      'Sewan Groupe · CDI · Paris (75)',
-      'Wibilong · CDI · Paris (75)',
-      'Supralog · Alternance · Antibes (06)',
-      'Beepeers · Stage · Valbonne (06)',
+      'Sewan Groupe · CDI · Paris\u00a0(75)',
+      'Wibilong · CDI · Paris\u00a0(75)',
+      'Supralog · Alternance · Antibes\u00a0(06)',
+      'Beepeers · Stage · Valbonne\u00a0(06)',
     ]);
     expect(getTexts({ document, selector: '.period' })[0]).toBe('août 2021 — Aujourd’hui');
     expect(document.querySelectorAll('.role')).toHaveLength(5);
