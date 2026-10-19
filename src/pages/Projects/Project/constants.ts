@@ -15,9 +15,11 @@ export const ROW_CARD_COUNT = 3;
  */
 export const THUMBNAIL_FILE_WIDTHS_PX = [480, 720, 960, 1200] as const;
 /**
- * Widest ratio of a screenshot, 16:10: a card is 220 px high inside its border, so a 16:10
- * screenshot that covers it is 352 px wide, which the 720 px file serves on a 2x screen even where
- * the card is narrower. A wider one would be enlarged there.
+ * Widest ratio of a screenshot, 16:10: below the `wide` breakpoint, a card is 220 px high inside
+ * its border, so a 16:10 screenshot that covers it is 352 px wide, which the 720 px file serves on
+ * a 2x screen even where the card is narrower. A wider one would be enlarged there. From the
+ * `wide` breakpoint, a card is 246 px high but 505 px wide inside its border: its width sets the
+ * cover, which {@link THUMBNAIL_SIZES} serves.
  */
 export const MAX_THUMBNAIL_ASPECT_RATIO = 16 / 10;
 /**

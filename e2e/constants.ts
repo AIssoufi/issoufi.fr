@@ -96,8 +96,9 @@ export const MAX_DOT_OFFSET_PX = 0.5;
 export const TIMELINE_SCREEN_WIDTHS_PX = [...SCREEN_WIDTHS_PX, 1920] as const;
 
 /**
- * Period column of each job row of the timeline, shown from the tablet breakpoint: the only
- * element whose `::after` draws a dot ({@link TIMELINE_DOT_ATTRIBUTE}).
+ * Period column of each row of the timeline, a job alone at its company or one of the roles of a
+ * company, shown from the tablet breakpoint: the only element whose `::after` draws a dot
+ * ({@link TIMELINE_DOT_ATTRIBUTE}).
  */
 export const PERIOD_COLUMN_SELECTOR = `[${TIMELINE_DOT_ATTRIBUTE}="after"]`;
 
