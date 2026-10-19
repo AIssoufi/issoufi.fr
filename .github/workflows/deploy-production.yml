@@ -42,20 +42,25 @@ jobs:
           DEPLOY_SCHEDULE: ${{ github.event.schedule }}
 
   release:
-    # Merges the release pull request once its whole CI passed, so that production gets the new
-    # version, then publishes the release and runs the CI on develop: the merge, made with the
-    # GITHUB_TOKEN, starts no push run. It never fails, and leaves a notice when no release is made.
+    # Merges the release pull request once the CI of its pull request event passed, so that
+    # production gets the new version, then publishes the release and runs the CI on develop: the
+    # merge, made with the GITHUB_TOKEN, starts no push run. It never fails, and leaves a notice
+    # when no release is made, or a warning when someone has to act.
     needs: schedule
     if: needs.schedule.outputs.due == 'true'
     runs-on: ubuntu-latest
-    # Two runs of the CI, each waited for up to 20 minutes (RUN_WAIT_ATTEMPTS)
+    # Two runs of the CI, each waited for up to 20 minutes (RUN_WAIT_ATTEMPTS), and up to 5 minutes
+    # for the release pull request to become mergeable (MERGEABLE_WAIT_ATTEMPTS)
     timeout-minutes: 50
     permissions:
       # Merges the release pull request
       contents: write
       pull-requests: write
-      # Starts ci.yml and release.yml, and follows their runs
+      # Approves the held CI of the release pull request, starts ci.yml and release.yml, and
+      # follows their runs
       actions: write
+      # Names the required checks that did not pass when the release pull request cannot merge
+      checks: read
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-node@v7

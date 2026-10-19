@@ -242,6 +242,12 @@ export const MANUAL_EVENT = 'workflow_dispatch';
 /** Event of a run started by a push, the one whose CI run of develop must pass to deploy it. */
 export const PUSH_EVENT = 'push';
 
+/**
+ * Event of a run started by a pull request: the only run of the CI whose checks GitHub links to
+ * the pull request, so the only one that the required checks of a ruleset count.
+ */
+export const PULL_REQUEST_EVENT = 'pull_request';
+
 /** Workflow whose run must pass on develop before a deploy, and that deploys main. */
 export const CI_WORKFLOW_FILE = 'ci.yml';
 
@@ -292,9 +298,10 @@ export const RUN_SUCCESS_CONCLUSION = 'success';
 export const RUN_ACTION_REQUIRED_CONCLUSION = 'action_required';
 
 /**
- * Number of times the daily release reads a run of the CI it started before giving up, every
- * {@link RUN_WAIT_DELAY_MS}: 20 minutes in all, while a run of `ci.yml`, its preview deployment
- * and smoke test included, took about 5 minutes in October 2026.
+ * Number of times the daily release reads a run of the CI before giving up, every
+ * {@link RUN_WAIT_DELAY_MS}: the pull request run of the release pull request, which it may have
+ * approved, then the run it starts on develop. 20 minutes in all, while a run of `ci.yml`, its
+ * preview deployment and smoke test included, took about 5 minutes in October 2026.
  */
 export const RUN_WAIT_ATTEMPTS = 40;
 
@@ -327,6 +334,51 @@ export const RELEASE_MERGE_METHOD = 'merge';
  * the release pull request: the most the REST API gives in one page.
  */
 export const OPEN_PULL_REQUESTS_PAGE_SIZE = 100;
+
+/**
+ * Values of the `mergeable_state` of a pull request of the REST API that let it merge:
+ * `clean`, every check passed; `unstable`, a check that no rule requires did not pass, such as
+ * the one of the Cloudflare Pages app; `has_hooks`, a pre-receive hook will check the push.
+ */
+export const MERGEABLE_STATES = ['clean', 'unstable', 'has_hooks'];
+
+/**
+ * Why a pull request cannot merge, for each other value of its `mergeable_state`, written after
+ * its number in a message. A value missing here gives `cannot merge`.
+ * @type {Readonly<Record<string, string>>}
+ */
+export const UNMERGEABLE_STATE_REASONS = {
+  blocked: 'is blocked by a rule of the base branch',
+  behind: 'is behind its base branch, which a rule requires to be up to date',
+  dirty: 'conflicts with its base branch',
+  draft: 'is a draft',
+  unknown: 'has not been checked by GitHub yet',
+};
+
+/**
+ * Number of times the daily release reads the release pull request, once its CI passed, until
+ * GitHub says it can merge, every {@link MERGEABLE_WAIT_DELAY_MS}: 5 minutes in all, while GitHub
+ * takes a few seconds to count the checks of a run that just ended.
+ */
+export const MERGEABLE_WAIT_ATTEMPTS = 30;
+
+/** Pause between two reads of the release pull request that waits to merge, in milliseconds. */
+export const MERGEABLE_WAIT_DELAY_MS = 10_000;
+
+/** Type of the rule of a ruleset that names the status checks required to merge. */
+export const REQUIRED_STATUS_CHECKS_RULE = 'required_status_checks';
+
+/**
+ * Number of check runs of a commit that the daily release reads to name the required checks that
+ * did not pass: the most the REST API gives in one page, while a run of the CI makes 15.
+ */
+export const CHECK_RUNS_PAGE_SIZE = 100;
+
+/**
+ * Conclusions of a completed check run that a required status check accepts, as GitHub counts
+ * them.
+ */
+export const PASSING_CHECK_CONCLUSIONS = ['success', 'neutral', 'skipped'];
 
 /**
  * Format of `git log` read by the deploy report: the full SHA and the subject of each commit,
