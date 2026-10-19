@@ -7,6 +7,12 @@ import { Article, Details, JobTechnologies } from './Experience.styled';
 interface ExperienceProps {
   /** Job title, already translated. */
   jobName?: string;
+  /**
+   * Language of the job title when it differs from the language of the page, such as `en` for a
+   * title kept in English on the French page: the title gets it as its `lang`, so that a screen
+   * reader reads it in that language. A value that is not a language of the site is ignored.
+   */
+  jobNameLanguage?: string;
   /** Company name, written first in the company details. */
   entityName?: string;
   /** Absolute URL of the company logo, e.g. `/wibilong.webp`, decorative. No logo when missing. */
@@ -56,6 +62,7 @@ interface ExperienceProps {
  */
 const Experience = ({
   jobName,
+  jobNameLanguage,
   entityName,
   entityLogoUrl,
   contractType,
@@ -68,6 +75,7 @@ const Experience = ({
   <Article>
     <JobSummary
       jobName={jobName}
+      jobNameLanguage={jobNameLanguage}
       entityName={entityName}
       entityLogoUrl={entityLogoUrl}
       contractType={contractType}

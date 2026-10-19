@@ -33,6 +33,49 @@ describe('JobSummary', () => {
     expect(container.textContent).toBe('');
   });
 
+  it.each(['job', 'role'])(
+    'marks the job title of the %j variant with its language, for screen readers',
+    variant => {
+      render(
+        <JobSummary
+          jobName="Lead Frontend Engineer"
+          jobNameLanguage="en"
+          variant={variant}
+        />,
+      );
+
+      expect(screen.getByRole('heading', { level: 3 })).toHaveAttribute('lang', 'en');
+    },
+  );
+
+  it.each([undefined, null, '', 'english', 'EN', 'en-US', 'de', 42])(
+    'gives the job title no language of its own for the language %j',
+    jobNameLanguage => {
+      render(
+        <JobSummary
+          jobName="Lead Frontend Engineer"
+          jobNameLanguage={jobNameLanguage}
+        />,
+      );
+
+      expect(screen.getByRole('heading', { level: 3 })).not.toHaveAttribute('lang');
+    },
+  );
+
+  it('marks no other text than the job title with its language', () => {
+    const { container } = render(
+      <JobSummary
+        jobName="Lead Frontend Engineer"
+        jobNameLanguage="en"
+        entityName="Sewan Groupe"
+        startDate="août 2021"
+        endDate="Aujourd’hui"
+      />,
+    );
+
+    expect([...container.querySelectorAll('[lang]')]).toEqual([screen.getByRole('heading')]);
+  });
+
   it('renders the logo, job title, company details and computed duration', () => {
     render(
       <JobSummary

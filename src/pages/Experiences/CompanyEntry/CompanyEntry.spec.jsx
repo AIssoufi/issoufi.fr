@@ -111,6 +111,21 @@ describe('CompanyEntry', () => {
       ).toBeInTheDocument();
     });
 
+    it('marks the job title with the language of its data', () => {
+      const [role] = WIBILONG.roles;
+      render(
+        <CompanyEntry experience={{ ...WIBILONG, roles: [{ ...role, titleLanguage: 'en' }] }} />,
+      );
+
+      expect(screen.getByRole('heading', { level: 3 })).toHaveAttribute('lang', 'en');
+    });
+
+    it('gives the job title no language of its own when its data has none', () => {
+      render(<CompanyEntry experience={WIBILONG} />);
+
+      expect(screen.getByRole('heading', { level: 3 })).not.toHaveAttribute('lang');
+    });
+
     it('lists the technologies of its role in its card', () => {
       const [role] = WIBILONG.roles;
       render(
@@ -194,6 +209,19 @@ describe('CompanyEntry', () => {
           .map(({ textContent }) => textContent),
       );
       expect(cardTechnologies).toEqual([['React.js', 'Storybook'], ['GraphQL']]);
+    });
+
+    it('marks the job title of each role with the language of its own data', () => {
+      const [lead, senior] = SEWAN.roles;
+      render(
+        <CompanyEntry
+          experience={{ ...SEWAN, roles: [{ ...lead, titleLanguage: 'en' }, senior] }}
+        />,
+      );
+      const [leadTitle, seniorTitle] = screen.getAllByRole('heading', { level: 3 });
+
+      expect(leadTitle).toHaveAttribute('lang', 'en');
+      expect(seniorTitle).not.toHaveAttribute('lang');
     });
 
     it('writes the company with each job', () => {

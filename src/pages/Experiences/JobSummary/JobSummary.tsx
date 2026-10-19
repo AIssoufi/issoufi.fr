@@ -1,5 +1,6 @@
 import { useTranslation } from 'react-i18next';
 
+import { isLanguage } from '../../../i18n/utils';
 import Period from '../Period';
 import { computeDuration, formatDuration } from '../utils/duration';
 
@@ -21,6 +22,12 @@ import {
 interface JobSummaryProps {
   /** Job title, already translated. */
   jobName?: string;
+  /**
+   * Language of the job title when it differs from the language of the page, such as `en` for a
+   * title kept in English on the French page: the title gets it as its `lang`, so that a screen
+   * reader reads it in that language. A value that is not a language of the site is ignored.
+   */
+  jobNameLanguage?: string;
   /** Company name, written first in the company details. */
   entityName?: string;
   /**
@@ -54,15 +61,17 @@ interface JobSummaryProps {
 }
 
 /**
- * Header of a job: company logo, job title, company details joined with " · ", then the period,
- * below the tablet breakpoint only, and the duration computed from the dates, in the active
- * language. From the tablet breakpoint, the period column of the timeline shows the period
- * instead, so that it is shown, and read, once. Shared by `Experience` and
- * `ExperienceGroup.Role`, which add the description below it.
+ * Header of a job: company logo, job title, in its own language when it is not the one of the
+ * page (`jobNameLanguage`), company details joined with " · ", then the period, below the tablet
+ * breakpoint only, and the duration computed from the dates, in the active language. From the
+ * tablet breakpoint, the period column of the timeline shows the period instead, so that it is
+ * shown, and read, once. Shared by `Experience` and `ExperienceGroup.Role`, which add the
+ * description below it.
  *
  * @example
  * <JobSummary
  *   jobName="Lead Frontend Engineer"
+ *   jobNameLanguage="en"
  *   entityName="Sewan Groupe"
  *   entityLogoUrl="/sewan.webp"
  *   startDate="août 2021"
@@ -72,6 +81,7 @@ interface JobSummaryProps {
  */
 const JobSummary = ({
   jobName,
+  jobNameLanguage,
   entityName,
   entityLogoUrl,
   contractType,
@@ -84,6 +94,8 @@ const JobSummary = ({
   const details = [entityName, contractType, city].filter(Boolean).join(' · ');
   const duration = formatDuration({ duration: computeDuration({ startDate, endDate }), t });
   const Title = variant === 'role' ? RoleName : JobName;
+  // A language that the site does not know would give screen readers a wrong `lang`
+  const titleLanguage = isLanguage(jobNameLanguage) ? jobNameLanguage : undefined;
   const hasPeriod = Boolean(startDate) || Boolean(endDate);
   const hasTiming = hasPeriod || Boolean(duration);
 
@@ -98,7 +110,7 @@ const JobSummary = ({
         />
       )}
       <JobInfo>
-        {jobName && <Title>{jobName}</Title>}
+        {jobName && <Title lang={titleLanguage}>{jobName}</Title>}
         {details && <JobDetails>{details}</JobDetails>}
         {hasTiming && (
           <JobTiming>

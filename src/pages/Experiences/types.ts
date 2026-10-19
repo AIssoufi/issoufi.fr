@@ -30,6 +30,13 @@ export interface ProjectData {
 export interface RoleData {
   /** Translation key of the job title. */
   titleKey?: string;
+  /**
+   * Language that every translation writes the job title in, when they all keep it in one, such
+   * as `en` for a title that the French page shows in English too. The title gets it as its
+   * `lang`, so that a screen reader of the French page reads it in English (WCAG 3.1.2). Missing
+   * when each translation writes the title in its own language.
+   */
+  titleLanguage?: string;
   /** Translation key of its start, a month and a year, e.g. "juin 2021". */
   startKey?: string;
   /** Translation key of its end, in the same format, or "Aujourd’hui". */
