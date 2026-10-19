@@ -1,6 +1,7 @@
 import styled, { th } from '@xstyled/styled-components';
 
 import NewTabLink from '../../../../components/NewTabLink';
+import { HOVER_POINTER_QUERY } from '../../../../theme/constants';
 
 export const Row = styled.div`
   display: flex;
@@ -18,8 +19,10 @@ export const Link = styled(NewTabLink)`
   color: ${th.color('foreground-a65')};
   transition: color ${th.duration(250)} ${th.timingFunction('standard')};
 
-  &:hover {
-    color: ${th.color('accent-foreground')};
+  @media ${HOVER_POINTER_QUERY} {
+    &:hover {
+      color: ${th.color('accent-foreground')};
+    }
   }
 
   svg {

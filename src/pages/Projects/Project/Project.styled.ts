@@ -2,6 +2,7 @@ import styled, { css, keyframes, th } from '@xstyled/styled-components';
 
 import List from '../../../components/List';
 import NewTabLink from '../../../components/NewTabLink';
+import { HOVER_POINTER_QUERY } from '../../../theme/constants';
 import { CARD_PERSPECTIVE_PX, LIKE_ANIMATION_MS } from './constants';
 
 const heartPop = keyframes`
@@ -81,12 +82,14 @@ export const CtrlItem = styled.button`
   transition-property: background-color, border-color, color;
   transition-duration: ${th.duration('base')};
 
-  &:hover {
-    background-color: ${th.color('accent')};
-    border-color: ${th.color('accent')};
-    color: ${th.color('foreground')};
-    cursor: pointer;
-    transform: none;
+  @media ${HOVER_POINTER_QUERY} {
+    &:hover {
+      background-color: ${th.color('accent')};
+      border-color: ${th.color('accent')};
+      color: ${th.color('foreground')};
+      cursor: pointer;
+      transform: none;
+    }
   }
 `;
 
@@ -120,10 +123,12 @@ export const IconBtn = styled.button`
     cursor: default;
   }
 
-  &:hover:not([aria-disabled='true']) {
-    background-color: ${th.color('accent')};
-    border-color: ${th.color('accent')};
-    transform: none;
+  @media ${HOVER_POINTER_QUERY} {
+    &:hover:not([aria-disabled='true']) {
+      background-color: ${th.color('accent')};
+      border-color: ${th.color('accent')};
+      transform: none;
+    }
   }
 `;
 
@@ -170,9 +175,11 @@ export const ProjectItem = styled.li`
   will-change: transform;
   transform-style: preserve-3d;
 
-  &:not(:hover) {
-    transform: perspective(${CARD_PERSPECTIVE_PX}px) rotateX(0deg) rotateY(0deg) translateY(0px);
-    transition: transform ${th.duration(400)} ${th.timingFunction('standard')};
+  @media ${HOVER_POINTER_QUERY} {
+    &:not(:hover) {
+      transform: perspective(${CARD_PERSPECTIVE_PX}px) rotateX(0deg) rotateY(0deg) translateY(0px);
+      transition: transform ${th.duration(400)} ${th.timingFunction('standard')};
+    }
   }
 
   /* Then as many columns as fit, which share the width of the section, in the row as in "Show
@@ -231,8 +238,10 @@ export const ImageContainer = styled.header`
     pointer-events: none;
   }
 
-  ${ProjectItem}:hover &::after {
-    opacity: 1;
+  @media ${HOVER_POINTER_QUERY} {
+    ${ProjectItem}:hover &::after {
+      opacity: 1;
+    }
   }
 `;
 
@@ -244,9 +253,17 @@ export const Thumbnail = styled.img`
   transition-property: object-position;
   transition-duration: ${th.duration('base')};
 
-  ${ProjectItem}:hover & {
-    object-position: center;
+  @media ${HOVER_POINTER_QUERY} {
+    ${ProjectItem}:hover & {
+      object-position: center;
+    }
   }
+`;
+
+/* Heart of the like button in the colors of the palette of forced colors mode */
+const forcedColorsHeart = css<{ $liked: boolean }>`
+  stroke: ${props => (props.$liked ? th.color('forced-active') : th.color('forced-icon'))};
+  fill: ${props => (props.$liked ? th.color('forced-active') : 'transparent')};
 `;
 
 export const LikeButton = styled.button<{ $liked: boolean; $animating: boolean }>`
@@ -290,13 +307,15 @@ export const LikeButton = styled.button<{ $liked: boolean; $animating: boolean }
       `}
   }
 
-  &:hover {
-    border-color: ${th.color('accent-a70')};
-    background: ${th.color('accent-backdrop')};
-    transform: scale(1.06);
+  @media ${HOVER_POINTER_QUERY} {
+    &:hover {
+      border-color: ${th.color('accent-a70')};
+      background: ${th.color('accent-backdrop')};
+      transform: scale(1.06);
 
-    > svg {
-      stroke: ${th.color('accent-foreground')};
+      > svg {
+        stroke: ${th.color('accent-foreground')};
+      }
     }
   }
 
@@ -306,12 +325,16 @@ export const LikeButton = styled.button<{ $liked: boolean; $animating: boolean }
 
   /* Forced colors mode turns the background of the button into the color of the page, and keeps
      the colors of the heart, which could then vanish: it draws the heart in the colors of its
-     palette, filled in the color of a selection once liked */
+     palette, filled in the color of a selection once liked, hovered or not */
   @media (forced-colors: active) {
-    > svg,
+    > svg {
+      ${forcedColorsHeart}
+    }
+  }
+
+  @media (forced-colors: active) and ${HOVER_POINTER_QUERY} {
     &:hover > svg {
-      stroke: ${props => (props.$liked ? th.color('forced-active') : th.color('forced-icon'))};
-      fill: ${props => (props.$liked ? th.color('forced-active') : 'transparent')};
+      ${forcedColorsHeart}
     }
   }
 `;

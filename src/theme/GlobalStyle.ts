@@ -1,11 +1,13 @@
 import { createGlobalStyle, th } from '@xstyled/styled-components';
 
-import { REDUCED_MOTION_QUERY } from './constants';
+import { HOVER_POINTER_QUERY, REDUCED_MOTION_QUERY } from './constants';
 
 /**
  * Base styles of the document (box sizing, body, links, buttons, lists, icons), built from the
  * tokens. Every element is sized with `border-box`, so a width includes its padding and border.
- * With reduced motion ({@link REDUCED_MOTION_QUERY}), animations and transitions are instant.
+ * Buttons grow, and links take the accent from tablet up, under a pointer that hovers only
+ * ({@link HOVER_POINTER_QUERY}). With reduced motion ({@link REDUCED_MOTION_QUERY}), animations
+ * and transitions are instant.
  */
 export const GlobalStyle = createGlobalStyle`
   *,
@@ -63,9 +65,11 @@ export const GlobalStyle = createGlobalStyle`
     letter-spacing: ${th.letterSpacing(2)};
   }
 
-  button:hover {
-    cursor: pointer;
-    transform: scale(1.06);
+  @media ${HOVER_POINTER_QUERY} {
+    button:hover {
+      cursor: pointer;
+      transform: scale(1.06);
+    }
   }
 
   a {
@@ -75,7 +79,7 @@ export const GlobalStyle = createGlobalStyle`
     transition-duration: ${th.duration('base')};
   }
 
-  @media (min-width: ${th('screens.tablet')}) {
+  @media (min-width: ${th('screens.tablet')}) and ${HOVER_POINTER_QUERY} {
     a:hover {
       color: ${th.color('accent-foreground')};
     }

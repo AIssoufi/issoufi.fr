@@ -2,6 +2,7 @@ import styled, { css, keyframes, th } from '@xstyled/styled-components';
 
 import List from '../../../components/List';
 import { theme } from '../../../theme';
+import { HOVER_POINTER_QUERY } from '../../../theme/constants';
 import CvLink from './CvLink';
 import ProfileLinks from './ProfileLinks';
 
@@ -118,15 +119,6 @@ export const NavItem = styled.li`
     transition-property: transform, color;
     transition-duration: ${th.duration('base')};
 
-    &:hover {
-      transform: scale(1.06);
-      background: transparent;
-    }
-
-    &:hover a {
-      color: ${th.color('accent-foreground')};
-    }
-
     &:active {
       background: transparent;
     }
@@ -150,6 +142,17 @@ export const NavItem = styled.li`
     > a.active {
       color: ${th.color('accent-foreground')};
       font-weight: ${th.fontWeight('semibold')};
+    }
+  }
+
+  @media (min-width: ${th('screens.tablet')}) and ${HOVER_POINTER_QUERY} {
+    &:hover {
+      transform: scale(1.06);
+      background: transparent;
+    }
+
+    &:hover a {
+      color: ${th.color('accent-foreground')};
     }
   }
 `;
@@ -219,11 +222,6 @@ export const MenuCvLink = styled(CvLink)`
     transform: scale(1);
     transition-property: transform, color;
 
-    &:hover {
-      color: ${th.color('accent-foreground')};
-      transform: scale(1.06);
-    }
-
     &:active {
       background-color: transparent;
     }
@@ -231,6 +229,13 @@ export const MenuCvLink = styled(CvLink)`
     /* The text says what the link does: the bar shows no icon */
     svg {
       display: none;
+    }
+  }
+
+  @media (min-width: ${th('screens.tablet')}) and ${HOVER_POINTER_QUERY} {
+    &:hover {
+      color: ${th.color('accent-foreground')};
+      transform: scale(1.06);
     }
   }
 `;

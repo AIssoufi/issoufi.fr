@@ -6,7 +6,12 @@ import styled, { th, ThemeProvider } from '@xstyled/styled-components';
 
 import { declaredStyle, getContrastRatio, MIN_TEXT_CONTRAST_RATIO } from '../styleTestUtils';
 import { MIN_FONT_SIZE_PX } from './constants';
-import { findRawThemeValues, findRawValues, getSmallestFontSizePx } from './testUtils';
+import {
+  findRawThemeValues,
+  findRawValues,
+  findUnguardedHovers,
+  getSmallestFontSizePx,
+} from './testUtils';
 import { theme } from './theme';
 
 /** Source of the semantic tokens, which may only read the primitives of tokens.ts. */
@@ -81,6 +86,19 @@ describe('theme', () => {
       ),
     );
     expect(rawValues).toEqual([]);
+  });
+
+  it('styles :hover only for the pointers that hover, which a tap on a touch screen would leave on', () => {
+    const sources = listStyleFiles('src').map(file => ({
+      file,
+      source: readFileSync(file, 'utf8'),
+    }));
+    const unguardedHovers = sources.flatMap(({ file, source }) =>
+      findUnguardedHovers(source).map(line => `${file}:${line}`),
+    );
+
+    expect(sources.filter(({ source }) => source.includes(':hover')).length).toBeGreaterThan(5);
+    expect(unguardedHovers).toEqual([]);
   });
 
   it('points every semantic token of theme.ts to a primitive of tokens.ts', () => {

@@ -11,6 +11,7 @@ import {
   MIN_TEXT_CONTRAST_RATIO,
 } from '../../../styleTestUtils';
 import { theme } from '../../../theme';
+import { HOVER_POINTER_QUERY } from '../../../theme/constants';
 import UrlLanguage from '../../UrlLanguage';
 import LangToggle from './LangToggle';
 
@@ -146,10 +147,14 @@ describe('LangToggle', () => {
 
   it('keeps the inactive language at 4.5:1 on the dark background, hovered or not', () => {
     renderAt();
-    const inactiveColor = pseudo =>
-      declaredStyle({ element: getEnglishButton(), property: 'color', pseudo });
+    const inactiveColor = ({ pseudo = '', media = '' } = {}) =>
+      declaredStyle({ element: getEnglishButton(), property: 'color', pseudo, media });
+    const hoverColor = inactiveColor({ pseudo: ':hover', media: HOVER_POINTER_QUERY });
 
-    for (const color of [inactiveColor(''), inactiveColor(':hover')]) {
+    // A touch screen would keep the hover color of the button tapped last
+    expect(inactiveColor({ pseudo: ':hover' })).toBe('');
+    expect(hoverColor).not.toBe('');
+    for (const color of [inactiveColor(), hoverColor]) {
       expect(
         getContrastRatio({ foreground: color, background: theme.colors.background }),
       ).toBeGreaterThanOrEqual(MIN_TEXT_CONTRAST_RATIO);

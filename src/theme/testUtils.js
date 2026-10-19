@@ -279,3 +279,65 @@ export const getSmallestFontSizePx = size => {
   const match = size.trim().match(SMALLEST_PIXEL_SIZE_PATTERN);
   return match ? Number(match[1]) : Number.NaN;
 };
+
+/** Block comments and line comments, which may name `:hover` without styling anything. */
+const COMMENTS = /\/\*[\s\S]*?\*\/|(?<=^|\s)\/\/.*$/gm;
+
+/** The pseudo-class whose style a touch screen keeps after a tap, alone or inside `:not()`. */
+const HOVER_PSEUDO_CLASS = ':hover';
+
+/**
+ * Head of a block of the media query of the pointers that hover: `@media`, then the constant
+ * `HOVER_POINTER_QUERY` (`src/theme/constants.ts`), alone or after other conditions.
+ */
+const HOVER_MEDIA_HEAD_PATTERN = /@media\b[\s\S]*\$\{HOVER_POINTER_QUERY\}/;
+
+/**
+ * Lines of the `:hover` pseudo-classes of a style file written outside a block of the media query
+ * `HOVER_POINTER_QUERY` (`src/theme/constants.ts`), whose style a touch screen would keep after a
+ * tap, until the next tap elsewhere. Used by the theme spec to refuse them in every style file.
+ *
+ * It reads the blocks of the CSS of the source, those of its interpolated `css` blocks included,
+ * and the braces of `${}` interpolations apart, so a block of the media query covers the rules
+ * written inside it, however deep. It ignores comments. A brace inside a string, such as
+ * `content: '{'`, would be read as a block.
+ *
+ * @param {unknown} source - Source code of a style file.
+ * @returns {number[]} The line of each `:hover` outside the media query, counted from 1, in the
+ * order of the source; empty when `source` is not a string.
+ *
+ * @example
+ * findUnguardedHovers('  &:hover {\n  }\n  @media ${HOVER_POINTER_QUERY} {\n    &:hover {}\n  }');
+ * // [1]
+ */
+export const findUnguardedHovers = source => {
+  if (typeof source !== 'string') return [];
+  const code = source.replace(COMMENTS, blankOut);
+  const openBlocks = [];
+  const lines = [];
+  let line = 1;
+  let headStart = 0;
+
+  for (let index = 0; index < code.length; index += 1) {
+    const character = code[index];
+    if (character === '\n') {
+      line += 1;
+    } else if (character === '{') {
+      // An interpolation holds code, or a css block, but no head of a block of its own
+      const opensInterpolation = code[index - 1] === '$';
+      const head = code.slice(headStart, index);
+      const isHoverMedia = !opensInterpolation && HOVER_MEDIA_HEAD_PATTERN.test(head);
+      openBlocks.push({ isInterpolation: opensInterpolation, isHoverMedia });
+      if (!opensInterpolation) headStart = index + 1;
+    } else if (character === '}') {
+      const closedBlock = openBlocks.pop();
+      if (!closedBlock?.isInterpolation) headStart = index + 1;
+    } else if (character === ';') {
+      headStart = index + 1;
+    } else if (code.startsWith(HOVER_PSEUDO_CLASS, index)) {
+      const isInHoverMedia = openBlocks.some(block => block.isHoverMedia);
+      if (!isInHoverMedia) lines.push(line);
+    }
+  }
+  return lines;
+};

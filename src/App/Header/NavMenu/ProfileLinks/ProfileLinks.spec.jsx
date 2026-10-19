@@ -5,6 +5,7 @@ import { DESKTOP_MEDIA_QUERY } from '../../constants';
 import i18n from '../../../../i18n';
 import { declaredStyle, serializeCssValue } from '../../../../styleTestUtils';
 import { theme } from '../../../../theme';
+import { HOVER_POINTER_QUERY } from '../../../../theme/constants';
 import ProfileLinks from './ProfileLinks';
 
 /**
@@ -156,17 +157,21 @@ describe('ProfileLinks', () => {
       expect(iconHeight).toBe(theme.fontSizes[15]);
     });
 
-    it('turns an icon to the accent color of the texts on hover', () => {
+    it('turns an icon to the accent color of the texts on hover, under a pointer that hovers only', () => {
       render(<ProfileLinks />);
+      const hoverColor = media =>
+        declaredStyle({
+          element: getLink(GITHUB.name),
+          property: 'color',
+          pseudo: ':hover',
+          media,
+        });
 
-      const hoverColor = declaredStyle({
-        element: getLink(GITHUB.name),
-        property: 'color',
-        pseudo: ':hover',
-      });
-      expect(hoverColor).toBe(
+      expect(hoverColor(HOVER_POINTER_QUERY)).toBe(
         serializeCssValue({ property: 'color', value: theme.colors['accent-foreground'] }),
       );
+      // A touch screen would keep the hover color of the icon tapped last
+      expect(hoverColor('')).toBe('');
     });
   });
 });

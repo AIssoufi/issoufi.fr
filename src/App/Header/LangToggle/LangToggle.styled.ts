@@ -1,5 +1,6 @@
 import styled, { th } from '@xstyled/styled-components';
 
+import { HOVER_POINTER_QUERY } from '../../../theme/constants';
 import { BUTTON_HEIGHT_PX, BUTTON_WIDTH_PX } from './constants';
 
 export const Wrapper = styled.div`
@@ -18,9 +19,11 @@ export const Wrapper = styled.div`
     box-shadow ${th.duration(300)} ${th.timingFunction('standard')},
     border-color ${th.duration(300)} ${th.timingFunction('standard')};
 
-  &:hover {
-    border-color: ${th.color('accent-a40')};
-    box-shadow: ${th.shadow('accentHalo')};
+  @media ${HOVER_POINTER_QUERY} {
+    &:hover {
+      border-color: ${th.color('accent-a40')};
+      box-shadow: ${th.shadow('accentHalo')};
+    }
   }
 
   @media (min-width: ${th('screens.tablet')}) {
@@ -70,8 +73,10 @@ export const Btn = styled.button<{ $active: boolean }>`
   color: ${({ $active }) => ($active ? th.color('accent-foreground') : th.color('foreground-a55'))};
   transition: color ${th.duration(250)} ${th.timingFunction('standard')};
 
-  &:hover {
-    color: ${({ $active }) =>
-      $active ? th.color('accent-foreground') : th.color('foreground-a70')};
+  @media ${HOVER_POINTER_QUERY} {
+    &:hover {
+      color: ${({ $active }) =>
+        $active ? th.color('accent-foreground') : th.color('foreground-a70')};
+    }
   }
 `;

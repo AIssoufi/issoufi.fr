@@ -4,6 +4,7 @@ import { MemoryRouter } from 'react-router';
 
 import { declaredStyle, serializeCssValue } from '../../../styleTestUtils';
 import { theme } from '../../../theme';
+import { HOVER_POINTER_QUERY } from '../../../theme/constants';
 import { DESKTOP_MEDIA_QUERY } from '../constants';
 import NavMenu from './NavMenu';
 
@@ -35,6 +36,9 @@ const PROFILE_LINK_NAMES = [
 /** Value that the navigation declares for a property on an element on the desktop layout. */
 const desktopStyle = ({ element, property, pseudo }) =>
   declaredStyle({ element, property, pseudo, media: DESKTOP_MEDIA_QUERY });
+
+/** Media query of the desktop layout under a pointer that hovers, which the hover styles need. */
+const DESKTOP_HOVER_MEDIA_QUERY = `${DESKTOP_MEDIA_QUERY} and ${HOVER_POINTER_QUERY}`;
 
 /** The link that downloads the CV, found even while the closed mobile menu hides it. */
 const getCvLink = () => screen.getByRole('link', { name: CV_LINK_NAME, hidden: true });
@@ -236,15 +240,20 @@ describe('NavMenu', () => {
       );
     });
 
-    it('turns to the accent color and grows on hover on desktop, as the links do', () => {
+    it('turns to the accent color and grows on hover on desktop, under a pointer that hovers only, as the links do', () => {
       renderNavMenu({ items });
+      const hoverStyle = ({ element, property }) =>
+        declaredStyle({ element, property, pseudo: ':hover', media: DESKTOP_HOVER_MEDIA_QUERY });
+      const [firstItem] = screen.getAllByRole('listitem', { hidden: true });
 
-      expect(desktopStyle({ element: getCvLink(), property: 'color', pseudo: ':hover' })).toBe(
+      expect(hoverStyle({ element: getCvLink(), property: 'color' })).toBe(
         serializeCssValue({ property: 'color', value: theme.colors['accent-foreground'] }),
       );
-      expect(desktopStyle({ element: getCvLink(), property: 'transform', pseudo: ':hover' })).toBe(
-        'scale(1.06)',
-      );
+      for (const element of [getCvLink(), firstItem]) {
+        expect(hoverStyle({ element, property: 'transform' })).toBe('scale(1.06)');
+        // A touch screen would keep the hover style of the link tapped last
+        expect(desktopStyle({ element, property: 'transform', pseudo: ':hover' })).toBe('');
+      }
     });
   });
 
