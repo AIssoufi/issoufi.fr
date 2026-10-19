@@ -25,7 +25,11 @@ import {
  * @returns {string | undefined} The address, or `undefined` when the repository is not
  * `owner/name` or the API address is invalid.
  * @example
- * getRepositoryApiUrl({ repository: 'AIssoufi/issoufi.fr', path: '/pulls', query: { base: 'develop' } });
+ * getRepositoryApiUrl({
+ *   repository: 'AIssoufi/issoufi.fr',
+ *   path: '/pulls',
+ *   query: { base: 'develop' },
+ * });
  * // 'https://api.github.com/repos/AIssoufi/issoufi.fr/pulls?base=develop'
  */
 export const getRepositoryApiUrl = ({
@@ -121,7 +125,8 @@ export const requestGitHub = async ({
  * Parameters of {@link requestRepositoryApi}: those of {@link getRepositoryApiUrl}, whose
  * `apiUrl` and `repository` default to the `GITHUB_API_URL` and `GITHUB_REPOSITORY` variables of
  * GitHub Actions, and those of {@link requestGitHub} but the address.
- * @typedef {GetRepositoryApiUrlParams & Omit<RequestGitHubParams, 'url'>} RequestRepositoryApiParams
+ * @typedef {GetRepositoryApiUrlParams
+ *   & Omit<RequestGitHubParams, 'url'>} RequestRepositoryApiParams
  */
 
 /**

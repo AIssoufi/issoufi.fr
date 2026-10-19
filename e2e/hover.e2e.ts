@@ -28,7 +28,9 @@ const readHoverProperties = (control: Element, properties: string[]) => {
   );
 };
 
-/** Name of the like button of a project card, whatever the project, as `projects.like` writes it. */
+/**
+ * Name of the like button of a project card, whatever the project, as `projects.like` writes it.
+ */
 const LIKE_BUTTON_NAME = new RegExp(`^${fr.projects.like.replace('{{name}}', '.+')}$`);
 
 /**

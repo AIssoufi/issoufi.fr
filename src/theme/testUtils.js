@@ -49,7 +49,9 @@ const EASING_KEYWORDS = [
   'step-end',
 ];
 
-/** Properties whose numbers come from a scale of the theme. Keywords such as `bold` are not checked. */
+/**
+ * Properties whose numbers come from a scale of the theme. Keywords such as `bold` are not checked.
+ */
 const SCALED_PROPERTIES = ['z-index', 'font-weight', 'line-height'];
 
 /**

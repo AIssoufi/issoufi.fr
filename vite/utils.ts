@@ -94,8 +94,10 @@ interface ChunkNameInfo {
  * {@link FALLBACK_CHUNK_NAME} when the chunk has no name.
  *
  * @example
- * getChunkName({ name: 'index', facadeModuleId: '/app/src/pages/Projects/index.ts' }); // 'Projects'
- * getChunkName({ name: 'library', facadeModuleId: '/app/node_modules/library/library.js' }); // 'library'
+ * getChunkName({ name: 'index', facadeModuleId: '/app/src/pages/Projects/index.ts' });
+ * // 'Projects'
+ * getChunkName({ name: 'library', facadeModuleId: '/app/node_modules/library/library.js' });
+ * // 'library'
  */
 export const getChunkName = ({ name, facadeModuleId }: ChunkNameInfo = {}): string => {
   const hasName = typeof name === 'string' && name !== '';

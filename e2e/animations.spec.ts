@@ -14,7 +14,9 @@ const fakeAnimation = ({ iterations, finished }: FakeAnimationParams) => ({
   finished,
 });
 
-/** A fake element holding the given animations, as `getAnimations({ subtree: true })` lists them. */
+/**
+ * A fake element holding the given animations, as `getAnimations({ subtree: true })` lists them.
+ */
 const fakeContainer = (animations: unknown[]) => {
   const getAnimations = vi.fn(() => animations);
   return { container: { getAnimations } as unknown as Element, getAnimations };

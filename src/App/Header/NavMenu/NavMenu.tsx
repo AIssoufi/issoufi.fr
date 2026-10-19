@@ -49,9 +49,9 @@ const NO_ITEMS: Item[] = [];
  * as a horizontal bar on desktop, where a line stands between the route links, when there are
  * any, and the icons, and another between the icons and the CV link, and as a full-screen overlay
  * on mobile, where the same items follow each other, centered: the links, the icons on one row,
- * then the CV link as a pill with a download icon. On a short screen, as on a phone held sideways, the overlay is more
- * compact, and it scrolls whenever its content is higher than the screen. Must be rendered inside
- * a router, because the links are `NavLink`s.
+ * then the CV link as a pill with a download icon. On a short screen, as on a phone held sideways,
+ * the overlay is more compact, and it scrolls whenever its content is higher than the screen. Must
+ * be rendered inside a router, because the links are `NavLink`s.
  */
 const NavMenu = ({ id, items = NO_ITEMS, onClick, mobileMenuIsOpen = false }: NavMenuProps) => {
   // Without links, the bar starts with the icons, and no line stands before them

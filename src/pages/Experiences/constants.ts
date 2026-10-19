@@ -45,7 +45,9 @@ export const MONTH_NAMES: Record<string, number> = {
   december: 11,
 };
 
-/** End-date words meaning "until now", lowercase, in French (with either apostrophe) and English. */
+/**
+ * End-date words meaning "until now", lowercase, in French (with either apostrophe) and English.
+ */
 export const TODAY_KEYWORDS = new Set([
   "aujourd'hui",
   'aujourd’hui',

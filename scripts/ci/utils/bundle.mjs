@@ -82,7 +82,10 @@ export const isBudgetedScript = path => {
  *   ],
  *   initialPaths: ['assets/index.js'],
  * });
- * // { initialScripts: [{ path: 'assets/index.js', … }], otherScripts: [{ path: 'assets/Projects.js', … }] }
+ * // {
+ * //   initialScripts: [{ path: 'assets/index.js', … }],
+ * //   otherScripts: [{ path: 'assets/Projects.js', … }],
+ * // }
  */
 export const splitInitialLoad = ({ scripts, initialPaths }) => {
   const paths = toList(initialPaths);

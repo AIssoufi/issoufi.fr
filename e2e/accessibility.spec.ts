@@ -3,7 +3,9 @@ import { countBrowserNodes, listBrowserHeadingLevels, listBrowserTexts } from '.
 /** Node id of the document in the fake protocol. */
 const DOCUMENT_NODE_ID = 1;
 
-/** Node ids of the elements that the selector of the tree tests matches, in the order of the page. */
+/**
+ * Node ids of the elements that the selector of the tree tests matches, in the order of the page.
+ */
 const ROW_NODE_IDS = [11, 12];
 
 /** Selector of the elements read in the tree tests. */
