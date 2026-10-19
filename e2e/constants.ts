@@ -442,7 +442,8 @@ export const MENU_OPENING_SCROLL_Y_PX = 300;
 /**
  * Screens at which the browser tests follow the links of the header with JavaScript off: a phone,
  * whose navigation sits in the menu that the links of the burger open, and a laptop, whose
- * navigation is a bar of the header.
+ * navigation is a bar of the header. The test of the Projects page looks there for every project,
+ * in one column on the phone and in three on the laptop.
  */
 export const NO_SCRIPT_SCREENS = [
   { width: 390, height: SCREEN_HEIGHT_PX, isMobileLayout: true },

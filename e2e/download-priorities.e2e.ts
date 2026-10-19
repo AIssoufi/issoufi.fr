@@ -2,6 +2,9 @@ import { expect, type Page, test } from '@playwright/test';
 
 import { LANGUAGES } from '../src/i18n/constants.ts';
 import { localizePath } from '../src/i18n/utils.ts';
+import freelanceProjectsData from '../src/pages/Projects/.data/freelance-projects.json' with { type: 'json' };
+import personalProjectsData from '../src/pages/Projects/.data/personal-projects.json' with { type: 'json' };
+import { ROW_CARD_COUNT } from '../src/pages/Projects/Project/constants.ts';
 import { PAGES } from '../src/utils/pages.ts';
 import {
   PAGE_SELECTOR,
@@ -35,6 +38,14 @@ const listThumbnailPaths = (page: Page) =>
         .filter(image => image.currentSrc !== '')
         .map(image => new URL(image.currentSrc).pathname),
     );
+
+/**
+ * Paths of every file of the thumbnails of the cards out of the first page of each section, which
+ * the HTML holds for the visitors without JavaScript, hidden from the others.
+ */
+const OFF_PAGE_THUMBNAIL_PATHS = [personalProjectsData, freelanceProjectsData]
+  .flatMap(({ projects }) => projects.slice(ROW_CARD_COUNT))
+  .flatMap(({ thumbnails }) => thumbnails.map(({ url }) => url));
 
 /** Parameters of {@link openPage}. */
 interface OpenPageParams {
@@ -99,6 +110,17 @@ for (const language of LANGUAGES) {
         expect(priorities.get(firstPath), firstPath).toBe('High');
         expect(otherPriorities.length).toBeGreaterThan(0);
         expect(otherPriorities).toEqual(otherPaths.map(otherPath => [otherPath, 'Low']));
+      });
+
+      test(`${projectsRoute} downloads no thumbnail of the cards out of the first page`, async ({
+        page,
+      }) => {
+        const priorities = await openPage({ page, route: projectsRoute });
+
+        expect(OFF_PAGE_THUMBNAIL_PATHS.length).toBeGreaterThan(0);
+        expect(
+          OFF_PAGE_THUMBNAIL_PATHS.filter(thumbnailPath => priorities.has(thumbnailPath)),
+        ).toEqual([]);
       });
     });
   }
