@@ -4,6 +4,7 @@ import { MemoryRouter } from 'react-router';
 
 import { declaredStyle, serializeCssValue } from '../../../styleTestUtils';
 import { theme } from '../../../theme';
+import { HOVER_POINTER_QUERY } from '../../../theme/constants';
 import { DESKTOP_MEDIA_QUERY } from '../constants';
 import NavMenu from './NavMenu';
 
@@ -35,6 +36,9 @@ const PROFILE_LINK_NAMES = [
 /** Value that the navigation declares for a property on an element on the desktop layout. */
 const desktopStyle = ({ element, property, pseudo }) =>
   declaredStyle({ element, property, pseudo, media: DESKTOP_MEDIA_QUERY });
+
+/** Media query of the desktop layout under a pointer that hovers, which the hover styles need. */
+const DESKTOP_HOVER_MEDIA_QUERY = `${DESKTOP_MEDIA_QUERY} and ${HOVER_POINTER_QUERY}`;
 
 /** The link that downloads the CV, found even while the closed mobile menu hides it. */
 const getCvLink = () => screen.getByRole('link', { name: CV_LINK_NAME, hidden: true });
@@ -236,15 +240,20 @@ describe('NavMenu', () => {
       );
     });
 
-    it('turns to the accent color and grows on hover on desktop, as the links do', () => {
+    it('turns to the accent color and grows on hover on desktop, under a pointer that hovers only, as the links do', () => {
       renderNavMenu({ items });
+      const hoverStyle = ({ element, property }) =>
+        declaredStyle({ element, property, pseudo: ':hover', media: DESKTOP_HOVER_MEDIA_QUERY });
+      const [firstItem] = screen.getAllByRole('listitem', { hidden: true });
 
-      expect(desktopStyle({ element: getCvLink(), property: 'color', pseudo: ':hover' })).toBe(
+      expect(hoverStyle({ element: getCvLink(), property: 'color' })).toBe(
         serializeCssValue({ property: 'color', value: theme.colors['accent-foreground'] }),
       );
-      expect(desktopStyle({ element: getCvLink(), property: 'transform', pseudo: ':hover' })).toBe(
-        'scale(1.06)',
-      );
+      for (const element of [getCvLink(), firstItem]) {
+        expect(hoverStyle({ element, property: 'transform' })).toBe('scale(1.06)');
+        // A touch screen would keep the hover style of the link tapped last
+        expect(desktopStyle({ element, property: 'transform', pseudo: ':hover' })).toBe('');
+      }
     });
   });
 
@@ -278,8 +287,38 @@ describe('NavMenu', () => {
       expect(shortScreenStyle({ element: screen.getByRole('list'), property: 'gap' })).toBe('0px');
     });
 
+    it('lets each link take the taps of its whole item, as high as a finger target at least, even on a short screen', () => {
+      renderNavMenu({ items, mobileMenuIsOpen: true });
+      const [firstItem] = screen.getAllByRole('listitem');
+      const targetStyle = property =>
+        declaredStyle({ element: firstItem, property, pseudo: ' > a::after' });
+
+      expect(getComputedStyle(firstItem).position).toBe('relative');
+      expect(targetStyle('position')).toBe('absolute');
+      // Around the item, or past its edges when it is smaller than a finger target
+      expect(targetStyle('inset')).toBe(
+        serializeCssValue({
+          property: 'inset',
+          value: `calc(50% - max(50%, ${theme.sizes['finger-target']} / 2))`,
+        }),
+      );
+      // Lower than a finger target otherwise, so two targets would overlap with no gap between
+      expect(
+        declaredStyle({
+          element: firstItem,
+          property: 'min-height',
+          media: SHORT_SCREEN_MEDIA_QUERY,
+        }),
+      ).toBe(theme.sizes['finger-target']);
+    });
+
     it('keeps the menu as it is on a short screen of the desktop layout', () => {
       renderNavMenu({ items });
+      const [firstItem] = screen.getAllByRole('listitem', { hidden: true });
+
+      // The items of the bar keep their height, lower than the compact items of the mobile menu
+      expect(desktopStyle({ element: firstItem, property: 'display' })).toBe('list-item');
+      expect(desktopStyle({ element: firstItem, property: 'min-height' })).toBe('auto');
 
       expect(
         declaredStyle({

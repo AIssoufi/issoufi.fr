@@ -2,7 +2,7 @@ import styled, { css, keyframes, th } from '@xstyled/styled-components';
 
 import Page from '../../components/Page';
 import { theme } from '../../theme';
-import { REDUCED_MOTION_QUERY } from '../../theme/constants';
+import { HOVER_POINTER_QUERY, REDUCED_MOTION_QUERY } from '../../theme/constants';
 import { CURSOR_GLOW_RADIUS_PX } from './constants';
 
 // Keyframes have no theme context, so they read the theme object rather than the th helpers
@@ -156,19 +156,23 @@ export const Btn = styled.a<{ $callToAction?: boolean }>`
     font-size: ${th.fontSize(16)};
   }
 
-  &:hover {
-    color: ${th.color('foreground')};
-    box-shadow: ${props =>
-      props.$callToAction ? th.shadow('accentGlowStrong') : th.shadow('lightGlow')};
+  @media ${HOVER_POINTER_QUERY} {
+    &:hover {
+      color: ${th.color('foreground')};
+      box-shadow: ${props =>
+        props.$callToAction ? th.shadow('accentGlowStrong') : th.shadow('lightGlow')};
+    }
   }
 
   ${props =>
     !props.$callToAction &&
     css`
-      &:hover {
-        background-color: ${th.color('foreground')};
-        color: ${th.color('background')};
-        border-color: ${th.color('foreground')};
+      @media ${HOVER_POINTER_QUERY} {
+        &:hover {
+          background-color: ${th.color('foreground')};
+          color: ${th.color('background')};
+          border-color: ${th.color('foreground')};
+        }
       }
     `}
 `;

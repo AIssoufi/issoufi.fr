@@ -7,6 +7,7 @@ import {
   filterWholeCards,
   findSkippedHeadingLevels,
   getBoxBottom,
+  getBoxCenter,
   getBoxCenterDistanceX,
   getBoxCenterDistanceY,
   getBoxRight,
@@ -918,6 +919,35 @@ describe('getScreenCenter', () => {
       { width: 568, height: '320' },
     ])('returns null for the size %j', viewport => {
       expect(getScreenCenter(viewport as never)).toBeNull();
+    });
+  });
+});
+
+describe('getBoxCenter', () => {
+  it.each([
+    [
+      { x: 24, y: 300, width: 327, height: 60 },
+      { x: 187.5, y: 330 },
+    ],
+    [
+      { x: -10, y: 0, width: 20, height: 0 },
+      { x: 0, y: 0 },
+    ],
+  ])('finds the middle of the box %j', (box, expected) => {
+    expect(getBoxCenter(box)).toEqual(expected);
+  });
+
+  describe('edge cases', () => {
+    it.each([
+      undefined,
+      null,
+      {},
+      { x: 0, y: 0, width: 20 },
+      { x: Number.NaN, y: 0, width: 20, height: 10 },
+      { x: 0, y: 0, width: Number.POSITIVE_INFINITY, height: 10 },
+      { x: 0, y: '0', width: 20, height: 10 },
+    ])('returns null for the box %j', box => {
+      expect(getBoxCenter(box as never)).toBeNull();
     });
   });
 });

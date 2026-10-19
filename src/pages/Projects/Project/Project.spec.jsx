@@ -3,6 +3,7 @@ import userEvent from '@testing-library/user-event';
 
 import i18n from '../../../i18n';
 import { theme } from '../../../theme';
+import { HOVER_POINTER_QUERY } from '../../../theme/constants';
 import { holdsFunctionSource } from '../../../cssRuleGuard';
 import { stubMatchMedia } from '../../../mediaQueryTestUtils';
 import {
@@ -924,7 +925,8 @@ describe('Project', () => {
     // jsdom lays nothing out: give the card a box so that it can tilt
     vi.spyOn(card, 'getBoundingClientRect').mockReturnValue(CARD_BOX);
 
-    fireEvent.mouseMove(card, {
+    fireEvent.pointerMove(card, {
+      pointerType: 'mouse',
       clientX: CARD_BOX.left + CARD_POINTER.x,
       clientY: CARD_BOX.top + CARD_POINTER.y,
     });
@@ -934,7 +936,7 @@ describe('Project', () => {
     expect(card.style.getPropertyValue('--mouse-x')).toBe(`${CARD_POINTER.x}px`);
     expect(card.style.getPropertyValue('--mouse-y')).toBe(`${CARD_POINTER.y}px`);
 
-    fireEvent.mouseLeave(card);
+    fireEvent.pointerLeave(card);
     expect(card.style.transform).toBe('');
   });
 
@@ -944,7 +946,8 @@ describe('Project', () => {
     const card = cardOf('Chess');
     vi.spyOn(card, 'getBoundingClientRect').mockReturnValue(CARD_BOX);
 
-    fireEvent.mouseMove(card, {
+    fireEvent.pointerMove(card, {
+      pointerType: 'mouse',
       clientX: CARD_BOX.left + CARD_POINTER.x,
       clientY: CARD_BOX.top + CARD_POINTER.y,
     });
@@ -1067,25 +1070,35 @@ describe('Project', () => {
       render(<Project projects={projects} />);
       const likeButton = likeButtonOf('Chess');
       // Position in the cascade of the last rule that sets the button's transform in a state
-      const lastTransformRuleIndex = state => {
+      const lastTransformRuleIndex = ({ state, media = '' }) => {
         const stateSelectors = [...likeButton.classList].map(className => `.${className}${state}`);
-        return listStyleRules().findLastIndex(({ media, rule }) => {
-          const isRuleOfState = media === '' && stateSelectors.includes(rule.selectorText);
+        return listStyleRules().findLastIndex(entry => {
+          const isRuleOfState =
+            entry.media === media && stateSelectors.includes(entry.rule.selectorText);
           // Also skips the @keyframes rules, which have no style
           if (!isRuleOfState) return false;
-          return rule.style.getPropertyValue('transform') !== '';
+          return entry.rule.style.getPropertyValue('transform') !== '';
         });
       };
+      const hoverRuleIndex = lastTransformRuleIndex({
+        state: ':hover',
+        media: HOVER_POINTER_QUERY,
+      });
 
-      expect(declaredStyle({ element: likeButton, property: 'transform', pseudo: ':hover' })).toBe(
-        'scale(1.06)',
-      );
+      expect(
+        declaredStyle({
+          element: likeButton,
+          property: 'transform',
+          pseudo: ':hover',
+          media: HOVER_POINTER_QUERY,
+        }),
+      ).toBe('scale(1.06)');
       expect(declaredStyle({ element: likeButton, property: 'transform', pseudo: ':active' })).toBe(
         'scale(0.93)',
       );
       // A pressed button is hovered too: the rule of :active must come last to win
-      expect(lastTransformRuleIndex(':hover')).toBeGreaterThan(-1);
-      expect(lastTransformRuleIndex(':active')).toBeGreaterThan(lastTransformRuleIndex(':hover'));
+      expect(hoverRuleIndex).toBeGreaterThan(-1);
+      expect(lastTransformRuleIndex({ state: ':active' })).toBeGreaterThan(hoverRuleIndex);
     });
 
     it('plays the pop animation of the heart for exactly as long as its button stays animated', () => {
@@ -1128,9 +1141,13 @@ describe('Project', () => {
         storeLikedIds([1]);
         render(<Project projects={projects} />);
         // Value of the state, or of the rest state that it does not change
-        const stateStyle = ({ button, property, pseudo }) =>
-          declaredStyle({ element: button, property, pseudo }) ||
-          declaredStyle({ element: button, property, pseudo: pseudo.replace(':hover', '') });
+        const stateStyle = ({ button, property, pseudo }) => {
+          const media = pseudo.includes(':hover') ? HOVER_POINTER_QUERY : '';
+          return (
+            declaredStyle({ element: button, property, pseudo, media }) ||
+            declaredStyle({ element: button, property, pseudo: pseudo.replace(':hover', '') })
+          );
+        };
         const heartContrast = ({ button, state }) => {
           const fill = stateStyle({ button, property: 'background-color', pseudo: state });
           const heart = stateStyle({ button, property: 'stroke', pseudo: `${state} > svg` });
@@ -1158,8 +1175,12 @@ describe('Project', () => {
     it('fills the heart of a liked project in the color of a selection in forced colors mode', () => {
       storeLikedIds([1]);
       render(<Project projects={projects} />);
-      const forcedHeartStyle = ({ button, property, pseudo = '>svg' }) =>
-        declaredStyle({ element: button, property, media: FORCED_COLORS_MEDIA, pseudo });
+      const forcedHeartStyle = ({
+        button,
+        property,
+        pseudo = '>svg',
+        media = FORCED_COLORS_MEDIA,
+      }) => declaredStyle({ element: button, property, media, pseudo });
 
       // Forced colors mode keeps the colors of an SVG but empties the background of its button
       expect(forcedHeartStyle({ button: likeButtonOf('Chess'), property: 'fill' })).toBe(
@@ -1180,6 +1201,7 @@ describe('Project', () => {
           button: likeButtonOf('Calculator'),
           property: 'stroke',
           pseudo: ':hover > svg',
+          media: `${FORCED_COLORS_MEDIA} and ${HOVER_POINTER_QUERY}`,
         }),
       ).toBe('buttontext');
     });
@@ -1259,16 +1281,22 @@ describe('Project', () => {
       render(<Project projects={projects} />);
       const { previousButton } = pageButtons();
       const disabledState = "[aria-disabled='true']";
-      const arrowStyle = ({ property, pseudo }) =>
-        declaredStyle({ element: previousButton, property, pseudo });
+      const arrowStyle = ({ property, pseudo, media = '' }) =>
+        declaredStyle({ element: previousButton, property, pseudo, media });
+      const hoverColor = pseudo =>
+        arrowStyle({ property: 'background-color', pseudo, media: HOVER_POINTER_QUERY });
 
       expect(arrowStyle({ property: 'opacity', pseudo: disabledState })).toBe('0.4');
       expect(arrowStyle({ property: 'cursor', pseudo: disabledState })).toBe('default');
+      expect(hoverColor(`:hover:not(${disabledState})`)).toBe(
+        serializeCssValue({ property: 'background-color', value: theme.colors.accent }),
+      );
+      // A hover color for every state would light up the disabled arrow too
+      expect(hoverColor(':hover')).toBe(UNDECLARED);
+      // A touch screen would keep the hover color of the arrow tapped last
       expect(
         arrowStyle({ property: 'background-color', pseudo: `:hover:not(${disabledState})` }),
-      ).toBe(serializeCssValue({ property: 'background-color', value: theme.colors.accent }));
-      // A hover color for every state would light up the disabled arrow too
-      expect(arrowStyle({ property: 'background-color', pseudo: ':hover' })).toBe(UNDECLARED);
+      ).toBe(UNDECLARED);
     });
 
     it('lays the section buttons out in the order of the page, which Tab follows', () => {

@@ -2,6 +2,8 @@ import styled, { css, keyframes, th } from '@xstyled/styled-components';
 
 import List from '../../../components/List';
 import { theme } from '../../../theme';
+import { HOVER_POINTER_QUERY } from '../../../theme/constants';
+import { fingerTarget, fingerTargetSize } from '../../../theme/targets.styled';
 import CvLink from './CvLink';
 import ProfileLinks from './ProfileLinks';
 
@@ -82,7 +84,10 @@ export const NavList = styled(List)`
   }
 `;
 
+/* The link takes the taps of its whole item, padding included, which is at least a finger target
+   high */
 export const NavItem = styled.li`
+  position: relative;
   padding: ${th.space(16)} ${th.space(48)};
   font-size: ${th.fontSize(28)};
   font-weight: ${th.fontWeight('light')};
@@ -101,31 +106,35 @@ export const NavItem = styled.li`
     background: ${th.color('accent-a15')};
   }
 
+  > a {
+    ${fingerTarget}
+  }
+
+  /* As high as a finger target, its link in the middle, so that the targets of two links never
+     overlap */
   @media (max-height: ${th('screenHeights.short')}) {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: ${fingerTargetSize};
     padding: ${th.space(6)} ${th.space(48)};
     font-size: ${th.fontSize(22)};
   }
 
+  /* The items of the bar keep their height, on a short screen too: the target of their link grows
+     past them, lower than a finger target, but no item stands above or below them */
   @media (min-width: ${th('screens.tablet')}) {
+    display: list-item;
+    min-height: auto;
     padding: ${th.space(10)} ${th.space(16)};
     font-size: ${th.fontSize(15)};
     font-weight: ${th.fontWeight('regular')};
     letter-spacing: ${th.letterSpacing(3)};
     animation: none;
     border-radius: 0;
-    position: relative;
     transform: scale(1);
     transition-property: transform, color;
     transition-duration: ${th.duration('base')};
-
-    &:hover {
-      transform: scale(1.06);
-      background: transparent;
-    }
-
-    &:hover a {
-      color: ${th.color('accent-foreground')};
-    }
 
     &:active {
       background: transparent;
@@ -150,6 +159,17 @@ export const NavItem = styled.li`
     > a.active {
       color: ${th.color('accent-foreground')};
       font-weight: ${th.fontWeight('semibold')};
+    }
+  }
+
+  @media (min-width: ${th('screens.tablet')}) and ${HOVER_POINTER_QUERY} {
+    &:hover {
+      transform: scale(1.06);
+      background: transparent;
+    }
+
+    &:hover a {
+      color: ${th.color('accent-foreground')};
     }
   }
 `;
@@ -181,11 +201,14 @@ export const MenuProfileLinks = styled(ProfileLinks)`
 /* A pill with a download icon in the mobile menu, and a text link like the route links in the bar
    of the header on desktop */
 export const MenuCvLink = styled(CvLink)`
+  position: relative;
   border-radius: ${th.radius('pill')};
   width: max-content;
   height: max-content;
   /* The smallest target recommended for a finger, still on a short screen */
-  min-height: ${th.size('finger-target')};
+  min-height: ${fingerTargetSize};
+  /* The link of the bar on desktop is lower */
+  ${fingerTarget}
   transition-property: border-color, background-color;
   transition-duration: ${th.duration('base')};
   padding: ${th.space(14)} ${th.space(36)};
@@ -219,11 +242,6 @@ export const MenuCvLink = styled(CvLink)`
     transform: scale(1);
     transition-property: transform, color;
 
-    &:hover {
-      color: ${th.color('accent-foreground')};
-      transform: scale(1.06);
-    }
-
     &:active {
       background-color: transparent;
     }
@@ -231,6 +249,13 @@ export const MenuCvLink = styled(CvLink)`
     /* The text says what the link does: the bar shows no icon */
     svg {
       display: none;
+    }
+  }
+
+  @media (min-width: ${th('screens.tablet')}) and ${HOVER_POINTER_QUERY} {
+    &:hover {
+      color: ${th.color('accent-foreground')};
+      transform: scale(1.06);
     }
   }
 `;

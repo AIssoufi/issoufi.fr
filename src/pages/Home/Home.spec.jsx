@@ -3,7 +3,7 @@ import { MemoryRouter } from 'react-router';
 
 import i18n from '../../i18n';
 import { theme } from '../../theme';
-import { REDUCED_MOTION_QUERY } from '../../theme/constants';
+import { HOVER_POINTER_QUERY, REDUCED_MOTION_QUERY } from '../../theme/constants';
 import { declaredStyle, serializeCssValue } from '../../styleTestUtils';
 import { getPage } from '../../utils/pages';
 import { readBackgroundImages } from '../testUtils';
@@ -177,10 +177,15 @@ describe('Home', () => {
     });
   });
 
-  it('inverts the colors of the secondary button under the pointer, not those of the main one', () => {
+  it('inverts the colors of the secondary button under a pointer that hovers, not those of the main one', () => {
     renderHome();
-    const hoverStyle = ({ name, property }) =>
-      declaredStyle({ element: screen.getByRole('link', { name }), property, pseudo: ':hover' });
+    const hoverStyle = ({ name, property, media = HOVER_POINTER_QUERY }) =>
+      declaredStyle({
+        element: screen.getByRole('link', { name }),
+        property,
+        pseudo: ':hover',
+        media,
+      });
     const secondaryHoverStyle = property =>
       hoverStyle({ name: 'Expériences professionnelles', property });
     const color = name => serializeCssValue({ property: 'color', value: theme.colors[name] });
@@ -190,6 +195,10 @@ describe('Home', () => {
     expect(secondaryHoverStyle('border-color')).toBe(color('foreground'));
     expect(hoverStyle({ name: 'Voir mes projets', property: 'background-color' })).toBe('');
     expect(hoverStyle({ name: 'Voir mes projets', property: 'color' })).toBe(color('foreground'));
+    // A touch screen would keep the hover colors of the button tapped last
+    expect(
+      hoverStyle({ name: 'Expériences professionnelles', property: 'background-color', media: '' }),
+    ).toBe('');
   });
 
   it('hides the cursor glow with reduced motion, and nothing else, since it follows no pointer', () => {

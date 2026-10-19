@@ -535,6 +535,20 @@ export const getScreenCenter = (viewport?: ViewportSize | null): ScreenPoint | n
   return screen && { x: screen.width / 2, y: screen.height / 2 };
 };
 
+/**
+ * Finds the middle of a box, such as the point where a tap lands on an element that never stops
+ * moving, which a locator would wait for.
+ *
+ * @param box - Box of the element, such as the one that Playwright's `boundingBox()` returns.
+ * @returns The middle of the box, or `null` when the box is missing or holds a value that is not a
+ * finite number.
+ *
+ * @example
+ * getBoxCenter({ x: 24, y: 300, width: 327, height: 60 }); // { x: 187.5, y: 330 }
+ */
+export const getBoxCenter = (box?: ScreenBox | null): ScreenPoint | null =>
+  isScreenBox(box) ? { x: box.x + box.width / 2, y: box.y + box.height / 2 } : null;
+
 /** How many levels deeper than the heading before it a heading may be: one at most. */
 const MAX_HEADING_LEVEL_STEP = 1;
 

@@ -20,7 +20,7 @@ describe('useCursorFollower', () => {
     const element = document.createElement('div');
     renderHook(() => useCursorFollower({ current: element }));
 
-    fireEvent.mouseMove(window, { clientX: 120, clientY: 220 });
+    fireEvent.pointerMove(window, { clientX: 120, clientY: 220 });
     vi.advanceTimersByTime(FRAME_MS);
 
     expect(element.style.transform).toBe('translate(-98px, -88px)');
@@ -30,7 +30,7 @@ describe('useCursorFollower', () => {
     const element = document.createElement('div');
     renderHook(() => useCursorFollower({ current: element }));
 
-    fireEvent.mouseMove(window, { clientX: 120, clientY: 220 });
+    fireEvent.pointerMove(window, { clientX: 120, clientY: 220 });
     vi.advanceTimersByTime(FRAME_MS * 300);
 
     const [, x, y] = element.style.transform.match(/translate\((.+)px, (.+)px\)/) ?? [];
@@ -50,7 +50,7 @@ describe('useCursorFollower', () => {
 
     unmount();
     const transformAfterUnmount = element.style.transform;
-    fireEvent.mouseMove(window, { clientX: 500, clientY: 500 });
+    fireEvent.pointerMove(window, { clientX: 500, clientY: 500 });
     vi.advanceTimersByTime(FRAME_MS * 10);
 
     expect(element.style.transform).toBe(transformAfterUnmount);
@@ -62,7 +62,7 @@ describe('useCursorFollower', () => {
       const element = document.createElement('div');
       renderHook(() => useCursorFollower({ current: element }));
 
-      fireEvent.mouseMove(window, { clientX: 120, clientY: 220 });
+      fireEvent.pointerMove(window, { clientX: 120, clientY: 220 });
       vi.advanceTimersByTime(FRAME_MS * 10);
 
       expect(element.style.transform).toBe('');
@@ -73,12 +73,12 @@ describe('useCursorFollower', () => {
       const { setMatches } = stubMatchMedia({ matches: false });
       const element = document.createElement('div');
       renderHook(() => useCursorFollower({ current: element }));
-      fireEvent.mouseMove(window, { clientX: 120, clientY: 220 });
+      fireEvent.pointerMove(window, { clientX: 120, clientY: 220 });
       vi.advanceTimersByTime(FRAME_MS);
       const transformBeforeReducedMotion = element.style.transform;
 
       setMatches(true);
-      fireEvent.mouseMove(window, { clientX: 500, clientY: 500 });
+      fireEvent.pointerMove(window, { clientX: 500, clientY: 500 });
       vi.advanceTimersByTime(FRAME_MS * 10);
 
       expect(element.style.transform).toBe(transformBeforeReducedMotion);
@@ -91,7 +91,7 @@ describe('useCursorFollower', () => {
       renderHook(() => useCursorFollower({ current: element }));
 
       setMatches(false);
-      fireEvent.mouseMove(window, { clientX: 120, clientY: 220 });
+      fireEvent.pointerMove(window, { clientX: 120, clientY: 220 });
       vi.advanceTimersByTime(FRAME_MS);
 
       expect(element.style.transform).toBe('translate(-98px, -88px)');

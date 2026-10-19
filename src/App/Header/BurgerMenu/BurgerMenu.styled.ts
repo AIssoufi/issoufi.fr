@@ -1,5 +1,6 @@
 import styled, { css, th } from '@xstyled/styled-components';
 
+import { HOVER_POINTER_QUERY } from '../../../theme/constants';
 import { MIDDLE_BAR_OPEN_ROTATION_DEG, TOP_BAR_OPEN_ROTATION_DEG } from './constants';
 
 export const Button = styled.button`
@@ -15,8 +16,10 @@ export const Button = styled.button`
   cursor: pointer;
 
   /* The global button style grows buttons on hover: the icon keeps its size, as it always did */
-  &:hover {
-    transform: none;
+  @media ${HOVER_POINTER_QUERY} {
+    &:hover {
+      transform: none;
+    }
   }
 
   /* The soft accent keeps the ring visible on the dark page and on the open menu alike */

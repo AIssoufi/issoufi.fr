@@ -6,7 +6,12 @@ import styled, { th, ThemeProvider } from '@xstyled/styled-components';
 
 import { declaredStyle, getContrastRatio, MIN_TEXT_CONTRAST_RATIO } from '../styleTestUtils';
 import { MIN_FONT_SIZE_PX } from './constants';
-import { findRawThemeValues, findRawValues, getSmallestFontSizePx } from './testUtils';
+import {
+  findRawThemeValues,
+  findRawValues,
+  findUnguardedHovers,
+  getSmallestFontSizePx,
+} from './testUtils';
 import { theme } from './theme';
 
 /** Source of the semantic tokens, which may only read the primitives of tokens.ts. */
@@ -47,6 +52,12 @@ const tokenUsages = listStyleFiles('src').flatMap(file =>
   ),
 );
 
+/**
+ * Fewest style files that hold a `:hover`, half as many as today, so that the guard of the hover
+ * styles proves that it reads them, and still passes when a file stops styling a hover.
+ */
+const MIN_STYLE_FILES_WITH_HOVER = 5;
+
 /** Helpers whose token xstyled negates when its key starts with a minus sign: `th.space(-8)`. */
 const NEGATABLE_HELPERS = ['space'];
 
@@ -81,6 +92,21 @@ describe('theme', () => {
       ),
     );
     expect(rawValues).toEqual([]);
+  });
+
+  it('styles :hover only for the pointers that hover, which a tap on a touch screen would leave on', () => {
+    const sources = listStyleFiles('src').map(file => ({
+      file,
+      source: readFileSync(file, 'utf8'),
+    }));
+    const unguardedHovers = sources.flatMap(({ file, source }) =>
+      findUnguardedHovers(source).map(line => `${file}:${line}`),
+    );
+
+    expect(sources.filter(({ source }) => source.includes(':hover')).length).toBeGreaterThanOrEqual(
+      MIN_STYLE_FILES_WITH_HOVER,
+    );
+    expect(unguardedHovers).toEqual([]);
   });
 
   it('points every semantic token of theme.ts to a primitive of tokens.ts', () => {

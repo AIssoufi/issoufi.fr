@@ -1,5 +1,7 @@
 import { css, th } from '@xstyled/styled-components';
 
+import { HOVER_POINTER_QUERY } from '../../theme/constants';
+
 /* Width of the timeline line, which Timeline (Experiences.styled.ts) draws. */
 export const lineWidth = th.size(2);
 
@@ -82,9 +84,11 @@ export const card = css`
   transition-property: transform, box-shadow;
   transition-duration: ${th.duration('base')};
 
-  &:hover {
-    transform: translateY(${th.space(-2)});
-    box-shadow: ${th.shadow('cardHover')};
+  @media ${HOVER_POINTER_QUERY} {
+    &:hover {
+      transform: translateY(${th.space(-2)});
+      box-shadow: ${th.shadow('cardHover')};
+    }
   }
 `;
 

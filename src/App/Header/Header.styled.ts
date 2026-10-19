@@ -1,5 +1,8 @@
 import styled, { th } from '@xstyled/styled-components';
 
+import { HOVER_POINTER_QUERY } from '../../theme/constants';
+import { fingerTarget } from '../../theme/targets.styled';
+
 export const Container = styled.header`
   display: flex;
   flex-direction: row;
@@ -53,9 +56,17 @@ export const Logo = styled.div`
   transition-duration: ${th.duration('base')};
   letter-spacing: ${th.letterSpacing(2)};
 
-  :hover {
-    transform: scale(1.08);
-    color: ${th.color('accent-foreground')};
+  /* Narrower than a finger target */
+  > a {
+    position: relative;
+    ${fingerTarget}
+  }
+
+  @media ${HOVER_POINTER_QUERY} {
+    :hover {
+      transform: scale(1.08);
+      color: ${th.color('accent-foreground')};
+    }
   }
 
   @media (max-height: ${th('screenHeights.short')}) {

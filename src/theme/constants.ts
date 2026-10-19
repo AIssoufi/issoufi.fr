@@ -63,6 +63,15 @@ export const FONT_FACES: readonly FontFaceDeclaration[] = [
 export const REDUCED_MOTION_QUERY = '(prefers-reduced-motion: reduce)';
 
 /**
+ * Media query of the screens whose main pointer hovers, precisely, such as a mouse or a trackpad.
+ * Every `:hover` of the styles sits in a block of it, alone or after other conditions
+ * (`@media (min-width: …) and ${HOVER_POINTER_QUERY}`), which `theme.spec.jsx` checks: a touch
+ * screen keeps the hover style of the last control tapped until the next tap elsewhere, so it
+ * gets none, and keeps the `:active` and `:focus-visible` styles.
+ */
+export const HOVER_POINTER_QUERY = '(hover: hover) and (pointer: fine)';
+
+/**
  * Smallest font size of the site, in pixels: the size of its metadata (dates, badges, tags, the
  * version of the build), under which a text gets hard to read. `theme.spec.jsx` checks every font
  * size of the theme against it, and `readable-text.e2e.ts` every text that a page shows.
