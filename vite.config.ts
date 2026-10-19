@@ -29,7 +29,7 @@ import {
 import {
   getChunkName,
   getFontFaceTags,
-  getPageChunkFile,
+  getPageChunkFiles,
   getServerPorts,
   renderHeaderRules,
 } from './vite/utils';
@@ -45,8 +45,8 @@ const fontFaces = (): Plugin => ({
   transformIndexHtml: () => getFontFaceTags(),
 });
 
-/** Parameters of the `preloadPageChunk` helper of {@link pageMeta}. */
-interface PreloadPageChunkParams {
+/** Parameters of the `preloadPageChunks` helper of {@link pageMeta}. */
+interface PreloadPageChunksParams {
   /** HTML of a generated page. */
   html: string;
   /** Folder in `src/pages` of the page that the HTML shows. */
@@ -59,8 +59,8 @@ interface PreloadPageChunkParams {
  * (`projects.html`, `en/index.html`, `en/projects.html`…) and a not found page per language
  * (`404.html`, `en/404.html`). It runs after Vite's own HTML plugin (`enforce: 'post'`), so the
  * template already contains the hashed asset tags. Each emitted page also preloads the chunk of
- * the page it shows, so a direct visit downloads it at the same time as the main chunk; the home
- * page is in the main chunk and needs none.
+ * the page it shows, and the chunks that this one imports, so a direct visit downloads them at the
+ * same time as the main chunk; the home page is in the main chunk and needs none.
  */
 const pageMeta = (): Plugin => {
   let template = '';
@@ -84,11 +84,15 @@ const pageMeta = (): Plugin => {
     generateBundle(_options, bundle) {
       if (!template) this.error('index.html was not transformed before generateBundle');
 
-      /** Preloads in a generated page the chunk of the page in `folder`, when it has one. */
-      const preloadPageChunk = ({ html, folder }: PreloadPageChunkParams) => {
-        const chunkFile = getPageChunkFile({ bundle, folder });
-        return chunkFile ? addModulePreload({ html, href: `${base}${chunkFile}` }) : html;
-      };
+      /**
+       * Preloads in a generated page the chunk of the page in `folder`, when it has one, and the
+       * chunks that it imports statically.
+       */
+      const preloadPageChunks = ({ html, folder }: PreloadPageChunksParams) =>
+        getPageChunkFiles({ bundle, folder }).reduce(
+          (page, chunkFile) => addModulePreload({ html: page, href: `${base}${chunkFile}` }),
+          html,
+        );
 
       const years = getYearsOfExperience();
 
@@ -99,7 +103,7 @@ const pageMeta = (): Plugin => {
           this.emitFile({
             type: 'asset',
             fileName,
-            source: preloadPageChunk({ html, folder: page.folder }),
+            source: preloadPageChunks({ html, folder: page.folder }),
           });
         });
 
@@ -108,7 +112,7 @@ const pageMeta = (): Plugin => {
         this.emitFile({
           type: 'asset',
           fileName,
-          source: preloadPageChunk({ html, folder: NOT_FOUND_FOLDER }),
+          source: preloadPageChunks({ html, folder: NOT_FOUND_FOLDER }),
         });
       });
     },

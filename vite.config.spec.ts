@@ -5,7 +5,7 @@ import { build, normalizePath, type Plugin, resolveConfig, type Rollup } from 'v
 
 import { isGoogleHost } from './e2e/utils';
 import { GITHUB_PROFILE_URL, LINKEDIN_PROFILE_URL } from './src/constants/profiles';
-import { LANGUAGES } from './src/i18n/constants';
+import { DEFAULT_LANGUAGE, LANGUAGES } from './src/i18n/constants';
 import { en } from './src/i18n/en';
 import { fr } from './src/i18n/fr';
 import { FONT_FACES } from './src/theme/constants';
@@ -16,6 +16,7 @@ import {
   getNotFoundFiles,
   getOgImageUrl,
   getPageFiles,
+  HOME_PAGE,
   NOT_FOUND_FOLDER,
   PAGES,
   SITE_URL,
@@ -70,16 +71,21 @@ const recordOutputOptions = (): Plugin => ({
   },
 });
 
-beforeAll(async () => {
-  // Vitest sets NODE_ENV to test, which would bundle the development build of React
-  vi.stubEnv('NODE_ENV', 'production');
+/** Builds the site in memory with the config of the project and extra plugins: lists its files. */
+const buildSite = async (plugins: Plugin[]) => {
   const result = await build({
     configFile: 'vite.config.ts',
     logLevel: 'silent',
-    plugins: [recordOutputOptions()],
+    plugins,
     build: { write: false },
   });
-  output = (Array.isArray(result) ? result[0] : (result as Rollup.RollupOutput)).output;
+  return (Array.isArray(result) ? result[0] : (result as Rollup.RollupOutput)).output;
+};
+
+beforeAll(async () => {
+  // Vitest sets NODE_ENV to test, which would bundle the development build of React
+  vi.stubEnv('NODE_ENV', 'production');
+  output = await buildSite([recordOutputOptions()]);
 }, BUILD_TIMEOUT_MS);
 
 afterAll(() => {
@@ -132,6 +138,98 @@ const getPageChunkUrl = (folder: string) => {
 const getPreloadedPageChunks = (html: string) => {
   const pageChunkUrls = getPageChunkUrls();
   return getPreloadedUrls(html).filter(href => pageChunkUrls.includes(href));
+};
+
+/** Parameters of {@link getStaticImportUrls}. */
+interface GetStaticImportUrlsParams {
+  /** Files of a build. */
+  files: OutputFile[];
+  /** URL of a chunk of the build, e.g. `/assets/Projects-1a2b3c.js`. */
+  url?: string;
+}
+
+/** Parameters of {@link walkStaticImports}. */
+interface WalkStaticImportsParams {
+  /** Chunks of a build, by URL. */
+  chunks: Map<string, Rollup.OutputChunk>;
+  /** URLs of the chunks to start from. */
+  urls: string[];
+  /** URLs to neither list nor walk through. */
+  excluded?: Set<string>;
+}
+
+/** Lists the URLs of chunks and of every chunk that they import statically, directly or not. */
+const walkStaticImports = ({ chunks, urls, excluded = new Set() }: WalkStaticImportsParams) => {
+  const found = new Set<string>();
+  const pending = [...urls];
+
+  while (pending.length > 0) {
+    const current = pending.pop() ?? '';
+    const chunk = chunks.get(current);
+    const isNewChunk = chunk !== undefined && !found.has(current) && !excluded.has(current);
+    if (isNewChunk) {
+      found.add(current);
+      pending.push(...chunk.imports.map(fileName => `/${fileName}`));
+    }
+  }
+
+  return found;
+};
+
+/**
+ * Lists, sorted, the URL of a chunk and of every chunk that it imports statically, directly or
+ * not, except the entry chunks and what they import, which the template loads: what a page must
+ * preload besides the main chunk.
+ */
+const getStaticImportUrls = ({ files, url }: GetStaticImportUrlsParams) => {
+  const chunks = new Map(files.filter(isChunk).map(chunk => [`/${chunk.fileName}`, chunk]));
+  const entryUrls = [...chunks].filter(([, chunk]) => chunk.isEntry).map(([entryUrl]) => entryUrl);
+  const templateUrls = walkStaticImports({ chunks, urls: entryUrls });
+  const pageUrls = walkStaticImports({ chunks, urls: url ? [url] : [], excluded: templateUrls });
+  return [...pageUrls].sort();
+};
+
+/** Parameters of {@link getOwnPreloadedUrls}. */
+interface GetOwnPreloadedUrlsParams {
+  /** HTML of a generated page. */
+  html: string;
+  /** HTML of the home page of the same language, built from the template of every page. */
+  homeHtml: string;
+}
+
+/** Lists, sorted, the URLs that a page preloads and the home page does not. */
+const getOwnPreloadedUrls = ({ html, homeHtml }: GetOwnPreloadedUrlsParams) => {
+  const templateUrls = getPreloadedUrls(homeHtml);
+  return getPreloadedUrls(html)
+    .filter(href => !templateUrls.includes(href))
+    .sort();
+};
+
+/** Module that {@link shareModule} adds to some lazy pages, as they import it. */
+const SHARED_MODULE_ID = 'virtual:shared-page-module';
+
+/** Path of {@link SHARED_MODULE_ID} once resolved: a virtual module, which no file holds. */
+const RESOLVED_SHARED_MODULE_ID = `\0${SHARED_MODULE_ID}`;
+
+/** Folders of the lazy pages that import {@link SHARED_MODULE_ID} in the build of `shareModule`. */
+const SHARING_PAGE_FOLDERS = ['Projects', 'Experiences'];
+
+/**
+ * Test plugin that makes the pages of {@link SHARING_PAGE_FOLDERS} import one more module, with a
+ * side effect so it stays: a module that only lazy pages import becomes a chunk of its own.
+ */
+const shareModule = (): Plugin => {
+  const pageEntries = SHARING_PAGE_FOLDERS.map(folder =>
+    normalizePath(resolve(PAGES_DIR, folder, PAGE_ENTRY_FILE)),
+  );
+
+  return {
+    name: 'share-module',
+    resolveId: id => (id === SHARED_MODULE_ID ? RESOLVED_SHARED_MODULE_ID : null),
+    load: id => (id === RESOLVED_SHARED_MODULE_ID ? 'globalThis.sharedPageModule = true;' : null),
+    transform: (code, id) =>
+      pageEntries.includes(id) ? `import '${SHARED_MODULE_ID}';\n${code}` : null,
+  };
 };
 
 /** Lists the hosts of Google that a file of the build names in a URL. */
@@ -305,9 +403,17 @@ describe('pages generated by the build', () => {
   const generatedPages = [
     ...pageFiles
       .filter(({ page }) => page !== homePage)
-      .map(({ fileName, page }) => ({ fileName, folder: page.folder })),
-    ...notFoundFiles.map(({ fileName }) => ({ fileName, folder: NOT_FOUND_FOLDER })),
+      .map(({ fileName, page, language }) => ({ fileName, folder: page.folder, language })),
+    ...notFoundFiles.map(({ fileName, language }) => ({
+      fileName,
+      folder: NOT_FOUND_FOLDER,
+      language,
+    })),
   ];
+
+  /** Reads the home page of a language, built from the template of every page. */
+  const getHomeHtml = (language: string) =>
+    getSource(homePages.find(file => file.language === language)?.fileName ?? '');
 
   it('builds one chunk per page loaded lazily, shared by its languages', () => {
     const lazyFolders = new Set(generatedPages.map(({ folder }) => folder));
@@ -394,6 +500,17 @@ describe('pages generated by the build', () => {
     },
   );
 
+  it.each(generatedPages)(
+    '$fileName preloads the chunks that its page chunk imports, and nothing else',
+    ({ fileName, folder, language }) => {
+      const html = getSource(fileName);
+      const expectedUrls = getStaticImportUrls({ files: output, url: getPageChunkUrl(folder) });
+
+      expect(expectedUrls).toContain(getPageChunkUrl(folder));
+      expect(getOwnPreloadedUrls({ html, homeHtml: getHomeHtml(language) })).toEqual(expectedUrls);
+    },
+  );
+
   it.each(generatedPages)('$fileName preloads its chunk in its head', ({ fileName, folder }) => {
     const html = getSource(fileName);
     const linkPosition = html.indexOf(`href="${getPageChunkUrl(folder)}"`);
@@ -470,6 +587,66 @@ describe('pages generated by the build', () => {
 
       expect(html).toContain('<script type="module"');
       expect(getPreloadedPageChunks(html)).toEqual([]);
+    },
+  );
+});
+
+describe('pages generated by a build where two lazy pages share a module', () => {
+  /** Files of the build where {@link shareModule} adds a module to two lazy pages. */
+  let sharingOutput: OutputFile[] = [];
+
+  beforeAll(async () => {
+    sharingOutput = await buildSite([shareModule()]);
+  }, BUILD_TIMEOUT_MS);
+
+  const languagePages = getPageFiles().filter(({ language }) => language === DEFAULT_LANGUAGE);
+  const homePage = languagePages.find(({ page }) => page === HOME_PAGE);
+  const sharingPages = languagePages.filter(({ page }) =>
+    SHARING_PAGE_FOLDERS.includes(page.folder),
+  );
+
+  /** Reads an HTML page of the build. */
+  const getSharingSource = (fileName = '') =>
+    String(sharingOutput.filter(isAsset).find(file => file.fileName === fileName)?.source ?? '');
+
+  /** URL of the chunk built from the index file of a page folder. */
+  const getSharingPageChunkUrl = (folder: string) => {
+    const entry = normalizePath(resolve(PAGES_DIR, folder, PAGE_ENTRY_FILE));
+    const chunk = sharingOutput.filter(isChunk).find(file => file.facadeModuleId === entry);
+    return chunk && `/${chunk.fileName}`;
+  };
+
+  /** URL of the chunk of the shared module. */
+  const getSharedChunkUrl = () => {
+    const isSharedChunk = (chunk: Rollup.OutputChunk) =>
+      Object.keys(chunk.modules).includes(RESOLVED_SHARED_MODULE_ID);
+    const chunk = sharingOutput.filter(isChunk).find(isSharedChunk);
+    return chunk && `/${chunk.fileName}`;
+  };
+
+  it('puts the shared module in a chunk of its own, which each sharing page chunk imports', () => {
+    const sharedChunkUrl = getSharedChunkUrl();
+
+    expect(sharedChunkUrl).toBeDefined();
+    SHARING_PAGE_FOLDERS.forEach(folder => {
+      const pageChunkUrl = getSharingPageChunkUrl(folder);
+
+      expect(pageChunkUrl).not.toBe(sharedChunkUrl);
+      expect(getStaticImportUrls({ files: sharingOutput, url: pageChunkUrl })).toContain(
+        sharedChunkUrl,
+      );
+    });
+  });
+
+  it.each(sharingPages.map(({ fileName, page }) => ({ fileName, folder: page.folder })))(
+    '$fileName preloads its page chunk and the chunk of the shared module',
+    ({ fileName, folder }) => {
+      const html = getSharingSource(fileName);
+      const homeHtml = getSharingSource(homePage?.fileName);
+
+      expect(getOwnPreloadedUrls({ html, homeHtml })).toEqual(
+        [getSharingPageChunkUrl(folder), getSharedChunkUrl()].sort(),
+      );
     },
   );
 });
