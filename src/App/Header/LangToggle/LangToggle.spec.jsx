@@ -19,8 +19,8 @@ import LangToggle from './LangToggle.tsx';
 /** The indicator is the first child of the toggle, before the language buttons. */
 const getIndicator = () => screen.getByRole('group').firstElementChild;
 
-const getFrenchButton = () => screen.getByRole('button', { name: 'Français' });
-const getEnglishButton = () => screen.getByRole('button', { name: 'English' });
+const getFrenchButton = () => screen.getByRole('button', { name: 'FR – Français' });
+const getEnglishButton = () => screen.getByRole('button', { name: 'EN – English' });
 
 /** Shows the current URL and the key of its history entry, which changes with each navigation. */
 const LocationDisplay = () => {
@@ -203,11 +203,25 @@ describe('LangToggle', () => {
   });
 
   describe('accessibility', () => {
-    it('names each button after its language, in that language', () => {
+    it('pronounces each button in its language', () => {
       renderAt();
 
       expect(getFrenchButton()).toHaveAttribute('lang', 'fr');
       expect(getEnglishButton()).toHaveAttribute('lang', 'en');
+    });
+
+    it('starts the name of each button with its visible code, then its language for screen readers only', () => {
+      renderAt();
+
+      // An aria-label would replace the visible code, which a voice control user says, in the name
+      expect(getFrenchButton()).not.toHaveAttribute('aria-label');
+      expect(getEnglishButton()).not.toHaveAttribute('aria-label');
+      for (const name of ['– Français', '– English']) {
+        expect(screen.getByText(name)).toHaveStyle({
+          position: 'absolute',
+          clipPath: 'inset(50%)',
+        });
+      }
     });
 
     it('makes both buttons plain buttons, so they never submit a form', () => {
