@@ -1,6 +1,7 @@
 import { render, screen } from '@testing-library/react';
 import styled from '@xstyled/styled-components';
 
+import { MAIN_CONTENT_ID } from '../../constants/landmarks';
 import { declaredStyle } from '../../styleTestUtils';
 import { theme } from '../../theme';
 import { PORTRAIT_PHOTO_MEDIA_QUERY } from '../../utils/pages';
@@ -43,6 +44,11 @@ describe('Page', () => {
     );
 
     expect(getMain()).toContainElement(screen.getByRole('heading', { name: 'Projets' }));
+  });
+
+  it('gives the main landmark the id that the skip link points to', () => {
+    render(<Page />);
+    expect(getMain()).toHaveAttribute('id', MAIN_CONTENT_ID);
   });
 
   it('shows the whole photo behind the page, over its placeholder', () => {

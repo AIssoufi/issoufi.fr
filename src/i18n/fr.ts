@@ -77,6 +77,9 @@ export const fr = {
   header: {
     buildVersion: 'build {{version}}',
   },
+  skipLink: {
+    text: 'Aller au contenu',
+  },
   githubLink: {
     label: 'Profil GitHub d’ADAM Issoufi',
   },

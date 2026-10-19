@@ -89,7 +89,7 @@ export const GlobalStyle = createGlobalStyle`
 
   /* The heading of a page takes the focus after a navigation, but cannot be activated: a focus
      ring would make it look like a control. Keep the selector in line with PAGE_HEADING_SELECTOR
-     and SCRIPT_ONLY_TAB_INDEX (src/App/PageHeadingFocus/constants.ts); App.spec.jsx checks it */
+     and SCRIPT_ONLY_TAB_INDEX (src/App/constants.ts); App.spec.jsx checks it */
   h1[tabindex='-1']:focus {
     outline: none;
   }

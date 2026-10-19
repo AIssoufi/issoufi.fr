@@ -146,6 +146,34 @@ describe('App', () => {
     expect(declaredStyle({ element: app, property: 'height' })).toBe('');
   });
 
+  describe('skip link', () => {
+    it('is the first element that Tab reaches, before the logo', async () => {
+      const user = userEvent.setup();
+      window.history.pushState({}, '', '/projects');
+      render(<App />);
+      await screen.findByRole('heading', PROJECTS_PAGE_TITLE);
+
+      await user.tab();
+      expect(screen.getByRole('link', { name: 'Aller au contenu' })).toHaveFocus();
+
+      await user.tab();
+      expect(screen.getByRole('link', { name: 'AI' })).toHaveFocus();
+    });
+
+    it('moves the focus to the heading of the page with Enter', async () => {
+      const user = userEvent.setup();
+      window.history.pushState({}, '', '/projects');
+      render(<App />);
+      const heading = await screen.findByRole('heading', PROJECTS_PAGE_TITLE);
+
+      await user.tab();
+      await user.keyboard('{Enter}');
+
+      expect(heading).toHaveFocus();
+      expect(window.location.pathname + window.location.hash).toBe('/projects');
+    });
+  });
+
   describe('focus after a navigation', () => {
     it('leaves the focus alone on the first load', async () => {
       window.history.pushState({}, '', '/projects');
@@ -324,6 +352,20 @@ describe('App', () => {
       expect(description()).toBe(
         'Personal and freelance projects by ADAM Issoufi, full-stack JavaScript developer.',
       );
+    });
+
+    it('moves the focus to the heading of an English page with "Skip to content"', async () => {
+      const user = userEvent.setup();
+      window.history.pushState({}, '', '/en/projects');
+      await reloadI18n();
+      render(<App />);
+      const heading = await screen.findByRole('heading', { level: 1, name: 'Projects' });
+
+      await user.tab();
+      expect(screen.getByRole('link', { name: 'Skip to content' })).toHaveFocus();
+      await user.keyboard('{Enter}');
+
+      expect(heading).toHaveFocus();
     });
 
     it('opens the root at the English home page when English was chosen before', async () => {
