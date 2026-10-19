@@ -4,6 +4,8 @@ import {
   breakpoints,
   durations,
   easings,
+  fluidFontSizes,
+  fluidSpacing,
   fontFamilies,
   fontSizes,
   fontWeights,
@@ -12,11 +14,13 @@ import {
   measures,
   palette,
   radii,
+  relativeSizes,
   relativeSpacing,
   rgb,
   shadowShapes,
   sizes,
   spacing,
+  systemColors,
   zIndices,
 } from './tokens';
 
@@ -49,6 +53,17 @@ const colors = {
   /** Light pink companion of the accent: gradients, timeline dots, soft glows. */
   'accent-soft': palette.pink,
   ...alphaVariants({ name: 'accent-soft', rgb: rgb.pink, opacities: [65, 85, 95] as const }),
+  /**
+   * Accent of a text or an icon on the dark background, such as the active link: the light pink,
+   * 9.6:1 on black, where the plum of `accent` reaches only 2.7:1. The plum stays for the
+   * backgrounds, the underlines and the glows.
+   */
+  'accent-foreground': palette.pink,
+  /**
+   * Dark plum fill behind an accent icon laid over a photo, such as the heart of a liked project:
+   * dark enough for `accent-foreground` to keep 3:1 over a white photo.
+   */
+  'accent-backdrop': palette.darkPlum80,
   /** Black translucent layers: shadows, scrims, button backgrounds over images. */
   ...alphaVariants({
     name: 'shade',
@@ -60,6 +75,13 @@ const colors = {
   ...alphaVariants({ name: 'success', rgb: rgb.green, opacities: [10, 20] as const }),
   /** Background of the full-screen mobile menu. */
   'overlay-mobile-menu': palette.deepViolet92,
+  /**
+   * Active or selected state in forced colors mode, which removes the backgrounds and the shadows
+   * that show it otherwise, such as the pill under the active language.
+   */
+  'forced-active': systemColors.highlight,
+  /** Icon of a button in forced colors mode, as its text. */
+  'forced-icon': systemColors.buttonText,
 } as const;
 
 /**
@@ -78,24 +100,82 @@ export const theme = {
     ...spacing,
     /** Horizontal padding of every page and of the header. */
     page: spacing[24],
+    /**
+     * Space above the content of every page, under the header. The status pages keep as much under
+     * their message, so it sits in the middle of the page.
+     */
+    'page-top': spacing[16],
+    /** Distance between the centers of two bars of the burger icon of the mobile menu. */
+    'burger-bar-gap': spacing[9],
+    /** Space around each project card, so two cards side by side stand twice as far apart. */
+    'project-card-margin': spacing[5],
     /** Gap between an icon and its label, relative to the font size. */
     'icon-gap': relativeSpacing[70],
+    /**
+     * Space above the buttons of the home page, which grows with the height of the screen, so a
+     * phone held sideways shows them under the title and a large screen keeps the hero airy.
+     */
+    'hero-actions': fluidSpacing['16-80'],
   },
   sizes: {
     ...sizes,
     /** Largest width of the app container. */
     container: sizes[1440],
-    /** Side of the burger icon of the mobile menu, kept while its animation loads. */
+    /**
+     * Height of the site header: the logo, 54 px high, with 20 px above and below. Its blurred
+     * band, fixed on the screen, has the same height, so it covers the header and nothing else.
+     */
+    header: sizes[94],
+    /**
+     * Height of the site header on a short screen (see `screenHeights.short`), as on a phone held
+     * sideways: 15 % of a 320 px high screen, so the page keeps most of it. Its band follows.
+     */
+    'header-compact': sizes[48],
+    /** Side of the burger button of the mobile menu. */
     'burger-icon': sizes[50],
+    /** Side of the burger icon in the compact header, still the size of a target for a finger. */
+    'burger-icon-compact': sizes[44],
+    /** Length of each of the three bars of the burger icon, their round ends included. */
+    'burger-bar': sizes[30],
+    /** Thickness of each bar of the burger icon. */
+    'burger-bar-thickness': sizes[3],
+    /**
+     * Smallest side of a target that a finger taps, such as the CV link of the mobile menu: 44 px,
+     * the size that the Web Content Accessibility Guidelines recommend.
+     */
+    'finger-target': sizes[44],
     /** Largest width of the text of a status message, short enough to read at a glance. */
     message: measures[40],
+    /**
+     * Largest width of the description of a job card from the `two-job-columns` breakpoint: its
+     * lines stay under 75 characters of Montserrat, whose zero is wider than most letters, within
+     * the 50 to 80 that keep a long text easy to follow.
+     */
+    'text-measure': measures[52],
+    /**
+     * Largest width of the title and subtitle of the home page, given the font size of the words
+     * of its title (`hero-title`): 640 px, or 15.25 times that size once larger, so the job title
+     * keeps wrapping after the same word as it grows with the screen.
+     */
+    'hero-intro': `max(${sizes[640]}, ${relativeSizes[1525]})`,
   },
   fonts: {
     body: fontFamilies.montserrat,
     display: fontFamilies.sairaStencilOne,
     code: fontFamilies.sourceCodePro,
   },
-  fontSizes,
+  fontSizes: {
+    ...fontSizes,
+    /**
+     * Animated words of the home title, which grow with the smaller side of the screen, so the
+     * hero fits a phone held sideways and fills a tablet or a large screen in proportion.
+     */
+    'hero-title': fluidFontSizes['24-72'],
+    /** Rest of the home title, which grows with its words. */
+    'hero-text': fluidFontSizes['18-28'],
+    /** Subtitle of the home page, which grows with its title. */
+    'hero-subtitle': fluidFontSizes['16-24'],
+  },
   fontWeights,
   letterSpacings,
   lineHeights,
@@ -122,14 +202,22 @@ export const theme = {
     cardHover: `${shadowShapes['8-32']} ${colors['shade-a40']}`,
     accentGlow: `${shadowShapes['0-10']} ${colors['accent-a55']}`,
     accentGlowFaint: `${shadowShapes['0-10']} ${colors['accent-a25']}`,
-    accentGlowWide: `${shadowShapes['0-16']} ${colors['accent-a30']}`,
     accentGlowStrong: `${shadowShapes['0-28']} ${colors['accent-a65']}`,
     accentHalo: `${shadowShapes['4-28']} ${colors['accent-a20']}`,
     lightGlow: `${shadowShapes['0-16']} ${colors['foreground-a15']}`,
   },
   /** Background blurs for frosted-glass panels. Not an xstyled namespace: use `th('blurs.8')`. */
   blurs,
-  durations: { ...durations, base: durations[250] },
+  durations: {
+    ...durations,
+    base: durations[250],
+    /**
+     * Near zero: what the reduced motion rule of `GlobalStyle` gives every animation and
+     * transition, so they jump to their end, and a transition still sends its `transitionend`
+     * event, which a zero duration would not start.
+     */
+    instant: durations[0.01],
+  },
   timingFunctions: {
     standard: easings.ease,
     linear: easings.linear,
@@ -149,7 +237,7 @@ export const theme = {
     raised: zIndices[1],
     raisedMore: zIndices[2],
     raisedMost: zIndices[3],
-    /** Full-screen mobile menu and floating language toggle. */
+    /** Full-screen mobile menu, and the language toggle floating on desktop. */
     overlay: zIndices[9],
     /** Header and burger icon, above the mobile menu. */
     header: zIndices[11],
@@ -158,9 +246,38 @@ export const theme = {
   },
   /** Breakpoints, in `em` so they follow the browser's font size. */
   screens: {
+    /**
+     * From this width, the project sections show two columns of cards instead of one: 600 px, past
+     * the 578 px where two cards with their margins fit between the page gutters without getting
+     * narrower than 260 px.
+     */
+    'two-project-columns': breakpoints[37.5],
     /** From this width, the desktop layout is used. */
     tablet: breakpoints[50],
+    /**
+     * From this width, the project sections show three columns of cards instead of two: 858 px,
+     * where three cards with their margins fit between the page gutters without getting narrower
+     * than 260 px.
+     */
+    'three-project-columns': breakpoints['53.625'],
+    /**
+     * From this width, each job card of the Experiences page shows its summary and its technologies
+     * on the left of its description: 1024 px, where the description gets its whole measure
+     * (`text-measure`) next to a summary of more than 300 px.
+     */
+    'two-job-columns': breakpoints[64],
     /** Wide screens. */
     wide: breakpoints[100],
+  },
+  /**
+   * Screen heights where the layout changes, in `em` like `screens`, kept apart from them since
+   * xstyled reads `screens` as widths. Not an xstyled namespace: use `th('screenHeights.short')`.
+   */
+  screenHeights: {
+    /**
+     * Up to this height, 500 px at the default font size, as on a phone held sideways, the header
+     * and the open mobile menu are compact.
+     */
+    short: breakpoints[31.25],
   },
 } as const;

@@ -15,6 +15,7 @@ import {
   MAIN_CI_RUN_LOOKUP_ATTEMPTS,
   MAIN_CI_RUN_LOOKUP_DELAY_MS,
 } from './constants.mjs';
+import { writeAnnotation } from './utils/annotations.mjs';
 import {
   getMainCiRunsUrl,
   getRepositoryUrl,
@@ -29,7 +30,7 @@ const isDryRun = process.env.DRY_RUN === 'true';
 
 const hasCommits = isCommitSha(mainSha) && isCommitSha(deploySha);
 if (!hasCommits) {
-  console.log('::error::MAIN_SHA and DEPLOY_SHA must be full commit SHAs');
+  writeAnnotation({ level: 'error', message: 'MAIN_SHA and DEPLOY_SHA must be full commit SHAs' });
   process.exit(1);
 }
 
@@ -58,7 +59,10 @@ const findMainCiRunUrl = async () => {
       if (run) return run.url;
     } catch (error) {
       // The deploy is already pushed: the report links the list of runs rather than failing
-      console.log(`::warning::${error instanceof Error ? error.message : error}`);
+      writeAnnotation({
+        level: 'warning',
+        message: error instanceof Error ? error.message : error,
+      });
       break;
     }
     if (attempt < MAIN_CI_RUN_LOOKUP_ATTEMPTS) await sleep(MAIN_CI_RUN_LOOKUP_DELAY_MS);

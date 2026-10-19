@@ -1,0 +1,171 @@
+{
+  "experiences": [
+    {
+      "id": "sewan",
+      "nameKey": "exp.sewan.name",
+      "contractKey": "exp.sewan.contract",
+      "cityKey": "exp.sewan.city",
+      "logoUrl": "/sewan.webp",
+      "roles": [
+        {
+          "titleKey": "exp.sewanLead.title",
+          "startKey": "exp.sewanLead.start",
+          "endKey": "exp.sewanLead.end",
+          "intro": [
+            { "key": "exp.sewanLead.intro1" },
+            { "key": "exp.sewanLead.introStrong", "isStrong": true },
+            { "key": "exp.sewanLead.intro2" }
+          ],
+          "bulletKeys": ["exp.sewanLead.b1", "exp.sewanLead.b2", "exp.sewanLead.b3"],
+          "projects": [
+            {
+              "titleKey": "exp.sewanLead.proj1Title",
+              "stateKey": "exp.sewanLead.proj1State",
+              "description": [{ "key": "exp.sewanLead.proj1Intro" }],
+              "bulletKeys": [
+                "exp.sewanLead.proj1B1",
+                "exp.sewanLead.proj1B2",
+                "exp.sewanLead.proj1B3",
+                "exp.sewanLead.proj1B4"
+              ]
+            }
+          ],
+          "technologies": [
+            "React.js",
+            "TypeScript",
+            "Storybook",
+            "Vite",
+            "tsup",
+            "pnpm",
+            "TDD",
+            "Vitest",
+            "Node.js",
+            "Lerna",
+            "CI GitLab"
+          ]
+        },
+        {
+          "titleKey": "exp.sewanSenior.title",
+          "startKey": "exp.sewanSenior.start",
+          "endKey": "exp.sewanSenior.end",
+          "intro": [
+            { "key": "exp.sewanSenior.intro1" },
+            { "key": "exp.sewanSenior.introStrong", "isStrong": true },
+            { "key": "exp.sewanSenior.intro2" }
+          ],
+          "bulletKeys": ["exp.sewanSenior.b1", "exp.sewanSenior.b2", "exp.sewanSenior.b3"],
+          "projects": [
+            {
+              "titleKey": "exp.sewanSenior.proj1Title",
+              "description": [{ "key": "exp.sewanSenior.proj1Desc" }],
+              "technologies": ["Node.js", "GraphQL"]
+            },
+            {
+              "titleKey": "exp.sewanSenior.proj2Title",
+              "description": [{ "key": "exp.sewanSenior.proj2Desc" }],
+              "technologies": ["React.js", "TypeScript", "Redux.js"]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "wibilong",
+      "nameKey": "exp.wibilong.name",
+      "contractKey": "exp.wibilong.contract",
+      "cityKey": "exp.wibilong.city",
+      "logoUrl": "/wibilong.webp",
+      "roles": [
+        {
+          "titleKey": "exp.wibilong.title",
+          "startKey": "exp.wibilong.start",
+          "endKey": "exp.wibilong.end",
+          "intro": [{ "key": "exp.wibilong.intro" }],
+          "bulletKeys": ["exp.wibilong.b1", "exp.wibilong.b2", "exp.wibilong.b3"],
+          "technologies": [
+            "React.js",
+            "Redux.js",
+            "Node.js",
+            "AWS Lambda",
+            "API Gateway",
+            "CloudFormation",
+            "Elasticsearch",
+            "SQL Server",
+            "Swagger"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "supralog",
+      "nameKey": "exp.supralog.name",
+      "contractKey": "exp.supralog.contract",
+      "cityKey": "exp.supralog.city",
+      "logoUrl": "/supralog.webp",
+      "roles": [
+        {
+          "titleKey": "exp.supralog.title",
+          "startKey": "exp.supralog.start",
+          "endKey": "exp.supralog.end",
+          "projects": [
+            {
+              "titleKey": "exp.supralog.proj1Title",
+              "stateKey": "exp.supralog.proj1State",
+              "description": [
+                { "key": "exp.supralog.proj1Desc1" },
+                { "key": "exp.supralog.proj1Strong", "isStrong": true },
+                { "key": "exp.supralog.proj1Desc2" }
+              ],
+              "technologies": [
+                "React.js",
+                "Redux.js",
+                "Next.js",
+                "NestJS",
+                "Docker",
+                "Kubernetes",
+                "Google Cloud Platform"
+              ]
+            },
+            {
+              "titleKey": "exp.supralog.proj2Title",
+              "stateKey": "exp.supralog.proj2State",
+              "description": [
+                { "key": "exp.supralog.proj2Desc1" },
+                { "key": "exp.supralog.proj2Strong", "isStrong": true },
+                { "key": "exp.supralog.proj2Desc2" }
+              ],
+              "technologies": ["React.js", "Redux.js", "TypeScript", "ChartJS"]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "beepeers",
+      "nameKey": "exp.beepeers.name",
+      "contractKey": "exp.beepeers.contract",
+      "cityKey": "exp.beepeers.city",
+      "logoUrl": "/beepeers.webp",
+      "roles": [
+        {
+          "titleKey": "exp.beepeers.title",
+          "startKey": "exp.beepeers.start",
+          "endKey": "exp.beepeers.end",
+          "projects": [
+            {
+              "titleKey": "exp.beepeers.proj1Title",
+              "stateKey": "exp.beepeers.proj1State",
+              "description": [{ "key": "exp.beepeers.proj1Desc" }],
+              "bulletKeys": [
+                "exp.beepeers.proj1B1",
+                "exp.beepeers.proj1B2",
+                "exp.beepeers.proj1B3"
+              ],
+              "technologies": ["React.js", "Redux.js", "AngularJS"]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

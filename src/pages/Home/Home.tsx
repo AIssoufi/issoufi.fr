@@ -1,10 +1,10 @@
 import { useRef } from 'react';
-import { Link } from 'react-router';
 import { useTranslation } from 'react-i18next';
 
+import LocalizedLink from '../../components/LocalizedLink';
+import { HOME_PAGE } from '../../utils/pages';
 import { ParticleField } from './ParticleField';
 import { SplitWords } from './SplitWords';
-import { BACKGROUND_IMAGE_URL } from './constants';
 import { useCursorFollower } from './hooks/useCursorFollower';
 import { useMagneticHover } from './hooks/useMagneticHover';
 import { useParallax } from './hooks/useParallax';
@@ -24,7 +24,7 @@ import {
  * Home page: the animated job title and subtitle, with links to the projects and experiences
  * pages, over a particle background. A glow follows the cursor, the content shifts slightly with
  * it, and the buttons are pulled toward it. Listeners and animation frames are removed on unmount.
- * Must be rendered inside a router.
+ * The links lead to the pages in the language of the current URL. Must be rendered inside a router.
  */
 export const Home = () => {
   const { t } = useTranslation();
@@ -40,7 +40,7 @@ export const Home = () => {
   const jobTitleWordCount = jobTitle.split(' ').length;
 
   return (
-    <HomePage backgroundImage={BACKGROUND_IMAGE_URL}>
+    <HomePage backgroundPhoto={HOME_PAGE.backgroundPhoto}>
       <ParticleField />
       <CursorGlow ref={cursorRef} />
       <Content ref={contentRef}>
@@ -59,7 +59,7 @@ export const Home = () => {
         <ButtonContainer>
           <MagneticWrapper {...magneticHover}>
             <Btn
-              as={Link}
+              as={LocalizedLink}
               to="/projects"
               $callToAction
             >
@@ -68,7 +68,7 @@ export const Home = () => {
           </MagneticWrapper>
           <MagneticWrapper {...magneticHover}>
             <Btn
-              as={Link}
+              as={LocalizedLink}
               to="/experiences"
             >
               {t('home.secondary')}

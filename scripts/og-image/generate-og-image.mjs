@@ -1,59 +1,33 @@
 // @ts-check
-// Regenerates the link preview image, public/og-image.jpg, from the French texts, the design
-// tokens, the background photo and the particle field of the home page: run `pnpm og-image` after
-// changing one of them. Chromium, from Playwright, renders the image and saves it as a JPEG. It
-// needs the network, for the Google Fonts of the site.
+// Regenerates the link preview image of each language, public/og-image.jpg in French and
+// public/og-image-en.jpg in English (`OG_IMAGE_PATHS` of src/utils/pages.ts), from the texts of the
+// home page in that language, the design tokens, the background photo and the particle field of
+// the home page: run `pnpm og-image` after changing one of them. Chromium, from Playwright,
+// renders each image in the web fonts of the site, read from public/fonts/, and saves it as a
+// JPEG.
 import { readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 
 import { chromium } from '@playwright/test';
-import { createServer } from 'vite';
 
+import { checkFontsLoaded } from '../utils/browser.mjs';
+import { PUBLIC_DIR, TRANSLATION_MODULES } from '../utils/constants.mjs';
+import { listFontsInUse } from '../utils/fonts.mjs';
+import { findMissingTexts, getHomeTexts } from '../utils/home-texts.mjs';
+import { hasUnresolvedValue, toDataUrl } from '../utils/html.mjs';
+import { loadSiteModules } from '../utils/site-modules.mjs';
 import {
-  INDEX_HTML_FILE,
-  OG_IMAGE_FILE,
+  FONTS_IN_USE,
   OG_IMAGE_HEIGHT_PX,
   OG_IMAGE_JPEG_QUALITY,
   OG_IMAGE_MAX_BYTES,
   OG_IMAGE_WIDTH_PX,
   PARTICLE_SEED,
-  PUBLIC_DIR,
   SOURCE_MODULES,
 } from './constants.mjs';
-import { findMissingFonts, listFontsInUse } from './utils/fonts.mjs';
 import { findDotLinks, renderParticlesSvg } from './utils/particles.mjs';
 import { createSeededRandom } from './utils/random.mjs';
-import { findFontStylesheetUrl, hasUnresolvedValue, toImageDataUrl } from './utils/html.mjs';
 import { renderOgImageHtml, renderOgImageStyles } from './utils/template.mjs';
-import { findMissingTexts, getOgImageTexts } from './utils/texts.mjs';
-
-/**
- * Loads the TypeScript modules of the site listed in {@link SOURCE_MODULES}, compiled by Vite.
- * @returns {Promise<Record<keyof SOURCE_MODULES, Record<string, any>>>} The exports of each
- * module, by name.
- */
-const loadSourceModules = async () => {
-  const server = await createServer({
-    configFile: false,
-    logLevel: 'error',
-    appType: 'custom',
-    // Nothing is served to a browser, so there are no dependencies to prebundle
-    optimizeDeps: { noDiscovery: true, entries: [] },
-    server: { middlewareMode: true, hmr: false, ws: false },
-  });
-
-  try {
-    const modules = await Promise.all(
-      Object.entries(SOURCE_MODULES).map(async ([name, id]) => [
-        name,
-        await server.ssrLoadModule(id),
-      ]),
-    );
-    return Object.fromEntries(modules);
-  } finally {
-    await server.close();
-  }
-};
 
 /**
  * Parameters of {@link takeScreenshot}.
@@ -67,7 +41,7 @@ const loadSourceModules = async () => {
  * Renders the page in Chromium at the size of the image, once its fonts are loaded.
  * @param {TakeScreenshotParams} params
  * @returns {Promise<Buffer>} The screenshot, as a JPEG file.
- * @throws {Error} When a font did not load, as when the network is down.
+ * @throws {Error} When a font did not load, as when its file is not a font.
  */
 const takeScreenshot = async ({ html, fonts }) => {
   const browser = await chromium.launch();
@@ -78,22 +52,7 @@ const takeScreenshot = async ({ html, fonts }) => {
       deviceScaleFactor: 1,
     });
     await page.setContent(html, { waitUntil: 'networkidle' });
-    const fontChecks = await page.evaluate(
-      fontsToLoad =>
-        Promise.all(
-          fontsToLoad.map(async font => {
-            // A face that fails to download rejects the promise: it counts as not loaded
-            const faces = await document.fonts.load(font).catch(() => []);
-            const loadedFaces = faces.filter(({ status }) => status === 'loaded');
-            return { font, loadedFaceCount: loadedFaces.length };
-          }),
-        ),
-      fonts,
-    );
-    const missingFonts = findMissingFonts(fontChecks);
-    if (missingFonts.length > 0) {
-      throw new Error(`Fonts not loaded, check the network: ${missingFonts.join(', ')}`);
-    }
+    await checkFontsLoaded({ page, fonts });
 
     return await page.screenshot({ type: 'jpeg', quality: OG_IMAGE_JPEG_QUALITY });
   } finally {
@@ -101,23 +60,44 @@ const takeScreenshot = async ({ html, fonts }) => {
   }
 };
 
-const sources = await loadSourceModules();
+const { sources, translations } = await loadSiteModules({
+  sources: SOURCE_MODULES,
+  translations: TRANSLATION_MODULES,
+});
 const { theme } = sources.theme;
 const particles = { ...sources.particleConstants, ...sources.particleUtils };
 
-const texts = getOgImageTexts({
-  translations: sources.translations.fr,
-  siteUrl: sources.pages.SITE_URL,
+/** @type {Record<string, string>} */
+const imagePaths = sources.pages.OG_IMAGE_PATHS;
+const images = Object.entries(imagePaths).map(([language, imagePath]) => ({
+  language,
+  fileName: join(PUBLIC_DIR, imagePath),
+  texts: getHomeTexts({
+    // Each module of translations exports them under the code of its language
+    translations: translations[language]?.[language],
+    siteUrl: sources.pages.SITE_URL,
+  }),
+}));
+images.forEach(({ language, texts }) => {
+  const missingTexts = findMissingTexts(texts);
+  if (missingTexts.length > 0) {
+    throw new Error(`Texts missing from the ${language} translations: ${missingTexts.join(', ')}`);
+  }
 });
-const missingTexts = findMissingTexts(texts);
-if (missingTexts.length > 0) {
-  throw new Error(`Texts missing from the translations: ${missingTexts.join(', ')}`);
-}
 
-const fontStylesheetUrl = findFontStylesheetUrl(readFileSync(INDEX_HTML_FILE, 'utf-8'));
-if (!fontStylesheetUrl) throw new Error(`No Google Fonts style sheet in ${INDEX_HTML_FILE}`);
+// The web fonts of the site, whose files the page reads as data URLs, like the photo
+const fontFaceStyles = sources.fonts.renderFontFaces({
+  getUrl: (/** @type {string} */ url) =>
+    toDataUrl({ content: readFileSync(join(PUBLIC_DIR, url)), fileName: url }),
+});
+if (!fontFaceStyles) throw new Error('No web font to load in src/theme/constants.ts');
 
-const backgroundImageFile = join(PUBLIC_DIR, sources.home.BACKGROUND_IMAGE_URL);
+// The whole background photo of the home page, which wide screens show
+const backgroundImageFile = join(PUBLIC_DIR, sources.pages.HOME_PAGE.backgroundPhoto.url);
+const backgroundImageUrl = toDataUrl({
+  content: readFileSync(backgroundImageFile),
+  fileName: backgroundImageFile,
+});
 const dots = particles.createParticles({
   width: OG_IMAGE_WIDTH_PX,
   height: OG_IMAGE_HEIGHT_PX,
@@ -143,26 +123,34 @@ const particlesSvg = renderParticlesSvg({
 if (hasUnresolvedValue(styles)) throw new Error('A design token of the image is missing');
 if (hasUnresolvedValue(particlesSvg)) throw new Error('A setting of the particles is missing');
 
-const html = renderOgImageHtml({
-  texts,
-  styles,
-  backgroundImageUrl: toImageDataUrl({
-    content: readFileSync(backgroundImageFile),
-    fileName: backgroundImageFile,
-  }),
-  fontStylesheetUrl,
-  particlesSvg,
-});
-
-const file = await takeScreenshot({ html, fonts: listFontsInUse(theme) });
-
-if (file.length > OG_IMAGE_MAX_BYTES) {
-  throw new Error(
-    `${OG_IMAGE_FILE} would weigh ${file.length} bytes, over ${OG_IMAGE_MAX_BYTES}: lighten the image`,
-  );
+/** @type {{ fileName: string, file: Buffer }[]} */
+const files = [];
+// One after the other, so that only one Chromium runs at a time
+for (const { language, fileName, texts } of images) {
+  const html = renderOgImageHtml({
+    language,
+    texts,
+    styles,
+    backgroundImageUrl,
+    fontFaceStyles,
+    particlesSvg,
+  });
+  const file = await takeScreenshot({
+    html,
+    fonts: listFontsInUse({ theme, fontsInUse: FONTS_IN_USE }),
+  });
+  if (file.length > OG_IMAGE_MAX_BYTES) {
+    throw new Error(
+      `${fileName} would weigh ${file.length} bytes, over ${OG_IMAGE_MAX_BYTES}: lighten the image`,
+    );
+  }
+  files.push({ fileName, file });
 }
 
-writeFileSync(OG_IMAGE_FILE, file);
-console.log(
-  `Wrote ${OG_IMAGE_FILE}: ${OG_IMAGE_WIDTH_PX} × ${OG_IMAGE_HEIGHT_PX}, ${file.length} bytes (limit ${OG_IMAGE_MAX_BYTES})`,
-);
+// Written once every image is drawn, so a failure leaves none of them changed
+files.forEach(({ fileName, file }) => {
+  writeFileSync(fileName, file);
+  console.log(
+    `Wrote ${fileName}: ${OG_IMAGE_WIDTH_PX} × ${OG_IMAGE_HEIGHT_PX}, ${file.length} bytes (limit ${OG_IMAGE_MAX_BYTES})`,
+  );
+});

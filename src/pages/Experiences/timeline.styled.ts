@@ -11,7 +11,7 @@ export const mobileLineLeft = th.space(5);
 export const mobileLineCenter = css`calc(${mobileLineLeft} + ${lineWidth} / 2)`;
 
 /* How far the content of the timeline starts from its left edge on mobile, past the line and its
-   dots. Both TimelineContent (a single job) and GroupArticle (a group of roles) indent by it. */
+   dots. Both TimelineContent (a single job) and GroupItem (a group of roles) indent by it. */
 export const mobileContentIndent = th.space(22);
 
 /* Glowing dot marking an entry on the timeline line. Each caller places it.
@@ -75,5 +75,43 @@ export const card = css`
   &:hover {
     transform: translateY(${th.space(-2)});
     box-shadow: ${th.shadow('cardHover')};
+  }
+`;
+
+/* Two columns of a job card from the two-job-columns breakpoint: its summary, then its
+   technologies, on the left, and its description on the right, as high as both. The description
+   column is as wide as its lines, which its measure keeps short, against the right edge of the
+   card, and the left column takes the rest of the card. The measure stays on the description
+   rather than in the column, since a width in `ch` follows the font size of its own element.
+   Below it, the card stacks them in the order of the page. The summary places itself in the
+   first free cell; the description and the technologies place themselves with cardDetails and
+   cardTechnologies */
+export const cardColumns = css`
+  @media (min-width: ${th('screens.two-job-columns')}) {
+    display: grid;
+    grid-template-columns: minmax(${th.size(240)}, 1fr) auto;
+    grid-template-rows: auto 1fr;
+    column-gap: ${th.space(32)};
+    align-items: start;
+  }
+`;
+
+/* Description of a job card: on the right of the card from the two-job-columns breakpoint, lined
+   up with the top of the summary, its lines kept short however wide the card */
+export const cardDetails = css`
+  @media (min-width: ${th('screens.two-job-columns')}) {
+    grid-column: 2;
+    grid-row: 1 / span 2;
+    max-width: ${th.size('text-measure')};
+    margin-top: 0;
+  }
+`;
+
+/* Technologies of a job card: under its summary, on the left, from the two-job-columns
+   breakpoint */
+export const cardTechnologies = css`
+  @media (min-width: ${th('screens.two-job-columns')}) {
+    grid-column: 1;
+    grid-row: 2;
   }
 `;

@@ -1,17 +1,21 @@
 import styled, { th } from '@xstyled/styled-components';
 
 import List from '../../../components/List';
+import Technologies from '../Technologies';
 import {
   card,
+  cardColumns,
+  cardDetails,
+  cardTechnologies,
   companyBlock,
   mobileContentIndent,
   mobileLineCenter,
   timelineRow,
 } from '../timeline.styled';
 
-/* ── Group wrapper — participates directly in Timeline ─────── */
+/* ── Group item — an item of the Timeline list ─────────────── */
 
-export const GroupArticle = styled.section`
+export const GroupItem = styled.li`
   ${companyBlock}
   padding-left: ${mobileContentIndent};
 
@@ -63,9 +67,10 @@ export const RoleItem = styled.li`
 
 /* ── Role content — the card ────────────────────────────────── */
 
-export const RoleContent = styled.div`
+export const RoleContent = styled.article`
   min-width: 0;
   ${card}
+  ${cardColumns}
   padding: ${th.space(14)} ${th.space(16)};
 
   @media (min-width: ${th('screens.tablet')}) {
@@ -78,4 +83,9 @@ export const RoleDetails = styled.div`
   font-weight: ${th.fontWeight('regular')};
   line-height: ${th.lineHeight(160)};
   margin-top: ${th.space(10)};
+  ${cardDetails}
+`;
+
+export const RoleTechnologies = styled(Technologies)`
+  ${cardTechnologies}
 `;

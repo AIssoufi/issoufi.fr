@@ -11,7 +11,7 @@ export const Header = styled.header`
   padding: ${th.space(7)} 0;
 `;
 
-export const Title = styled.h3`
+export const Title = styled.h4`
   font-size: ${th.fontSize(13)};
   font-weight: ${th.fontWeight('semibold')};
   margin: 0;
@@ -21,7 +21,7 @@ export const Title = styled.h3`
 
 export const State = styled.span`
   flex-shrink: 0;
-  font-size: ${th.fontSize(10)};
+  font-size: ${th.fontSize(12)};
   font-weight: ${th.fontWeight('semibold')};
   color: ${th.color('success')};
   background: ${th.color('success-a10')};

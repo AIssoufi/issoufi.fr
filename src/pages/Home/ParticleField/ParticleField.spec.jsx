@@ -1,5 +1,6 @@
 import { fireEvent, render } from '@testing-library/react';
 
+import { stubMatchMedia } from '../../../mediaQueryTestUtils';
 import {
   CURSOR_LINK_DISTANCE_PX,
   CURSOR_LINK_MAX_OPACITY,
@@ -51,6 +52,7 @@ describe('ParticleField', () => {
   afterEach(() => {
     vi.useRealTimers();
     vi.restoreAllMocks();
+    vi.unstubAllGlobals();
     resizeWindow(DEFAULT_WINDOW);
   });
 
@@ -127,6 +129,81 @@ describe('ParticleField', () => {
 
       expect(context.arc).toHaveBeenCalledTimes(2);
       expect(context.stroke).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('with reduced motion', () => {
+    let context;
+
+    beforeEach(() => {
+      vi.useFakeTimers({ toFake: ['requestAnimationFrame', 'cancelAnimationFrame'] });
+      vi.spyOn(Math, 'random').mockReturnValue(0.5);
+      resizeWindow(ONE_DOT_WINDOW);
+      context = fakeContext();
+      vi.spyOn(HTMLCanvasElement.prototype, 'getContext').mockReturnValue(context);
+    });
+
+    it('draws the dots once, and requests no animation frame', () => {
+      stubMatchMedia({ matches: true });
+      render(<ParticleField />);
+
+      vi.advanceTimersByTime(FRAME_MS * 10);
+
+      expect(context.clearRect).toHaveBeenCalledOnce();
+      expect(context.arc).toHaveBeenCalledOnce();
+      expect(context.arc).toHaveBeenCalledWith(DOT.x, DOT.y, expect.any(Number), 0, Math.PI * 2);
+      expect(vi.getTimerCount()).toBe(0);
+    });
+
+    it('ignores the mouse: no push and no cursor link', () => {
+      stubMatchMedia({ matches: true });
+      render(<ParticleField />);
+
+      fireEvent.mouseMove(window, { clientX: DOT.x - LINKED_DISTANCE_PX, clientY: DOT.y });
+      vi.advanceTimersByTime(FRAME_MS * 10);
+
+      expect(context.arc).toHaveBeenCalledOnce();
+      expect(context.stroke).not.toHaveBeenCalled();
+    });
+
+    it('draws the dots again, still, for a new size of the window', () => {
+      stubMatchMedia({ matches: true });
+      render(<ParticleField />);
+      const resizedWindow = { width: ONE_DOT_WINDOW.width * 2, height: ONE_DOT_WINDOW.height };
+
+      resizeWindow(resizedWindow);
+      fireEvent(window, new Event('resize'));
+      vi.advanceTimersByTime(FRAME_MS * 10);
+
+      // One dot for the first size, then two for the window twice as large, all drawn once
+      expect(context.clearRect).toHaveBeenCalledTimes(2);
+      expect(context.arc).toHaveBeenCalledTimes(3);
+      expect(vi.getTimerCount()).toBe(0);
+    });
+
+    it('stops moving the dots once the visitor turns it on', () => {
+      const { setMatches } = stubMatchMedia({ matches: false });
+      render(<ParticleField />);
+      vi.advanceTimersByTime(FRAME_MS);
+
+      setMatches(true);
+      const arcCallsOnceStill = context.arc.mock.calls.length;
+      vi.advanceTimersByTime(FRAME_MS * 10);
+
+      expect(context.arc).toHaveBeenCalledTimes(arcCallsOnceStill);
+      expect(vi.getTimerCount()).toBe(0);
+    });
+
+    it('moves the dots again once the visitor turns it off', () => {
+      const { setMatches } = stubMatchMedia({ matches: true });
+      render(<ParticleField />);
+
+      setMatches(false);
+      const arcCallsBeforeFrames = context.arc.mock.calls.length;
+      vi.advanceTimersByTime(FRAME_MS * 3);
+
+      expect(context.arc.mock.calls.length).toBeGreaterThan(arcCallsBeforeFrames);
+      expect(vi.getTimerCount()).toBe(1);
     });
   });
 });

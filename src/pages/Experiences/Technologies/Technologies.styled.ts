@@ -1,14 +1,18 @@
 import styled, { th } from '@xstyled/styled-components';
 
-export const TechList = styled.footer`
+import List from '../../../components/List';
+
+export const TechList = styled(List)`
   display: flex;
   flex-wrap: wrap;
   gap: ${th.space(6)};
   margin-top: ${th.space(10)};
+  /* The height of its chips, wherever it stands in the card */
+  line-height: ${th.lineHeight(160)};
 `;
 
-export const TechChip = styled.span`
-  font-size: ${th.fontSize(11)};
+export const TechChip = styled.li`
+  font-size: ${th.fontSize(12)};
   font-weight: ${th.fontWeight('medium')};
   border-radius: ${th.radius(20)};
   padding: ${th.space(3)} ${th.space(9)};

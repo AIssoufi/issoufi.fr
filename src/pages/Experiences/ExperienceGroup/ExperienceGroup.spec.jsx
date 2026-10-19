@@ -1,10 +1,16 @@
 import { act, render, screen, within } from '@testing-library/react';
 
 import i18n from '../../../i18n';
+import { declaredStyle } from '../../../styleTestUtils';
+import { theme } from '../../../theme';
+import { getReadText } from '../../testUtils';
 import ExperienceGroup from './ExperienceGroup';
 
 /** Any duration text, in French or in English. */
 const DURATION_TEXT = /\d+ (an|ans|mois|years?|months?)|< 1 (mois|month)/;
+
+/** Media query from which a job card shows two columns. */
+const TWO_JOB_COLUMNS_MEDIA = `(min-width: ${theme.screens['two-job-columns']})`;
 
 describe('ExperienceGroup', () => {
   afterEach(async () => {
@@ -40,7 +46,7 @@ describe('ExperienceGroup', () => {
     render(
       <ExperienceGroup
         entityName="Sewan Groupe"
-        entityLogoUrl="/sewan.png"
+        entityLogoUrl="/sewan.webp"
         contractType="CDI"
         city="Paris (75)"
       >
@@ -57,8 +63,116 @@ describe('ExperienceGroup', () => {
     expect(screen.getByText('Lead Frontend Engineer')).toBeInTheDocument();
     expect(screen.getByText('Sewan Groupe · CDI · Paris (75)')).toBeInTheDocument();
     expect(screen.getByText('2 ans')).toBeInTheDocument();
-    expect(screen.getByRole('img', { name: 'Sewan Groupe' })).toHaveAttribute('src', '/sewan.png');
+    expect(document.querySelector('img')).toHaveAttribute('src', '/sewan.webp');
     expect(screen.getByText("Owner de l'UI Kit")).toBeInTheDocument();
+  });
+
+  it('names the company with a level 2 heading, hidden from the screen, before its roles', () => {
+    render(
+      <ExperienceGroup entityName="Sewan Groupe">
+        <ExperienceGroup.Role jobName="Lead Frontend Engineer" />
+      </ExperienceGroup>,
+    );
+    const heading = screen.getByRole('heading', { level: 2, name: 'Sewan Groupe' });
+
+    expect(heading).toHaveStyle({ position: 'absolute', clipPath: 'inset(50%)' });
+    expect(heading.nextElementSibling).toBe(screen.getByRole('list'));
+  });
+
+  it.each(['', undefined, null])(
+    'renders no empty heading when the company name is %j',
+    entityName => {
+      render(
+        <ExperienceGroup entityName={entityName}>
+          <ExperienceGroup.Role jobName="Lead Frontend Engineer" />
+        </ExperienceGroup>,
+      );
+
+      expect(screen.queryByRole('heading', { level: 2 })).not.toBeInTheDocument();
+    },
+  );
+
+  it('is an item of the list of the timeline', () => {
+    const { container } = render(<ExperienceGroup entityName="Sewan Groupe" />);
+
+    expect(container.firstChild.tagName).toBe('LI');
+  });
+
+  it('shows each role in an article, under its level 3 heading', () => {
+    render(
+      <ExperienceGroup entityName="Sewan Groupe">
+        <ExperienceGroup.Role jobName="Lead Frontend Engineer" />
+        <ExperienceGroup.Role jobName="Senior Full-Stack Engineer" />
+      </ExperienceGroup>,
+    );
+    const articles = screen.getAllByRole('article');
+
+    expect(articles).toHaveLength(2);
+    expect(articles.map(article => within(article).getByRole('heading').textContent)).toEqual([
+      'Lead Frontend Engineer',
+      'Senior Full-Stack Engineer',
+    ]);
+    expect(screen.getAllByRole('heading', { level: 3 })).toHaveLength(2);
+  });
+
+  it('reads the period of a role once in its column and once in its card, each one for its screens', () => {
+    render(
+      <ExperienceGroup entityName="Sewan Groupe">
+        <ExperienceGroup.Role
+          jobName="Lead Frontend Engineer"
+          startDate="août 2021"
+          endDate="Aujourd’hui"
+        />
+      </ExperienceGroup>,
+    );
+    const role = within(screen.getByRole('list')).getByRole('listitem');
+    const [column, card] = role.children;
+
+    expect(getReadText(column)).toBe('août 2021 à Aujourd’hui');
+    expect(getReadText(card)).toContain('août 2021 à Aujourd’hui');
+  });
+
+  it('lists the technologies of a role after its description, on the left of it on a wide screen', () => {
+    render(
+      <ExperienceGroup entityName="Sewan Groupe">
+        <ExperienceGroup.Role
+          jobName="Lead Frontend Engineer"
+          technologies={['React.js', 'Storybook']}
+        >
+          Description du rôle
+        </ExperienceGroup.Role>
+      </ExperienceGroup>,
+    );
+    const wideStyle = ({ element, property }) =>
+      declaredStyle({ element, property, media: TWO_JOB_COLUMNS_MEDIA });
+    const card = screen.getByRole('article');
+    const details = screen.getByText('Description du rôle');
+    const technologies = within(card).getByRole('list');
+
+    expect(
+      within(technologies)
+        .getAllByRole('listitem')
+        .map(({ textContent }) => textContent),
+    ).toEqual(['React.js', 'Storybook']);
+    expect(details.compareDocumentPosition(technologies)).toBe(Node.DOCUMENT_POSITION_FOLLOWING);
+    expect(wideStyle({ element: card, property: 'display' })).toBe('grid');
+    expect(wideStyle({ element: details, property: 'grid-column' })).toBe('2');
+    expect(wideStyle({ element: technologies, property: 'grid-column' })).toBe('1');
+    expect(wideStyle({ element: details, property: 'max-width' })).toBe(
+      theme.sizes['text-measure'],
+    );
+    // A single column on a narrower screen, as wide as the card
+    expect(declaredStyle({ element: details, property: 'max-width' })).toBe('');
+  });
+
+  it('lists no technologies for a role without them', () => {
+    render(
+      <ExperienceGroup entityName="Sewan Groupe">
+        <ExperienceGroup.Role jobName="Lead Frontend Engineer" />
+      </ExperienceGroup>,
+    );
+
+    expect(within(screen.getByRole('article')).queryByRole('list')).not.toBeInTheDocument();
   });
 
   it("shows a role's duration in the active language", async () => {
@@ -103,7 +217,7 @@ describe('ExperienceGroup', () => {
     );
 
     expect(container.firstChild).toHaveAttribute('data-timeline-dot', 'before');
-    const roles = screen.getAllByRole('listitem');
+    const roles = within(screen.getByRole('list')).getAllByRole('listitem');
     expect(roles).toHaveLength(2);
     roles.forEach(role => expect(role).toHaveAttribute('data-timeline-dot', 'before'));
   });

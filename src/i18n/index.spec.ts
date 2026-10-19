@@ -19,6 +19,7 @@ describe('i18n', () => {
     vi.unstubAllEnvs();
     vi.unstubAllGlobals();
     localStorage.clear();
+    window.history.replaceState(null, '', '/');
     await loadI18n();
   });
 
@@ -28,13 +29,33 @@ describe('i18n', () => {
     expect(i18n.language).toBe(DEFAULT_LANGUAGE);
   });
 
-  it('starts in the language chosen on a previous visit', async () => {
+  it('starts in the language of an English URL', async () => {
+    window.history.replaceState(null, '', '/en/projects');
+
+    const i18n = await loadI18n();
+
+    expect(i18n.language).toBe('en');
+    expect(i18n.t('nav.projects')).toBe('Projects');
+  });
+
+  it('starts at the root in the language chosen on a previous visit, at its URL', async () => {
     localStorage.setItem(LANGUAGE_STORAGE_KEY, 'en');
 
     const i18n = await loadI18n();
 
     expect(i18n.language).toBe('en');
     expect(i18n.t('nav.projects')).toBe('Projects');
+    expect(window.location.pathname).toBe('/en/');
+  });
+
+  it('starts at a French URL in French, whatever the language chosen before', async () => {
+    localStorage.setItem(LANGUAGE_STORAGE_KEY, 'en');
+    window.history.replaceState(null, '', '/projects');
+
+    const i18n = await loadI18n();
+
+    expect(i18n.language).toBe(DEFAULT_LANGUAGE);
+    expect(window.location.pathname).toBe('/projects');
   });
 
   it('starts in the default language when the browser blocks the storage', async () => {

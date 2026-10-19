@@ -1,10 +1,16 @@
 import { render, screen } from '@testing-library/react';
 
+import { declaredStyle } from '../../../styleTestUtils';
+import { theme } from '../../../theme/theme';
+import { getReadText } from '../../testUtils';
 import TimelinePeriod from './TimelinePeriod';
 
 /** Color of the start of a job's period, and of a role's dimmer one. */
 const JOB_START_COLOR = 'rgba(212, 160, 192, 0.95)';
 const ROLE_START_COLOR = 'rgba(212, 160, 192, 0.85)';
+
+/** Media query from which the desktop layout, with the period column, is used. */
+const TABLET_MEDIA = `(min-width: ${theme.screens.tablet})`;
 
 describe('TimelinePeriod', () => {
   it('renders an empty column without any props', () => {
@@ -20,7 +26,7 @@ describe('TimelinePeriod', () => {
     expect(container.firstChild).toHaveAttribute('data-timeline-dot', 'after');
   });
 
-  it('renders the start, an arrow and the end, in this order', () => {
+  it('shows the start, an arrow and the end, in this order', () => {
     const { container } = render(
       <TimelinePeriod
         start="Sept. 2019"
@@ -28,7 +34,33 @@ describe('TimelinePeriod', () => {
       />,
     );
 
-    expect(container.textContent).toBe('Sept. 2019↓Juin 2021');
+    expect(container.textContent).toBe('Sept. 2019 ↓à Juin 2021');
+  });
+
+  it('reads "à" in place of the arrow, which screen readers skip', () => {
+    const { container } = render(
+      <TimelinePeriod
+        start="août 2021"
+        end="Aujourd’hui"
+      />,
+    );
+
+    expect(screen.getByText('↓')).toHaveAttribute('aria-hidden', 'true');
+    expect(getReadText(container.firstChild)).toBe('août 2021 à Aujourd’hui');
+  });
+
+  it('is hidden below the tablet breakpoint, where the card shows the period, and shown from it', () => {
+    const { container } = render(
+      <TimelinePeriod
+        start="août 2021"
+        end="Aujourd’hui"
+      />,
+    );
+
+    expect(declaredStyle({ element: container.firstChild, property: 'display' })).toBe('none');
+    expect(
+      declaredStyle({ element: container.firstChild, property: 'display', media: TABLET_MEDIA }),
+    ).toBe('flex');
   });
 
   it.each([
@@ -53,7 +85,7 @@ describe('TimelinePeriod', () => {
       />,
     );
 
-    expect(container.textContent).toBe('2019↓2021');
+    expect(getReadText(container.firstChild)).toBe('2019 à 2021');
   });
 
   describe('variant', () => {

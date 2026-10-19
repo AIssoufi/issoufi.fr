@@ -1,8 +1,7 @@
 import styled, { css, keyframes, th } from '@xstyled/styled-components';
 
 import List from '../../../components/List';
-import { theme } from '../../../theme';
-import { CARD_PERSPECTIVE_PX } from './constants';
+import { CARD_PERSPECTIVE_PX, LIKE_ANIMATION_MS } from './constants';
 
 const heartPop = keyframes`
   0%   { transform: scale(1); }
@@ -12,19 +11,8 @@ const heartPop = keyframes`
   100% { transform: scale(1); }
 `;
 
-// Keyframes have no theme context, so they read the theme object rather than the th helpers
-const countBump = keyframes`
-  0%   { transform: translateY(0); opacity: 1; }
-  40%  { transform: translateY(-${theme.space[6]}); opacity: 0; }
-  41%  { transform: translateY(${theme.space[6]}); opacity: 0; }
-  100% { transform: translateY(0); opacity: 1; }
-`;
-
-// Space around each card, which the "Show all" rows take off their padding to line the cards up
-const cardMargin = th.space(5);
-
-// Width of a card in the row of three, less the margins on both of its sides
-const cardBasis = css`calc(33.333% - 2 * ${cardMargin})`;
+// Space around each card, which the list takes off the page gutter to line the cards up with it
+const cardMargin = th.space('project-card-margin');
 
 export const Section = styled.section`
   height: max-content;
@@ -73,7 +61,6 @@ export const SectionControls = styled.div`
 `;
 
 export const CtrlItem = styled.button`
-  order: 3;
   height: ${th.size(32)};
   border-radius: ${th.radius('pill')};
   padding: 0 ${th.space(14)};
@@ -122,7 +109,13 @@ export const IconBtn = styled.button`
     display: block;
   }
 
-  &:hover {
+  /* At the first or the last page, the button stays focusable but does nothing, and shows it */
+  &[aria-disabled='true'] {
+    opacity: 0.4;
+    cursor: default;
+  }
+
+  &:hover:not([aria-disabled='true']) {
     background-color: ${th.color('accent')};
     border-color: ${th.color('accent')};
     transform: none;
@@ -138,6 +131,15 @@ export const ProjectGrid = styled(List)<{ $displayAll: boolean }>`
   align-items: flex-start;
   max-width: 100vw;
   overflow-x: auto;
+  /* The page gutter less the margin of the cards, in the row as in "Show all", so that the cards
+     have the same width in both. The row scrolls across it, up to the edges of the screen. */
+  padding-left: calc(${th.space('page')} - ${cardMargin});
+  padding-right: calc(${th.space('page')} - ${cardMargin});
+
+  @media (min-width: ${th('screens.tablet')}) {
+    padding-left: 0;
+    padding-right: 0;
+  }
 
   /* "Show all" keeps the cards of the row and wraps them onto as many rows as they need */
   ${props =>
@@ -145,27 +147,18 @@ export const ProjectGrid = styled(List)<{ $displayAll: boolean }>`
     css`
       flex-wrap: wrap;
       row-gap: ${th.space(5)};
-      padding-left: calc(${th.space('page')} - ${cardMargin});
-      padding-right: calc(${th.space('page')} - ${cardMargin});
-
-      @media (min-width: ${th('screens.tablet')}) {
-        padding-left: 0;
-        padding-right: 0;
-      }
     `}
 `;
 
-export const ProjectItem = styled.li<{ $displayAll?: boolean }>`
+export const ProjectItem = styled.li`
   /* Box covered by the stretched link of the title */
   position: relative;
   display: flex;
   flex-direction: column;
   margin: ${cardMargin};
-  flex: 0 0 ${cardBasis};
-  min-width: ${th.size(260)};
-  /* Keeps content-box: the 260px minimum and the flex basis leave out the page gutter that pads
-     the first and last cards, so the gutter widens them instead of narrowing their content */
-  box-sizing: content-box;
+  /* One column on a phone: the card fills the width between the page gutters, and the next card of
+     the row starts in the right one, which shows that the row scrolls */
+  flex: 0 0 calc(100% - 2 * ${cardMargin});
   transition:
     transform ${th.duration(150)} ${th.timingFunction('standard')},
     box-shadow ${th.duration(150)} ${th.timingFunction('standard')};
@@ -177,22 +170,15 @@ export const ProjectItem = styled.li<{ $displayAll?: boolean }>`
     transition: transform ${th.duration(400)} ${th.timingFunction('standard')};
   }
 
-  &:first-child {
-    padding-left: ${props => (props.$displayAll ? '0' : th.space('page'))};
+  /* Then as many columns as fit, which share the width of the section, in the row as in "Show
+     all": the next card of the row is out of view once the section has no gutter on the right */
+  @media (min-width: ${th('screens.two-project-columns')}) {
+    flex: 0 0 calc(50% - 2 * ${cardMargin});
   }
 
-  &:last-child {
-    padding-right: ${props => (props.$displayAll ? '0' : th.space('page'))};
-  }
-
-  @media (min-width: ${th('screens.tablet')}) {
-    &:first-child {
-      padding-left: 0;
-    }
-
-    &:last-child {
-      padding-right: 0;
-    }
+  /* A third less a hair, so that rounding never pushes the third card onto a new row */
+  @media (min-width: ${th('screens.three-project-columns')}) {
+    flex: 0 0 calc(33.333% - 2 * ${cardMargin});
   }
 `;
 
@@ -258,14 +244,18 @@ export const LikeButton = styled.button<{ $liked: boolean; $animating: boolean }
   top: ${th.space(10)};
   right: ${th.space(10)};
   z-index: ${th.zIndex('raisedMost')};
+  /* A round button around the heart alone, since it shows no count */
   display: flex;
   align-items: center;
-  gap: ${th.space(6)};
-  padding: ${th.space(5)} ${th.space(11)} ${th.space(5)} ${th.space(8)};
-  border-radius: ${th.radius('pill')};
+  justify-content: center;
+  width: ${th.size(32)};
+  height: ${th.size(32)};
+  padding: 0;
+  border-radius: ${th.radius('circle')};
   border: ${th.borderWidth('thin')} solid
     ${props => (props.$liked ? th.color('accent-a60') : th.color('foreground-a20'))};
-  background: ${props => (props.$liked ? th.color('accent-a25') : th.color('shade-a45'))};
+  /* Dark enough in every state for the heart to keep 3:1 even over a white thumbnail */
+  background: ${props => (props.$liked ? th.color('accent-backdrop') : th.color('shade-a45'))};
   backdrop-filter: ${th('blurs.10')};
   -webkit-backdrop-filter: ${th('blurs.10')};
   cursor: pointer;
@@ -278,45 +268,42 @@ export const LikeButton = styled.button<{ $liked: boolean; $animating: boolean }
     width: ${th.size(15)};
     height: ${th.size(15)};
     flex-shrink: 0;
-    stroke: ${props => (props.$liked ? th.color('accent') : th.color('foreground-a85'))};
-    fill: ${props => (props.$liked ? th.color('accent') : 'transparent')};
+    stroke: ${props => (props.$liked ? th.color('accent-foreground') : th.color('foreground'))};
+    fill: ${props => (props.$liked ? th.color('accent-foreground') : 'transparent')};
     transition:
       stroke ${th.duration(200)},
       fill ${th.duration(200)};
     ${props =>
       props.$animating &&
       css`
-        animation: ${heartPop} ${th.duration(450)} ${th.timingFunction('standard')} forwards;
+        animation: ${heartPop} ${LIKE_ANIMATION_MS}ms ${th.timingFunction('standard')} forwards;
       `}
   }
 
   &:hover {
     border-color: ${th.color('accent-a70')};
-    background: ${th.color('accent-a20')};
+    background: ${th.color('accent-backdrop')};
     transform: scale(1.06);
 
     > svg {
-      stroke: ${th.color('accent')};
+      stroke: ${th.color('accent-foreground')};
     }
   }
 
   &:active {
     transform: scale(0.93);
   }
-`;
 
-export const LikeCount = styled.span<{ $liked: boolean; $animating: boolean }>`
-  font-size: ${th.fontSize(13)};
-  font-weight: ${th.fontWeight('semibold')};
-  color: ${props => (props.$liked ? th.color('accent') : th.color('foreground-a85'))};
-  transition: color ${th.duration(200)};
-  min-width: ${th.size(12)};
-  text-align: center;
-  ${props =>
-    props.$animating &&
-    css`
-      animation: ${countBump} ${th.duration(350)} ${th.timingFunction('standard')} forwards;
-    `}
+  /* Forced colors mode turns the background of the button into the color of the page, and keeps
+     the colors of the heart, which could then vanish: it draws the heart in the colors of its
+     palette, filled in the color of a selection once liked */
+  @media (forced-colors: active) {
+    > svg,
+    &:hover > svg {
+      stroke: ${props => (props.$liked ? th.color('forced-active') : th.color('forced-icon'))};
+      fill: ${props => (props.$liked ? th.color('forced-active') : 'transparent')};
+    }
+  }
 `;
 
 export const ProjectInfo = styled.div`

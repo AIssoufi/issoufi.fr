@@ -1,36 +1,47 @@
 import JobSummary from '../JobSummary';
 import Project from '../Project';
-import Technologies from '../Technologies';
 
-import { Article, Details } from './Experience.styled';
+import { Article, Details, JobTechnologies } from './Experience.styled';
 
 /** Props of {@link Experience}. Every part is optional and is not rendered when missing. */
 interface ExperienceProps {
   /** Job title, already translated. */
   jobName?: string;
-  /** Company name, also used as the logo's alt text. */
+  /** Company name, written first in the company details. */
   entityName?: string;
-  /** Absolute URL of the company logo, e.g. `/wibilong.png`. No logo when missing. */
+  /** Absolute URL of the company logo, e.g. `/wibilong.webp`, decorative. No logo when missing. */
   entityLogoUrl?: string;
   /** Contract type, e.g. "CDI" or "Alternance". */
   contractType?: string;
   /** City and department, e.g. "Paris (75)". */
   city?: string;
   /**
-   * Start of the job as a month and a year, e.g. "sept. 2019" or "Sept. 2019".
-   * The duration is shown, in the active language, only when both dates are valid.
+   * Start of the job as a month and a year, e.g. "sept. 2019" or "Sept. 2019", shown in the
+   * header below the tablet breakpoint. The duration is shown, in the active language, only
+   * when both dates are valid.
    */
   startDate?: string;
-  /** End of the job in the same format as `startDate`, or "Aujourd'hui" / "Present". */
+  /**
+   * End of the job in the same format as `startDate`, or "Aujourd'hui" / "Present", shown with
+   * it below the tablet breakpoint.
+   */
   endDate?: string;
-  /** Description of the job: text, bullet lists, {@link Project}s and {@link Technologies}. */
+  /**
+   * Technologies of the job, in display order, shown after its description, and under its summary
+   * from the `two-job-columns` breakpoint. None are shown when the list is empty or missing.
+   */
+  technologies?: string[];
+  /** Description of the job: text, bullet lists and {@link Project}s. */
   children?: React.ReactNode;
 }
 
 /**
- * Card for one job at one company: its {@link JobSummary} (logo, job title, company details,
- * computed duration) and a free-form description. For several successive roles at the same
- * company, use `ExperienceGroup` instead.
+ * `article` card for one job at one company: its {@link JobSummary} (logo, job title as a `h3`,
+ * company details, period below the tablet breakpoint, computed duration), a free-form
+ * description and the technologies of the job. Below the `two-job-columns` breakpoint they
+ * follow each other; from it, the summary and the technologies stand on the left of the
+ * description, whose lines stay short however wide the card. For several successive roles at the
+ * same company, use `ExperienceGroup` instead.
  *
  * @example
  * <Experience
@@ -38,8 +49,9 @@ interface ExperienceProps {
  *   entityName="Wibilong"
  *   startDate="sept. 2019"
  *   endDate="juin 2021"
+ *   technologies={['React.js', 'Node.js']}
  * >
- *   <Experience.Technologies technologies={['React.js', 'Node.js']} />
+ *   Full-stack development of the Wibilong SaaS solutions.
  * </Experience>
  */
 const Experience = ({
@@ -50,6 +62,7 @@ const Experience = ({
   city,
   startDate,
   endDate,
+  technologies,
   children,
 }: ExperienceProps) => (
   <Article>
@@ -63,10 +76,10 @@ const Experience = ({
       endDate={endDate}
     />
     <Details>{children}</Details>
+    <JobTechnologies technologies={technologies} />
   </Article>
 );
 
-Experience.Technologies = Technologies;
 Experience.Project = Project;
 
 export default Experience;

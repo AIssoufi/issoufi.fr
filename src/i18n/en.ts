@@ -26,6 +26,13 @@ export const en = {
       description: 'This page does not exist.',
     },
     ogImageAlt: 'ADAM Issoufi, full-stack JavaScript developer with a passion for UX and UI Design',
+    noScript: 'Enable JavaScript to view this site.',
+    webApp: {
+      name: 'ADAM Issoufi - Full-stack JavaScript Developer',
+      shortName: 'ADAM Issoufi',
+      description:
+        'Full-stack JavaScript developer with {{years}} years of experience, specializing in React.',
+    },
   },
   errors: {
     backHome: 'Back to home',
@@ -55,6 +62,19 @@ export const en = {
     open: 'Open menu',
     close: 'Close menu',
   },
+  header: {
+    buildVersion: 'build {{version}}',
+  },
+  githubLink: {
+    label: "ADAM Issoufi's GitHub profile",
+  },
+  linkedInLink: {
+    label: "ADAM Issoufi's LinkedIn profile",
+  },
+  cvLink: {
+    text: 'Download CV',
+    documentName: 'CV',
+  },
   home: {
     title1: 'Full-stack JavaScript Developer',
     title2Pre: 'passionate about ',
@@ -73,10 +93,25 @@ export const en = {
     previousPage: 'Previous page',
     nextPage: 'Next page',
     like: 'Like {{name}}',
+    names: {
+      chess: 'Chess game',
+      audioPluginStore: 'Audio plugin store',
+      connectFour: 'Connect Four',
+      calculator: 'Calculator',
+      studySarl: 'Study SARL',
+      kaneRivieraTransfert: 'Kane Riviera Transfert',
+      trouilletDecors: 'Trouillet Décors',
+      yyServicies: 'Y-YServicies',
+      babyGifts: 'Baby gifts',
+    },
+    types: {
+      webApp: 'Web application',
+      website: 'Website',
+      showcaseWebsite: 'Brochure website',
+    },
   },
   exp: {
     pageTitle: 'Experience',
-    today: 'Present',
     duration: {
       years_one: '{{count}} year',
       years_other: '{{count}} years',
@@ -84,16 +119,7 @@ export const en = {
       months_other: '{{count}} months',
       lessThanAMonth: '< 1 month',
     },
-    periods: {
-      sewanStart: 'June 2021',
-      sewanEnd: 'pres.',
-      wibilongStart: 'Sept. 2019',
-      wibilongEnd: 'June 2021',
-      supralogStart: 'June 2018',
-      supralogEnd: 'Sept. 2019',
-      beepeersStart: 'May 2017',
-      beepeersEnd: 'Aug. 2017',
-    },
+    periodTo: 'to',
     sewan: {
       name: 'Sewan Groupe',
       contract: 'Permanent',

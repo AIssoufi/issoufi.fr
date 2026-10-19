@@ -2,17 +2,48 @@ import react from '@vitejs/plugin-react';
 import { defineConfig, loadEnv, type Plugin } from 'vite';
 import svgr from 'vite-plugin-svgr';
 
+import packageJson from './package.json';
+import { DEFAULT_LANGUAGE } from './src/i18n/constants';
 import { getYearsOfExperience } from './src/utils/career';
+import { addModulePreload, renderNotFoundHtml, renderPageHtml } from './src/utils/pageHtml';
 import {
-  addModulePreload,
-  NOT_FOUND_FILE_NAME,
+  getNotFoundFiles,
+  getPageFiles,
+  HOME_PAGE,
+  isTemplatePageFile,
   NOT_FOUND_FOLDER,
-  PAGES,
-  renderNotFoundHtml,
-  renderPageHtml,
 } from './src/utils/pages';
-import { ALL_ENV_VARIABLES_PREFIX, ASSETS_DIR } from './vite/constants';
-import { getChunkName, getPageChunkFile, getServerPorts } from './vite/utils';
+import { renderSitemap, SITEMAP_FILE_NAME } from './src/utils/sitemap';
+import {
+  findWebManifestLanguage,
+  getWebManifestFiles,
+  renderWebManifest,
+  WEB_MANIFEST_MEDIA_TYPE,
+} from './src/utils/webManifest';
+import {
+  ALL_ENV_VARIABLES_PREFIX,
+  ASSETS_DIR,
+  HEADERS_FILE_NAME,
+  SECURITY_HEADERS,
+} from './vite/constants';
+import {
+  getChunkName,
+  getFontFaceTags,
+  getPageChunkFile,
+  getServerPorts,
+  renderHeaderRules,
+} from './vite/utils';
+
+/**
+ * Vite plugin that adds the web fonts of the site to the head of `index.html`, in development as
+ * in the build: a link that preloads each font file, then a `<style>` of their `@font-face` rules
+ * (see {@link getFontFaceTags}). It runs before {@link pageMeta}, which emits every other page
+ * from the same head.
+ */
+const fontFaces = (): Plugin => ({
+  name: 'font-faces',
+  transformIndexHtml: () => getFontFaceTags(),
+});
 
 /** Parameters of the `preloadPageChunk` helper of {@link pageMeta}. */
 interface PreloadPageChunkParams {
@@ -23,11 +54,13 @@ interface PreloadPageChunkParams {
 }
 
 /**
- * Vite plugin that fills the metadata of `index.html` for the home page, then emits one HTML
- * file per other page and a `404.html` from the same template. It runs after Vite's own HTML
- * plugin (`enforce: 'post'`), so the template already contains the hashed asset tags. Each
- * emitted page also preloads the chunk of the page it shows, so a direct visit downloads it at
- * the same time as the main chunk; the home page is in the main chunk and needs none.
+ * Vite plugin that fills the metadata of `index.html` for the home page of the default language,
+ * then emits from the same template the HTML file of every other page in every language
+ * (`projects.html`, `en/index.html`, `en/projects.html`…) and a not found page per language
+ * (`404.html`, `en/404.html`). It runs after Vite's own HTML plugin (`enforce: 'post'`), so the
+ * template already contains the hashed asset tags. Each emitted page also preloads the chunk of
+ * the page it shows, so a direct visit downloads it at the same time as the main chunk; the home
+ * page is in the main chunk and needs none.
  */
 const pageMeta = (): Plugin => {
   let template = '';
@@ -41,7 +74,12 @@ const pageMeta = (): Plugin => {
     },
     transformIndexHtml: html => {
       template = html;
-      return renderPageHtml({ template: html, page: PAGES[0], years: getYearsOfExperience() });
+      return renderPageHtml({
+        template: html,
+        page: HOME_PAGE,
+        language: DEFAULT_LANGUAGE,
+        years: getYearsOfExperience(),
+      });
     },
     generateBundle(_options, bundle) {
       if (!template) this.error('index.html was not transformed before generateBundle');
@@ -52,24 +90,81 @@ const pageMeta = (): Plugin => {
         return chunkFile ? addModulePreload({ html, href: `${base}${chunkFile}` }) : html;
       };
 
-      PAGES.slice(1).forEach(page => {
-        const html = renderPageHtml({ template, page, years: getYearsOfExperience() });
+      const years = getYearsOfExperience();
+
+      getPageFiles()
+        .filter(file => !isTemplatePageFile(file))
+        .forEach(({ page, language, fileName }) => {
+          const html = renderPageHtml({ template, page, language, years });
+          this.emitFile({
+            type: 'asset',
+            fileName,
+            source: preloadPageChunk({ html, folder: page.folder }),
+          });
+        });
+
+      getNotFoundFiles().forEach(({ language, fileName }) => {
+        const html = renderNotFoundHtml({ template, language, years });
         this.emitFile({
           type: 'asset',
-          fileName: page.fileName,
-          source: preloadPageChunk({ html, folder: page.folder }),
+          fileName,
+          source: preloadPageChunk({ html, folder: NOT_FOUND_FOLDER }),
         });
-      });
-
-      const notFoundHtml = renderNotFoundHtml({ template, years: getYearsOfExperience() });
-      this.emitFile({
-        type: 'asset',
-        fileName: NOT_FOUND_FILE_NAME,
-        source: preloadPageChunk({ html: notFoundHtml, folder: NOT_FOUND_FOLDER }),
       });
     },
   };
 };
+
+/**
+ * Vite plugin that emits `sitemap.xml` at the root of the build: the URL of every page in every
+ * language, with the links to its translations (see {@link renderSitemap}). `public/robots.txt`
+ * points search engines to it.
+ */
+const sitemap = (): Plugin => ({
+  name: 'sitemap',
+  generateBundle() {
+    this.emitFile({ type: 'asset', fileName: SITEMAP_FILE_NAME, source: renderSitemap() });
+  },
+});
+
+/**
+ * Vite plugin that emits the web app manifest of each language, `manifest.webmanifest` at the root
+ * of the build and `en/manifest.webmanifest` (see {@link renderWebManifest}), which the pages of
+ * that language link, and that the dev server sends at the same URLs.
+ */
+const webManifests = (): Plugin => ({
+  name: 'web-manifests',
+  configureServer: server => {
+    server.middlewares.use((request, response, next) => {
+      const language = findWebManifestLanguage(request.url);
+      if (!language) return next();
+
+      response.setHeader('Content-Type', WEB_MANIFEST_MEDIA_TYPE);
+      response.end(renderWebManifest({ language, years: getYearsOfExperience() }));
+    });
+  },
+  generateBundle() {
+    const years = getYearsOfExperience();
+    getWebManifestFiles().forEach(({ language, fileName }) => {
+      this.emitFile({ type: 'asset', fileName, source: renderWebManifest({ language, years }) });
+    });
+  },
+});
+
+/**
+ * Vite plugin that emits `_headers` at the root of the build, the HTTP headers that Cloudflare
+ * Pages adds to the files it serves, by path (see {@link renderHeaderRules}): the security headers
+ * of every file, such as its Content Security Policy, `X-Robots-Tag: noindex` on the `pages.dev`
+ * host of the project (`PAGES_PROJECT_HOST`), then the cache policy, under which browsers
+ * keep the hashed files of `assets/` a year, and revalidate every other file, as Cloudflare Pages
+ * does by default.
+ */
+const httpHeaders = (): Plugin => ({
+  name: 'http-headers',
+  generateBundle() {
+    this.emitFile({ type: 'asset', fileName: HEADERS_FILE_NAME, source: renderHeaderRules() });
+  },
+});
 
 /**
  * Minimum test coverage, in percent, below which `pnpm test:coverage` fails. Set two to three
@@ -82,9 +177,17 @@ const pageMeta = (): Plugin => {
 const COVERAGE_THRESHOLDS_PERCENT = { lines: 97, statements: 97, branches: 96, functions: 96 };
 
 /**
- * Vite and Vitest configuration: React with SVG components, the page metadata plugin, the dev
- * and preview servers on the port of the worktree (see {@link getServerPorts}), which fail when
- * it is taken, and the tests in jsdom with coverage.
+ * Time a test may take before Vitest fails it, in milliseconds: twice its default of 5 s. Several
+ * suites often share one machine, as when ticket workers test their worktrees at the same time,
+ * and the heaviest renders then outlast the default, although they take under 1 s alone.
+ */
+const TEST_TIMEOUT_MS = 10_000;
+
+/**
+ * Vite and Vitest configuration: React with SVG components, the web fonts, page metadata, sitemap,
+ * web app manifests and HTTP headers plugins, the dev and preview servers on the port of the
+ * worktree (see {@link getServerPorts}), which fail when it is taken, the preview server with the
+ * security headers of the site, and the tests in jsdom with coverage.
  * @see https://vitejs.dev/config/
  */
 export default defineConfig(({ mode }) => {
@@ -92,7 +195,10 @@ export default defineConfig(({ mode }) => {
 
   return {
     base: '/',
-    plugins: [react(), svgr(), pageMeta()],
+    plugins: [react(), svgr(), fontFaces(), pageMeta(), sitemap(), webManifests(), httpHeaders()],
+    // The version that release-please writes in package.json, shown after the logo of the header
+    // (src/App/Header) and typed in src/vite-env.d.ts; the tests read it too
+    define: { __APP_VERSION__: JSON.stringify(packageJson.version) },
     build: {
       rollupOptions: {
         // The chunk of each lazily loaded page is named after its folder, not after its index file
@@ -110,11 +216,15 @@ export default defineConfig(({ mode }) => {
     preview: {
       port: ports.preview,
       strictPort: true,
+      // The security headers of Cloudflare Pages, so the browser tests run under the same Content
+      // Security Policy. The dev server sends none: its inline scripts reload the modules
+      headers: SECURITY_HEADERS,
     },
     test: {
       globals: true,
       environment: 'jsdom',
       setupFiles: ['./src/setupTests.ts'],
+      testTimeout: TEST_TIMEOUT_MS,
       // styled-components inserts each rule into the CSSOM, as in production, rather than adding
       // its text to a <style>, which jsdom parses again whole on every change: a quadratic cost
       // that made the tests several times slower since jsdom 29
@@ -127,8 +237,11 @@ export default defineConfig(({ mode }) => {
           'src/**/*.{ts,tsx}',
           'vite/**/*.ts',
           'e2e/**/*.ts',
+          'scripts/utils/**/*.mjs',
           'scripts/ci/utils/**/*.mjs',
           'scripts/og-image/utils/**/*.mjs',
+          'scripts/icons/utils/**/*.mjs',
+          'scripts/cv/utils/**/*.mjs',
         ],
         exclude: [
           '**/*.spec.*',

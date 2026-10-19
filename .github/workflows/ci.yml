@@ -57,6 +57,31 @@ jobs:
           path: coverage/
           retention-days: 14
 
+  workflows:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      # Dependabot does not update them: take both from actionlint_<version>_checksums.txt in a
+      # release of rhysd/actionlint, the checksum on the linux_amd64 line
+      ACTIONLINT_VERSION: 1.7.12
+      ACTIONLINT_SHA256: 8aca8db96f1b94770f1b0d72b6dddcb1ebb8123cb3712530b08cc387b349a3d8
+    steps:
+      - uses: actions/checkout@v7
+      - name: Install actionlint
+        run: |
+          archive="$RUNNER_TEMP/actionlint.tar.gz"
+          curl -fsSL -o "$archive" \
+            "https://github.com/rhysd/actionlint/releases/download/v${ACTIONLINT_VERSION}/actionlint_${ACTIONLINT_VERSION}_linux_amd64.tar.gz"
+          echo "${ACTIONLINT_SHA256}  ${archive}" | sha256sum --check --strict
+          tar -xzf "$archive" -C "$RUNNER_TEMP" actionlint
+      # actionlint checks the run scripts with shellcheck, preinstalled on the runner, and silently
+      # skips them when it is missing
+      - run: shellcheck --version
+      # The matcher turns each error into an annotation on the line of the workflow
+      - run: |
+          echo "::add-matcher::.github/actionlint-matcher.json"
+          "$RUNNER_TEMP/actionlint" -color
+
   commits:
     # Dependabot writes conventional subjects, but its bodies hold release notes with long lines
     if: github.event_name == 'pull_request' && github.event.pull_request.user.login != 'dependabot[bot]'
@@ -95,10 +120,18 @@ jobs:
           path: dist/
           retention-days: 7
 
-  browser-test:
+  # Splits the Playwright tests over parallel jobs, each running a slice of them on its own runner,
+  # so the wall time stays well under the timeout as the suite grows
+  browser-test-shard:
     needs: build
+    name: browser-test (${{ matrix.shard }}/${{ strategy.job-total }})
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    strategy:
+      # Every shard runs to its end, so one run lists all the failed tests
+      fail-fast: false
+      matrix:
+        shard: [1, 2, 3]
     steps:
       - uses: actions/checkout@v7
       - uses: ./.github/actions/setup
@@ -116,14 +149,37 @@ jobs:
           path: ~/.cache/ms-playwright
           key: playwright-${{ runner.os }}-${{ steps.playwright.outputs.version }}
       - run: pnpm exec playwright install --with-deps --only-shell chromium
-      - run: pnpm test:browser
+      # Playwright splits the tests in file order into slices of the same number of tests
+      - run: pnpm test:browser --shard="$SHARD"
+        env:
+          SHARD: ${{ matrix.shard }}/${{ strategy.job-total }}
+      # Fails once Chromium prints the same CV twice with other bytes than its dates, which would
+      # make every run of pnpm cv change the PDFs in git. It needs the browser but not the build, so
+      # one shard runs it
+      - if: matrix.shard == 1
+        run: pnpm cv:check
       # Holds a screenshot of each page that failed
       - if: failure()
         uses: actions/upload-artifact@v7
         with:
-          name: browser-test-results
+          name: browser-test-results-${{ matrix.shard }}
           path: test-results/
           retention-days: 14
+
+  # The required check of both rulesets, which name it: it passes once every shard passed, and fails
+  # when one failed or was skipped, since a skipped required check would let a pull request merge
+  browser-test:
+    needs: browser-test-shard
+    if: ${{ !cancelled() }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - if: needs.browser-test-shard.result != 'success'
+        run: |
+          echo "::error::The browser tests did not pass: their shards ended with '${SHARDS_RESULT}'."
+          exit 1
+        env:
+          SHARDS_RESULT: ${{ needs.browser-test-shard.result }}
 
   credentials:
     # Pull requests from forks and from Dependabot get no repository secrets
@@ -190,15 +246,11 @@ jobs:
       - run: node scripts/ci/smoke-test.mjs "$DEPLOYMENT_URL"
         env:
           DEPLOYMENT_URL: ${{ needs.deploy.outputs.url }}
-      - if: github.ref == 'refs/heads/main'
-        run: node scripts/ci/smoke-test.mjs https://issoufi.fr
-      - name: Check the redirects to https://issoufi.fr
+      # Without a URL, the smoke test and the redirect check read the production address from
+      # SITE_URL in scripts/ci/constants.mjs
+      - name: Smoke-test the production site
         if: github.ref == 'refs/heads/main'
-        run: |
-          for url in http://issoufi.fr/ https://www.issoufi.fr/; do
-            location=$(curl --silent --output /dev/null --write-out '%{redirect_url}' "$url")
-            if [ "$location" != "https://issoufi.fr/" ]; then
-              echo "::error::$url redirects to \"$location\" instead of https://issoufi.fr/"
-              exit 1
-            fi
-          done
+        run: node scripts/ci/smoke-test.mjs
+      - name: Check the redirects to the production site
+        if: github.ref == 'refs/heads/main'
+        run: node scripts/ci/check-redirects.mjs

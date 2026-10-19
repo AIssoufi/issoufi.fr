@@ -28,6 +28,15 @@ export const fr = {
       description: 'Cette page n’existe pas.',
     },
     ogImageAlt: 'ADAM Issoufi, développeur full-stack JavaScript passionné par l’UX et l’UI Design',
+    noScript: 'Activez JavaScript pour afficher ce site.',
+    // The texts of the installed app (its web app manifest): the title and the description of the
+    // home page for now, kept apart so that either can change alone
+    webApp: {
+      name: 'ADAM Issoufi - Développeur full-stack JavaScript',
+      shortName: 'ADAM Issoufi',
+      description:
+        'Développeur full-stack JavaScript avec {{years}} ans d’expérience, spécialisé React.',
+    },
   },
   errors: {
     backHome: 'Retour à l’accueil',
@@ -57,6 +66,20 @@ export const fr = {
     open: 'Ouvrir le menu',
     close: 'Fermer le menu',
   },
+  header: {
+    buildVersion: 'build {{version}}',
+  },
+  githubLink: {
+    label: 'Profil GitHub d’ADAM Issoufi',
+  },
+  linkedInLink: {
+    label: 'Profil LinkedIn d’ADAM Issoufi',
+  },
+  cvLink: {
+    text: 'Télécharger CV',
+    // Name of the document that the link downloads, which `pnpm cv` writes in its title
+    documentName: 'CV',
+  },
   home: {
     title1: 'Développeur full-stack JavaScript',
     title2Pre: 'passionné par l’',
@@ -75,10 +98,27 @@ export const fr = {
     previousPage: 'Page précédente',
     nextPage: 'Page suivante',
     like: 'Aimer {{name}}',
+    // Texts of the cards, by the nameKey and typeKey of the projects of src/pages/Projects/.data.
+    // Client names are proper nouns, written the same in every language
+    names: {
+      chess: 'Jeu d’échecs',
+      audioPluginStore: 'Magasin de plugins audio',
+      connectFour: 'Puissance 4',
+      calculator: 'Calculatrice',
+      studySarl: 'Study SARL',
+      kaneRivieraTransfert: 'Kane Riviera Transfert',
+      trouilletDecors: 'Trouillet Décors',
+      yyServicies: 'Y-YServicies',
+      babyGifts: 'Cadeaux de naissance',
+    },
+    types: {
+      webApp: 'Application web',
+      website: 'Site web',
+      showcaseWebsite: 'Site vitrine',
+    },
   },
   exp: {
     pageTitle: 'Expériences',
-    today: 'Aujourd’hui',
     duration: {
       years_one: '{{count}} an',
       years_other: '{{count}} ans',
@@ -86,16 +126,9 @@ export const fr = {
       months_other: '{{count}} mois',
       lessThanAMonth: '< 1 mois',
     },
-    periods: {
-      sewanStart: 'juin 2021',
-      sewanEnd: 'auj.',
-      wibilongStart: 'sept. 2019',
-      wibilongEnd: 'juin 2021',
-      supralogStart: 'juin 2018',
-      supralogEnd: 'sept. 2019',
-      beepeersStart: 'mai 2017',
-      beepeersEnd: 'août 2017',
-    },
+    // Read by screen readers between the start and the end of a period, in place of the arrow or
+    // the dash that the screen shows between them
+    periodTo: 'à',
     sewan: {
       name: 'Sewan Groupe',
       contract: 'CDI',

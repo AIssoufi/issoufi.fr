@@ -1,8 +1,11 @@
 import { createGlobalStyle, th } from '@xstyled/styled-components';
 
+import { REDUCED_MOTION_QUERY } from './constants';
+
 /**
  * Base styles of the document (box sizing, body, links, buttons, lists, icons), built from the
  * tokens. Every element is sized with `border-box`, so a width includes its padding and border.
+ * With reduced motion ({@link REDUCED_MOTION_QUERY}), animations and transitions are instant.
  */
 export const GlobalStyle = createGlobalStyle`
   *,
@@ -59,7 +62,7 @@ export const GlobalStyle = createGlobalStyle`
 
   @media (min-width: ${th('screens.tablet')}) {
     a:hover {
-      color: ${th.color('accent')};
+      color: ${th.color('accent-foreground')};
     }
   }
 
@@ -74,5 +77,22 @@ export const GlobalStyle = createGlobalStyle`
      and SCRIPT_ONLY_TAB_INDEX (src/App/PageHeadingFocus/constants.ts); App.spec.jsx checks it */
   h1[tabindex='-1']:focus {
     outline: none;
+  }
+
+  /* With reduced motion, every animation plays once and jumps to its end, at once, and every
+     transition is instant and starts at once: content that slides in shows right away, a change in
+     several steps, such as the burger icon turning into a cross, shows whole, and nothing loops.
+     Important, so that it also wins over the styles of the components and the inline styles of the
+     hooks */
+  @media ${REDUCED_MOTION_QUERY} {
+    *,
+    *::before,
+    *::after {
+      animation-duration: ${th.duration('instant')} !important;
+      animation-delay: 0s !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: ${th.duration('instant')} !important;
+      transition-delay: 0s !important;
+    }
   }
 `;

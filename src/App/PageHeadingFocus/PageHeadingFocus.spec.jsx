@@ -130,6 +130,39 @@ describe('PageHeadingFocus', () => {
     expect(screen.getByRole('heading', { name: 'Home' })).toHaveFocus();
   });
 
+  it('leaves the focus on the language toggle when only the language of the page changes', async () => {
+    const LanguageButton = () => {
+      const navigate = useNavigate();
+      return <button onClick={() => navigate('/en/projects')}>English</button>;
+    };
+    render(
+      <MemoryRouter initialEntries={['/projects']}>
+        <LanguageButton />
+        <h1>Projects</h1>
+        <PageHeadingFocus />
+      </MemoryRouter>,
+    );
+
+    await userEvent.click(screen.getByRole('button', { name: 'English' }));
+
+    expect(screen.getByRole('button', { name: 'English' })).toHaveFocus();
+    expect(screen.getByRole('heading', { name: 'Projects' })).not.toHaveFocus();
+  });
+
+  it('focuses the heading after a link to another page of the other language', async () => {
+    render(
+      <MemoryRouter initialEntries={['/projects']}>
+        <Link to="/en/experiences">Experience</Link>
+        <h1>Experience</h1>
+        <PageHeadingFocus />
+      </MemoryRouter>,
+    );
+
+    await userEvent.click(screen.getByRole('link', { name: 'Experience' }));
+
+    expect(screen.getByRole('heading', { name: 'Experience' })).toHaveFocus();
+  });
+
   it('leaves the focus alone on the back button of the browser', async () => {
     renderPages();
     await userEvent.click(screen.getByRole('link', { name: 'Go to /projects' }));

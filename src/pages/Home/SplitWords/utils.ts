@@ -1,6 +1,7 @@
 import { theme } from '../../../theme';
 import type { Point } from '../types';
 import {
+  CONTROL_SELECTOR,
   GLOW_PER_DISPLACEMENT_PX,
   MAX_GLOW_PX,
   MIN_REPEL_DISTANCE_PX,
@@ -92,4 +93,21 @@ export function getTextShadow(glowRadius: number): string {
   const innerColor = theme.colors['accent-soft-a85'];
   const outerColor = theme.colors['accent-a40'];
   return `0 0 ${glowRadius}px ${innerColor}, 0 0 ${glowRadius * 2}px ${outerColor}`;
+}
+
+/**
+ * Tells whether the target of a mouse event is a link or a button, or lies inside one, such as the
+ * text of a button: a control of {@link CONTROL_SELECTOR}, over which the mouse pushes no word.
+ *
+ * @param target - Target of a mouse event, such as `event.target`.
+ * @returns `false` for any other element, and for a target that is not an element, such as the
+ * window, the document or a missing target.
+ *
+ * @example
+ * isOnControl(document.querySelector('a')); // true
+ * isOnControl(window); // false
+ */
+export function isOnControl(target?: EventTarget | null): boolean {
+  if (!(target instanceof Element)) return false;
+  return target.closest(CONTROL_SELECTOR) !== null;
 }

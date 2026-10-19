@@ -52,6 +52,17 @@ describe('DocumentMeta', () => {
     expect(description()).toBe('Cette page n’existe pas.');
   });
 
+  it.each([
+    ['/en/projects', 'Projects - ADAM Issoufi'],
+    ['/en/', 'ADAM Issoufi - Full-stack JavaScript Developer'],
+    ['/en/skills', 'Page not found - ADAM Issoufi'],
+  ])('finds the page of the English URL %s', async (path, title) => {
+    renderAt(path);
+    await act(() => i18n.changeLanguage('en'));
+
+    expect(document.title).toBe(title);
+  });
+
   it('follows the language', async () => {
     renderAt('/');
     await act(() => i18n.changeLanguage('en'));
@@ -61,5 +72,40 @@ describe('DocumentMeta', () => {
     expect(description()).toBe(
       'Full-stack JavaScript developer with 8 years of experience, specializing in React.',
     );
+  });
+
+  describe('link to the web app manifest', () => {
+    const manifestUrl = () => document.querySelector('link[rel="manifest"]').getAttribute('href');
+
+    beforeEach(() => {
+      document.head.innerHTML =
+        '<meta name="description" content="" /><link rel="manifest" href="/manifest.webmanifest" />';
+    });
+
+    it('links the manifest of the language of the page', () => {
+      renderAt('/projects');
+
+      expect(manifestUrl()).toBe('/manifest.webmanifest');
+    });
+
+    it('links the manifest of the language that the toggle moves to, and back', async () => {
+      renderAt('/en/projects');
+      await act(() => i18n.changeLanguage('en'));
+
+      expect(manifestUrl()).toBe('/en/manifest.webmanifest');
+
+      await act(() => i18n.changeLanguage('fr'));
+
+      expect(manifestUrl()).toBe('/manifest.webmanifest');
+    });
+
+    it('adds no link to a page without one, as in the standalone build', async () => {
+      document.head.innerHTML = '<meta name="description" content="" />';
+      renderAt('/en/');
+      await act(() => i18n.changeLanguage('en'));
+
+      expect(document.querySelector('link[rel="manifest"]')).toBeNull();
+      expect(document.title).toBe('ADAM Issoufi - Full-stack JavaScript Developer');
+    });
   });
 });

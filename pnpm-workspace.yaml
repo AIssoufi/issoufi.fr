@@ -15,3 +15,8 @@ overrides:
   # references it from its unused React Native build — safe to override to
   # close GHSA path-traversal/file-read alerts not covered by any Dependabot PR.
   postcss: ^8.5.25
+
+# A patch that no longer applies, after an update changed the code it patches, fails the install
+# instead of a warning, so an update never drops it silently. A patch whose package left the
+# dependencies fails it too (allowUnusedPatches is false by default).
+ignorePatchFailures: false

@@ -5,20 +5,16 @@ import LikeIcon from './icons/heart.svg?react';
 import NextIcon from './icons/next.svg?react';
 import PreviousIcon from './icons/previous.svg?react';
 
-import {
-  CARD_HOVER_LIFT_PX,
-  CARD_MAX_TILT_DEG,
-  CARD_PERSPECTIVE_PX,
-  NO_LIKE,
-  PAGE_SIZE,
-} from './constants';
+import { ROW_CARD_COUNT, THUMBNAIL_SIZES } from './constants';
+import { useCardTilt } from './hooks/useCardTilt';
 import { useLikes } from './hooks/useLikes';
+import { usePreloadThumbnails } from './hooks/usePreloadThumbnails';
+import { useWholeCardCount } from './hooks/useWholeCardCount';
 import {
   CtrlItem,
   IconBtn,
   ImageContainer,
   LikeButton,
-  LikeCount,
   ProjectGrid,
   ProjectInfo,
   ProjectItem,
@@ -33,7 +29,14 @@ import {
   Thumbnail,
 } from './Project.styled';
 import type { ProjectItemData } from './types';
-import { getCardTilt, getNextPageStart, getPreviousPageStart, getProjectLinkUrl } from './utils';
+import {
+  getLastPageStart,
+  getNextPageStart,
+  getPageProjects,
+  getPreviousPageStart,
+  getProjectLinkUrl,
+  getThumbnailSources,
+} from './utils';
 
 /** Props of {@link Project}. */
 interface ProjectProps {
@@ -42,63 +45,91 @@ interface ProjectProps {
    * missing or blank, no heading is rendered and the group has no name.
    */
   title?: string;
-  /** Cards to show, three per page, or all at once after "Show all". @default [] */
+  /**
+   * Cards to show, three at a time in a row that the arrows move, or all at once after "Show
+   * all". @default []
+   */
   projects?: ProjectItemData[];
+  /**
+   * Whether the section is the first of the page, whose first thumbnail is the largest image that
+   * the page paints first: it is downloaded at once, before the other images. Every other
+   * thumbnail is downloaded once the screen nears it.
+   * @default false
+   */
+  priority?: boolean;
 }
 
 const NO_PROJECTS: ProjectItemData[] = [];
 
 /**
- * Section of project cards with a title, paginated three at a time with previous and next
- * buttons, named for screen readers, or showing all cards after "Show all", at the size of the
- * row, on as many rows as they need. The cards form a list. The controls form a group labelled by
- * the title, rather than a navigation landmark. Cards tilt toward the mouse, and have a like
- * button, named after the project and described by its count, whose state is kept in memory only.
- * When the project has a `url` and a name, the card title is a link to it, stretched over the
- * whole card; the like button sits beside that link, never inside it. The title is a level 2
- * heading, under the `h1` of the page; without a title, the section has no heading and its
- * controls have no name.
+ * Section of project cards with a title. Its row holds three cards, and its previous and next
+ * buttons, named for screen readers, move it by the number of cards it shows whole: one on a
+ * phone, where the next card starts at the right edge and the row scrolls to it, up to three on a
+ * wide screen. At the first and the last page, the button that would go past them is
+ * `aria-disabled` and dimmed, and keeps its focus. "Show all" shows every card instead, at the
+ * size of the row, on as many rows as they need. The cards form a list. The controls form a
+ * group labelled by the title, rather than a navigation landmark, with its buttons in the order
+ * that the screen shows them. Cards tilt toward the mouse, and have a like button, named after the
+ * project, whose pressed state is the visitor's own like, without a count, kept in their browser
+ * by {@link useLikes}: no project is liked on a first visit. When the project has a `url` and a
+ * name, the card title is a link to it, stretched over the whole card; the like button sits
+ * beside that link, never inside it. The title is a level 2 heading, under the `h1` of the page;
+ * without a title, the section has no heading and its controls have no name. Each thumbnail
+ * downloads the file of its `srcset` that its width needs on the screen, once the screen nears it,
+ * but the first one of a `priority` section, at once; hovering or focusing an arrow downloads the
+ * thumbnails of the page it would show, so that they never show empty.
  */
-const Project = ({ title, projects = NO_PROJECTS }: ProjectProps) => {
+const Project = ({ title, projects = NO_PROJECTS, priority = false }: ProjectProps) => {
   const { t } = useTranslation();
   // Prefix of the element ids, unique to each section since a page shows several of them
   const sectionId = useId();
   const titleId = `${sectionId}-title`;
   // A blank title would leave an empty heading, and the controls labelled by it unnamed
   const hasTitle = typeof title === 'string' && title.trim() !== '';
-  const [pageStart, setPageStart] = useState(0);
+  const [requestedPageStart, setPageStart] = useState(0);
   const [isShowingAll, setIsShowingAll] = useState(false);
-  const { likes, animatingIds, toggleLike } = useLikes(projects);
+  const { likedIds, animatingIds, toggleLike } = useLikes();
+  const { listRef, wholeCardCount } = useWholeCardCount({ maxCount: ROW_CARD_COUNT });
 
-  const visibleProjects = isShowingAll
-    ? projects
-    : projects.slice(pageStart, pageStart + PAGE_SIZE);
+  const total = projects.length;
+  const lastPageStart = getLastPageStart({ total, pageSize: wholeCardCount });
+  // A wider screen, which shows more cards whole, or fewer projects can end the pages sooner
+  const pageStart = Math.min(requestedPageStart, lastPageStart);
+  const isFirstPage = pageStart === 0;
+  const isLastPage = pageStart === lastPageStart;
+  const nextPageStart = getNextPageStart({
+    currentStart: pageStart,
+    total,
+    pageSize: wholeCardCount,
+  });
+  const previousPageStart = getPreviousPageStart({
+    currentStart: pageStart,
+    pageSize: wholeCardCount,
+  });
+  // Its thumbnail is the largest image that the page paints first, which nothing should delay
+  const priorityProject = priority ? projects[0] : undefined;
+
+  const visibleProjects = isShowingAll ? projects : getPageProjects({ projects, pageStart });
+
+  const preloadThumbnails = usePreloadThumbnails();
+  const preloadNextPage = () =>
+    preloadThumbnails(getPageProjects({ projects, pageStart: nextPageStart }));
+  const preloadPreviousPage = () =>
+    preloadThumbnails(getPageProjects({ projects, pageStart: previousPageStart }));
 
   const handleNextPage = () => {
-    setPageStart(currentStart =>
-      getNextPageStart({ currentStart, total: projects.length, pageSize: PAGE_SIZE }),
-    );
+    if (isLastPage) return;
+
+    setPageStart(nextPageStart);
   };
 
   const handlePreviousPage = () => {
-    setPageStart(currentStart => getPreviousPageStart({ currentStart, pageSize: PAGE_SIZE }));
+    if (isFirstPage) return;
+
+    setPageStart(previousPageStart);
   };
 
-  const handleCardMouseMove = (event: React.MouseEvent<HTMLLIElement>) => {
-    const card = event.currentTarget;
-    const { rotateX, rotateY, x, y } = getCardTilt({
-      pointer: { x: event.clientX, y: event.clientY },
-      rect: card.getBoundingClientRect(),
-      maxTilt: CARD_MAX_TILT_DEG,
-    });
-    card.style.setProperty('--mouse-x', `${x}px`);
-    card.style.setProperty('--mouse-y', `${y}px`);
-    card.style.transform = `perspective(${CARD_PERSPECTIVE_PX}px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) translateY(-${CARD_HOVER_LIFT_PX}px)`;
-  };
-
-  const handleCardMouseLeave = (event: React.MouseEvent<HTMLLIElement>) => {
-    event.currentTarget.style.transform = '';
-  };
+  const cardTilt = useCardTilt();
 
   return (
     <Section>
@@ -108,70 +139,77 @@ const Project = ({ title, projects = NO_PROJECTS }: ProjectProps) => {
           role="group"
           aria-labelledby={hasTitle ? titleId : undefined}
         >
-          <CtrlItem
-            type="button"
-            onClick={() => setIsShowingAll(!isShowingAll)}
-          >
-            {isShowingAll
-              ? t('projects.showLess')
-              : t('projects.showAll', { count: projects.length })}
-          </CtrlItem>
+          {/* In the order of the screen, so that Tab follows it: the arrows, then "Show all" */}
           {!isShowingAll && (
             <>
               <IconBtn
                 type="button"
                 aria-label={t('projects.previousPage')}
+                aria-disabled={isFirstPage}
                 onClick={handlePreviousPage}
+                onPointerEnter={preloadPreviousPage}
+                onFocus={preloadPreviousPage}
               >
                 <PreviousIcon aria-hidden />
               </IconBtn>
               <IconBtn
                 type="button"
                 aria-label={t('projects.nextPage')}
+                aria-disabled={isLastPage}
                 onClick={handleNextPage}
+                onPointerEnter={preloadNextPage}
+                onFocus={preloadNextPage}
               >
                 <NextIcon aria-hidden />
               </IconBtn>
             </>
           )}
+          <CtrlItem
+            type="button"
+            onClick={() => setIsShowingAll(!isShowingAll)}
+          >
+            {isShowingAll ? t('projects.showLess') : t('projects.showAll', { count: total })}
+          </CtrlItem>
         </SectionControls>
       </SectionHeader>
-      <ProjectGrid $displayAll={isShowingAll}>
-        {visibleProjects.map(({ id, name, type, imageUrl, url, tools }) => {
-          const { count, liked } = likes[id] ?? NO_LIKE;
+      <ProjectGrid
+        ref={listRef}
+        $displayAll={isShowingAll}
+      >
+        {visibleProjects.map(project => {
+          const { id, name, type, thumbnails, url, tools } = project;
+          const isLiked = likedIds.has(id);
           const isAnimating = animatingIds.has(id);
-          const likeCountId = `${sectionId}-like-count-${id}`;
           const linkUrl = getProjectLinkUrl({ url, name });
+          const thumbnail = getThumbnailSources(thumbnails);
+          const isPriorityThumbnail = project === priorityProject;
 
           return (
             <ProjectItem
               key={id}
-              $displayAll={isShowingAll}
-              onMouseMove={handleCardMouseMove}
-              onMouseLeave={handleCardMouseLeave}
+              {...cardTilt}
             >
               <ImageContainer>
                 <Thumbnail
-                  src={imageUrl}
                   alt={name}
+                  loading={isPriorityThumbnail ? 'eager' : 'lazy'}
+                  fetchPriority={isPriorityThumbnail ? 'high' : undefined}
+                  decoding="async"
+                  sizes={thumbnail ? THUMBNAIL_SIZES : undefined}
+                  srcSet={thumbnail?.srcSet}
+                  src={thumbnail?.src}
+                  width={thumbnail?.width}
+                  height={thumbnail?.height}
                 />
                 <LikeButton
                   type="button"
                   aria-label={t('projects.like', { name })}
-                  aria-pressed={liked}
-                  aria-describedby={likeCountId}
-                  $liked={liked}
+                  aria-pressed={isLiked}
+                  $liked={isLiked}
                   $animating={isAnimating}
                   onClick={() => toggleLike(id)}
                 >
                   <LikeIcon aria-hidden />
-                  <LikeCount
-                    id={likeCountId}
-                    $liked={liked}
-                    $animating={isAnimating}
-                  >
-                    {count}
-                  </LikeCount>
                 </LikeButton>
               </ImageContainer>
               <ProjectInfo>

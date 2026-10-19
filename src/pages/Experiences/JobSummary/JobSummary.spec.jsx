@@ -1,6 +1,10 @@
 import { act, render, screen } from '@testing-library/react';
 
 import i18n from '../../../i18n';
+import { declaredStyle } from '../../../styleTestUtils';
+import { theme } from '../../../theme/theme';
+import { getReadText } from '../../testUtils';
+import { LOGO_SIZE_PX } from './constants';
 import JobSummary from './JobSummary';
 
 /** Any duration text, in French or in English. */
@@ -8,6 +12,12 @@ const DURATION_TEXT = /\d+ (an|ans|mois|years?|months?)|< 1 (mois|month)/;
 
 /** Texts that must never reach the screen. */
 const BROKEN_TEXT = /undefined|null|NaN|Invalid Date/;
+
+/** Media query from which the desktop layout, with the period column of the timeline, is used. */
+const TABLET_MEDIA = `(min-width: ${theme.screens.tablet})`;
+
+/** The element that holds the period of the header, from the text of its start. */
+const getPeriod = start => screen.getByText(start).parentElement;
 
 describe('JobSummary', () => {
   afterEach(async () => {
@@ -28,7 +38,7 @@ describe('JobSummary', () => {
       <JobSummary
         jobName="Full-Stack Engineer"
         entityName="Wibilong"
-        entityLogoUrl="/wibilong.png"
+        entityLogoUrl="/wibilong.webp"
         contractType="CDI"
         city="Paris (75)"
         startDate="sept. 2019"
@@ -36,33 +46,51 @@ describe('JobSummary', () => {
       />,
     );
 
-    expect(screen.getByRole('heading', { level: 2 })).toHaveTextContent('Full-Stack Engineer');
+    expect(screen.getByRole('heading', { level: 3 })).toHaveTextContent('Full-Stack Engineer');
     expect(screen.getByText('Wibilong · CDI · Paris (75)')).toBeInTheDocument();
+    expect(getReadText(getPeriod('sept. 2019'))).toBe('sept. 2019 à juin 2021');
     expect(screen.getByText('1 an 9 mois')).toBeInTheDocument();
-    expect(screen.getByRole('img', { name: 'Wibilong' })).toHaveAttribute('src', '/wibilong.png');
+    expect(document.querySelector('img')).toHaveAttribute('src', '/wibilong.webp');
+  });
+
+  it('gives the logo the size it shows at, before its file and its styles load', () => {
+    render(<JobSummary entityLogoUrl="/wibilong.webp" />);
+    const logo = document.querySelector('img');
+
+    expect(logo).toHaveAttribute('width', String(LOGO_SIZE_PX));
+    expect(logo).toHaveAttribute('height', String(LOGO_SIZE_PX));
+    expect(declaredStyle({ element: logo, property: 'width' })).toBe(`${LOGO_SIZE_PX}px`);
+    expect(declaredStyle({ element: logo, property: 'height' })).toBe(`${LOGO_SIZE_PX}px`);
   });
 
   describe('variant', () => {
     it.each([
-      ['job', 2],
-      ['role', 3],
-      ['unknown', 2],
-      ['', 2],
-    ])('renders the job title of the %j variant as a level %i heading', (variant, level) => {
-      render(
-        <JobSummary
-          jobName="Lead Frontend Engineer"
-          variant={variant}
-        />,
-      );
+      ['job', theme.fontSizes[15]],
+      ['role', theme.fontSizes[14]],
+      ['unknown', theme.fontSizes[15]],
+      ['', theme.fontSizes[15]],
+    ])(
+      'renders the job title of the %j variant as a level 3 heading, in %s',
+      (variant, fontSize) => {
+        render(
+          <JobSummary
+            jobName="Lead Frontend Engineer"
+            variant={variant}
+          />,
+        );
 
-      expect(screen.getByRole('heading', { level })).toHaveTextContent('Lead Frontend Engineer');
-    });
+        const title = screen.getByRole('heading', { level: 3 });
+        expect(title).toHaveTextContent('Lead Frontend Engineer');
+        expect(title).toHaveStyle({ fontSize });
+      },
+    );
 
-    it('renders the job title as a level 2 heading by default', () => {
+    it('renders the job title as a level 3 heading, under the level 2 one of its company, by default', () => {
       render(<JobSummary jobName="Lead Frontend Engineer" />);
 
-      expect(screen.getByRole('heading', { level: 2 })).toBeInTheDocument();
+      expect(screen.getByRole('heading', { level: 3 })).toHaveStyle({
+        fontSize: theme.fontSizes[15],
+      });
     });
   });
 
@@ -92,17 +120,18 @@ describe('JobSummary', () => {
   });
 
   describe('logo', () => {
-    it.each([undefined, null])(
-      'gives the logo an empty alt text when the company name is %s',
+    it.each(['Sewan Groupe', '', undefined, null])(
+      'gives the logo an empty alt text, since the company name %j is written next to it',
       entityName => {
         const { container } = render(
           <JobSummary
             entityName={entityName}
-            entityLogoUrl="/sewan.png"
+            entityLogoUrl="/sewan.webp"
           />,
         );
 
         expect(container.querySelector('img')).toHaveAttribute('alt', '');
+        expect(screen.queryByRole('img')).not.toBeInTheDocument();
       },
     );
 
@@ -122,6 +151,96 @@ describe('JobSummary', () => {
     render(<JobSummary jobName="" />);
 
     expect(screen.queryByRole('heading')).not.toBeInTheDocument();
+  });
+
+  describe('period', () => {
+    it('shows the start, a dash and the end, read "à" in place of the dash', () => {
+      render(
+        <JobSummary
+          startDate="août 2021"
+          endDate="Aujourd’hui"
+        />,
+      );
+      const period = getPeriod('août 2021');
+
+      expect(period).toHaveTextContent(/^août 2021 –à Aujourd’hui$/);
+      expect(screen.getByText('–')).toHaveAttribute('aria-hidden', 'true');
+      expect(getReadText(period)).toBe('août 2021 à Aujourd’hui');
+    });
+
+    it('reads the period in the active language', async () => {
+      render(
+        <JobSummary
+          startDate="Aug. 2021"
+          endDate="Present"
+        />,
+      );
+
+      await act(() => i18n.changeLanguage('en'));
+
+      expect(getReadText(getPeriod('Aug. 2021'))).toBe('Aug. 2021 to Present');
+    });
+
+    it('shows the period below the tablet breakpoint only, where the timeline hides its own', () => {
+      render(
+        <JobSummary
+          startDate="sept. 2019"
+          endDate="juin 2021"
+        />,
+      );
+      const period = getPeriod('sept. 2019');
+
+      expect(declaredStyle({ element: period, property: 'display' })).toBe('');
+      expect(declaredStyle({ element: period, property: 'display', media: TABLET_MEDIA })).toBe(
+        'none',
+      );
+    });
+
+    it('shows the period before the duration, on the same line', () => {
+      render(
+        <JobSummary
+          startDate="sept. 2019"
+          endDate="juin 2021"
+        />,
+      );
+      const period = getPeriod('sept. 2019');
+      const timing = period.parentElement;
+
+      expect(timing.children).toHaveLength(2);
+      expect(timing.lastElementChild).toHaveTextContent('1 an 9 mois');
+      expect(timing).toHaveStyle({ display: 'flex', flexWrap: 'wrap' });
+    });
+
+    it.each([
+      ['a missing start date', { endDate: 'juin 2021' }, 'juin 2021'],
+      ['a missing end date', { startDate: 'sept. 2019' }, 'sept. 2019'],
+      [
+        'an invalid start date',
+        { startDate: 'foo 2019', endDate: 'juin 2021' },
+        'foo 2019 à juin 2021',
+      ],
+    ])('shows the dates it has with %s, without a duration', (_, dates, expected) => {
+      const { container } = render(<JobSummary {...dates} />);
+
+      expect(getReadText(container.firstChild)).toBe(expected);
+      expect(screen.queryByText(DURATION_TEXT)).not.toBeInTheDocument();
+    });
+
+    it.each([
+      ['no dates', {}],
+      ['empty dates', { startDate: '', endDate: '' }],
+      ['null dates', { startDate: null, endDate: null }],
+    ])('leaves out the period and the duration with %s', (_, dates) => {
+      const { container } = render(
+        <JobSummary
+          jobName="Développeur"
+          {...dates}
+        />,
+      );
+
+      expect(container.textContent).toBe('Développeur');
+      expect(screen.getByRole('heading').nextElementSibling).toBeNull();
+    });
   });
 
   describe('duration', () => {

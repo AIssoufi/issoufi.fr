@@ -1,18 +1,22 @@
+import { en } from '../../../src/i18n/en';
 import { fr } from '../../../src/i18n/fr';
 import { theme } from '../../../src/theme/theme';
 import { SITE_URL } from '../../../src/utils/pages';
-import { listFontsInUse } from './fonts.mjs';
-import { hasUnresolvedValue } from './html.mjs';
+import { listFontsInUse } from '../../utils/fonts.mjs';
+import { getHomeTexts } from '../../utils/home-texts.mjs';
+import { hasUnresolvedValue } from '../../utils/html.mjs';
+import { FONTS_IN_USE } from '../constants.mjs';
 import { renderOgImageHtml, renderOgImageStyles } from './template.mjs';
-import { getOgImageTexts } from './texts.mjs';
 
-const texts = getOgImageTexts({ translations: fr, siteUrl: SITE_URL });
+const texts = getHomeTexts({ translations: fr, siteUrl: SITE_URL });
 const styles = renderOgImageStyles(theme);
 const params = {
+  language: 'fr',
   texts,
   styles,
   backgroundImageUrl: 'data:image/webp;base64,UklGR',
-  fontStylesheetUrl: 'https://fonts.googleapis.com/css2?family=Montserrat&display=swap',
+  fontFaceStyles:
+    "@font-face { font-family: 'Montserrat'; src: url('data:font/woff2;base64,d09G'); }",
   particlesSvg: '<svg id="particles"></svg>',
 };
 
@@ -52,7 +56,7 @@ describe('renderOgImageStyles', () => {
 
   it('only uses font weights that the font check loads', () => {
     const weights = [...styles.matchAll(/font-weight: (\d+);/g)].map(([, weight]) => weight);
-    const checkedFonts = listFontsInUse(theme);
+    const checkedFonts = listFontsInUse({ theme, fontsInUse: FONTS_IN_USE });
 
     expect(weights.length).toBeGreaterThan(0);
     weights.forEach(weight => expect(checkedFonts).toContain(`${weight} 16px "Montserrat"`));
@@ -64,11 +68,22 @@ describe('renderOgImageStyles', () => {
 });
 
 describe('renderOgImageHtml', () => {
-  it('starts an HTML document with the style sheet', () => {
+  it('starts an HTML document with the web fonts, then the style sheet', () => {
     const html = renderOgImageHtml(params);
+    const styleSheets = [...renderDocument().querySelectorAll('head style')];
 
     expect(html).toMatch(/^<!doctype html>/);
-    expect(renderDocument().querySelector('style').textContent).toBe(styles);
+    expect(styleSheets.map(({ textContent }) => textContent)).toEqual([
+      params.fontFaceStyles,
+      styles,
+    ]);
+  });
+
+  it('loads nothing from another site, the fonts included', () => {
+    const page = renderDocument();
+
+    expect(page.querySelector('link')).toBeNull();
+    expect(renderOgImageHtml(params)).not.toMatch(/https?:\/\//);
   });
 
   it('writes every text of the home page', () => {
@@ -82,6 +97,38 @@ describe('renderOgImageHtml', () => {
       'Je vous aide à développer vos applications web',
     );
     expect(page.querySelector('.site').textContent).toBe('issoufi.fr');
+  });
+
+  it('writes the texts of the home page in English', () => {
+    const page = renderDocument({
+      language: 'en',
+      texts: getHomeTexts({ translations: en, siteUrl: SITE_URL }),
+    });
+
+    expect(page.querySelector('.name').textContent).toBe('ADAM Issoufi');
+    expect(page.querySelector('h1').textContent).toBe('Full-stack JavaScript Developer');
+    expect(page.querySelector('.passion').textContent).toBe('passionate about UX and UI Design');
+    expect(page.querySelector('.subtitle').textContent).toBe('I help you build web applications');
+  });
+
+  it.each(['fr', 'en'])('names the language %s of the texts', language => {
+    expect(renderDocument({ language }).documentElement.lang).toBe(language);
+  });
+
+  it.each([undefined, null, 42, {}])(
+    'leaves the language unknown when it is %j, not a string',
+    language => {
+      const html = renderOgImageHtml({ ...params, language });
+
+      expect(html).toContain('<html lang="">');
+    },
+  );
+
+  it('escapes the language, so it cannot break the page', () => {
+    const page = renderDocument({ language: 'en"><script>' });
+
+    expect(page.documentElement.lang).toBe('en"><script>');
+    expect(page.querySelector('script')).toBeNull();
   });
 
   it('puts the design skills in bold', () => {
@@ -110,12 +157,18 @@ describe('renderOgImageHtml', () => {
     expect(positions.slice(3)).toEqual(['-25%', '-25%']);
   });
 
-  it('loads the font style sheet and shows the background photo', () => {
+  it.each([undefined, null, 42, {}])(
+    'leaves the style of the fonts empty when it is %j, not a string',
+    fontFaceStyles => {
+      const [fontStyle] = renderDocument({ fontFaceStyles }).querySelectorAll('head style');
+
+      expect(fontStyle.textContent).toBe('');
+    },
+  );
+
+  it('shows the background photo', () => {
     const page = renderDocument();
 
-    expect(page.querySelector('link[rel="stylesheet"]').getAttribute('href')).toBe(
-      params.fontStylesheetUrl,
-    );
     expect(page.body.style.backgroundImage).toBe(`url("${params.backgroundImageUrl}")`);
   });
 
@@ -139,14 +192,6 @@ describe('renderOgImageHtml', () => {
   it('escapes the URL of the background photo', () => {
     const page = renderDocument({ backgroundImageUrl: 'data:image/webp;base64,A\')"><script>' });
 
-    expect(page.querySelector('script')).toBeNull();
-  });
-
-  it('escapes the URL of the font style sheet', () => {
-    const fontStylesheetUrl = 'https://fonts.googleapis.com/css2?family=A&display=swap"><script>';
-    const page = renderDocument({ fontStylesheetUrl });
-
-    expect(page.querySelector('link').getAttribute('href')).toBe(fontStylesheetUrl);
     expect(page.querySelector('script')).toBeNull();
   });
 });

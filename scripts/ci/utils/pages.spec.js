@@ -1,10 +1,30 @@
+import { readFileSync } from 'node:fs';
+
+import { SITE_URL as APP_SITE_URL } from '../../../src/utils/pages';
+import { SITEMAP_FILE_NAME, SITEMAP_URL } from '../../../src/utils/sitemap';
 import {
+  getWebManifestFiles,
+  WEB_MANIFEST_FILE_NAME,
+  WEB_MANIFEST_MEDIA_TYPE,
+} from '../../../src/utils/webManifest';
+import { SITE_URL } from '../constants.mjs';
+import {
+  compareFile,
   comparePage,
+  getFileChecks,
   getPageChecks,
   isPageCheck,
   readPageHead,
   renderSmokeTestReport,
+  resolveSiteUrl,
+  splitBuildPath,
 } from './pages.mjs';
+
+/** Source of the `robots.txt` of the build, which tells search engines where the sitemap is. */
+const ROBOTS_FILE = 'public/robots.txt';
+
+/** Names the files that write the address of the production site, when they no longer agree. */
+const PRODUCTION_ADDRESS_MESSAGE = `keep SITE_URL of src/utils/pages.ts and scripts/ci/constants.mjs, and the Sitemap line of ${ROBOTS_FILE}, on the same address`;
 
 describe('isPageCheck', () => {
   it.each([
@@ -36,6 +56,26 @@ describe('isPageCheck', () => {
   });
 });
 
+describe('splitBuildPath', () => {
+  it.each([
+    ['index.html', '', 'index.html'],
+    ['404.html', '', '404.html'],
+    ['en/projects.html', '/en', 'projects.html'],
+    ['en/index.html', '/en', 'index.html'],
+    ['a/b/page.html', '/a/b', 'page.html'],
+  ])('splits %j into the folder route %j and the name %j', (file, folderRoute, name) => {
+    expect(splitBuildPath(file)).toEqual({ folderRoute, name });
+  });
+
+  it('gives an empty name to a path that ends with a separator', () => {
+    expect(splitBuildPath('en/')).toEqual({ folderRoute: '/en', name: '' });
+  });
+
+  it('gives an empty folder route and name to an empty path', () => {
+    expect(splitBuildPath('')).toEqual({ folderRoute: '', name: '' });
+  });
+});
+
 describe('getPageChecks', () => {
   it('maps each HTML file of the build to its route and status', () => {
     expect(getPageChecks(['index.html', 'projects.html', '404.html'])).toEqual([
@@ -45,8 +85,41 @@ describe('getPageChecks', () => {
     ]);
   });
 
+  it('maps the pages of a language folder to the routes of its prefix', () => {
+    expect(
+      getPageChecks(['en/index.html', 'en/projects.html', 'en/experiences.html', 'en/404.html']),
+    ).toEqual([
+      { file: 'en/index.html', route: '/en/', status: 200 },
+      { file: 'en/projects.html', route: '/en/projects', status: 200 },
+      { file: 'en/experiences.html', route: '/en/experiences', status: 200 },
+      { file: 'en/404.html', route: '/en/smoke-test-page-that-does-not-exist', status: 404 },
+    ]);
+  });
+
+  it('maps a page of nested folders to the route of its folders', () => {
+    expect(getPageChecks(['a/b/index.html', 'a/b/page.html', 'a/b/404.html'])).toEqual([
+      { file: 'a/b/index.html', route: '/a/b/', status: 200 },
+      { file: 'a/b/page.html', route: '/a/b/page', status: 200 },
+      { file: 'a/b/404.html', route: '/a/b/smoke-test-page-that-does-not-exist', status: 404 },
+    ]);
+  });
+
+  it('reads the paths that Node.js lists with backslashes on Windows', () => {
+    expect(getPageChecks(['en\\projects.html'])).toEqual([
+      { file: 'en/projects.html', route: '/en/projects', status: 200 },
+    ]);
+  });
+
   it('ignores the files that are not HTML pages', () => {
-    expect(getPageChecks(['assets', 'chess.png', 'robots.txt', 'index.html.map'])).toEqual([]);
+    expect(
+      getPageChecks([
+        'assets',
+        'assets/index-B7cJ.js',
+        'chess.png',
+        'robots.txt',
+        'index.html.map',
+      ]),
+    ).toEqual([]);
   });
 
   it.each([undefined, null, [], 'index.html', {}])('gives no check for %o', fileNames => {
@@ -152,6 +225,254 @@ describe('comparePage', () => {
   });
 });
 
+describe('getFileChecks', () => {
+  it('checks robots.txt and sitemap.xml at the root of the site', () => {
+    expect(getFileChecks(['index.html', 'sitemap.xml', 'assets/index.js', 'robots.txt'])).toEqual([
+      { file: 'robots.txt', route: '/robots.txt', status: 200 },
+      { file: 'sitemap.xml', route: '/sitemap.xml', status: 200 },
+    ]);
+  });
+
+  it('checks the sitemap under the name the build writes it with', () => {
+    expect(getFileChecks([SITEMAP_FILE_NAME])).toEqual([
+      { file: SITEMAP_FILE_NAME, route: `/${SITEMAP_FILE_NAME}`, status: 200 },
+    ]);
+  });
+
+  it('gives no check for a file that the build does not have', () => {
+    expect(getFileChecks(['index.html', 'robots.txt'])).toEqual([
+      { file: 'robots.txt', route: '/robots.txt', status: 200 },
+    ]);
+  });
+
+  it('gives no check for a file that the build has only in a folder', () => {
+    expect(getFileChecks(['en/sitemap.xml', 'en\\robots.txt'])).toEqual([]);
+  });
+
+  it('ignores the other files and the entries that are not file names', () => {
+    expect(
+      getFileChecks(['favicon.ico', 'manifest.json', null, 42, { name: 'robots.txt' }]),
+    ).toEqual([]);
+  });
+
+  it.each([undefined, null, [], 'robots.txt', {}])('gives no check for %o', fileNames => {
+    expect(getFileChecks(fileNames)).toEqual([]);
+  });
+
+  it('checks the web app manifest of every language, at the root and in each folder', () => {
+    expect(
+      getFileChecks(['manifest.webmanifest', 'en/index.html', 'en\\manifest.webmanifest']),
+    ).toEqual([
+      {
+        file: 'manifest.webmanifest',
+        route: '/manifest.webmanifest',
+        status: 200,
+        mediaType: 'application/manifest+json',
+      },
+      {
+        file: 'en/manifest.webmanifest',
+        route: '/en/manifest.webmanifest',
+        status: 200,
+        mediaType: 'application/manifest+json',
+      },
+    ]);
+  });
+
+  it('checks the files in the order of the list, then of the build', () => {
+    expect(
+      getFileChecks(['en/manifest.webmanifest', 'sitemap.xml', 'manifest.webmanifest']).map(
+        ({ file }) => file,
+      ),
+    ).toEqual(['sitemap.xml', 'en/manifest.webmanifest', 'manifest.webmanifest']);
+  });
+
+  it('checks the web app manifests under the name and media type that the build gives them', () => {
+    const [manifestCheck] = getFileChecks([WEB_MANIFEST_FILE_NAME]);
+
+    expect(manifestCheck).toEqual(
+      expect.objectContaining({ file: WEB_MANIFEST_FILE_NAME, mediaType: WEB_MANIFEST_MEDIA_TYPE }),
+    );
+  });
+
+  it('checks the web app manifest of every language that the build writes', () => {
+    expect(
+      getFileChecks(getWebManifestFiles().map(({ fileName }) => fileName)).map(({ file }) => file),
+    ).toEqual(getWebManifestFiles().map(({ fileName }) => fileName));
+  });
+});
+
+describe('compareFile', () => {
+  const check = { file: 'sitemap.xml', route: '/sitemap.xml', status: 200 };
+  const builtText = '<?xml version="1.0" encoding="UTF-8"?>\n<urlset></urlset>\n';
+
+  it('finds no problem when the file is served as built', () => {
+    expect(compareFile({ check, status: 200, servedText: builtText, builtText })).toEqual([]);
+  });
+
+  it('reports an unexpected status', () => {
+    expect(compareFile({ check, status: 404, servedText: builtText, builtText })).toEqual([
+      '/sitemap.xml: status 404 instead of 200',
+    ]);
+  });
+
+  it('reports a content that differs from the build, by a single character', () => {
+    const servedText = builtText.replace('\n<urlset>', '<urlset>');
+
+    expect(compareFile({ check, status: 200, servedText, builtText })).toEqual([
+      '/sitemap.xml: content differs from sitemap.xml of the build',
+    ]);
+  });
+
+  it('reports the not found page served in place of the file, with both problems', () => {
+    const servedText = '<!doctype html><title>Page introuvable</title>';
+
+    expect(compareFile({ check, status: 404, servedText, builtText })).toEqual([
+      '/sitemap.xml: status 404 instead of 200',
+      '/sitemap.xml: content differs from sitemap.xml of the build',
+    ]);
+  });
+
+  it.each([undefined, null, 42, ''])(
+    'reports a file empty in the build, %o, even when the site serves it empty too',
+    emptyText => {
+      expect(compareFile({ check, status: 200, servedText: '', builtText: emptyText })).toEqual([
+        '/sitemap.xml: sitemap.xml is empty in the build',
+      ]);
+    },
+  );
+
+  it.each([undefined, null, 42])('reports the served content %o as differing', servedText => {
+    expect(compareFile({ check, status: 200, servedText, builtText })).toEqual([
+      '/sitemap.xml: content differs from sitemap.xml of the build',
+    ]);
+  });
+
+  it.each([undefined, null, NaN, 200.5, '200'])(
+    'reports the served status %o as unknown',
+    status => {
+      expect(compareFile({ check, status, servedText: builtText, builtText })).toEqual([
+        '/sitemap.xml: status unknown instead of 200',
+      ]);
+    },
+  );
+
+  it.each([undefined, null, {}, { route: '/sitemap.xml', status: 200 }])(
+    'reports the missing or malformed file check %o as a single problem',
+    malformedCheck => {
+      expect(
+        compareFile({ check: malformedCheck, status: 200, servedText: builtText, builtText }),
+      ).toEqual(['A file check without a file, a route or an integer status cannot be compared']);
+    },
+  );
+
+  it('ignores the media type of a file whose check names none', () => {
+    expect(
+      compareFile({
+        check,
+        status: 200,
+        servedText: builtText,
+        builtText,
+        contentType: 'text/html',
+      }),
+    ).toEqual([]);
+  });
+
+  describe('media type', () => {
+    const manifestCheck = {
+      file: 'en/manifest.webmanifest',
+      route: '/en/manifest.webmanifest',
+      status: 200,
+      mediaType: 'application/manifest+json',
+    };
+    const manifest = '{\n  "lang": "en"\n}\n';
+
+    it.each([
+      'application/manifest+json',
+      'application/manifest+json; charset=utf-8',
+      'Application/Manifest+JSON',
+    ])('accepts the Content-Type %j', contentType => {
+      expect(
+        compareFile({
+          check: manifestCheck,
+          status: 200,
+          servedText: manifest,
+          builtText: manifest,
+          contentType,
+        }),
+      ).toEqual([]);
+    });
+
+    it.each([
+      ['application/json', 'application/json'],
+      ['text/html; charset=utf-8', 'text/html'],
+      ['', 'no media type'],
+      [null, 'no media type'],
+      [undefined, 'no media type'],
+    ])('reports the Content-Type %j', (contentType, servedAs) => {
+      expect(
+        compareFile({
+          check: manifestCheck,
+          status: 200,
+          servedText: manifest,
+          builtText: manifest,
+          contentType,
+        }),
+      ).toEqual([
+        `/en/manifest.webmanifest: served as ${servedAs} instead of application/manifest+json`,
+      ]);
+    });
+
+    it('reports a wrong media type along with a wrong content', () => {
+      expect(
+        compareFile({
+          check: manifestCheck,
+          status: 200,
+          servedText: '<!doctype html>',
+          builtText: manifest,
+          contentType: 'text/html',
+        }),
+      ).toEqual([
+        '/en/manifest.webmanifest: served as text/html instead of application/manifest+json',
+        '/en/manifest.webmanifest: content differs from en/manifest.webmanifest of the build',
+      ]);
+    });
+  });
+});
+
+describe('resolveSiteUrl', () => {
+  it('checks the production site when the command has no argument', () => {
+    expect(resolveSiteUrl(undefined)).toBe(SITE_URL);
+  });
+
+  it.each(['https://develop.issoufi-fr.pages.dev', 'https://issoufi.fr', 'not a URL'])(
+    'keeps the argument %o as given',
+    argument => {
+      expect(resolveSiteUrl(argument)).toBe(argument);
+    },
+  );
+
+  // An unset deployment URL must fail the smoke test, not check production in place of a preview
+  it.each(['', ' '])('keeps the empty argument %o rather than checking production', argument => {
+    expect(resolveSiteUrl(argument)).toBe(argument);
+  });
+
+  it.each([null, 42, {}, ['https://issoufi.fr/']])('gives no site for %o', argument => {
+    expect(resolveSiteUrl(argument)).toBe('');
+  });
+});
+
+describe('production address', () => {
+  it('is the same in the app and in the CI scripts', () => {
+    expect(new URL(APP_SITE_URL).href, PRODUCTION_ADDRESS_MESSAGE).toBe(SITE_URL);
+  });
+
+  it(`hosts the sitemap that ${ROBOTS_FILE} declares`, () => {
+    const robotsLines = readFileSync(ROBOTS_FILE, 'utf8').split(/\r?\n/);
+
+    expect(robotsLines, PRODUCTION_ADDRESS_MESSAGE).toContain(`Sitemap: ${SITEMAP_URL}`);
+  });
+});
+
 describe('renderSmokeTestReport', () => {
   const siteUrl = 'https://issoufi.fr';
   const pages = [
@@ -162,6 +483,14 @@ describe('renderSmokeTestReport', () => {
   it('lists the routes served as built', () => {
     expect(renderSmokeTestReport({ siteUrl, pages })).toBe(
       '## Smoke test\n\n✅ https://issoufi.fr serves `/` (200), `/smoke-test-page-that-does-not-exist` (404) as built.\n',
+    );
+  });
+
+  it('lists the files served as built after the pages', () => {
+    const files = getFileChecks(['sitemap.xml']);
+
+    expect(renderSmokeTestReport({ siteUrl, pages: [pages[0], ...files] })).toBe(
+      '## Smoke test\n\n✅ https://issoufi.fr serves `/` (200), `/sitemap.xml` (200) as built.\n',
     );
   });
 

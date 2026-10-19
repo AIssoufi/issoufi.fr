@@ -1,36 +1,59 @@
 import { useId, useRef, useState } from 'react';
-import { Link } from 'react-router';
 import { useTranslation } from 'react-i18next';
 
+import LocalizedLink from '../../components/LocalizedLink';
+import { useMediaQuery } from '../../hooks/useMediaQuery';
+import { useUrlLanguage } from '../../hooks/useUrlLanguage';
+import { localizePath } from '../../i18n/utils';
 import BurgerMenu from './BurgerMenu';
 import { DESKTOP_MEDIA_QUERY } from './constants';
 import { useEscapeKey } from './hooks/useEscapeKey';
 import { useInertOutside } from './hooks/useInertOutside';
-import { useMediaQuery } from './hooks/useMediaQuery';
+import { useScrollLock } from './hooks/useScrollLock';
 import LangToggle from './LangToggle';
 import NavMenu from './NavMenu';
+import { formatVersion } from './utils';
 
-import { Actions, Container, Logo, Menu } from './Header.styled';
+import {
+  Actions,
+  Brand,
+  BuildVersion,
+  Container,
+  FloatingControls,
+  Logo,
+  Menu,
+} from './Header.styled';
 
 /**
- * Site header: the "AI" logo linking home, the language toggle, the navigation and, on mobile,
- * the burger button that opens it. Owns the open state of the mobile menu, and closes it after
- * each navigation and when the screen grows to the desktop layout, as when a tablet is rotated.
- * Must be rendered inside a router.
+ * Site header: the "AI" logo linking home, followed by the version of the build in small letters
+ * (`build v1.0.0`, see {@link formatVersion}), the language toggle, the navigation and, on mobile,
+ * the burger button that opens it. The navigation holds the links to the pages, in the language of
+ * the current URL, then the GitHub and LinkedIn icons and the link that downloads the CV (see
+ * `NavMenu`). From tablet up, it is a bar of the header and the language toggle floats alone on
+ * the right edge of the screen. Owns the open state of the mobile menu, and closes it when one of
+ * its links is followed and when the screen grows to the desktop layout, as when a tablet is
+ * rotated. It stays at the top of the screen down to the end of every page, and is compact on a
+ * short screen, as on a phone held sideways, so the page keeps most of it. Must be rendered inside
+ * a router.
  *
  * The burger button comes before the links in the page, so once a keyboard user opens the menu,
  * the next `Tab` reaches its first link. While open, the mobile menu acts as a modal dialog: the
- * rest of the page is inert, so `Tab` and `Shift+Tab` only reach the burger and the links, and
- * `Escape` or a click on one of its links closes it and gives the focus back to the burger,
- * rather than leaving it on a hidden link. None of this applies to the desktop layout, where the
- * links are a bar of the page.
+ * language toggle and the burger stay above it, in the header row, and the rest of the page is
+ * inert, so `Tab` and `Shift+Tab` only reach the toggle, the burger and the links; the page behind
+ * it no longer scrolls (see {@link useScrollLock}), and `Escape` or a click on one of its links
+ * closes it and gives the focus back to the burger, rather than leaving it on a hidden link. The
+ * toggle changes the language without closing it. None of this applies to the desktop layout,
+ * where the links are a bar of the page.
  */
-const Header = ({ testId }: HeaderProps) => {
+const Header = ({ testId, version = __APP_VERSION__ }: HeaderProps) => {
   const [mobileMenuIsOpen, setMobileMenuIsOpen] = useState(false);
   const navMenuId = useId();
-  const menuRef = useRef<HTMLDivElement>(null);
+  const controlsRef = useRef<HTMLDivElement>(null);
   const burgerRef = useRef<HTMLButtonElement>(null);
   const { t } = useTranslation();
+  const versionText = formatVersion(version);
+  const showsVersion = versionText !== '';
+  const language = useUrlLanguage();
 
   const closeMobileMenuOnDesktop = (isDesktopLayout: boolean) => {
     if (isDesktopLayout) setMobileMenuIsOpen(false);
@@ -51,26 +74,32 @@ const Header = ({ testId }: HeaderProps) => {
     if (isMenuCoveringPage) burgerRef.current?.focus();
   };
 
-  useInertOutside({ containerRef: menuRef, isActive: isMenuCoveringPage });
+  // The language toggle stays usable over the open menu, like the burger: both stay reachable
+  useInertOutside({ containerRef: controlsRef, isActive: isMenuCoveringPage });
   useEscapeKey({ isActive: isMenuCoveringPage, onEscape: closeMobileMenu });
+  useScrollLock({ isActive: isMenuCoveringPage });
 
   const items = [
-    { name: t('nav.home'), url: '/', end: true },
-    { name: t('nav.projects'), url: '/projects' },
-    { name: t('nav.experience'), url: '/experiences' },
+    { name: t('nav.home'), url: localizePath({ path: '/', language }), end: true },
+    { name: t('nav.projects'), url: localizePath({ path: '/projects', language }) },
+    { name: t('nav.experience'), url: localizePath({ path: '/experiences', language }) },
   ];
 
   return (
     <Container data-testid={testId}>
-      <Logo>
-        <Link to="/">AI</Link>
-      </Logo>
-      <Actions>
-        <LangToggle />
-        <Menu
-          ref={menuRef}
-          $isSticky={mobileMenuIsOpen}
-        >
+      <Brand>
+        <Logo>
+          <LocalizedLink to="/">AI</LocalizedLink>
+        </Logo>
+        {showsVersion && (
+          <BuildVersion>{t('header.buildVersion', { version: versionText })}</BuildVersion>
+        )}
+      </Brand>
+      <Actions ref={controlsRef}>
+        <FloatingControls>
+          <LangToggle />
+        </FloatingControls>
+        <Menu>
           <BurgerMenu
             ref={burgerRef}
             isOpen={mobileMenuIsOpen}
@@ -96,4 +125,10 @@ export default Header;
 interface HeaderProps {
   /** `data-testid` set on the header element, for tests. */
   testId?: string;
+  /**
+   * Version of the site shown after the logo, as `package.json` writes it, e.g. `1.0.0`. Not shown
+   * when empty. Defaults to the version of the build, which Vite reads from `package.json`.
+   * @default __APP_VERSION__
+   */
+  version?: string;
 }

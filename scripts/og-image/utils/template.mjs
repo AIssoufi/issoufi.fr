@@ -6,9 +6,9 @@ import {
   SHIMMER_OFF_WORD_POSITION,
   SHIMMER_POSITIONS,
 } from '../constants.mjs';
-import { escapeHtml } from './html.mjs';
+import { escapeHtml } from '../../utils/html.mjs';
 
-/** @typedef {import('./texts.mjs').OgImageTexts} OgImageTexts */
+/** @typedef {import('../../utils/home-texts.mjs').HomeTexts} HomeTexts */
 
 /**
  * Design tokens of `src/theme/theme.ts` read by the image.
@@ -151,11 +151,16 @@ export const renderOgImageStyles = theme => {
 /**
  * Parameters of {@link renderOgImageHtml}.
  * @typedef {object} RenderOgImageHtmlParams
- * @property {OgImageTexts} texts - Texts of the image, from `getOgImageTexts`.
+ * @property {string} language - Code of the language of the texts, e.g. `en`, written in the
+ * `lang` of the page so the browser applies its typography rules. A value that is not a string
+ * leaves the language unknown (`lang=""`).
+ * @property {HomeTexts} texts - Texts of the image, from `getHomeTexts`.
  * @property {string} styles - Style sheet of the page, from {@link renderOgImageStyles}.
  * @property {string} backgroundImageUrl - Background photo of the home page, as a data URL,
  * since the page is not served from the project.
- * @property {string} fontStylesheetUrl - Google Fonts style sheet of `index.html`.
+ * @property {string} fontFaceStyles - `@font-face` rules of the web fonts of the site, their files
+ * as data URLs, from `renderFontFaces` (`src/theme/utils.ts`), written in the page as they are. A
+ * value that is not a string leaves the style of the fonts empty.
  * @property {string} particlesSvg - Still of the particle field, from `renderParticlesSvg`.
  */
 
@@ -167,15 +172,26 @@ export const renderOgImageStyles = theme => {
  * @param {RenderOgImageHtmlParams} params
  * @returns {string} A complete HTML document, sized to the image.
  * @example
- * await page.setContent(renderOgImageHtml({ texts, styles, backgroundImageUrl, fontStylesheetUrl, particlesSvg }));
+ * await page.setContent(
+ *   renderOgImageHtml({
+ *     language: 'en',
+ *     texts,
+ *     styles,
+ *     backgroundImageUrl,
+ *     fontFaceStyles,
+ *     particlesSvg,
+ *   }),
+ * );
  */
 export const renderOgImageHtml = ({
+  language,
   texts,
   styles,
   backgroundImageUrl,
-  fontStylesheetUrl,
+  fontFaceStyles,
   particlesSvg,
 }) => {
+  const fontStyles = typeof fontFaceStyles === 'string' ? fontFaceStyles : '';
   const passion = texts.passion
     .map(({ text, isHighlighted }) =>
       isHighlighted ? `<strong>${escapeHtml(text)}</strong>` : escapeHtml(text),
@@ -183,10 +199,10 @@ export const renderOgImageHtml = ({
     .join('');
 
   return `<!doctype html>
-<html lang="fr">
+<html lang="${escapeHtml(language)}">
   <head>
     <meta charset="utf-8" />
-    <link rel="stylesheet" href="${escapeHtml(fontStylesheetUrl)}" />
+    <style>${fontStyles}</style>
     <style>${styles}</style>
   </head>
   <body style="background-image: url('${escapeHtml(backgroundImageUrl)}')">

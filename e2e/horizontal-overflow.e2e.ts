@@ -1,8 +1,14 @@
 import { expect, test } from '@playwright/test';
 
-import { LANGUAGE_STORAGE_KEY, LANGUAGES } from '../src/i18n/constants';
+import { LANGUAGES } from '../src/i18n/constants';
+import { localizePath } from '../src/i18n/utils';
 import { PAGES } from '../src/utils/pages';
-import { PAGE_SELECTOR, SCREEN_HEIGHT_PX, SCREEN_WIDTHS_PX } from './constants';
+import {
+  LONG_NOT_FOUND_ROUTE,
+  PAGE_SELECTOR,
+  SCREEN_HEIGHT_PX,
+  SCREEN_WIDTHS_PX,
+} from './constants';
 import { getCheckedRoutes } from './utils';
 
 // jsdom computes no layout, so only a real browser sees a page wider than the screen
@@ -11,18 +17,16 @@ for (const language of LANGUAGES) {
     test.describe(`in ${language}, on a ${width} px wide screen`, () => {
       test.use({ viewport: { width, height: SCREEN_HEIGHT_PX } });
 
-      // Each language has its own text widths. The app opens in the one the toggle stored.
-      test.beforeEach(async ({ page }) => {
-        await page.addInitScript(({ key, value }) => localStorage.setItem(key, value), {
-          key: LANGUAGE_STORAGE_KEY,
-          value: language,
-        });
-      });
-
-      for (const route of getCheckedRoutes(PAGES)) {
+      // Each language has its own text widths, and its own URLs: /en/projects opens in English.
+      // The not found page names the path it is opened at, which a long one must not widen.
+      const routes = [
+        ...getCheckedRoutes({ pages: PAGES, language }),
+        localizePath({ path: LONG_NOT_FOUND_ROUTE, language }),
+      ];
+      for (const route of routes) {
         test(`${route} does not scroll sideways`, async ({ page }) => {
           await page.goto(route);
-          // Without the stored language, every run would test the default language
+          // A route that lost its language would test the default language twice
           await expect(page.locator('html')).toHaveAttribute('lang', language);
           // Measured before its chunk is loaded, or if it failed to render, a page would pass
           await expect(page.locator(PAGE_SELECTOR)).toBeVisible();

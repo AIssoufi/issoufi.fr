@@ -1,7 +1,6 @@
 import { useTranslation } from 'react-i18next';
 
-import StatusMessage from '../../../components/StatusMessage';
-import { UnexpectedErrorPage } from './UnexpectedError.styled';
+import StatusPage from '../../../components/StatusPage';
 
 /** Reloads the page, which fetches its HTML and the chunks of the current deployment again. */
 const reloadPage = () => window.location.reload();
@@ -15,14 +14,12 @@ const UnexpectedError = () => {
   const { t } = useTranslation();
 
   return (
-    <UnexpectedErrorPage>
-      <StatusMessage
-        title={t('errors.unexpected.title')}
-        message={t('errors.unexpected.message')}
-        actionLabel={t('errors.unexpected.reload')}
-        onAction={reloadPage}
-      />
-    </UnexpectedErrorPage>
+    <StatusPage
+      title={t('errors.unexpected.title')}
+      message={t('errors.unexpected.message')}
+      actionLabel={t('errors.unexpected.reload')}
+      onAction={reloadPage}
+    />
   );
 };
 

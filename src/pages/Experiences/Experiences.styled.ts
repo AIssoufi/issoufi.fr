@@ -3,14 +3,7 @@ import styled, { th } from '@xstyled/styled-components';
 import List from '../../components/List';
 import Page from '../../components/Page';
 
-import {
-  companyBlock,
-  lineWidth,
-  mobileContentIndent,
-  mobileLineLeft,
-  periodColumnWidth,
-  timelineRow,
-} from './timeline.styled';
+import { lineWidth, mobileLineLeft, periodColumnWidth } from './timeline.styled';
 
 export const ExperiencesPage = styled(Page)``;
 
@@ -33,9 +26,9 @@ export const PageTitle = styled.h1`
   }
 `;
 
-/* ── Timeline grid ─────────────────────────────────────────── */
+/* ── Timeline grid: the list of the companies ──────────────── */
 
-export const Timeline = styled.div`
+export const Timeline = styled(List)`
   position: relative;
 
   /* vertical line — mobile */
@@ -60,45 +53,5 @@ export const Timeline = styled.div`
     &::before {
       left: calc(${periodColumnWidth} - ${lineWidth} / 2);
     }
-  }
-`;
-
-export const TimelineEntry = styled.div`
-  ${companyBlock}
-  ${timelineRow}
-`;
-
-/* ── Content column ───────────────────────────────────────── */
-
-export const TimelineContent = styled.div`
-  min-width: 0;
-  padding-left: ${mobileContentIndent};
-
-  @media (min-width: ${th('screens.tablet')}) {
-    padding-left: ${th.space(20)};
-  }
-`;
-
-export const BulletList = styled(List)`
-  margin-top: ${th.space(8)};
-  display: flex;
-  flex-direction: column;
-  gap: ${th.space(5)};
-`;
-
-export const BulletItem = styled.li`
-  position: relative;
-  padding-left: ${th.space(16)};
-  font-size: ${th.fontSize(14)};
-  line-height: ${th.lineHeight(155)};
-
-  &::before {
-    content: '›';
-    position: absolute;
-    left: 0;
-    color: ${th.color('accent-soft-a65')};
-    font-weight: ${th.fontWeight('bold')};
-    font-size: ${th.fontSize(15)};
-    line-height: ${th.lineHeight(145)};
   }
 `;

@@ -254,3 +254,28 @@ export const findRawThemeValues = source => {
   visit(file);
   return rawValues;
 };
+
+/**
+ * A length in pixels at the start of a font size, alone or as the smallest value of a `clamp()`.
+ */
+const SMALLEST_PIXEL_SIZE_PATTERN = /^(?:clamp\(\s*)?(\d+(?:\.\d+)?)px(?:$|\s*,)/;
+
+/**
+ * Smallest size, in pixels, that a font size token of the theme can take: its value, or the
+ * smallest value of a fluid size written with `clamp()`, the first one.
+ *
+ * @param {unknown} size - Font size as the theme writes it, such as `12px` or
+ * `clamp(16px, 12px + 0.75vmin, 24px)`.
+ * @returns {number} The size in pixels; `NaN` for a size in another unit, a `clamp()` whose
+ * smallest value is not in pixels, or a value that is not a string, so that any comparison with
+ * it fails.
+ *
+ * @example
+ * getSmallestFontSizePx('clamp(16px, 12px + 0.75vmin, 24px)'); // 16
+ */
+export const getSmallestFontSizePx = size => {
+  if (typeof size !== 'string') return Number.NaN;
+
+  const match = size.trim().match(SMALLEST_PIXEL_SIZE_PATTERN);
+  return match ? Number(match[1]) : Number.NaN;
+};

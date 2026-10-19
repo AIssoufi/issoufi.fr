@@ -71,47 +71,46 @@ export const renderScriptsTable = ({
   ].join('\n');
 
 /**
- * Parameters of {@link renderLargeImagesSection}.
- * @typedef {object} RenderLargeImagesSectionParams
- * @property {BuildFile[]} [largeImages] - Images over the limit, from `findLargeImages` of
+ * Parameters of {@link renderLargeFilesSection}.
+ * @typedef {object} RenderLargeFilesSectionParams
+ * @property {BuildFile[]} [largeFiles] - Files over the limit, from `findLargeFiles` of
  * `bundle.mjs`. Any value that is not an array counts as none.
- * @property {number} largeImageBytes - Size limit used to find them, shown in the heading.
+ * @property {number} largeFileBytes - Size limit used to find them, shown in the heading.
  */
 
 /**
- * Writes the Markdown section of the images over the size limit: a heading with the limit, then
- * the size of each image. Entries that are not build files (see {@link isBuildFile}) are left
- * out.
- * @param {RenderLargeImagesSectionParams} params
- * @returns {string} The section, without a final line break, or an empty string when no image is
+ * Writes the Markdown section of the files over the size limit: a heading with the limit, then
+ * the size of each file. Entries that are not build files (see {@link isBuildFile}) are left out.
+ * @param {RenderLargeFilesSectionParams} params
+ * @returns {string} The section, without a final line break, or an empty string when no file is
  * listed.
- * @throws {RangeError} When the limit is not a finite number above 0, even without images, like
- * `findLargeImages` of `bundle.mjs`.
+ * @throws {RangeError} When the limit is not a finite number above 0, even without files, like
+ * `findLargeFiles` of `bundle.mjs`.
  * @example
- * renderLargeImagesSection({
- *   largeImages: [{ path: 'chess.png', bytes: 928_988 }],
- *   largeImageBytes: 500_000,
+ * renderLargeFilesSection({
+ *   largeFiles: [{ path: 'chess.png', bytes: 928_988 }],
+ *   largeFileBytes: 500_000,
  * });
- * // ### Images over 500.0 kB
+ * // ### Files over 500.0 kB
  * //
- * // | Image | Size |
+ * // | File | Size |
  * // | --- | ---: |
  * // | `chess.png` | 929.0 kB |
  */
-export const renderLargeImagesSection = ({ largeImages, largeImageBytes }) => {
-  const isValidLimit = isPositiveNumber(largeImageBytes);
-  if (!isValidLimit) throw new RangeError(`Invalid image size limit: ${largeImageBytes}`);
+export const renderLargeFilesSection = ({ largeFiles, largeFileBytes }) => {
+  const isValidLimit = isPositiveNumber(largeFileBytes);
+  if (!isValidLimit) throw new RangeError(`Invalid file size limit: ${largeFileBytes}`);
 
-  const listedImages = toList(largeImages).filter(isBuildFile);
-  const hasLargeImages = listedImages.length > 0;
-  if (!hasLargeImages) return '';
+  const listedFiles = toList(largeFiles).filter(isBuildFile);
+  const hasLargeFiles = listedFiles.length > 0;
+  if (!hasLargeFiles) return '';
 
   return [
-    `### Images over ${formatKilobytes(largeImageBytes)}`,
+    `### Files over ${formatKilobytes(largeFileBytes)}`,
     '',
-    '| Image | Size |',
+    '| File | Size |',
     '| --- | ---: |',
-    ...listedImages.map(({ path, bytes }) => `| \`${path}\` | ${formatKilobytes(bytes)} |`),
+    ...listedFiles.map(({ path, bytes }) => `| \`${path}\` | ${formatKilobytes(bytes)} |`),
   ].join('\n');
 };
 
@@ -139,33 +138,33 @@ const renderBudgetVerdict = ({ name, totalGzipBytes, isOverBudget, budgetBytes }
 /**
  * Parameters of {@link renderBundleReport}.
  * The scripts and budgets of {@link checkBundleBudgets} ({@link CheckBundleBudgetsParams}), and
- * the large images of {@link renderLargeImagesSection} ({@link RenderLargeImagesSectionParams}).
- * @typedef {CheckBundleBudgetsParams & RenderLargeImagesSectionParams} RenderBundleReportParams
+ * the large files of {@link renderLargeFilesSection} ({@link RenderLargeFilesSectionParams}).
+ * @typedef {CheckBundleBudgetsParams & RenderLargeFilesSectionParams} RenderBundleReportParams
  */
 
 /**
  * Writes the size report of the build as Markdown, for the job summary: the table of the scripts
  * and style sheets ({@link renderScriptsTable}), the initial load and the total against their
- * budgets, and the images over the size limit ({@link renderLargeImagesSection}). Entries that
+ * budgets, and the files over the size limit ({@link renderLargeFilesSection}). Entries that
  * are not build files (see {@link isBuildFile}) are left out, of the sizes too.
  * When the home page references none of the scripts, the initial load is reported as not found,
  * a failure, since its budget cannot be checked (see {@link checkBundleBudgets}).
  * @param {RenderBundleReportParams} params
  * @returns {string} The Markdown report.
- * @throws {RangeError} When a budget or the image size limit is not a finite number above 0, like
- * {@link checkBundleBudgets} and `findLargeImages` of `bundle.mjs`.
+ * @throws {RangeError} When a budget or the file size limit is not a finite number above 0, like
+ * {@link checkBundleBudgets} and `findLargeFiles` of `bundle.mjs`.
  * @example
  * renderBundleReport({
  *   scripts: [{ path: 'assets/index.js', bytes: 403_180, gzipBytes: 131_860 }],
  *   initialPaths: ['assets/index.js'],
  *   budgetBytes: 210_000,
  *   initialLoadBudgetBytes: 150_000,
- *   largeImages: [{ path: 'chess.png', bytes: 928_988 }],
- *   largeImageBytes: 500_000,
+ *   largeFiles: [{ path: 'chess.png', bytes: 928_988 }],
+ *   largeFileBytes: 500_000,
  * });
  * // A table with the row '| `assets/index.js` | 403.2 kB | 131.9 kB |', the initial load and
  * // the total, then '✅ Initial load within budget: 131.9 kB gzip for a budget of 150.0 kB.',
- * // '✅ Total within budget: 131.9 kB gzip for a budget of 210.0 kB.', then the images over
+ * // '✅ Total within budget: 131.9 kB gzip for a budget of 210.0 kB.', then the files over
  * // 500.0 kB
  */
 export const renderBundleReport = ({
@@ -173,10 +172,10 @@ export const renderBundleReport = ({
   initialPaths,
   budgetBytes,
   initialLoadBudgetBytes,
-  largeImages,
-  largeImageBytes,
+  largeFiles,
+  largeFileBytes,
 }) => {
-  const imagesSection = renderLargeImagesSection({ largeImages, largeImageBytes });
+  const filesSection = renderLargeFilesSection({ largeFiles, largeFileBytes });
   const { initialScripts, otherScripts, hasInitialLoad, initialLoad, total } = checkBundleBudgets({
     scripts,
     initialPaths,
@@ -206,8 +205,8 @@ export const renderBundleReport = ({
     renderBudgetVerdict({ ...total, name: 'Total', budgetBytes }),
   ];
 
-  const hasImagesSection = imagesSection !== '';
-  if (hasImagesSection) lines.push('', imagesSection);
+  const hasFilesSection = filesSection !== '';
+  if (hasFilesSection) lines.push('', filesSection);
 
   return `${lines.join('\n')}\n`;
 };

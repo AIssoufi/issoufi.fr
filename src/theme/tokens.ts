@@ -36,7 +36,7 @@ export const rgb = {
   green: '50, 180, 100',
 } as const;
 
-/** Solid colors of the palette. */
+/** Colors of the palette, solid or translucent; the alpha of a translucent one ends its name. */
 export const palette = {
   white: '#ffffff',
   gray200: '#e5e5e5',
@@ -47,6 +47,16 @@ export const palette = {
   lavenderGray60: 'rgba(210, 208, 220, 0.6)',
   mint85: 'rgba(130, 210, 150, 0.85)',
   deepViolet92: 'rgba(10, 6, 18, 0.92)',
+  darkPlum80: 'rgba(40, 14, 30, 0.8)',
+} as const;
+
+/**
+ * CSS system colors, which forced colors mode, such as a contrast theme of Windows, sets to the
+ * colors of its own palette, the only ones it keeps.
+ */
+export const systemColors = {
+  highlight: 'Highlight',
+  buttonText: 'ButtonText',
 } as const;
 
 /** Spacing scale; keys are pixel values. */
@@ -77,6 +87,7 @@ export const spacing = {
   36: '36px',
   48: '48px',
   56: '56px',
+  80: '80px',
 } as const;
 
 /** Spacing that follows the font size of the element; keys are hundredths of an em. */
@@ -84,29 +95,46 @@ export const relativeSpacing = {
   70: '0.7em',
 } as const;
 
+/**
+ * Spacing that grows with the height of the screen, between a smallest and a largest space; keys
+ * are `<smallest>-<largest>` in pixels. `16-80` is 6 % of the height: 19 px on a phone held
+ * sideways, 54 px on a 900 px high laptop screen.
+ */
+export const fluidSpacing = {
+  '16-80': 'clamp(16px, 6vh, 80px)',
+} as const;
+
 /** Widths and heights of elements, from hairlines to the app container; keys are pixel values. */
 export const sizes = {
   1: '1px',
   2: '2px',
+  3: '3px',
   12: '12px',
   15: '15px',
   16: '16px',
+  30: '30px',
   32: '32px',
   36: '36px',
+  44: '44px',
+  48: '48px',
   50: '50px',
-  54: '54px',
-  72: '72px',
   90: '90px',
+  94: '94px',
   222: '222px',
   240: '240px',
-  260: '260px',
   640: '640px',
   1440: '1440px',
+} as const;
+
+/** Widths and heights that follow the font size of the element; keys are hundredths of an em. */
+export const relativeSizes = {
+  1525: '15.25em',
 } as const;
 
 /** Line lengths of text blocks; keys are numbers of characters. */
 export const measures = {
   40: '40ch',
+  52: '52ch',
 } as const;
 
 /** Corner radii; keys are pixel values, except `half`, which rounds a square into a circle. */
@@ -144,10 +172,11 @@ export const fontFamilies = {
   sourceCodePro: "source-code-pro, Menlo, Monaco, Consolas, 'Courier New', monospace",
 } as const;
 
-/** Font sizes; keys are pixel values. */
+/**
+ * Font sizes; keys are pixel values. None is under 12 px, the smallest size that stays readable
+ * for the metadata of the site (dates, badges, tags), which `theme.spec.jsx` checks.
+ */
 export const fontSizes = {
-  10: '10px',
-  11: '11px',
   12: '12px',
   13: '13px',
   14: '14px',
@@ -164,6 +193,20 @@ export const fontSizes = {
   42: '42px',
   72: '72px',
   120: '120px',
+} as const;
+
+/**
+ * Font sizes that grow with the smaller side of the screen (`vmin`), its width on a phone held
+ * upright and its height on a phone held sideways or a laptop, between a smallest and a largest
+ * size; keys are `<smallest>-<largest>` in pixels.
+ */
+export const fluidFontSizes = {
+  /** 16 px on a phone, 19 px on a 1440 × 900 screen, 23 px on a 2560 × 1440 one. */
+  '16-24': 'clamp(16px, 12px + 0.75vmin, 24px)',
+  /** 18 px on a phone, 23 px on a 1440 × 900 screen, 28 px on a 2560 × 1440 one. */
+  '18-28': 'clamp(18px, 14px + 1vmin, 28px)',
+  /** 25 to 29 px on a phone, 48 px on a 1440 × 900 screen, 70 px on a 2560 × 1440 one. */
+  '24-72': 'clamp(24px, 12px + 4vmin, 72px)',
 } as const;
 
 /** Font weights, named after their usual names in fonts (`semibold` is 600). */
@@ -202,6 +245,7 @@ export const lineHeights = {
 
 /** Durations; keys are milliseconds. */
 export const durations = {
+  0.01: '0.01ms',
   100: '0.1s',
   150: '0.15s',
   200: '0.2s',
@@ -209,7 +253,6 @@ export const durations = {
   300: '0.3s',
   350: '0.35s',
   400: '0.4s',
-  450: '0.45s',
   500: '0.5s',
   700: '0.7s',
   900: '0.9s',
@@ -253,8 +296,15 @@ export const zIndices = {
   9999: 9999,
 } as const;
 
-/** Viewport widths where the layout changes; keys are em values, which follow the font size. */
+/**
+ * Viewport widths and heights where the layout changes; keys are em values, which follow the font
+ * size.
+ */
 export const breakpoints = {
+  31.25: '31.25em',
+  37.5: '37.5em',
   50: '50em',
+  53.625: '53.625em',
+  64: '64em',
   100: '100em',
 } as const;

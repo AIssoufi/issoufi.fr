@@ -15,10 +15,13 @@ export const PUBLIC_DIR = 'public';
 /**
  * Maximum gzip size, in bytes, of all the scripts and style sheets of the build together, every
  * chunk included. In October 2026, once split per route (issue #27), they weighed 188.9 kB, of
- * which 131.3 kB in the main chunk, down from a single bundle of 225.3 kB. The margin leaves room
- * for React 19.3, which adds about 9.3 kB.
+ * which 131.3 kB in the main chunk, down from a single bundle of 225.3 kB. Drawing the burger icon
+ * in CSS (issue #191) then took them from 195.1 kB to 145.9 kB: the 48.4 kB chunk of lottie-web
+ * went, and the main chunk lost the animation and its hook, from 137.1 kB to 136.3 kB. The margin
+ * leaves room for React 19.3, which adds about 9.3 kB, and about 15 kB more: a library as heavy
+ * as lottie-web fails the build.
  */
-export const SCRIPT_BUDGET_GZIP_BYTES = 210_000;
+export const SCRIPT_BUDGET_GZIP_BYTES = 170_000;
 
 /**
  * Maximum gzip size, in bytes, of the scripts and style sheets that the home page loads before it
@@ -36,8 +39,11 @@ export const INITIAL_LOAD_BUDGET_GZIP_BYTES = 150_000;
  */
 export const MISSING_INITIAL_LOAD_REASON = 'references no script or style sheet of the build';
 
-/** Size, in bytes, above which an image of the build is reported as worth compressing. */
-export const LARGE_IMAGE_BYTES = 500_000;
+/**
+ * Size, in bytes, above which a file of the build is reported as worth compressing: an image, the
+ * CV or any other file that the script budgets leave out.
+ */
+export const LARGE_FILE_BYTES = 500_000;
 
 /** Bytes per kilobyte: the decimal unit Vite uses in its build report. */
 export const BYTES_PER_KILOBYTE = 1000;
@@ -45,8 +51,17 @@ export const BYTES_PER_KILOBYTE = 1000;
 /** Files counted in the script budget. */
 export const SCRIPT_FILE_PATTERN = /\.(js|css)$/;
 
-/** Files whose size is checked as images. */
+/** Images of the build: the warning about a large one also advises a lighter format. */
 export const IMAGE_FILE_PATTERN = /\.(png|jpe?g|gif|webp|avif|svg)$/i;
+
+/** Advice written after the size of an image of the build over {@link LARGE_FILE_BYTES}. */
+export const LARGE_IMAGE_ADVICE = 'Compress it or convert it to WebP or AVIF.';
+
+/**
+ * Advice written after the size of another file of the build over {@link LARGE_FILE_BYTES}, such
+ * as a PDF.
+ */
+export const LARGE_FILE_ADVICE = 'Compress it.';
 
 /** Report written by the `json-summary` coverage reporter of Vitest. */
 export const COVERAGE_SUMMARY_FILE = 'coverage/coverage-summary.json';
@@ -54,8 +69,17 @@ export const COVERAGE_SUMMARY_FILE = 'coverage/coverage-summary.json';
 /** Coverage metrics shown in the job summary, in display order. */
 export const COVERAGE_METRICS = ['lines', 'statements', 'branches', 'functions'];
 
-/** HTML pages at the root of the build, one per route. */
+/**
+ * HTML pages of the build, one per route: at its root for the default language, and in the folder
+ * of the prefix of each other language, such as `en/projects.html`.
+ */
 export const HTML_FILE_PATTERN = /\.html$/;
+
+/** Separator of the folders in a path of the build and in a route. */
+export const PATH_SEPARATOR = '/';
+
+/** Separators of the folders in a path that Node.js lists on Windows. */
+export const WINDOWS_PATH_SEPARATOR_PATTERN = /\\/g;
 
 /** Route of the home page. */
 export const HOME_PAGE_ROUTE = '/';
@@ -63,8 +87,40 @@ export const HOME_PAGE_ROUTE = '/';
 /** Page of the build served at {@link HOME_PAGE_ROUTE}. */
 export const HOME_PAGE_FILE = 'index.html';
 
-/** Page of the build that Cloudflare Pages serves, with a 404, for any unknown path. */
+/**
+ * Page of the build that Cloudflare Pages serves, with a 404, for any unknown path: the one of the
+ * closest folder up the path, such as `en/404.html` for an unknown path under `/en/`.
+ */
 export const NOT_FOUND_PAGE_FILE = '404.html';
+
+/**
+ * A file of the build, other than a page, that a deployed site must serve unchanged.
+ * @typedef {object} ServedAsBuiltFile
+ * @property {string} name - Name of the file, e.g. `sitemap.xml`.
+ * @property {boolean} [isInEveryFolder] - Whether the site serves the copy of the file of each
+ * folder of the build, such as `en/`, rather than the one of its root only, which it does when
+ * this is left out.
+ * @property {string} [mediaType] - Media type that the site must send it with, the `Content-Type`
+ * of the response without its parameters. Left out, any media type passes.
+ */
+
+/**
+ * Files of the build, other than its pages, that a deployed site must serve unchanged: at its
+ * root, where search engines look for them, `robots.txt` and the `sitemap.xml` that it declares;
+ * and the web app manifest of each language, at the root and in the folder of each other language
+ * (`en/manifest.webmanifest`), with the media type that browsers expect of a manifest, as
+ * `WEB_MANIFEST_FILE_NAME` and `WEB_MANIFEST_MEDIA_TYPE` of `src/utils/webManifest.ts` name them.
+ * The smoke test compares each one with the build.
+ * @type {readonly ServedAsBuiltFile[]}
+ */
+export const SERVED_AS_BUILT_FILES = [
+  { name: 'robots.txt' },
+  { name: 'sitemap.xml' },
+  { name: 'manifest.webmanifest', isInEveryFolder: true, mediaType: 'application/manifest+json' },
+];
+
+/** Parameters of the `Content-Type` of a response, after its media type, e.g. `; charset=utf-8`. */
+export const MEDIA_TYPE_PARAMETERS_PATTERN = /;.*$/s;
 
 /** Title tag of an HTML page. Its first group captures the title. */
 export const TITLE_TAG_PATTERN = /<title>([^<]*)<\/title>/i;
@@ -114,7 +170,10 @@ export const URL_QUERY_AND_HASH_PATTERN = /[?#].*$/;
 /** Start of a URL relative to the root of the site, `/` or `./`. */
 export const ROOT_URL_PREFIX_PATTERN = /^\.?\//;
 
-/** Path that no page uses, requested to check the not found page. */
+/**
+ * Path that no page uses, requested to check the not found page, behind the folder of the page for
+ * a not found page in a folder, such as `/en/smoke-test-page-that-does-not-exist`.
+ */
 export const MISSING_PAGE_ROUTE = '/smoke-test-page-that-does-not-exist';
 
 /** HTTP status of a page served normally. */
@@ -122,6 +181,25 @@ export const HTTP_OK = 200;
 
 /** HTTP status of the not found page. */
 export const HTTP_NOT_FOUND = 404;
+
+/** HTTP statuses of a redirect, whose `Location` header gives the new address. */
+export const REDIRECT_STATUSES = [301, 302, 303, 307, 308];
+
+/**
+ * Address of the production site, normalized as `URL` writes it: the site that the smoke test
+ * checks when it gets no URL, and that {@link REDIRECTED_SITE_URLS} must redirect to. The app
+ * builds its canonical URLs from its own `SITE_URL` (`src/utils/pages.ts`), written without the
+ * trailing slash, and `public/robots.txt` declares its sitemap at the same address: the
+ * `production address` tests of `scripts/ci/utils/pages.spec.js` fail when one of the three
+ * changes alone.
+ */
+export const SITE_URL = 'https://issoufi.fr/';
+
+/**
+ * Other addresses of the production site, without HTTPS and with `www`, which must redirect to
+ * {@link SITE_URL}. The redirects are set in Cloudflare, so the CI checks them on `main` only.
+ */
+export const REDIRECTED_SITE_URLS = ['http://issoufi.fr/', 'https://www.issoufi.fr/'];
 
 /** Number of times the smoke test checks the site before failing, while a deployment spreads. */
 export const SMOKE_TEST_ATTEMPTS = 5;
@@ -207,6 +285,43 @@ export const RUN_COMPLETED_STATUS = 'completed';
 export const RUN_SUCCESS_CONCLUSION = 'success';
 
 /**
+ * Number of times the daily release reads a run of the CI it started before giving up, every
+ * {@link RUN_WAIT_DELAY_MS}: 20 minutes in all, while a run of `ci.yml`, its preview deployment
+ * and smoke test included, took about 5 minutes in October 2026.
+ */
+export const RUN_WAIT_ATTEMPTS = 40;
+
+/** Pause between two reads of a run of the CI that the daily release waits for, in milliseconds. */
+export const RUN_WAIT_DELAY_MS = 30_000;
+
+/**
+ * Workflow that keeps the release pull request open and publishes the release once it is merged,
+ * which the daily release starts by hand after merging it.
+ */
+export const RELEASE_WORKFLOW_FILE = 'release.yml';
+
+/** Label that release-please gives its release pull request until the release is published. */
+export const RELEASE_PENDING_LABEL = 'autorelease: pending';
+
+/**
+ * Start of the branch of the release pull request that release-please keeps open against
+ * {@link DEVELOP_BRANCH}, such as `release-please--branches--develop--components--issoufi-v3`.
+ */
+export const RELEASE_BRANCH_PREFIX = 'release-please--branches--develop--';
+
+/**
+ * Merge method of the release pull request: a merge commit, like every pull request merged into
+ * {@link DEVELOP_BRANCH}.
+ */
+export const RELEASE_MERGE_METHOD = 'merge';
+
+/**
+ * Number of open pull requests into {@link DEVELOP_BRANCH} that the daily release reads to find
+ * the release pull request: the most the REST API gives in one page.
+ */
+export const OPEN_PULL_REQUESTS_PAGE_SIZE = 100;
+
+/**
  * Format of `git log` read by the deploy report: the full SHA and the subject of each commit,
  * separated by a tab. A line is split at its first tab, so a subject keeps any tab it holds.
  */
@@ -226,6 +341,42 @@ export const MAIN_CI_RUN_LOOKUP_DELAY_MS = 5000;
 
 /** Line break of any platform, which a step output of GitHub Actions cannot hold. */
 export const LINE_BREAK_PATTERN = /[\r\n]/;
+
+/**
+ * Levels of the annotations that the scripts write to the log of GitHub Actions with a workflow
+ * command, such as `::warning::<message>`. Each one has its own icon and color in GitHub.
+ */
+export const ANNOTATION_LEVELS = /** @type {const} */ (['error', 'warning', 'notice']);
+
+/**
+ * Name of a property of an annotation, written as is: a word, like the names that GitHub reads
+ * (`file`, `line`, `endLine`, `col`, `endColumn`, `title`).
+ */
+export const ANNOTATION_PROPERTY_NAME_PATTERN = /^[a-z]+$/i;
+
+/**
+ * Characters that GitHub Actions reads as part of a workflow command, and the percent-encoding
+ * that writes each one as text, which GitHub decodes when it shows the annotation: a line break
+ * would end the command, `%` would start an encoding, and `:` or `,` would end a property, such
+ * as the `file` of an annotation. Each character of {@link WORKFLOW_DATA_ESCAPE_PATTERN} and
+ * {@link WORKFLOW_PROPERTY_ESCAPE_PATTERN} needs its encoding here, which a test checks.
+ */
+export const WORKFLOW_COMMAND_ESCAPES = {
+  '%': '%25',
+  '\r': '%0D',
+  '\n': '%0A',
+  ':': '%3A',
+  ',': '%2C',
+};
+
+/** Characters to escape in the message of a workflow command: `%` and the line breaks. */
+export const WORKFLOW_DATA_ESCAPE_PATTERN = /[%\r\n]/g;
+
+/**
+ * Characters to escape in a property of a workflow command: those of the message, plus `:` and
+ * `,`, which end the properties.
+ */
+export const WORKFLOW_PROPERTY_ESCAPE_PATTERN = /[%\r\n:,]/g;
 
 /** Slash at the end of a URL path, removed before another segment is added. */
 export const TRAILING_SLASH_PATTERN = /\/$/;
