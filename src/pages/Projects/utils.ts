@@ -1,6 +1,7 @@
 import type { TFunction } from 'i18next';
 
 import { translateKey } from '../../i18n/utils';
+import { isNonBlankString } from '../../utils/strings';
 import type { ProjectItemData } from './Project/types';
 import { PROJECT_NAMES_KEY, PROJECT_TYPES_KEY } from './constants';
 import type { ProjectData } from './types';
@@ -15,12 +16,10 @@ interface TranslateChildParams {
   childKey: unknown;
 }
 
-/** Whether a key of the JSON data is a filled string, which can name a text of its group. */
-const isFilledKey = (key: unknown): key is string => typeof key === 'string' && key.trim() !== '';
-
 /** Text of a key of a group of translations, or an empty text when no translation has it. */
 const translateChild = ({ t, parentKey, childKey }: TranslateChildParams): string =>
-  isFilledKey(childKey) ? translateKey({ t, key: `${parentKey}.${childKey}` }) : '';
+  // A key of the JSON data names a text of its group only as a non-blank string
+  isNonBlankString(childKey) ? translateKey({ t, key: `${parentKey}.${childKey}` }) : '';
 
 /** Whether an item of the JSON data is an object other than a list, as a project is. */
 const isObject = (item: unknown): item is ProjectData =>

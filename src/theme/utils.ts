@@ -1,12 +1,9 @@
+import { isNonBlankString } from '../utils/strings';
 import { FONT_DISPLAY, FONT_FACES, FONT_FILE_FORMAT } from './constants';
 import type { FontFaceDeclaration } from './types';
 
 /** Characters that end or escape a CSS string between single quotes. */
 const CSS_STRING_BREAKER_PATTERN = /['\\]/g;
-
-/** Tells whether a value is a string with at least one character other than a space. */
-const isFilledString = (value: unknown): value is string =>
-  typeof value === 'string' && value.trim() !== '';
 
 /**
  * Tells whether a value is a font that can be declared: an object whose family and URL are
@@ -21,7 +18,7 @@ const isFilledString = (value: unknown): value is string =>
  */
 export const isDeclarableFontFace = (value: unknown): value is FontFaceDeclaration => {
   const face = value as Partial<FontFaceDeclaration> | null | undefined;
-  return isFilledString(face?.family) && isFilledString(face?.url);
+  return isNonBlankString(face?.family) && isNonBlankString(face?.url);
 };
 
 /** Keeps the URL of a font file as it is: the default of {@link RenderFontFacesParams.getUrl}. */
@@ -74,16 +71,16 @@ export const renderFontFaces = ({
     .filter(isDeclarableFontFace)
     .flatMap(face => {
       const url = toRuleUrl(face.url);
-      if (!isFilledString(url)) return [];
+      if (!isNonBlankString(url)) return [];
 
       const descriptors = [
         `font-family: ${toCssString(face.family)};`,
-        isFilledString(face.style) && `font-style: ${face.style};`,
-        isFilledString(face.weight) && `font-weight: ${face.weight};`,
+        isNonBlankString(face.style) && `font-style: ${face.style};`,
+        isNonBlankString(face.weight) && `font-weight: ${face.weight};`,
         `font-display: ${FONT_DISPLAY};`,
         `src: url(${toCssString(url)}) format(${toCssString(FONT_FILE_FORMAT)});`,
-        isFilledString(face.unicodeRange) && `unicode-range: ${face.unicodeRange};`,
-      ].filter(isFilledString);
+        isNonBlankString(face.unicodeRange) && `unicode-range: ${face.unicodeRange};`,
+      ].filter(isNonBlankString);
 
       return [`@font-face {\n${descriptors.map(descriptor => `  ${descriptor}`).join('\n')}\n}`];
     })
