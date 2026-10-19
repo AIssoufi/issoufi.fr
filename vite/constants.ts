@@ -95,8 +95,25 @@ export const SECURITY_HEADERS: Readonly<Record<string, string>> = {
 };
 
 /**
+ * Host of the production deployment of the Cloudflare Pages project (`issoufi-fr`, the
+ * `--project-name` of `.github/workflows/ci.yml`), which serves the same site as `issoufi.fr`.
+ * Each branch preview has a subdomain of its own (`develop.issoufi-fr.pages.dev`), which
+ * Cloudflare already keeps out of search engines.
+ */
+export const PAGES_PROJECT_HOST = 'issoufi-fr.pages.dev';
+
+/**
+ * Headers that keep search engines from indexing a page, so that only `issoufi.fr` shows in their
+ * results, not a second host of the same content.
+ * @see https://developers.google.com/search/docs/crawling-indexing/robots-meta-tag
+ */
+export const NO_INDEX_HEADERS: Readonly<Record<string, string>> = { 'X-Robots-Tag': 'noindex' };
+
+/**
  * Rules of {@link HEADERS_FILE_NAME}. Cloudflare Pages gives a response the headers of every rule
- * whose path matches it. Every file gets the {@link SECURITY_HEADERS}. The files of
+ * whose path matches it. Every file gets the {@link SECURITY_HEADERS}, and every file served by
+ * {@link PAGES_PROJECT_HOST} the {@link NO_INDEX_HEADERS} too: its rule names that host, so the
+ * responses of `issoufi.fr` and of the branch previews do not match it. The files of
  * {@link ASSETS_DIR} have a hash of their content in their name, so a new content gets a new URL:
  * browsers keep them a year without revalidating them (`immutable`). Every other file keeps the
  * default cache policy of Cloudflare Pages, which revalidates it: the HTML pages, `robots.txt` and
@@ -106,14 +123,22 @@ export const SECURITY_HEADERS: Readonly<Record<string, string>> = {
  */
 export const HEADER_RULES: readonly HeaderRule[] = [
   { path: '/*', headers: SECURITY_HEADERS },
+  { path: `https://${PAGES_PROJECT_HOST}/*`, headers: NO_INDEX_HEADERS },
   {
     path: `/${ASSETS_DIR}/*`,
     headers: { 'Cache-Control': `public, max-age=${HASHED_ASSET_MAX_AGE_SECONDS}, immutable` },
   },
 ];
 
-/** Path pattern of a rule of {@link HEADERS_FILE_NAME}: a path that starts with `/`, no space. */
-export const HEADER_PATH_PATTERN = /^\/\S*$/;
+/**
+ * Path pattern of a rule of {@link HEADERS_FILE_NAME}: a path that starts with `/`, no space,
+ * either alone or after `https://` and a host, which then limits the rule to that host: labels of
+ * lowercase letters, digits and inner hyphens, parted by dots, as the hosts of requests are
+ * written. Cloudflare Pages accepts no other protocol nor a port in an absolute URL, and the
+ * placeholders of a host (`https://:project.pages.dev/*`) are refused too: a rule names its host.
+ */
+export const HEADER_PATH_PATTERN =
+  /^(?:https:\/\/[a-z\d](?:[a-z\d-]*[a-z\d])?(?:\.[a-z\d](?:[a-z\d-]*[a-z\d])?)*)?\/\S*$/;
 
 /** Name of an HTTP header: a token of RFC 9110, such as `Cache-Control`. */
 export const HEADER_NAME_PATTERN = /^[\w!#$%&'*+.^`|~-]+$/;
