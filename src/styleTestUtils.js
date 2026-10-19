@@ -223,9 +223,6 @@ export const MIN_TEXT_CONTRAST_RATIO = 4.5;
  */
 export const MIN_ICON_CONTRAST_RATIO = 3;
 
-/** Media query of forced colors mode, such as a contrast theme of Windows. */
-export const FORCED_COLORS_MEDIA = '(forced-colors: active)';
-
 /**
  * Relative luminance of an opaque color, as the Web Content Accessibility Guidelines define it:
  * 0 for black, 1 for white. Each channel goes through the sRGB transfer function first.

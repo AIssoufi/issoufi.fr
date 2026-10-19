@@ -1,13 +1,14 @@
 import { createGlobalStyle, th } from '@xstyled/styled-components';
 
-import { HOVER_POINTER_QUERY, REDUCED_MOTION_QUERY } from './constants.ts';
+import { FORCED_COLORS_QUERY, HOVER_POINTER_QUERY, REDUCED_MOTION_QUERY } from './constants.ts';
 
 /**
  * Base styles of the document (box sizing, body, links, buttons, lists, icons), built from the
  * tokens. Every element is sized with `border-box`, so a width includes its padding and border.
  * Buttons grow, and links take the accent from tablet up, under a pointer that hovers only
- * ({@link HOVER_POINTER_QUERY}). With reduced motion ({@link REDUCED_MOTION_QUERY}), animations
- * and transitions are instant.
+ * ({@link HOVER_POINTER_QUERY}). Icons draw their strokes in the foreground color, and in the text
+ * color of their element in forced colors mode ({@link FORCED_COLORS_QUERY}). With reduced motion
+ * ({@link REDUCED_MOTION_QUERY}), animations and transitions are instant.
  */
 export const GlobalStyle = createGlobalStyle`
   *,
@@ -89,6 +90,15 @@ export const GlobalStyle = createGlobalStyle`
     stroke: ${th.color('foreground')};
     transition-property: stroke;
     transition-duration: ${th.duration('base')};
+  }
+
+  /* Forced colors mode keeps the colors of an SVG, whose white strokes would vanish on the light
+     background of a light contrast theme: they take the text color of its palette instead. An icon
+     sets no stroke on its paths, which would win over both rules */
+  @media ${FORCED_COLORS_QUERY} {
+    svg {
+      stroke: currentColor;
+    }
   }
 
   /* The heading of a page takes the focus after a navigation, but cannot be activated: a focus

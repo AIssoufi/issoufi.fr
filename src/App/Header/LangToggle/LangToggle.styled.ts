@@ -1,6 +1,6 @@
 import styled, { css, th } from '@xstyled/styled-components';
 
-import { HOVER_POINTER_QUERY } from '../../../theme/constants.ts';
+import { FORCED_COLORS_QUERY, HOVER_POINTER_QUERY } from '../../../theme/constants.ts';
 import { fingerTargetCenteringOffset, fingerTargetSize } from '../../../theme/targets.styled.ts';
 import { BUTTON_HEIGHT_PX, BUTTON_WIDTH_PX } from './constants.ts';
 
@@ -59,7 +59,7 @@ export const Indicator = styled.div<{ $index: number }>`
 
   /* Forced colors mode removes its fill and its glow: a thicker border, in the color of a
      selection, still marks the active language */
-  @media (forced-colors: active) {
+  @media ${FORCED_COLORS_QUERY} {
     border: ${th.borderWidth('thick')} solid ${th.color('forced-active')};
   }
 `;

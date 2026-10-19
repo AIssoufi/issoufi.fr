@@ -3,13 +3,12 @@ import userEvent from '@testing-library/user-event';
 
 import i18n from '../../../i18n/index.ts';
 import { theme } from '../../../theme/index.ts';
-import { HOVER_POINTER_QUERY } from '../../../theme/constants.ts';
+import { FORCED_COLORS_QUERY, HOVER_POINTER_QUERY } from '../../../theme/constants.ts';
 import { holdsFunctionSource } from '../../../cssRuleGuard.ts';
 import { stubMatchMedia } from '../../../mediaQueryTestUtils.ts';
 import {
   blendColors,
   declaredStyle,
-  FORCED_COLORS_MEDIA,
   getContrastRatio,
   listStyleRules,
   MIN_ICON_CONTRAST_RATIO,
@@ -1186,7 +1185,7 @@ describe('Project', () => {
         button,
         property,
         pseudo = '>svg',
-        media = FORCED_COLORS_MEDIA,
+        media = FORCED_COLORS_QUERY,
       }) => declaredStyle({ element: button, property, media, pseudo });
 
       // Forced colors mode keeps the colors of an SVG but empties the background of its button
@@ -1208,7 +1207,7 @@ describe('Project', () => {
           button: likeButtonOf('Calculator'),
           property: 'stroke',
           pseudo: ':hover > svg',
-          media: `${FORCED_COLORS_MEDIA} and ${HOVER_POINTER_QUERY}`,
+          media: `${FORCED_COLORS_QUERY} and ${HOVER_POINTER_QUERY}`,
         }),
       ).toBe('buttontext');
     });
