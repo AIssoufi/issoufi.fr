@@ -2,6 +2,11 @@ import { readFileSync } from 'node:fs';
 
 import { SITE_URL as APP_SITE_URL } from '../../../src/utils/pages';
 import { SITEMAP_FILE_NAME, SITEMAP_URL } from '../../../src/utils/sitemap';
+import {
+  getWebManifestFiles,
+  WEB_MANIFEST_FILE_NAME,
+  WEB_MANIFEST_MEDIA_TYPE,
+} from '../../../src/utils/webManifest';
 import { SITE_URL } from '../constants.mjs';
 import {
   compareFile,
@@ -253,6 +258,47 @@ describe('getFileChecks', () => {
   it.each([undefined, null, [], 'robots.txt', {}])('gives no check for %o', fileNames => {
     expect(getFileChecks(fileNames)).toEqual([]);
   });
+
+  it('checks the web app manifest of every language, at the root and in each folder', () => {
+    expect(
+      getFileChecks(['manifest.webmanifest', 'en/index.html', 'en\\manifest.webmanifest']),
+    ).toEqual([
+      {
+        file: 'manifest.webmanifest',
+        route: '/manifest.webmanifest',
+        status: 200,
+        mediaType: 'application/manifest+json',
+      },
+      {
+        file: 'en/manifest.webmanifest',
+        route: '/en/manifest.webmanifest',
+        status: 200,
+        mediaType: 'application/manifest+json',
+      },
+    ]);
+  });
+
+  it('checks the files in the order of the list, then of the build', () => {
+    expect(
+      getFileChecks(['en/manifest.webmanifest', 'sitemap.xml', 'manifest.webmanifest']).map(
+        ({ file }) => file,
+      ),
+    ).toEqual(['sitemap.xml', 'en/manifest.webmanifest', 'manifest.webmanifest']);
+  });
+
+  it('checks the web app manifests under the name and media type that the build gives them', () => {
+    const [manifestCheck] = getFileChecks([WEB_MANIFEST_FILE_NAME]);
+
+    expect(manifestCheck).toEqual(
+      expect.objectContaining({ file: WEB_MANIFEST_FILE_NAME, mediaType: WEB_MANIFEST_MEDIA_TYPE }),
+    );
+  });
+
+  it('checks the web app manifest of every language that the build writes', () => {
+    expect(
+      getFileChecks(getWebManifestFiles().map(({ fileName }) => fileName)).map(({ file }) => file),
+    ).toEqual(getWebManifestFiles().map(({ fileName }) => fileName));
+  });
 });
 
 describe('compareFile', () => {
@@ -318,6 +364,79 @@ describe('compareFile', () => {
       ).toEqual(['A file check without a file, a route or an integer status cannot be compared']);
     },
   );
+
+  it('ignores the media type of a file whose check names none', () => {
+    expect(
+      compareFile({
+        check,
+        status: 200,
+        servedText: builtText,
+        builtText,
+        contentType: 'text/html',
+      }),
+    ).toEqual([]);
+  });
+
+  describe('media type', () => {
+    const manifestCheck = {
+      file: 'en/manifest.webmanifest',
+      route: '/en/manifest.webmanifest',
+      status: 200,
+      mediaType: 'application/manifest+json',
+    };
+    const manifest = '{\n  "lang": "en"\n}\n';
+
+    it.each([
+      'application/manifest+json',
+      'application/manifest+json; charset=utf-8',
+      'Application/Manifest+JSON',
+    ])('accepts the Content-Type %j', contentType => {
+      expect(
+        compareFile({
+          check: manifestCheck,
+          status: 200,
+          servedText: manifest,
+          builtText: manifest,
+          contentType,
+        }),
+      ).toEqual([]);
+    });
+
+    it.each([
+      ['application/json', 'application/json'],
+      ['text/html; charset=utf-8', 'text/html'],
+      ['', 'no media type'],
+      [null, 'no media type'],
+      [undefined, 'no media type'],
+    ])('reports the Content-Type %j', (contentType, servedAs) => {
+      expect(
+        compareFile({
+          check: manifestCheck,
+          status: 200,
+          servedText: manifest,
+          builtText: manifest,
+          contentType,
+        }),
+      ).toEqual([
+        `/en/manifest.webmanifest: served as ${servedAs} instead of application/manifest+json`,
+      ]);
+    });
+
+    it('reports a wrong media type along with a wrong content', () => {
+      expect(
+        compareFile({
+          check: manifestCheck,
+          status: 200,
+          servedText: '<!doctype html>',
+          builtText: manifest,
+          contentType: 'text/html',
+        }),
+      ).toEqual([
+        '/en/manifest.webmanifest: served as text/html instead of application/manifest+json',
+        '/en/manifest.webmanifest: content differs from en/manifest.webmanifest of the build',
+      ]);
+    });
+  });
 });
 
 describe('resolveSiteUrl', () => {

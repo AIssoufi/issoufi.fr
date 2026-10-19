@@ -15,6 +15,20 @@ describe('isServerOnlyFile', () => {
     expect(isServerOnlyFile(HEADERS_FILE_NAME)).toBe(true);
   });
 
+  it.each(['manifest.webmanifest', 'en/manifest.webmanifest'])(
+    'is true for the web app manifest %s, which no browser installs from the disk',
+    fileName => {
+      expect(isServerOnlyFile(fileName)).toBe(true);
+    },
+  );
+
+  it.each(['manifest.json', 'manifest.webmanifest.bak', 'webmanifest'])(
+    'is false for %j, which is not a web app manifest of the build',
+    fileName => {
+      expect(isServerOnlyFile(fileName)).toBe(false);
+    },
+  );
+
   it('is false for the page of the standalone build', () => {
     expect(isServerOnlyFile(STANDALONE_PAGE_FILE_NAME)).toBe(false);
   });
@@ -38,7 +52,7 @@ describe('isServerOnlyFile', () => {
   );
 
   describe('edge cases', () => {
-    it.each([undefined, null, 42, {}, ['projects.html'], ['_headers']])(
+    it.each([undefined, null, 42, {}, ['projects.html'], ['_headers'], ['manifest.webmanifest']])(
       'is false for %j',
       fileName => {
         expect(isServerOnlyFile(fileName)).toBe(false);

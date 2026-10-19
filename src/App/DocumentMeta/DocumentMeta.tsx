@@ -4,16 +4,21 @@ import { useLocation } from 'react-router';
 
 import { getYearsOfExperience } from '../../utils/career';
 import { getPage } from '../../utils/pages';
+import { getWebManifestUrl } from '../../utils/webManifest';
 
 /**
- * Keeps `<html lang>`, the document title and the meta description in line with the current
- * route and language. Renders nothing; must be placed inside the router.
+ * Keeps `<html lang>`, the document title, the meta description and the link to the web app
+ * manifest in line with the current route and language. Renders nothing; must be placed inside
+ * the router.
  *
  * @remarks
  * Unknown routes get the "page not found" title and description, matching the NotFound page
  * shown by the catch-all route. The years of experience are computed at runtime,
- * so they stay current between builds. The Open Graph and Twitter tags are left untouched:
- * link preview crawlers only read the static HTML generated at build time.
+ * so they stay current between builds. Once the language toggle moves to the other language, the
+ * page links the manifest of that language, so it installs as the site in that language, as after
+ * a reload; a page without that link, as in the standalone build, gets none. The Open Graph and
+ * Twitter tags are left untouched: link preview crawlers only read the static HTML generated at
+ * build time.
  */
 const DocumentMeta = () => {
   const { pathname } = useLocation();
@@ -26,6 +31,9 @@ const DocumentMeta = () => {
     document
       .querySelector('meta[name="description"]')
       ?.setAttribute('content', t(`meta.${meta}.description`, { years: getYearsOfExperience() }));
+    document
+      .querySelector('link[rel="manifest"]')
+      ?.setAttribute('href', getWebManifestUrl(i18n.language));
   }, [i18n.language, meta, t]);
 
   return null;

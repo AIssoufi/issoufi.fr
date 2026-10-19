@@ -94,11 +94,33 @@ export const HOME_PAGE_FILE = 'index.html';
 export const NOT_FOUND_PAGE_FILE = '404.html';
 
 /**
- * Files of the build, other than its pages, that a deployed site must serve unchanged at its root,
- * where search engines look for them: `robots.txt`, and the `sitemap.xml` that it declares. The
- * smoke test compares each one with the build.
+ * A file of the build, other than a page, that a deployed site must serve unchanged.
+ * @typedef {object} ServedAsBuiltFile
+ * @property {string} name - Name of the file, e.g. `sitemap.xml`.
+ * @property {boolean} [isInEveryFolder] - Whether the site serves the copy of the file of each
+ * folder of the build, such as `en/`, rather than the one of its root only, which it does when
+ * this is left out.
+ * @property {string} [mediaType] - Media type that the site must send it with, the `Content-Type`
+ * of the response without its parameters. Left out, any media type passes.
  */
-export const SERVED_AS_BUILT_FILES = ['robots.txt', 'sitemap.xml'];
+
+/**
+ * Files of the build, other than its pages, that a deployed site must serve unchanged: at its
+ * root, where search engines look for them, `robots.txt` and the `sitemap.xml` that it declares;
+ * and the web app manifest of each language, at the root and in the folder of each other language
+ * (`en/manifest.webmanifest`), with the media type that browsers expect of a manifest, as
+ * `WEB_MANIFEST_FILE_NAME` and `WEB_MANIFEST_MEDIA_TYPE` of `src/utils/webManifest.ts` name them.
+ * The smoke test compares each one with the build.
+ * @type {readonly ServedAsBuiltFile[]}
+ */
+export const SERVED_AS_BUILT_FILES = [
+  { name: 'robots.txt' },
+  { name: 'sitemap.xml' },
+  { name: 'manifest.webmanifest', isInEveryFolder: true, mediaType: 'application/manifest+json' },
+];
+
+/** Parameters of the `Content-Type` of a response, after its media type, e.g. `; charset=utf-8`. */
+export const MEDIA_TYPE_PARAMETERS_PATTERN = /;.*$/s;
 
 /** Title tag of an HTML page. Its first group captures the title. */
 export const TITLE_TAG_PATTERN = /<title>([^<]*)<\/title>/i;

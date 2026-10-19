@@ -145,6 +145,8 @@ describe('standalone build', () => {
       'experiences.webp',
       'experiences-portrait.webp',
       'favicon.ico',
+      'favicon.svg',
+      'apple-touch-icon.png',
     ].forEach(name => {
       expect(html).toContain(`"./${name}"`);
     });
@@ -174,6 +176,15 @@ describe('standalone build', () => {
 
     expect(hosts.length).toBeGreaterThan(0);
     expect(hosts.filter(isGoogleHost)).toEqual([]);
+  });
+
+  it('leaves out the web app manifests and the link to them, since no browser installs it', () => {
+    expect(output.map(file => file.fileName).filter(name => name.endsWith('.webmanifest'))).toEqual(
+      [],
+    );
+    expect(stripInlineScripts(getSource(STANDALONE_PAGE_FILE_NAME))).not.toContain(
+      'rel="manifest"',
+    );
   });
 
   it(`leaves out the ${HEADERS_FILE_NAME} of Cloudflare Pages, which no server reads from the disk`, () => {

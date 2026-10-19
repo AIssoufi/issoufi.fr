@@ -26,6 +26,7 @@ import {
   toFontDataUrls,
 } from './vite/standalone/utils/fonts';
 import { listFileNames, toRelativePublicUrls } from './vite/standalone/utils/public-files';
+import { removeManifestLinks } from './vite/standalone/utils/manifest';
 import { isAppRouterImport } from './vite/standalone/utils/router';
 
 /**
@@ -107,14 +108,15 @@ const embeddedFonts = (): Plugin => {
 /**
  * Vite plugin that makes `index.html` the only page of the build, and a page that needs no other
  * file to run. It removes the files that only a web server needs (`projects.html`, `404.html`…,
- * `_headers`, see {@link isServerOnlyFile}), puts the code of the app in the script tag of
+ * the web app manifests, `_headers`, see {@link isServerOnlyFile}) and the link of `index.html` to
+ * its manifest (see {@link removeManifestLinks}), puts the code of the app in the script tag of
  * `index.html`, since browsers refuse to load module scripts from `file://` (see
  * {@link inlineScript}), without the preload markers of its inlined dynamic imports (see
  * {@link removePreloadMarkers}), and adds the `README.txt` that tells a visitor how to open it. It
- * runs after the `page-meta` and `http-headers` plugins of `vite.config.ts`, which emit those
- * files: the first one also uses `enforce: 'post'`, in the order of the plugins, and the second
- * one runs before the `post` plugins. The build has a single chunk, its dynamic imports inlined
- * (`inlineDynamicImports`).
+ * runs after the `page-meta`, `web-manifests` and `http-headers` plugins of `vite.config.ts`, which
+ * emit those files and that link: the first one also uses `enforce: 'post'`, in the order of the
+ * plugins, and the others run before the `post` plugins. The build has a single chunk, its dynamic
+ * imports inlined (`inlineDynamicImports`).
  */
 const standalonePage = (): Plugin => {
   let readmeSource = '';
@@ -125,6 +127,8 @@ const standalonePage = (): Plugin => {
     configResolved: config => {
       readmeSource = resolve(config.root, STANDALONE_README_SOURCE);
     },
+    // After the hooks without an order, the one of the page-meta plugin included
+    transformIndexHtml: { order: 'post', handler: removeManifestLinks },
     generateBundle(_options, bundle) {
       Object.keys(bundle)
         .filter(isServerOnlyFile)

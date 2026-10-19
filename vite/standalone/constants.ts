@@ -28,6 +28,9 @@ export const APP_DIR = 'src';
 /** Name of an HTML file of the build. */
 export const HTML_FILE_PATTERN = /\.html$/;
 
+/** Name of a web app manifest of the build, such as `en/manifest.webmanifest`. */
+export const WEB_MANIFEST_FILE_PATTERN = /\.webmanifest$/;
+
 /** A quote that opens or closes a string in JavaScript: single, double or back quote. */
 export const QUOTE_PATTERN = '["\'`]';
 
@@ -72,6 +75,9 @@ export const LINK_TAG_PATTERN = /\s*<link\b[^>]*>/gi;
 
 /** `rel` attribute of a link that preloads a file, as `index.html` writes it. */
 export const PRELOAD_RELATION_PATTERN = /\srel="preload"/i;
+
+/** `rel` attribute of a link to a web app manifest, as `renderPageHtml` writes it. */
+export const MANIFEST_RELATION_PATTERN = /\srel="manifest"/i;
 
 /** `as` attribute of a link that preloads a font file. */
 export const FONT_DESTINATION_PATTERN = /\sas="font"/i;
