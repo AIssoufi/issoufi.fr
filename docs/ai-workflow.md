@@ -47,6 +47,6 @@ The worker checks each finding, fixes it, and has the reviewer check the fix.
 A rule that matters is also checked by the code, so an agent that misses it fails the CI:
 
 - a test refuses a raw value in a style file;
-- ESLint refuses a relative import without its extension, a direct `styled-components` import, a `ul` outside `List` and a link to a new tab outside `NewTabLink`;
+- ESLint refuses a relative import without its extension, a direct `styled-components` import, a `ul` outside `List`, a link to a new tab outside `NewTabLink` and a comment line over 100 characters;
 - the specs check each page and every generated file;
 - the browser tests check the layout, the accessibility and the security policy.

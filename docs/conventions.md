@@ -14,6 +14,7 @@ The agents read these rules, one line each, in [`CLAUDE.md`](../CLAUDE.md).
 ## Code
 
 - Code, comments and docs are in English. Only the texts of the site are translated.
+- Prettier wraps the code at 100 characters but never a comment: ESLint refuses a comment line wider than that.
 - One folder per component: `Name.tsx` with its JSDoc, `Name.spec.jsx`, `Name.styled.ts` and `index.ts`.
 - A sub-component nests in the folder of its parent. A component shared by pages goes in `src/components/`.
 - A style file is imported by its own component only.
