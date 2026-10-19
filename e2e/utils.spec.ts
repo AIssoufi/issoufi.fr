@@ -10,6 +10,7 @@ import {
   getBoxCenterDistanceX,
   getBoxCenterDistanceY,
   getBoxRight,
+  getButtonAimPoints,
   getCenterDistanceX,
   getCheckedRoutes,
   getQuadCenterX,
@@ -1004,5 +1005,34 @@ describe('countOccurrences', () => {
 
   it('counts 0 without parameters', () => {
     expect(countOccurrences()).toBe(0);
+  });
+});
+
+describe('getButtonAimPoints', () => {
+  it('aims at the center of a pill, then at 9 points along the straight part of its top edge', () => {
+    expect(getButtonAimPoints({ x: 100, y: 600, width: 300, height: 46 })).toEqual([
+      { x: 250, y: 623 },
+      ...[123, 154.75, 186.5, 218.25, 250, 281.75, 313.5, 345.25, 377].map(x => ({ x, y: 601 })),
+    ]);
+  });
+
+  it('aims at the middle of the top edge of a button narrower than it is high', () => {
+    expect(getButtonAimPoints({ x: 0, y: 0, width: 20, height: 40 })).toEqual([
+      { x: 10, y: 20 },
+      ...Array.from({ length: 9 }, () => ({ x: 10, y: 1 })),
+    ]);
+  });
+
+  it.each([
+    ['a missing box', undefined],
+    ['null', null],
+    ['a box without width', { x: 0, y: 0, width: 0, height: 46 }],
+    ['a box without height', { x: 0, y: 0, width: 300, height: 0 }],
+    ['a box of negative width', { x: 0, y: 0, width: -300, height: 46 }],
+    ['a box of negative height', { x: 0, y: 0, width: 300, height: -46 }],
+    ['a box of NaN', { x: Number.NaN, y: 0, width: 300, height: 46 }],
+    ['a box of strings', { x: '0', y: '0', width: '300', height: '46' }],
+  ])('aims at no point of %s', (_case, box) => {
+    expect(getButtonAimPoints(box as never)).toEqual([]);
   });
 });

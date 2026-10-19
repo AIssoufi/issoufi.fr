@@ -8,6 +8,9 @@ import { getPage } from '../../utils/pages';
 import { readBackgroundImages } from '../testUtils';
 import { Home } from './Home';
 
+/** Media query of the short screens, such as a phone held sideways. */
+const SHORT_SCREEN_MEDIA_QUERY = `(max-height: ${theme.screenHeights.short})`;
+
 const renderHome = (path = '/') =>
   render(
     <MemoryRouter initialEntries={[path]}>
@@ -60,6 +63,38 @@ describe('Home', () => {
 
     expect(projectsLink).toHaveAttribute('href', '/en/projects');
     expect(experiencesLink).toHaveAttribute('href', '/en/experiences');
+  });
+
+  it('sizes the hero with the screen, and tightens it on a short one', () => {
+    renderHome();
+    const title = screen.getByRole('heading', { level: 1 });
+    const intro = title.parentElement;
+    const subtitle = screen.getByText('Je vous aide à développer vos applications web');
+    const buttons = screen.getByRole('link', { name: 'Voir mes projets' }).parentElement
+      .parentElement;
+    const fontSize = element => declaredStyle({ element, property: 'font-size' });
+    const shortScreenStyle = ({ element, property }) =>
+      declaredStyle({ element, property, media: SHORT_SCREEN_MEDIA_QUERY });
+
+    expect(fontSize(screen.getByText('UX'))).toBe(
+      serializeCssValue({ property: 'font-size', value: theme.fontSizes['hero-title'] }),
+    );
+    expect(fontSize(title)).toBe(
+      serializeCssValue({ property: 'font-size', value: theme.fontSizes['hero-text'] }),
+    );
+    expect(fontSize(subtitle)).toBe(
+      serializeCssValue({ property: 'font-size', value: theme.fontSizes['hero-subtitle'] }),
+    );
+    // The largest width of the intro is in ems of the title words
+    expect(fontSize(intro)).toBe(fontSize(screen.getByText('UX')));
+    expect(declaredStyle({ element: intro, property: 'max-width' })).toBe(
+      serializeCssValue({ property: 'max-width', value: theme.sizes['hero-intro'] }),
+    );
+    expect(declaredStyle({ element: buttons, property: 'padding-top' })).toBe(
+      serializeCssValue({ property: 'padding-top', value: theme.space['hero-actions'] }),
+    );
+    expect(shortScreenStyle({ element: title, property: 'margin-bottom' })).toBe(theme.space[4]);
+    expect(shortScreenStyle({ element: buttons, property: 'gap' })).toBe(theme.space[8]);
   });
 
   it('fits the buttons to narrow screens instead of widening the page', () => {

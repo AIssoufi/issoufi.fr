@@ -374,3 +374,48 @@ export const SECURITY_POLICY_MESSAGE_PATTERN =
  * blocked.
  */
 export const REPORT_POLICY_VIOLATION_FUNCTION = 'reportSecurityPolicyViolation';
+
+/**
+ * Screens on which the home page must show its title and both of its buttons without scrolling: a
+ * small phone held upright (320 × 568), phones held sideways (568 × 320 and 667 × 375, then
+ * 844 × 390 and 896 × 414, which get the desktop layout), a tablet held upright (768 × 1024), a
+ * laptop (1440 × 900) and a large desktop screen (2560 × 1440).
+ */
+export const HERO_SCREENS = [
+  { width: 320, height: 568 },
+  { width: 568, height: 320 },
+  { width: 667, height: 375 },
+  { width: 844, height: 390 },
+  { width: 896, height: 414 },
+  { width: 768, height: 1024 },
+  { width: 1440, height: 900 },
+  { width: 2560, height: 1440 },
+] as const;
+
+/**
+ * Screens on which aiming at a button of the home page with the mouse must move no word of its
+ * title: two laptops (1280 × 800 and 1440 × 900) and a desktop screen (1920 × 1080), then short
+ * screens (568 × 320, 844 × 390 and 896 × 414), where the buttons stand within the push radius of
+ * the closest words, so only the rule that a mouse over a control pushes nothing keeps them still.
+ */
+export const HERO_POINTER_SCREENS = [
+  { width: 1280, height: 800 },
+  { width: 1440, height: 900 },
+  { width: 1920, height: 1080 },
+  { width: 568, height: 320 },
+  { width: 844, height: 390 },
+  { width: 896, height: 414 },
+] as const;
+
+/**
+ * Largest distance, in pixels, that a word of the home title may move while the pointer rests on a
+ * button of the page: a few pixels, far from the 30 px that "UX" once jumped by.
+ */
+export const MAX_WORD_SHIFT_PX = 2;
+
+/**
+ * Time, in milliseconds, that the pointer rests at a point before the words of the home title are
+ * measured: about 30 frames, in which a word within reach of the pointer moves by far more than
+ * {@link MAX_WORD_SHIFT_PX}.
+ */
+export const POINTER_REST_MS = 500;
