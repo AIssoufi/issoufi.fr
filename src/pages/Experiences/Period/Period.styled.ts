@@ -43,7 +43,7 @@ export const RoleSeparator = styled.span`
 
 export const RoleEnd = styled.span`
   font-weight: ${th.fontWeight('medium')};
-  color: ${th.color('foreground-a40')};
+  color: ${th.color('foreground-a55')};
   line-height: ${th.lineHeight(150)};
 `;
 

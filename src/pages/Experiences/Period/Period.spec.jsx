@@ -1,6 +1,8 @@
 import { act, render, screen } from '@testing-library/react';
 
 import i18n from '../../../i18n';
+import { getContrastRatio, MIN_TEXT_CONTRAST_RATIO } from '../../../styleTestUtils';
+import { theme } from '../../../theme';
 import { getReadText } from '../../testUtils';
 import Period from './Period';
 
@@ -94,6 +96,22 @@ describe('Period', () => {
       expect(screen.getByText(mark)).toHaveAttribute('aria-hidden', 'true');
       expect(getReadText(getPeriod())).toBe('juin 2021 à Aujourd’hui');
     });
+
+    // The dates stand on the dark card, whatever the photo of the page, which axe-core cannot judge
+    it.each(['job', 'role', 'inline'])(
+      'draws both dates of the %s variant at 4.5:1 on the dark background',
+      variant => {
+        renderPeriod({ variant, start: 'juin 2021', end: 'Aujourd’hui' });
+
+        for (const date of ['juin 2021', 'Aujourd’hui']) {
+          const { color } = getComputedStyle(screen.getByText(date));
+          expect(
+            getContrastRatio({ foreground: color, background: theme.colors.background }),
+            date,
+          ).toBeGreaterThanOrEqual(MIN_TEXT_CONTRAST_RATIO);
+        }
+      },
+    );
 
     it('draws the period of a job by default', () => {
       renderPeriod({ start: 'sept. 2019', end: 'juin 2021' });
