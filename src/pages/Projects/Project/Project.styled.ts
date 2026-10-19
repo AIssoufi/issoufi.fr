@@ -174,6 +174,7 @@ export const ProjectItem = styled.li`
   display: flex;
   flex-direction: column;
   margin: ${cardMargin};
+  /* The sizes of the thumbnails (THUMBNAIL_SIZES) repeat the widths of the cards: change both */
   /* One column on a phone: the card fills the width between the page gutters, and the next card of
      the row starts in the right one, which shows that the row scrolls */
   flex: 0 0 calc(100% - 2 * ${cardMargin});
@@ -203,6 +204,7 @@ export const ProjectItem = styled.li`
 `;
 
 export const ImageContainer = styled.header`
+  /* The sizes of the thumbnails (THUMBNAIL_SIZES) read its height and its border: change both */
   height: ${th.size('project-thumbnail')};
   border-radius: ${th.radius('md')};
   overflow: hidden;

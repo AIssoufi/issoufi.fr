@@ -16,26 +16,78 @@ export const ROW_CARD_COUNT = 3;
  */
 export const THUMBNAIL_FILE_WIDTHS_PX = [480, 720, 960, 1200] as const;
 /**
- * Widest ratio of a screenshot, 16:10: below the `wide` breakpoint, a card is 220 px high inside
- * its border, so a 16:10 screenshot that covers it is 352 px wide, which the 720 px file serves on
- * a 2x screen even where the card is narrower. A wider one would be enlarged there. From the
- * `wide` breakpoint, a card is 246 px high but 505 px wide inside its border: its width sets the
- * cover, which {@link THUMBNAIL_SIZES} serves.
+ * Widest ratio of a screenshot, 16:10. A thumbnail crops its screenshot to cover its box
+ * (`object-fit: cover`), so where the box is narrower than this ratio, the screenshot is drawn
+ * wider than the card, as wide as the box is high times its ratio: 352 px below the `wide`
+ * breakpoint, where the box is 220 px high inside its border. {@link THUMBNAIL_SIZES} gives that
+ * width there: a wider screenshot would be drawn wider still, and enlarged.
  */
 export const MAX_THUMBNAIL_ASPECT_RATIO = 16 / 10;
+// Gutter of the page, and space around each card, as `ProjectGrid` and `ProjectItem` use them
+const PAGE_GUTTER = theme.space.page;
+const CARD_MARGIN = theme.space['project-card-margin'];
+// Width of the row of cards, which its columns share: below the `tablet` breakpoint, the screen
+// less the padding of the list, the gutter less the margin of the cards; from it, the page less
+// its gutters, up to the app container, wider from the `wide` breakpoint
+const MOBILE_ROW_WIDTH = `(100vw - 2 * (${PAGE_GUTTER} - ${CARD_MARGIN}))`;
+const DESKTOP_ROW_WIDTH = `(100vw - 2 * ${PAGE_GUTTER})`;
+const CONTAINER_ROW_WIDTH = `(${theme.sizes.container} - 2 * ${PAGE_GUTTER})`;
+const WIDE_CONTAINER_ROW_WIDTH = `(${theme.sizes['container-wide']} - 2 * ${PAGE_GUTTER})`;
+// What a card leaves of its column: its margin on both sides
+const CARD_MARGINS = `2 * ${CARD_MARGIN}`;
+// Width of a card with one column, the whole row less its margins
+const ONE_COLUMN_CARD_WIDTH = `${MOBILE_ROW_WIDTH} - ${CARD_MARGINS}`;
+// Width of a screenshot of the widest ratio that covers the box of a thumbnail, as `ImageContainer`
+// lays it out: its height inside its border times the ratio, larger from the `wide` breakpoint
+const THUMBNAIL_BORDERS = `2 * ${theme.borderWidths.thin}`;
+const COVER_WIDTH = `(${theme.sizes['project-thumbnail']} - ${THUMBNAIL_BORDERS}) * ${MAX_THUMBNAIL_ASPECT_RATIO}`;
+const WIDE_COVER_WIDTH = `(${theme.sizes['project-thumbnail-wide']} - ${THUMBNAIL_BORDERS}) * ${MAX_THUMBNAIL_ASPECT_RATIO}`;
+// Layouts of the cards from a screen width, from the widest: the media condition from which each
+// one applies, the width of a card, a third of the row with three columns and a half with two,
+// and the width of a screenshot of the widest ratio that covers its thumbnail
+const MEDIA_LAYOUTS = [
+  {
+    media: `(min-width: ${theme.screens.wide})`,
+    cardWidth: `${WIDE_CONTAINER_ROW_WIDTH} / 3 - ${CARD_MARGINS}`,
+    coverWidth: WIDE_COVER_WIDTH,
+  },
+  {
+    media: `(min-width: ${theme.sizes.container})`,
+    cardWidth: `${CONTAINER_ROW_WIDTH} / 3 - ${CARD_MARGINS}`,
+    coverWidth: COVER_WIDTH,
+  },
+  {
+    media: `(min-width: ${theme.screens['three-project-columns']})`,
+    cardWidth: `${DESKTOP_ROW_WIDTH} / 3 - ${CARD_MARGINS}`,
+    coverWidth: COVER_WIDTH,
+  },
+  {
+    media: `(min-width: ${theme.screens.tablet})`,
+    cardWidth: `${DESKTOP_ROW_WIDTH} / 2 - ${CARD_MARGINS}`,
+    coverWidth: COVER_WIDTH,
+  },
+  {
+    media: `(min-width: ${theme.screens['two-project-columns']})`,
+    cardWidth: `${MOBILE_ROW_WIDTH} / 2 - ${CARD_MARGINS}`,
+    coverWidth: COVER_WIDTH,
+  },
+] as const;
 /**
- * Width that a thumbnail takes on the screen, the `sizes` of its `img`: the browser downloads the
- * narrowest file of its `srcset` at least this wide times the device pixels per CSS pixel. The
- * whole screen with one column of cards, a half with two, a third with three, then a third of the
- * app container, where the cards stop growing, and a third of its larger width from the `wide`
- * breakpoint: always at least the width of the card.
+ * Width at which a thumbnail draws its screenshot, the `sizes` of its `img`: the browser downloads
+ * the narrowest file of its `srcset` at least this wide times the device pixels per CSS pixel. It
+ * is the width of the card, as `ProjectGrid` and `ProjectItem` lay it out, or the width of a
+ * screenshot of the widest ratio that covers the thumbnail where it is wider, so that no
+ * thumbnail is enlarged, and no more, so that a phone downloads no file wider than it needs.
+ * Each width comes twice: with `max()`, then the width of the card alone, for a browser that
+ * refuses `max()` in `sizes`, as Safari before 26.4, which skips the first.
  */
 export const THUMBNAIL_SIZES = [
-  `(min-width: ${theme.screens.wide}) calc(${theme.sizes['container-wide']} / ${ROW_CARD_COUNT})`,
-  `(min-width: ${theme.sizes.container}) calc(${theme.sizes.container} / ${ROW_CARD_COUNT})`,
-  `(min-width: ${theme.screens['three-project-columns']}) 33vw`,
-  `(min-width: ${theme.screens['two-project-columns']}) 50vw`,
-  '100vw',
+  ...MEDIA_LAYOUTS.flatMap(({ media, cardWidth, coverWidth }) => [
+    `${media} max(${cardWidth}, ${coverWidth})`,
+    `${media} calc(${cardWidth})`,
+  ]),
+  `max(${ONE_COLUMN_CARD_WIDTH}, ${COVER_WIDTH})`,
+  `calc(${ONE_COLUMN_CARD_WIDTH})`,
 ].join(', ');
 /**
  * How far a card may pass the right edge of the row and still count as shown whole: the width of
