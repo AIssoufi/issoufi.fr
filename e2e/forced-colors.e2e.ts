@@ -53,22 +53,22 @@ for (const width of FORCED_COLORS_SCREEN_WIDTHS_PX) {
 
     test('the active language looks different from the other one', async ({ page }) => {
       await page.goto(PROJECTS_ROUTE);
-      const defaultLanguageButton = page.getByRole('button', {
+      const defaultLanguageLink = page.getByRole('link', {
         name: LANGUAGE_NAMES[DEFAULT_LANGUAGE],
       });
-      await expect(defaultLanguageButton).toHaveAttribute('aria-pressed', 'true');
-      const activeImage = await defaultLanguageButton.screenshot();
+      await expect(defaultLanguageLink).toHaveAttribute('aria-current', 'true');
+      const activeImage = await defaultLanguageLink.screenshot();
 
-      await page.getByRole('button', { name: LANGUAGE_NAMES[OTHER_LANGUAGE] }).click();
+      await page.getByRole('link', { name: LANGUAGE_NAMES[OTHER_LANGUAGE] }).click();
       await expect(page.locator('html')).toHaveAttribute('lang', OTHER_LANGUAGE);
-      await expect(defaultLanguageButton).toHaveAttribute('aria-pressed', 'false');
+      await expect(defaultLanguageLink).not.toHaveAttribute('aria-current');
       // Away from the toggle, whose hover would change its look too
       await page.mouse.move(0, 0);
-      const inactiveImage = await defaultLanguageButton.screenshot();
+      const inactiveImage = await defaultLanguageLink.screenshot();
 
       expect(
         activeImage.equals(inactiveImage),
-        'the default language button, active then inactive',
+        'the default language link, active then inactive',
       ).toBe(false);
     });
 

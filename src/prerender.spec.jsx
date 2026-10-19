@@ -6,6 +6,7 @@ import { prerender } from 'react-dom/static';
 import App from './App/App.tsx';
 import { DEFAULT_LANGUAGE } from './i18n/constants.ts';
 import i18n from './i18n/index.ts';
+import { localizePath } from './i18n/utils.ts';
 import freelanceProjects from './pages/Projects/.data/freelance-projects.json';
 import personalProjects from './pages/Projects/.data/personal-projects.json';
 import { fr } from './i18n/fr.ts';
@@ -54,6 +55,9 @@ vi.mock('./pages/Projects/Projects.tsx', async importOriginal => {
   return { ...original, Projects };
 });
 
+/** Path of no page, which Cloudflare Pages answers with the not found page of its language. */
+const UNKNOWN_PATH = '/page-inconnue';
+
 /** Tells whether React took over a node of the page when it hydrated it: it then holds a fiber. */
 const isHydratedNode = node =>
   node !== null && Object.keys(node).some(key => key.startsWith('__reactFiber$'));
@@ -73,6 +77,16 @@ const resetServerContexts = () => prerender(null);
 
 /** Root of the page that the last test hydrated, unmounted after it, even when it fails. */
 let hydratedRoot;
+
+/**
+ * Messages that React logged through `consoleError`, a spy of `console.error`, while it hydrated a
+ * page, but the warning of the test itself: it warns of an element or an attribute that differs,
+ * which it does not repair.
+ */
+const getHydrationWarnings = consoleError =>
+  consoleError.mock.calls
+    .map(data => data.join(' '))
+    .filter(warning => !warning.includes(MULTIPLE_RENDERERS_WARNING));
 
 /**
  * Hydrates `html`, the page that the build rendered at `path`, with the app at that path, as the
@@ -143,11 +157,7 @@ describe('prerenderPage', () => {
 
       expect(container.querySelector('main')).toBe(main);
       expect(recoverableErrors).toEqual([]);
-      // React warns of an element or an attribute that differs, which it does not repair
-      const warnings = consoleError.mock.calls
-        .map(data => data.join(' '))
-        .filter(warning => !warning.includes(MULTIPLE_RENDERERS_WARNING));
-      expect(warnings).toEqual([]);
+      expect(getHydrationWarnings(consoleError)).toEqual([]);
     });
   });
 
@@ -181,12 +191,26 @@ describe('prerenderPage', () => {
     await vi.waitFor(() => expect(container.textContent).toContain(visitorDuration));
   });
 
-  describe.each(getNotFoundFiles())('at $path, the not found page', ({ path }) => {
+  describe.each(getNotFoundFiles())('at $path, the not found page', ({ path, language }) => {
     it('renders the not found page, which names no path', async () => {
       const { html } = await prerenderPage(path);
 
       expect(html).toContain('404');
       expect(html).not.toContain(path);
+    });
+
+    it('hydrates without a difference at a path of no page, which it answers', async () => {
+      const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {});
+      const { html } = await prerenderPage(path);
+      const { container, recoverableErrors } = await hydratePage({
+        path: localizePath({ path: UNKNOWN_PATH, language }),
+        html,
+      });
+
+      await vi.waitFor(() => expect(isHydratedNode(container.querySelector('main'))).toBe(true));
+
+      expect(recoverableErrors).toEqual([]);
+      expect(getHydrationWarnings(consoleError)).toEqual([]);
     });
   });
 

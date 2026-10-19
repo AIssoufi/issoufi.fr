@@ -63,7 +63,7 @@ const getMenu = () => getBurgerButton().parentElement;
  */
 const getHeaderControls = () => getMenu().parentElement;
 
-/** The language toggle, whose buttons are named after their language. */
+/** The language toggle, whose links are named after their language. */
 const getLanguageToggle = () => screen.getByRole('group', { name: 'Langue' });
 
 /**
@@ -231,7 +231,7 @@ describe('Header', () => {
       }
       for (const name of ['FR – Français', 'EN – English']) {
         await userEvent.tab();
-        expect(within(getLanguageToggle()).getByRole('button', { name })).toHaveFocus();
+        expect(within(getLanguageToggle()).getByRole('link', { name })).toHaveFocus();
       }
       await userEvent.tab();
       expect(getPageLink()).toHaveFocus();
@@ -247,12 +247,14 @@ describe('Header', () => {
       expect(declaredStyle({ element: getFloatingControls(), property: 'order' })).toBe('-1');
     });
 
-    it('floats no link: the navigation holds the profile icons and the CV link', () => {
+    it('floats no link but the languages: the navigation holds the profile icons and the CV link', () => {
       renderHeader();
 
-      expect(within(getFloatingControls()).queryAllByRole('link', { hidden: true })).toHaveLength(
-        0,
-      );
+      expect(
+        within(getFloatingControls())
+          .queryAllByRole('link', { hidden: true })
+          .map(link => link.closest('[role="group"]')),
+      ).toEqual([getLanguageToggle(), getLanguageToggle()]);
       for (const name of [GITHUB_LINK_NAME, LINKEDIN_LINK_NAME, CV_LINK_NAME]) {
         expect(screen.getAllByRole('link', { name, hidden: true })).toHaveLength(1);
         expect(getNavigation()).toContainElement(screen.getByRole('link', { name, hidden: true }));
@@ -432,13 +434,13 @@ describe('Header', () => {
         await userEvent.click(getBurgerButton());
 
         await userEvent.click(
-          within(getLanguageToggle()).getByRole('button', { name: 'EN – English' }),
+          within(getLanguageToggle()).getByRole('link', { name: 'EN – English' }),
         );
 
         expect(window.location.pathname).toBe('/en/');
         expect(
-          within(getLanguageToggle()).getByRole('button', { name: 'EN – English' }),
-        ).toHaveAttribute('aria-pressed', 'true');
+          within(getLanguageToggle()).getByRole('link', { name: 'EN – English' }),
+        ).toHaveAttribute('aria-current', 'true');
         expect(getBurgerButton()).toHaveAttribute('aria-expanded', 'true');
         expect(getRootOverflow()).toBe('hidden');
       });
@@ -600,13 +602,11 @@ describe('Header', () => {
 
       await userEvent.tab();
       expect(
-        within(getLanguageToggle()).getByRole('button', { name: 'FR – Français' }),
+        within(getLanguageToggle()).getByRole('link', { name: 'FR – Français' }),
       ).toHaveFocus();
 
       await userEvent.tab();
-      expect(
-        within(getLanguageToggle()).getByRole('button', { name: 'EN – English' }),
-      ).toHaveFocus();
+      expect(within(getLanguageToggle()).getByRole('link', { name: 'EN – English' })).toHaveFocus();
     });
 
     it('gives the focus back to the burger when a link is chosen with Enter', async () => {

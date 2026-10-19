@@ -46,7 +46,7 @@ test('the root opens at the English home page once English was chosen', async ({
 test('the toggle opens the page in the other language, which a reload keeps', async ({ page }) => {
   await page.goto(PROJECTS_ROUTE);
 
-  await page.getByRole('button', { name: 'English' }).click();
+  await page.getByRole('link', { name: 'English' }).click();
 
   await expect(page).toHaveURL(/\/en\/projects$/);
   await expect(page.getByRole('heading', { name: en.projects.personal })).toBeVisible();

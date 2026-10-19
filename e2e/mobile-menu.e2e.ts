@@ -236,15 +236,15 @@ for (const viewport of MOBILE_LAYOUT_SCREENS) {
       // Named after its language whatever the language of the page. The toggle follows the
       // navigation in the page, so Tab reaches it after the CV link, the last link of the menu
       const languageToggle = page.getByRole('group', { name: fr.langToggle.label });
-      const englishButton = languageToggle.getByRole('button', { name: LANGUAGE_NAMES.en });
+      const englishLink = languageToggle.getByRole('link', { name: LANGUAGE_NAMES.en });
       await navigation.getByRole('link', { name: fr.cvLink.text }).focus();
       await page.keyboard.press('Tab');
-      await expect(languageToggle.getByRole('button', { name: LANGUAGE_NAMES.fr })).toBeFocused();
+      await expect(languageToggle.getByRole('link', { name: LANGUAGE_NAMES.fr })).toBeFocused();
       await page.keyboard.press('Tab');
-      await expect(englishButton).toBeFocused();
+      await expect(englishLink).toBeFocused();
 
-      // A tap fails when something covers the button, as the menu did
-      await englishButton.tap();
+      // A tap fails when something covers the link, as the menu did
+      await englishLink.tap();
       await expect(page).toHaveURL(localizePath({ path: LONG_PAGE_ROUTE, language: 'en' }));
       await expect(navigation, 'menu once the language changed').toBeVisible();
     });
