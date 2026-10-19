@@ -17,8 +17,8 @@ import { getWebManifestUrl } from '../../utils/webManifest';
  * so they stay current between builds. Once the language toggle moves to the other language, the
  * page links the manifest of that language, so it installs as the site in that language, as after
  * a reload; a page without that link, as in the standalone build, gets none. The Open Graph and
- * Twitter tags are left untouched: link preview crawlers only read the static HTML generated at
- * build time.
+ * Twitter tags and the structured data (JSON-LD) are left untouched: link preview crawlers and
+ * search engines read them in the static HTML generated at build time for each URL.
  */
 const DocumentMeta = () => {
   const { pathname } = useLocation();

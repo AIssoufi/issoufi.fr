@@ -4,6 +4,8 @@ import { build, normalizePath, type Plugin, type Rollup } from 'vite';
 
 import { isGoogleHost } from './e2e/utils';
 import { FONT_FACES } from './src/theme/constants';
+import { HOME_PAGE } from './src/utils/pages';
+import { renderStructuredDataScript } from './src/utils/structuredData';
 import { HEADERS_FILE_NAME } from './vite/constants';
 import {
   HASH_ROUTER_MODULE,
@@ -122,6 +124,12 @@ describe('standalone build', () => {
 
     expect(html).not.toContain('%PAGE_');
     expect(html).toMatch(/<title>[^<]+<\/title>/);
+  });
+
+  it('keeps the structured data of the home page, apart from the script of the app', () => {
+    expect(getSource(STANDALONE_PAGE_FILE_NAME)).toContain(
+      renderStructuredDataScript({ page: HOME_PAGE }),
+    );
   });
 
   it('routes the app on the hash of the URL', () => {

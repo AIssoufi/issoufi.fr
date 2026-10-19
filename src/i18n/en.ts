@@ -27,6 +27,8 @@ export const en = {
     },
     ogImageAlt: 'ADAM Issoufi, full-stack JavaScript developer with a passion for UX and UI Design',
     noScript: 'Enable JavaScript to view this site.',
+    siteName: 'ADAM Issoufi',
+    ownerName: 'ADAM Issoufi',
     webApp: {
       name: 'ADAM Issoufi - Full-stack JavaScript Developer',
       shortName: 'ADAM Issoufi',

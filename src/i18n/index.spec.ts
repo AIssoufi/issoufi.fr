@@ -1,4 +1,4 @@
-import { DEFAULT_LANGUAGE, LANGUAGE_STORAGE_KEY } from './constants';
+import { DEFAULT_LANGUAGE, LANGUAGE_STORAGE_KEY, LANGUAGES, TRANSLATIONS } from './constants';
 
 /**
  * Flag i18next sets on `globalThis` once it has shown its support notice, to show it only once:
@@ -21,6 +21,15 @@ describe('i18n', () => {
     localStorage.clear();
     window.history.replaceState(null, '', '/');
     await loadI18n();
+  });
+
+  it('loads the translations of every language', async () => {
+    const i18n = await loadI18n();
+
+    LANGUAGES.forEach(language =>
+      expect(i18n.getResourceBundle(language, 'translation')).toEqual(TRANSLATIONS[language]),
+    );
+    expect(Object.keys(i18n.options.resources ?? {})).toEqual([...LANGUAGES]);
   });
 
   it('starts in the default language on a first visit', async () => {

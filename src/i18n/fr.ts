@@ -29,6 +29,11 @@ export const fr = {
     },
     ogImageAlt: 'ADAM Issoufi, développeur full-stack JavaScript passionné par l’UX et l’UI Design',
     noScript: 'Activez JavaScript pour afficher ce site.',
+    // The names of the site and of its owner, which link previews (og:site_name) and search
+    // engines (the structured data of the pages) show: the same for now, kept apart so that
+    // either can change alone
+    siteName: 'ADAM Issoufi',
+    ownerName: 'ADAM Issoufi',
     // The texts of the installed app (its web app manifest): the title and the description of the
     // home page for now, kept apart so that either can change alone
     webApp: {

@@ -1,7 +1,5 @@
-import { DEFAULT_LANGUAGE, LANGUAGES, TEXT_DIRECTIONS } from '../i18n/constants';
-import { en } from '../i18n/en';
-import { fr } from '../i18n/fr';
-import type { Language, Translations } from '../i18n/types';
+import { DEFAULT_LANGUAGE, LANGUAGES, TEXT_DIRECTIONS, TRANSLATIONS } from '../i18n/constants';
+import type { Language } from '../i18n/types';
 import { isLanguage, localizePath } from '../i18n/utils';
 import { theme } from '../theme/theme';
 import { APP_ICONS, type AppIcon } from './icons';
@@ -35,12 +33,6 @@ const YEARS_PLACEHOLDER_PATTERN = /{{years}}/g;
 
 /** Number of spaces that indent each level of the manifest. */
 const JSON_INDENT_SPACES = 2;
-
-/** Texts of the installed app in each language, from the `meta.webApp` translations. */
-const WEB_APP_TRANSLATIONS: Record<Language, Translations['meta']['webApp']> = {
-  fr: fr.meta.webApp,
-  en: en.meta.webApp,
-};
 
 /** Use of an icon by the app: as it is, or cropped to the shape of the device (`maskable`). */
 type IconPurpose = 'any' | 'maskable';
@@ -153,7 +145,7 @@ interface RenderWebManifestParams {
  */
 export const renderWebManifest = ({ language, years }: RenderWebManifestParams): string => {
   const manifestLanguage = toLanguage(language);
-  const { name, shortName, description } = WEB_APP_TRANSLATIONS[manifestLanguage];
+  const { name, shortName, description } = TRANSLATIONS[manifestLanguage].meta.webApp;
   const manifest = {
     id: WEB_APP_ID,
     lang: manifestLanguage,
