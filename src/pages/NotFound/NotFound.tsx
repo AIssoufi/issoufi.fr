@@ -19,9 +19,9 @@ interface NotFoundProps {
  * Page shown when nothing exists at the current URL: a `404` code, a message naming the path,
  * decoded, with its invisible characters left encoded, cut when it is very long and wrapped at any
  * character when it is longer than the line, and a link back to the home page. The path never goes
- * through i18next, so it shows as typed whatever it holds. The URL stays as
- * typed, with no redirect. Rendered by the catch-all route of `App`; a page can also render it for
- * a missing resource. Must be rendered inside a router.
+ * through i18next, so i18next reads nothing in it. The URL stays as typed, with no redirect.
+ * Rendered by the catch-all route of `App`; a page can also render it for a missing resource. Must
+ * be rendered inside a router.
  *
  * @example
  * <NotFound message="This project does not exist." />

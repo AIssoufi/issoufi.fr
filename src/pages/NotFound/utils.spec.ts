@@ -258,8 +258,7 @@ describe('getNotFoundMessage', () => {
     expect(JSON.stringify(translate.mock.calls)).not.toContain('skills');
   });
 
-  // On an unclosed `$t(`, the nesting of i18next 25.3.3 to 26.4.3 took seconds for a dozen
-  // characters, then twice as long for each more: this test would then outlast its timeout
+  // Kept out of i18next, which would read `$t(` as the start of a nested translation
   it.each(['/$t(', `/$t(${'a'.repeat(16)}`, '/$t(errors.backHome)', '/{{path}}', '/$t(a, {"x": 1'])(
     'names the path %s as it is, at once',
     path => {

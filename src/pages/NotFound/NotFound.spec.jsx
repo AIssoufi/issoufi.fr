@@ -44,9 +44,7 @@ describe('NotFound', () => {
     ).toBeInTheDocument();
   });
 
-  // Kept out of i18next, which would read `$t(` as the start of a nested translation: on an
-  // unclosed one, its nesting took seconds for a dozen characters, then twice as long for each
-  // more, from version 25.3.3 to 26.4.3, so this test then outlasts its timeout
+  // Kept out of i18next, which would read `$t(` as the start of a nested translation
   it('names a path holding an unclosed $t( as it is, at once', () => {
     const path = `/$t(${'a'.repeat(16)}`;
 
