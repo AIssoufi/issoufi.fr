@@ -13,10 +13,10 @@ import {
   PROJECTS_ROUTE,
   SCREEN_HEIGHT_PX,
   SHARP_IMAGE_SCREEN_WIDTHS_PX,
-  SHOW_ALL_BUTTON_NAME,
   TIMELINE_ROUTE,
 } from './constants.ts';
 import { getImageEnlargement, type ImageSize } from './images.ts';
+import { showAllProjects } from './projects.ts';
 
 /** Projects of the Projects page, from both sections. */
 const PROJECTS = [...personalProjectsData.projects, ...freelanceProjectsData.projects];
@@ -48,16 +48,6 @@ interface ShownImage {
   /** Size of the file, in its own pixels. */
   file: ImageSize;
 }
-
-/**
- * Shows every project of the Projects page, once its chunk is loaded: a clicked "Show all"
- * becomes "Show less".
- */
-const showAllProjects = async (page: Page) => {
-  const showAllButtons = page.getByRole('button', { name: SHOW_ALL_BUTTON_NAME });
-  await expect(showAllButtons.first()).toBeVisible();
-  while ((await showAllButtons.count()) > 0) await showAllButtons.first().click();
-};
 
 /** Parameters of {@link measureShownImages}. */
 interface MeasureShownImagesParams {

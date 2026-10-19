@@ -10,10 +10,10 @@ import {
   PAGE_SELECTOR,
   PROJECTS_ROUTE,
   SHORT_SCREENS,
-  SHOW_ALL_BUTTON_NAME,
   STICKY_HEADER_SCREEN_HEIGHT_PX,
   STICKY_HEADER_SCREEN_WIDTHS_PX,
 } from './constants.ts';
+import { showAllProjects } from './projects.ts';
 import { scrollToEnd } from './scroll.ts';
 import { isBoxInside } from './utils.ts';
 
@@ -88,10 +88,8 @@ for (const language of LANGUAGES) {
           await page.goto(route);
           await expect(page.locator(PAGE_SELECTOR)).toBeVisible();
           // "Show all" wraps the cards of each row of the Projects page onto as many rows as they
-          // need, which makes it as long as it gets. A clicked button becomes "Show less", so the
-          // first one left is clicked until none is
-          const showAllButtons = page.getByRole('button', { name: SHOW_ALL_BUTTON_NAME });
-          while ((await showAllButtons.count()) > 0) await showAllButtons.first().click();
+          // need, which makes it as long as it gets
+          if (path === PROJECTS_ROUTE) await showAllProjects(page);
           await page.locator(PAGE_SELECTOR).evaluate(waitForEndingAnimations);
 
           // The header used to leave the screen after one screen of scrolling
