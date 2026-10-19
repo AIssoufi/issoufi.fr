@@ -3,13 +3,13 @@ import { expect, type Page, test } from '@playwright/test';
 import { LANGUAGES } from '../src/i18n/constants';
 import { localizePath } from '../src/i18n/utils';
 import { HOME_PAGE } from '../src/utils/pages';
-import { waitForEndingAnimations } from './animations';
+import { recordLargestShift, waitForEndingAnimations } from './animations';
 import {
   HERO_POINTER_SCREENS,
   HERO_SCREENS,
   MAX_WORD_SHIFT_PX,
   PAGE_SELECTOR,
-  POINTER_REST_MS,
+  POINTER_REST_FRAME_COUNT,
 } from './constants';
 import { getButtonAimPoints, getScreenBox, isBoxInside } from './utils';
 
@@ -42,18 +42,6 @@ const openHomePage = async ({ page, route }: OpenHomePageParams) => {
   });
   await page.locator(PAGE_SELECTOR).evaluate(waitForEndingAnimations);
 };
-
-/**
- * Measures how far each word of the home title stands from its place: the offset of the
- * `translate()` that `SplitWords` writes in its inline style, without the parallax and the float
- * animation that move the whole title. Runs in the browser, so it uses nothing from outside its
- * own body.
- */
-const listWordShifts = (words: Element[]) =>
-  words.map(word => {
-    const { e: x, f: y } = new DOMMatrixReadOnly((word as HTMLElement).style.transform);
-    return Math.hypot(x, y);
-  });
 
 // jsdom computes no layout, so only a real browser sees the buttons fall below the screen
 for (const language of LANGUAGES) {
@@ -97,16 +85,17 @@ for (const language of LANGUAGES) {
         const words = page.getByRole('heading', { level: 1 }).locator('span');
         const buttons = page.locator(PAGE_SELECTOR).getByRole('link');
         await expect(buttons).toHaveCount(HERO_BUTTON_COUNT);
-        // Without any word, the largest shift would be -Infinity, and the check would pass
+        // Without any word, the largest shift would be 0, and the check would pass
         expect(await words.count(), 'words of the title').toBeGreaterThan(0);
 
         for (const button of await buttons.all()) {
           // Moved by the mouse rather than hovered, which would refuse the corners of the pill
           for (const point of getButtonAimPoints(await button.boundingBox())) {
             await page.mouse.move(point.x, point.y);
-            await page.waitForTimeout(POINTER_REST_MS);
 
-            const largestShift = Math.max(...(await words.evaluateAll(listWordShifts)));
+            const largestShift = await words.evaluateAll(recordLargestShift, {
+              frameCount: POINTER_REST_FRAME_COUNT,
+            });
             expect(
               largestShift,
               `largest shift of a word, in px, with the pointer at ${point.x}, ${point.y}`,
@@ -126,11 +115,11 @@ for (const language of LANGUAGES) {
           word.x + word.width / 2,
           word.y + word.height / 2 - word.height * WORD_AIM_HEIGHT_RATIO,
         );
-        await page.waitForTimeout(POINTER_REST_MS);
 
-        expect(Math.max(...(await words.evaluateAll(listWordShifts)))).toBeGreaterThan(
-          MAX_WORD_SHIFT_PX,
-        );
+        const largestShift = await words.evaluateAll(recordLargestShift, {
+          frameCount: POINTER_REST_FRAME_COUNT,
+        });
+        expect(largestShift, 'largest shift of a word, in px').toBeGreaterThan(MAX_WORD_SHIFT_PX);
       });
     });
   }
