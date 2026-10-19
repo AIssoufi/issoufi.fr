@@ -3,9 +3,9 @@ import { act, render, screen } from '@testing-library/react';
 import i18n from '../../i18n';
 import { en } from '../../i18n/en';
 import { fr } from '../../i18n/fr';
-import { getReadText, isPublicFile, readPublicWebpSize } from '../testUtils';
+import { getPage } from '../../utils/pages';
+import { getReadText, readBackgroundImages, readPublicWebpSize } from '../testUtils';
 import experiencesData from './.data/experiences.json';
-import { BACKGROUND_IMAGE_URL } from './constants';
 import { LOGO_SIZE_PX } from './JobSummary/constants';
 import { Experiences } from './Experiences';
 
@@ -271,7 +271,13 @@ describe('Experiences', () => {
     });
   });
 
-  it('serves its background from public/', () => {
-    expect(isPublicFile(BACKGROUND_IMAGE_URL)).toBe(true);
+  it('shows the background photo of its entry in PAGES, over its placeholder', () => {
+    const { url, portraitUrl, placeholderUrl } = getPage('/experiences').backgroundPhoto;
+    render(<Experiences />);
+
+    expect(readBackgroundImages(screen.getByRole('main'))).toEqual({
+      image: `url("${url}"), url("${placeholderUrl}")`,
+      portraitImage: `url("${portraitUrl}"), url("${placeholderUrl}")`,
+    });
   });
 });

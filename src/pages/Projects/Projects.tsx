@@ -1,11 +1,11 @@
 import { useTranslation } from 'react-i18next';
 
+import { PROJECTS_PAGE } from '../../utils/pages';
 import Project from './Project';
 
 import freelanceProjectsData from './.data/freelance-projects.json';
 import personalProjectsData from './.data/personal-projects.json';
 import { PageTitle, ProjectsPage } from './Projects.styled';
-import { BACKGROUND_IMAGE_URL } from './constants';
 import { translateProjects } from './utils';
 
 /**
@@ -18,7 +18,7 @@ export const Projects = () => {
   const { t } = useTranslation();
 
   return (
-    <ProjectsPage backgroundImage={BACKGROUND_IMAGE_URL}>
+    <ProjectsPage backgroundPhoto={PROJECTS_PAGE.backgroundPhoto}>
       <PageTitle>{t('projects.pageTitle')}</PageTitle>
       <Project
         priority

@@ -1,6 +1,9 @@
 import { existsSync, readFileSync, statSync } from 'node:fs';
 import { join, sep } from 'node:path';
 
+import { declaredStyle } from '../styleTestUtils';
+import { PORTRAIT_PHOTO_MEDIA_QUERY } from '../utils/pages';
+
 /** Folder whose files are served at the root of the site. */
 const PUBLIC_DIR = 'public';
 
@@ -167,3 +170,20 @@ export const readWebpSize = bytes => {
  */
 export const readPublicWebpSize = url =>
   isPublicFile(url) ? readWebpSize(readFileSync(join(PUBLIC_DIR, url))) : null;
+
+/**
+ * Reads the background photo that a page shows, as its `Page` declares it on the `::before` layer
+ * of its `<main>`, since jsdom computes no style for pseudo-elements nor media queries. Used by
+ * the page tests to check that each page shows the photo of its entry in `PAGES`.
+ *
+ * @param {Element} [main] - `<main>` element of the page.
+ * @returns {{ image: string, portraitImage: string }} The `background-image` outside any media
+ * query, and the one of the narrow portrait screens (`PORTRAIT_PHOTO_MEDIA_QUERY`), as the CSSOM
+ * serializes them, e.g. `url("/home.webp")`; `''` for one the element does not declare.
+ */
+export const readBackgroundImages = main => {
+  const readImage = media =>
+    declaredStyle({ element: main, property: 'background-image', pseudo: '::before', media });
+
+  return { image: readImage(''), portraitImage: readImage(PORTRAIT_PHOTO_MEDIA_QUERY) };
+};

@@ -1,6 +1,6 @@
 import type { ComponentProps } from 'react';
 
-import { BACKGROUND_IMAGE_URL } from './constants';
+import { STATUS_PAGE_BACKGROUND_PHOTO } from '../../utils/pages';
 import StatusMessage from './StatusMessage';
 import { StatusPageMain } from './StatusPage.styled';
 
@@ -12,10 +12,11 @@ type StatusPageProps = ComponentProps<typeof StatusMessage>;
 
 /**
  * Page that shows a status, such as a missing page, a forbidden access or an unexpected error:
- * its `<main>` landmark, a `Page` over the photo of the status pages ({@link BACKGROUND_IMAGE_URL})
- * and its dark overlay, with a {@link StatusMessage} centered in its height. A message taller than
- * the screen makes the page grow, so none of it is cut off. Renders an empty page when no prop is
- * provided. Needs a router when `homeLinkLabel` is set, because the home link is a router link.
+ * its `<main>` landmark, a `Page` over the photo of the status pages
+ * (`STATUS_PAGE_BACKGROUND_PHOTO`, `src/utils/pages.ts`) and its dark overlay, with a
+ * {@link StatusMessage} centered in its height. A message taller than the screen makes the page
+ * grow, so none of it is cut off. Renders an empty page when no prop is provided. Needs a router
+ * when `homeLinkLabel` is set, because the home link is a router link.
  *
  * @example
  * <StatusPage
@@ -26,7 +27,7 @@ type StatusPageProps = ComponentProps<typeof StatusMessage>;
  * />
  */
 const StatusPage = (props: StatusPageProps) => (
-  <StatusPageMain backgroundImage={BACKGROUND_IMAGE_URL}>
+  <StatusPageMain backgroundPhoto={STATUS_PAGE_BACKGROUND_PHOTO}>
     <StatusMessage {...props} />
   </StatusPageMain>
 );

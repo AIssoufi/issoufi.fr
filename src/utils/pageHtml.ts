@@ -9,6 +9,7 @@ import {
   type Page,
   type PageAlternate,
 } from './pages';
+import { isNonBlankString } from './strings';
 
 /** Escapes a value for use inside a double-quoted HTML attribute or a text node. */
 const escapeHtml = (value: string) =>
@@ -201,8 +202,7 @@ interface AddModulePreloadParams {
  */
 export function addModulePreload({ html, href }: AddModulePreloadParams = {}): string {
   const page = typeof html === 'string' ? html : '';
-  const hasHref = typeof href === 'string' && href.trim() !== '';
-  const canAddLink = hasHref && page.includes(HEAD_END_TAG);
+  const canAddLink = isNonBlankString(href) && page.includes(HEAD_END_TAG);
   if (!canAddLink) return page;
 
   const link = `<link rel="modulepreload" crossorigin href="${escapeHtml(href)}" />`;

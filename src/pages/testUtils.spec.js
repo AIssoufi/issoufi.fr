@@ -1,7 +1,12 @@
+import { render, screen } from '@testing-library/react';
+import { createElement } from 'react';
+
+import Page from '../components/Page';
 import {
   getReadText,
   INTERACTIVE_SELECTOR,
   isPublicFile,
+  readBackgroundImages,
   readPublicWebpSize,
   readWebpSize,
 } from './testUtils';
@@ -163,6 +168,34 @@ describe('readPublicWebpSize', () => {
       expect(readPublicWebpSize(url)).toBeNull();
     },
   );
+});
+
+describe('readBackgroundImages', () => {
+  it('reads the whole photo and the portrait version that a page shows', () => {
+    const backgroundPhoto = { url: '/home.webp', portraitUrl: '/home-portrait.webp' };
+    render(createElement(Page, { backgroundPhoto }));
+
+    expect(readBackgroundImages(screen.getByRole('main'))).toEqual({
+      image: 'url("/home.webp")',
+      portraitImage: 'url("/home-portrait.webp")',
+    });
+  });
+
+  it('reads no image for a page without a photo', () => {
+    render(createElement(Page));
+
+    expect(readBackgroundImages(screen.getByRole('main'))).toEqual({
+      image: 'none',
+      portraitImage: 'none',
+    });
+  });
+
+  it.each([
+    ['an element without styles', () => document.createElement('main')],
+    ['no element', () => undefined],
+  ])('reads empty values for %s', (_, getElement) => {
+    expect(readBackgroundImages(getElement())).toEqual({ image: '', portraitImage: '' });
+  });
 });
 
 describe('getReadText', () => {

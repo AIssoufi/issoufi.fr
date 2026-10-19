@@ -1,6 +1,7 @@
-import { fireEvent, render } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
 
 import { stubMatchMedia } from '../../../mediaQueryTestUtils';
+import { RETURN_DELAY_MS } from './constants';
 import { SplitWords } from './SplitWords';
 
 const FRAME_MS = 16;
@@ -11,6 +12,17 @@ const RESTING_TRANSFORM = 'translate(0px, 0px) rotate(0deg)';
 const PUSHED_LEFT_TRANSFORM = /^translate\(-[\d.]+px, 0px\) rotate\(0deg\)$/;
 
 const getWords = container => [...container.querySelectorAll('span')];
+
+/** Distance in pixels of a word from its place, read from the transform the animation writes. */
+const getShift = word => {
+  const [, x, y] = word.style.transform.match(/translate\((\S+)px, (\S+)px\)/);
+  return Math.hypot(Number(x), Number(y));
+};
+
+/** Largest distance in pixels of a word back in its place once its spring has settled. */
+const SETTLED_SHIFT_PX = 0.5;
+/** Time for a spring to settle once it pulls a word back, in milliseconds. */
+const SPRING_SETTLING_MS = 2000;
 
 describe('SplitWords', () => {
   it('renders nothing without children', () => {
@@ -61,6 +73,52 @@ describe('SplitWords', () => {
       expect(word.style.textShadow).not.toBe('');
     });
 
+    it.each([
+      ['a link', <a href="/projects">Voir mes projets</a>],
+      ['a button', <button type="button">Menu</button>],
+    ])(
+      'leaves the words in place while the mouse is over %s, and pushes them once it leaves',
+      (_control, control) => {
+        const { container } = render(
+          <>
+            <SplitWords>Developer</SplitWords>
+            {control}
+          </>,
+        );
+        const [word] = getWords(container);
+
+        fireEvent.mouseMove(screen.getByText(control.props.children), PUSHING_POINTER);
+        vi.advanceTimersByTime(FRAME_MS * 10);
+        expect(word.style.transform).toBe(RESTING_TRANSFORM);
+
+        fireEvent.mouseMove(window, PUSHING_POINTER);
+        vi.advanceTimersByTime(FRAME_MS);
+        expect(word.style.transform).toMatch(PUSHED_LEFT_TRANSFORM);
+      },
+    );
+
+    it('puts back a pushed word once the mouse moves onto a link', () => {
+      // performance.now() dates each push, after which the spring waits RETURN_DELAY_MS
+      vi.useFakeTimers({
+        toFake: ['requestAnimationFrame', 'cancelAnimationFrame', 'performance'],
+      });
+      const { container } = render(
+        <>
+          <SplitWords>Developer</SplitWords>
+          <a href="/projects">Voir mes projets</a>
+        </>,
+      );
+      const [word] = getWords(container);
+      fireEvent.mouseMove(window, PUSHING_POINTER);
+      vi.advanceTimersByTime(FRAME_MS);
+      expect(word.style.transform).toMatch(PUSHED_LEFT_TRANSFORM);
+
+      fireEvent.mouseMove(screen.getByRole('link'), PUSHING_POINTER);
+      vi.advanceTimersByTime(RETURN_DELAY_MS + SPRING_SETTLING_MS);
+
+      expect(getShift(word)).toBeLessThan(SETTLED_SHIFT_PX);
+    });
+
     it('keeps animating the remaining words after some are removed', () => {
       const { container, rerender } = render(
         <SplitWords>Full-stack JavaScript Developer</SplitWords>,
@@ -106,11 +164,38 @@ describe('SplitWords', () => {
       const { container } = render(<SplitWords>Full-stack Developer</SplitWords>);
       fireEvent.mouseMove(window, PUSHING_POINTER);
       vi.advanceTimersByTime(FRAME_MS);
+      getWords(container).forEach(word =>
+        expect(word.style.transform).toMatch(PUSHED_LEFT_TRANSFORM),
+      );
 
       setMatches(true);
       vi.advanceTimersByTime(FRAME_MS * 10);
 
       getWords(container).forEach(word => {
+        expect(word.style.transform).toBe('');
+        expect(word.style.textShadow).toBe('');
+      });
+      expect(vi.getTimerCount()).toBe(0);
+    });
+
+    it('puts back the remaining words once the visitor turns reduced motion on after some are removed', () => {
+      const { setMatches } = stubMatchMedia({ matches: false });
+      const { container, rerender } = render(
+        <SplitWords>Full-stack JavaScript Developer</SplitWords>,
+      );
+      // The removed word leaves an empty slot among the elements of the words
+      rerender(<SplitWords>Full-stack JavaScript</SplitWords>);
+      fireEvent.mouseMove(window, PUSHING_POINTER);
+      vi.advanceTimersByTime(FRAME_MS);
+      getWords(container).forEach(word =>
+        expect(word.style.transform).toMatch(PUSHED_LEFT_TRANSFORM),
+      );
+
+      expect(() => setMatches(true)).not.toThrow();
+
+      const words = getWords(container);
+      expect(words).toHaveLength(2);
+      words.forEach(word => {
         expect(word.style.transform).toBe('');
         expect(word.style.textShadow).toBe('');
       });

@@ -4,9 +4,12 @@ import { MemoryRouter } from 'react-router';
 import { theme } from '../../theme';
 import { REDUCED_MOTION_QUERY } from '../../theme/constants';
 import { declaredStyle, serializeCssValue } from '../../styleTestUtils';
-import { isPublicFile } from '../testUtils';
-import { BACKGROUND_IMAGE_URL } from './constants';
+import { getPage } from '../../utils/pages';
+import { readBackgroundImages } from '../testUtils';
 import { Home } from './Home';
+
+/** Media query of the short screens, such as a phone held sideways. */
+const SHORT_SCREEN_MEDIA_QUERY = `(max-height: ${theme.screenHeights.short})`;
 
 const renderHome = (path = '/') =>
   render(
@@ -62,6 +65,38 @@ describe('Home', () => {
     expect(experiencesLink).toHaveAttribute('href', '/en/experiences');
   });
 
+  it('sizes the hero with the screen, and tightens it on a short one', () => {
+    renderHome();
+    const title = screen.getByRole('heading', { level: 1 });
+    const intro = title.parentElement;
+    const subtitle = screen.getByText('Je vous aide à développer vos applications web');
+    const buttons = screen.getByRole('link', { name: 'Voir mes projets' }).parentElement
+      .parentElement;
+    const fontSize = element => declaredStyle({ element, property: 'font-size' });
+    const shortScreenStyle = ({ element, property }) =>
+      declaredStyle({ element, property, media: SHORT_SCREEN_MEDIA_QUERY });
+
+    expect(fontSize(screen.getByText('UX'))).toBe(
+      serializeCssValue({ property: 'font-size', value: theme.fontSizes['hero-title'] }),
+    );
+    expect(fontSize(title)).toBe(
+      serializeCssValue({ property: 'font-size', value: theme.fontSizes['hero-text'] }),
+    );
+    expect(fontSize(subtitle)).toBe(
+      serializeCssValue({ property: 'font-size', value: theme.fontSizes['hero-subtitle'] }),
+    );
+    // The largest width of the intro is in ems of the title words
+    expect(fontSize(intro)).toBe(fontSize(screen.getByText('UX')));
+    expect(declaredStyle({ element: intro, property: 'max-width' })).toBe(
+      serializeCssValue({ property: 'max-width', value: theme.sizes['hero-intro'] }),
+    );
+    expect(declaredStyle({ element: buttons, property: 'padding-top' })).toBe(
+      serializeCssValue({ property: 'padding-top', value: theme.space['hero-actions'] }),
+    );
+    expect(shortScreenStyle({ element: title, property: 'margin-bottom' })).toBe(theme.space[4]);
+    expect(shortScreenStyle({ element: buttons, property: 'gap' })).toBe(theme.space[8]);
+  });
+
   it('fits the buttons to narrow screens instead of widening the page', () => {
     // jsdom applies no media query, so these are the mobile styles
     renderHome();
@@ -108,7 +143,13 @@ describe('Home', () => {
     expect(glowStyle.display).not.toBe('none');
   });
 
-  it('serves its background from public/', () => {
-    expect(isPublicFile(BACKGROUND_IMAGE_URL)).toBe(true);
+  it('shows the background photo of its entry in PAGES, over its placeholder', () => {
+    const { url, portraitUrl, placeholderUrl } = getPage('/').backgroundPhoto;
+    renderHome();
+
+    expect(readBackgroundImages(screen.getByRole('main'))).toEqual({
+      image: `url("${url}"), url("${placeholderUrl}")`,
+      portraitImage: `url("${portraitUrl}"), url("${placeholderUrl}")`,
+    });
   });
 });
