@@ -159,7 +159,7 @@ export const findPdfProblems = ({
 };
 
 /**
- * Writes the bytes of a PDF as text, one character per byte, with empty creation and
+ * Gives the bytes of a PDF as text, one character per byte, with empty creation and
  * modification dates.
  * @param {Uint8Array} pdf - Content of the PDF file.
  * @returns {string} The PDF without its dates.

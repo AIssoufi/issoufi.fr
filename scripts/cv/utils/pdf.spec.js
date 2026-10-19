@@ -204,12 +204,23 @@ describe('isSamePdfApartFromDates', () => {
     expect(isSamePdfApartFromDates({ pdf: PDF, otherPdf: PDF.slice() })).toBe(true);
   });
 
+  // A real PDF whose date changes length also moves the offsets of its cross-reference table,
+  // which then differ: that file is written again
   it('ignores the creation and the modification dates', () => {
     const otherPdf = encodeInfo(
       "/Creator (Chromium) /CreationDate (D:20261018234147+00'00') /ModDate (D:20261019034028Z)",
     );
 
     expect(isSamePdfApartFromDates({ pdf: PDF, otherPdf })).toBe(true);
+  });
+
+  it('ignores a date written right after its key', () => {
+    const pdf = encodeInfo("/CreationDate(D:20261018172454+00'00')/ModDate(D:20261018172454Z)");
+    const otherPdf = encodeInfo(
+      "/CreationDate(D:20261019034028+00'00')/ModDate(D:20261019034028Z)",
+    );
+
+    expect(isSamePdfApartFromDates({ pdf, otherPdf })).toBe(true);
   });
 
   it('ignores a date that holds an escaped parenthesis', () => {
