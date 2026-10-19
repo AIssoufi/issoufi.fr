@@ -2,6 +2,7 @@ import styled, { css, th } from '@xstyled/styled-components';
 import { Link } from 'react-router';
 
 import {
+  CONTROL_HOVER_SCALE,
   FORCED_COLORS_QUERY,
   FULL_MOTION_QUERY,
   HOVER_POINTER_QUERY,
@@ -116,7 +117,7 @@ export const LanguageLink = styled(Link)<{ $active: boolean }>`
   /* As the buttons of the site grow, so not with reduced motion either */
   @media ${HOVER_POINTER_QUERY} and ${FULL_MOTION_QUERY} {
     &:hover {
-      transform: scale(1.06);
+      transform: scale(${CONTROL_HOVER_SCALE});
     }
   }
 

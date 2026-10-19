@@ -3,6 +3,7 @@ import styled, { css, keyframes, th } from '@xstyled/styled-components';
 import List from '../../../components/List/index.ts';
 import NewTabLink from '../../../components/NewTabLink/index.ts';
 import {
+  CONTROL_HOVER_SCALE,
   FORCED_COLORS_QUERY,
   FULL_MOTION_QUERY,
   HOVER_POINTER_QUERY,
@@ -339,7 +340,7 @@ export const LikeButton = styled.button<{ $liked: boolean; $animating: boolean }
      hovered too: the rule of :active comes last to win */
   @media ${HOVER_POINTER_QUERY} and ${FULL_MOTION_QUERY} {
     &:hover {
-      transform: scale(1.06);
+      transform: scale(${CONTROL_HOVER_SCALE});
     }
   }
 

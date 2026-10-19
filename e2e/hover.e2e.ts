@@ -1,7 +1,7 @@
 import { expect, type Page, test } from '@playwright/test';
 
 import { fr } from '../src/i18n/fr.ts';
-import { HOVER_POINTER_QUERY } from '../src/theme/constants.ts';
+import { CONTROL_HOVER_SCALE, HOVER_POINTER_QUERY } from '../src/theme/constants.ts';
 import { theme } from '../src/theme/theme.ts';
 import {
   HERO_SUBTITLE_SELECTOR,
@@ -71,8 +71,8 @@ const getNextPageButton = (page: Page) =>
 const getLikeButton = (page: Page) =>
   page.locator(PROJECT_CARD_SELECTOR).first().getByRole('button', { name: LIKE_BUTTON_NAME });
 
-/** Transform of a control grown to its hover size, `scale(1.06)`, as the browser writes it. */
-const HOVER_SCALE_MATRIX = 'matrix(1.06, 0, 0, 1.06, 0, 0)';
+/** Transform of a control grown to its hover size, as the browser writes it. */
+const HOVER_SCALE_MATRIX = `matrix(${CONTROL_HOVER_SCALE}, 0, 0, ${CONTROL_HOVER_SCALE}, 0, 0)`;
 
 /** Tells whether the main pointer of the page hovers, as the hover styles of the site ask. */
 const doesPointerHover = (page: Page) =>

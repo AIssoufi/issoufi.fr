@@ -4,7 +4,11 @@ import { MemoryRouter } from 'react-router';
 
 import { declaredStyle, mediaDeclaringStyle, serializeCssValue } from '../../../styleTestUtils.js';
 import { theme } from '../../../theme/index.ts';
-import { FULL_MOTION_QUERY, HOVER_POINTER_QUERY } from '../../../theme/constants.ts';
+import {
+  CONTROL_HOVER_SCALE,
+  FULL_MOTION_QUERY,
+  HOVER_POINTER_QUERY,
+} from '../../../theme/constants.ts';
 import { DESKTOP_MEDIA_QUERY, NO_SCRIPT_MOBILE_MEDIA_QUERY } from '../constants.ts';
 import NavMenu from './NavMenu.tsx';
 
@@ -261,7 +265,7 @@ describe('NavMenu', () => {
             pseudo: ':hover',
             media: DESKTOP_FULL_MOTION_HOVER_MEDIA_QUERY,
           }),
-        ).toBe('scale(1.06)');
+        ).toBe(`scale(${CONTROL_HOVER_SCALE})`);
         // A touch screen would keep the hover style of the link tapped last
         expect(desktopStyle({ element, property: 'transform', pseudo: ':hover' })).toBe('');
       }

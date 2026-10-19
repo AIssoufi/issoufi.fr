@@ -1,6 +1,7 @@
 import { createGlobalStyle, th } from '@xstyled/styled-components';
 
 import {
+  CONTROL_HOVER_SCALE,
   FORCED_COLORS_QUERY,
   FULL_MOTION_QUERY,
   HOVER_POINTER_QUERY,
@@ -85,7 +86,7 @@ export const GlobalStyle = createGlobalStyle`
   /* Not with reduced motion, where the instant transition would make it jump */
   @media ${HOVER_POINTER_QUERY} and ${FULL_MOTION_QUERY} {
     button:hover {
-      transform: scale(1.06);
+      transform: scale(${CONTROL_HOVER_SCALE});
     }
   }
 

@@ -4,6 +4,7 @@ import userEvent from '@testing-library/user-event';
 import i18n from '../../../i18n/index.ts';
 import { theme } from '../../../theme/index.ts';
 import {
+  CONTROL_HOVER_SCALE,
   FORCED_COLORS_QUERY,
   FULL_MOTION_QUERY,
   HOVER_POINTER_QUERY,
@@ -1107,7 +1108,7 @@ describe('Project', () => {
           pseudo: ':hover',
           media: FULL_MOTION_HOVER_QUERY,
         }),
-      ).toBe('scale(1.06)');
+      ).toBe(`scale(${CONTROL_HOVER_SCALE})`);
       expect(
         declaredStyle({
           element: likeButton,

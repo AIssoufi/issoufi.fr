@@ -17,6 +17,7 @@ import {
 } from '../../../styleTestUtils.js';
 import { theme } from '../../../theme/index.ts';
 import {
+  CONTROL_HOVER_SCALE,
   FORCED_COLORS_QUERY,
   FULL_MOTION_QUERY,
   HOVER_POINTER_QUERY,
@@ -296,7 +297,9 @@ describe('LangToggle', () => {
     const hoverStyle = ({ property, media }) =>
       declaredStyle({ element: getEnglishLink(), property, pseudo: ':hover', media });
 
-    expect(hoverStyle({ property: 'transform', media: fullMotionHoverQuery })).toBe('scale(1.06)');
+    expect(hoverStyle({ property: 'transform', media: fullMotionHoverQuery })).toBe(
+      `scale(${CONTROL_HOVER_SCALE})`,
+    );
     expect(
       mediaDeclaringStyle({ element: getEnglishLink(), property: 'transform', pseudo: ':hover' }),
     ).toEqual([fullMotionHoverQuery]);

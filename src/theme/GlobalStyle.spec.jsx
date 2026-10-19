@@ -6,6 +6,7 @@ import styled, { ThemeProvider } from '@xstyled/styled-components';
 
 import { listStyleRules, serializeCssValue } from '../styleTestUtils.js';
 import {
+  CONTROL_HOVER_SCALE,
   FORCED_COLORS_QUERY,
   FULL_MOTION_QUERY,
   HOVER_POINTER_QUERY,
@@ -163,7 +164,7 @@ describe('GlobalStyle', () => {
       media: `${HOVER_POINTER_QUERY} and ${FULL_MOTION_QUERY}`,
     });
     const [linkRule] = findRulesSelecting({ selectors: ['a:hover'], media: tabletHoverQuery });
-    expect(buttonRule.style.getPropertyValue('transform')).toBe('scale(1.06)');
+    expect(buttonRule.style.getPropertyValue('transform')).toBe(`scale(${CONTROL_HOVER_SCALE})`);
     expect(linkRule.style.getPropertyValue('color')).toBe(
       serializeCssValue({ property: 'color', value: theme.colors['accent-foreground'] }),
     );
