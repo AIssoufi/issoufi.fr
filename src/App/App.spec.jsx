@@ -20,9 +20,11 @@ const PROJECTS_PAGE_TITLE = { level: 1, name: 'Projets' };
 /**
  * Timeout of the `findBy` queries, in milliseconds: the app loads its pages lazily, and evaluates
  * them again after `vi.resetModules`, which can outlast the default of 1 s while the whole suite
- * runs with coverage.
+ * runs with coverage. The pages grew heavier with the readability work (#243), and 3 s no longer
+ * held once several suites shared the machine, so it waits up to 8 s, under the 10 s that a test
+ * may last (`TEST_TIMEOUT_MS`, `vite.config.ts`).
  */
-const PAGE_LOAD_TIMEOUT_MS = 3000;
+const PAGE_LOAD_TIMEOUT_MS = 8000;
 
 describe('App', () => {
   const { asyncUtilTimeout } = getConfig();
