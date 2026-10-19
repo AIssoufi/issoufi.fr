@@ -112,7 +112,9 @@ describe('theme', () => {
   });
 
   it(`keeps every font size at ${MIN_FONT_SIZE_PX} px or more, so that every text stays readable`, () => {
-    const isReadable = size => Number.parseFloat(size) >= MIN_FONT_SIZE_PX;
+    // A fluid size never gets under the smallest size of its clamp(), its first value
+    const getSmallestSizePx = size => Number.parseFloat(String(size).replace(/^clamp\(/, ''));
+    const isReadable = size => getSmallestSizePx(size) >= MIN_FONT_SIZE_PX;
     const smallSizes = Object.entries(theme.fontSizes).filter(([, size]) => !isReadable(size));
 
     expect(smallSizes).toEqual([]);
