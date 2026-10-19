@@ -105,6 +105,27 @@ jobs:
     steps:
       - uses: actions/dependency-review-action@v5
 
+  # Warns when GitHub has stopped starting deploy-production.yml on its schedule, which the deploy
+  # cannot report while it does not run. It never fails the run: the deploy requires the CI of
+  # develop to pass
+  deploy-schedule:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/develop'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    continue-on-error: true
+    permissions:
+      contents: read
+      # Reads the scheduled runs of deploy-production.yml
+      actions: read
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+      - run: node scripts/ci/check-deploy-schedule-gap.mjs
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+
   build:
     needs: [format, lint, typecheck, test]
     runs-on: ubuntu-latest

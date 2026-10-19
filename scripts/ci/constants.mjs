@@ -290,8 +290,8 @@ export const GITHUB_API_VERSION = '2022-11-28';
 export const GITHUB_API_MEDIA_TYPE = 'application/vnd.github+json';
 
 /**
- * Number of runs that the deploy asks the REST API for: the latest only, since the API lists the
- * runs of a workflow newest first.
+ * Number of runs that the deploy and the schedule-gap check of the CI ask the REST API for: the
+ * latest only, since the API lists the runs of a workflow newest first.
  */
 export const LATEST_RUN_PAGE_SIZE = 1;
 

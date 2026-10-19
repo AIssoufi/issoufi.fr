@@ -213,7 +213,10 @@ export const getScheduleVerdict = ({ eventName, runId, runs = [], date } = {}) =
 /**
  * Tells whether GitHub skipped every scheduled run of a day, which it may do under load, and
  * which would otherwise stop the daily deploy without a word: the last scheduled run before this
- * one is more than {@link SCHEDULE_GAP_WARNING_HOURS} old, or a run started by hand finds none.
+ * one is more than {@link SCHEDULE_GAP_WARNING_HOURS} old, or a run that is not scheduled finds
+ * none. Besides the scheduled runs themselves, a run started by hand and the CI of each push to
+ * develop (`check-deploy-schedule-gap.mjs`) ask, measuring from now, so that a schedule that
+ * stopped for good is reported too.
  * @param {ScheduledRunsParams} [params]
  * @returns {string | undefined} The warning, naming the gap and the last scheduled run, or
  * `undefined` when the schedule kept up, or when the first scheduled run finds none before it.

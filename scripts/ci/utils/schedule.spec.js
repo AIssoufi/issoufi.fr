@@ -354,6 +354,22 @@ describe('getScheduleGapWarning', () => {
     ).toBeUndefined();
   });
 
+  it('measures the gap from now for the CI of a push, without a run of its own', () => {
+    vi.useFakeTimers();
+    const runs = [scheduledRun({ id: 9, createdAt: '2026-10-19T06:37:00Z' })];
+    // 36 hours after the last run of the window, the window of the next day has passed empty, even
+    // with the delays of GitHub
+    vi.setSystemTime(new Date('2026-10-20T18:37:00Z'));
+    expect(getScheduleGapWarning({ eventName: 'push', runs })).toBeUndefined();
+    vi.setSystemTime(new Date('2026-10-20T18:38:00Z'));
+    expect(getScheduleGapWarning({ eventName: 'push', runs })).toMatch(
+      /^No scheduled run of deploy-production\.yml for 36 hours, since 2026-10-19T06:37:00\.000Z/,
+    );
+    expect(getScheduleGapWarning({ eventName: 'push', runs: [] })).toMatch(
+      /^GitHub has never started deploy-production\.yml on its schedule/,
+    );
+  });
+
   it('leaves out the runs created after this one', () => {
     const laterRun = scheduledRun({ id: 11, createdAt: '2026-10-19T04:37:00Z' });
     const runs = [laterRun, thisRun, scheduledRun({ id: 9, createdAt: '2026-10-17T06:37:00Z' })];
