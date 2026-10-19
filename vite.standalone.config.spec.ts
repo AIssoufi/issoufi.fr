@@ -145,6 +145,8 @@ describe('standalone build', () => {
       'experiences.webp',
       'experiences-portrait.webp',
       'favicon.ico',
+      'favicon.svg',
+      'apple-touch-icon.png',
     ].forEach(name => {
       expect(html).toContain(`"./${name}"`);
     });
