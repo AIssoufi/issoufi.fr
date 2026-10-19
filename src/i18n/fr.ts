@@ -29,6 +29,12 @@ export const fr = {
     },
     ogImageAlt: 'ADAM Issoufi, développeur full-stack JavaScript passionné par l’UX et l’UI Design',
     noScript: 'Activez JavaScript pour afficher ce site.',
+    webApp: {
+      name: 'ADAM Issoufi - Développeur full-stack JavaScript',
+      shortName: 'ADAM Issoufi',
+      description:
+        'Développeur full-stack JavaScript avec {{years}} ans d’expérience, spécialisé React.',
+    },
   },
   errors: {
     backHome: 'Retour à l’accueil',

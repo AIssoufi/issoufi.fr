@@ -17,9 +17,9 @@ export interface AppIcon {
 
 /**
  * Icons of the site, by role. Every page links the favicons and the Apple touch icon from
- * `index.html`; the others are the icons of the installed app, for its web app manifest.
- * `pnpm icons` writes each file, in the layout its role needs (`ICON_LAYOUTS` of
- * `scripts/icons/constants.mjs`).
+ * `index.html`, and the web app manifest of each language lists the icons of the installed app
+ * (see `renderWebManifest`). `pnpm icons` writes each file, in the layout its role needs
+ * (`ICON_LAYOUTS` of `scripts/icons/constants.mjs`).
  */
 export const APP_ICONS = {
   /**

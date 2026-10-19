@@ -25,6 +25,15 @@ export const OPEN_GRAPH_LOCALES = {
   en: 'en_US',
 } as const satisfies Record<Language, string>;
 
+/**
+ * Direction of the text of each language, the `dir` of its web app manifest: every language of the
+ * site is written from left to right.
+ */
+export const TEXT_DIRECTIONS = {
+  fr: 'ltr',
+  en: 'ltr',
+} as const satisfies Record<Language, 'ltr' | 'rtl'>;
+
 /** Separator of the segments of a URL path. */
 export const PATH_SEPARATOR = '/';
 
