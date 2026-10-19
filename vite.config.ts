@@ -147,6 +147,13 @@ const httpHeaders = (): Plugin => ({
 const COVERAGE_THRESHOLDS_PERCENT = { lines: 97, statements: 97, branches: 96, functions: 96 };
 
 /**
+ * Time a test may take before Vitest fails it, in milliseconds: twice its default of 5 s. Several
+ * suites often share one machine, as when ticket workers test their worktrees at the same time,
+ * and the heaviest renders then outlast the default, although they take under 1 s alone.
+ */
+const TEST_TIMEOUT_MS = 10_000;
+
+/**
  * Vite and Vitest configuration: React with SVG components, the web fonts, page metadata, sitemap
  * and HTTP headers plugins, the dev and preview servers on the port of the worktree (see
  * {@link getServerPorts}), which fail when it is taken, the preview server with the security
@@ -187,6 +194,7 @@ export default defineConfig(({ mode }) => {
       globals: true,
       environment: 'jsdom',
       setupFiles: ['./src/setupTests.ts'],
+      testTimeout: TEST_TIMEOUT_MS,
       // styled-components inserts each rule into the CSSOM, as in production, rather than adding
       // its text to a <style>, which jsdom parses again whole on every change: a quadratic cost
       // that made the tests several times slower since jsdom 29
