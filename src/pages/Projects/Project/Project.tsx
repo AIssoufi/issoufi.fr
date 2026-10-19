@@ -5,8 +5,7 @@ import LikeIcon from './icons/heart.svg?react';
 import NextIcon from './icons/next.svg?react';
 import PreviousIcon from './icons/previous.svg?react';
 
-import { isNonBlankString } from '../../../utils/strings';
-import { listTechnologyNames } from '../../../utils/technologies';
+import { isNonBlankString, listUniqueNonBlankStrings } from '../../../utils/strings';
 import { ROW_CARD_COUNT, THUMBNAIL_SIZES } from './constants';
 import { useCardTilt } from './hooks/useCardTilt';
 import { useLikes } from './hooks/useLikes';
@@ -193,7 +192,7 @@ const Project = ({ title, projects = NO_PROJECTS, priority = false }: ProjectPro
           const isPriorityThumbnail = project === priorityProject;
           // A blank name would leave an empty heading, which screen readers announce as such
           const hasName = isNonBlankString(name);
-          const toolNames = listTechnologyNames(tools);
+          const toolNames = listUniqueNonBlankStrings(tools);
 
           return (
             <ProjectItem

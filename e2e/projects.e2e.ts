@@ -10,7 +10,7 @@ import freelanceProjectsData from '../src/pages/Projects/.data/freelance-project
 import personalProjectsData from '../src/pages/Projects/.data/personal-projects.json' with { type: 'json' };
 import { getProjectLinkUrl } from '../src/pages/Projects/Project/utils';
 import type { ProjectData } from '../src/pages/Projects/types';
-import { listTechnologyNames } from '../src/utils/technologies';
+import { listUniqueNonBlankStrings } from '../src/utils/strings';
 import { countBrowserNodes, listBrowserHeadingLevels, listBrowserTexts } from './accessibility';
 import {
   PAGE_SELECTOR,
@@ -109,7 +109,7 @@ for (const language of LANGUAGES) {
 
         // A card without tools shows no list
         const expectedCounts = cards
-          .map(({ tools }) => listTechnologyNames(tools).length)
+          .map(({ tools }) => listUniqueNonBlankStrings(tools).length)
           .filter(count => count > 0);
         expect(toolCounts).toEqual(expectedCounts);
         for (const [index, { name }] of cards.entries()) {

@@ -1,4 +1,4 @@
-import { listTechnologyNames } from '../../../utils/technologies';
+import { listUniqueNonBlankStrings } from '../../../utils/strings';
 import { TechChip, TechList } from './Technologies.styled';
 
 /** Props of {@link Technologies}. */
@@ -22,7 +22,7 @@ interface TechnologiesProps {
  * <Technologies technologies={['React.js', 'TypeScript']} />
  */
 const Technologies = ({ technologies, className }: TechnologiesProps) => {
-  const names = listTechnologyNames(technologies);
+  const names = listUniqueNonBlankStrings(technologies);
   if (names.length === 0) return null;
 
   return (
