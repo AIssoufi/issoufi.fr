@@ -77,14 +77,14 @@ const NO_PROJECTS: ProjectItemData[] = [];
  * heading, so that screen readers can go from card to card, and a card without a name has none.
  * When the project has a `url` and a name, that heading holds a `NewTabLink` to it, stretched over
  * the whole card, which screen readers announce as opening a new tab; the like button sits beside
- * that link, never inside it.
- * The tools of the card are a list, shown as one line of text with dots that screen readers skip.
- * The title is a level 2 heading, under the `h1` of the page; without a title, the section has no
- * heading and its controls have no name. The thumbnail is decorative, with an empty alt text,
- * since the name follows it, and a card without a valid file shows none. Each thumbnail downloads
- * the file of its `srcset` that its width needs on the screen, once the screen nears it, but the
- * first one of a `priority` section, at once; hovering or focusing an arrow downloads the
- * thumbnails of the page it would show, so that they never show empty.
+ * that link, never inside it. The tools of the card are a list, shown as one line of text with
+ * dots that screen readers skip. The title is a level 2 heading, under the `h1` of the page;
+ * without a title, the section has no heading and its controls have no name. The thumbnail is
+ * decorative, with an empty alt text, since the name follows it, and a card without a valid file
+ * shows none. Each thumbnail downloads the file of its `srcset` that its width needs on the
+ * screen, once the screen nears it, but the first one of a `priority` section, at once; hovering
+ * or focusing an arrow downloads the thumbnails of the page it would show, so that they never
+ * show empty.
  */
 const Project = ({ title, projects = NO_PROJECTS, priority = false }: ProjectProps) => {
   const { t } = useTranslation();
