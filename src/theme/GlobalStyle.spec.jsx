@@ -2,7 +2,7 @@ import { screen } from '@testing-library/react';
 import styled, { ThemeProvider } from '@xstyled/styled-components';
 
 import { listStyleRules, serializeCssValue } from '../styleTestUtils.js';
-import { HOVER_POINTER_QUERY, REDUCED_MOTION_QUERY } from './constants.ts';
+import { FORCED_COLORS_QUERY, HOVER_POINTER_QUERY, REDUCED_MOTION_QUERY } from './constants.ts';
 import { GlobalStyle } from './GlobalStyle.ts';
 import { theme } from './theme.ts';
 
@@ -140,6 +140,24 @@ describe('GlobalStyle', () => {
       return !isForHoverPointers && Boolean(rule.selectorText?.includes(':hover'));
     };
     expect(listStyleRules().filter(isHoverRuleOfEveryPointer)).toEqual([]);
+  });
+
+  it('draws the icons in the foreground color, and in the text color in forced colors mode', () => {
+    renderWithGlobalStyle();
+
+    const iconRules = findRulesSelecting({ selectors: ['svg'] });
+    const forcedIconRules = findRulesSelecting({ selectors: ['svg'], media: FORCED_COLORS_QUERY });
+    expect(iconRules).toHaveLength(1);
+    expect(forcedIconRules).toHaveLength(1);
+    const [iconRule] = iconRules;
+    const [forcedIconRule] = forcedIconRules;
+    expect(iconRule.style.getPropertyValue('stroke')).toBe(
+      serializeCssValue({ property: 'stroke', value: theme.colors.foreground }),
+    );
+    // Forced colors mode keeps the white of an SVG, which a light contrast theme would hide
+    expect(forcedIconRule.style.getPropertyValue('stroke')).toBe(
+      serializeCssValue({ property: 'stroke', value: 'currentColor' }),
+    );
   });
 
   describe('with reduced motion', () => {

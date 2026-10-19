@@ -576,6 +576,12 @@ export const TEXT_SIZE_SCREEN_WIDTHS_PX = [320, 375, 768, 1024, 1280, 1440, 1920
 export const FORCED_COLORS_SCREEN_WIDTHS_PX = [375, 1440] as const;
 
 /**
+ * Color schemes of the contrast themes in which forced colors mode must still show the icons: a
+ * light one, such as "Desert" on Windows, where a white icon vanishes, and a dark one.
+ */
+export const FORCED_COLORS_SCHEMES = ['light', 'dark'] as const;
+
+/**
  * Screen widths, in pixels, at which no thumbnail or logo may be enlarged on a 2x screen: a phone,
  * with one column of cards (375), a laptop, with three (1440), and a desktop screen past the `wide`
  * breakpoint, with three larger ones (1920, as a 4K screen at 200 %).
