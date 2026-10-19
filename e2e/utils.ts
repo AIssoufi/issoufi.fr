@@ -326,6 +326,39 @@ export const getBoxBottom = (box?: ScreenBox | null): number =>
 export const getBoxRight = (box?: ScreenBox | null): number =>
   isScreenBox(box) ? box.x + box.width : Number.NaN;
 
+/** Parameters of {@link getRowBox}. */
+interface GetRowBoxParams {
+  /** Box of the first element of the row, on the left, such as the GitHub icon. */
+  first?: ScreenBox | null;
+  /** Box of the last element of the row, on the right, such as the LinkedIn icon. */
+  last?: ScreenBox | null;
+}
+
+/**
+ * Finds the box that spans a row of elements, from the left edge of its first element to the right
+ * edge of its last, or of the first when the last ends inside it, such as the row of the GitHub and
+ * LinkedIn icons of the mobile menu, to check that the row is centered.
+ *
+ * @returns A box at the left, the top and the height of the first element, as wide as the row, or
+ * `null` when either box is missing or holds a value that is not a finite number, or when the last
+ * element starts before the first, so that no row is measured from elements out of their order.
+ *
+ * @example
+ * getRowBox({
+ *   first: { x: 239, y: 414, width: 32, height: 32 },
+ *   last: { x: 299, y: 414, width: 32, height: 32 },
+ * }); // { x: 239, y: 414, width: 92, height: 32 }
+ */
+export const getRowBox = ({ first, last }: GetRowBoxParams = {}): ScreenBox | null => {
+  if (!isScreenBox(first) || !isScreenBox(last)) return null;
+
+  const isInOrder = last.x >= first.x;
+  if (!isInOrder) return null;
+
+  const right = Math.max(getBoxRight(first), getBoxRight(last));
+  return { x: first.x, y: first.y, width: right - first.x, height: first.height };
+};
+
 /** Parameters of {@link doBoxesOverlapHorizontally}. */
 interface DoBoxesOverlapHorizontallyParams {
   /** One of the boxes, such as the box of a line of text of the page. */

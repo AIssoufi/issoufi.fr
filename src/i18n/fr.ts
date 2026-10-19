@@ -64,9 +64,13 @@ export const fr = {
   githubLink: {
     label: 'Profil GitHub d’ADAM Issoufi',
   },
+  linkedInLink: {
+    label: 'Profil LinkedIn d’ADAM Issoufi',
+  },
   cvLink: {
-    text: 'CV',
-    label: 'Télécharger le CV',
+    text: 'Télécharger CV',
+    // Name of the document that the link downloads, which `pnpm cv` writes in its title
+    documentName: 'CV',
   },
   home: {
     title1: 'Développeur full-stack JavaScript',

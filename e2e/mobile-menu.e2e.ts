@@ -57,14 +57,18 @@ interface GetMenuLinksParams {
   translations: Translations;
 }
 
-/** Every link of the open menu, in its order: the pages, the CV button and the GitHub icon. */
+/**
+ * Every link of the open menu, in its order: the pages, the GitHub and LinkedIn icons, then the CV
+ * link.
+ */
 const getMenuLinks = ({ navigation, translations }: GetMenuLinksParams) =>
   [
     translations.nav.home,
     translations.nav.projects,
     translations.nav.experience,
-    translations.cvLink.label,
     translations.githubLink.label,
+    translations.linkedInLink.label,
+    translations.cvLink.text,
   ].map(name => ({ name, link: navigation.getByRole('link', { name, exact: true }) }));
 
 /** Parameters of {@link expectLinksBesideToggle}. */
@@ -133,9 +137,9 @@ for (const language of LANGUAGES) {
           );
         }
         const cvBox = await navigation
-          .getByRole('link', { name: translations.cvLink.label })
+          .getByRole('link', { name: translations.cvLink.text })
           .boundingBox();
-        expect(cvBox?.height, 'height of the CV button, compact or not').toBeGreaterThanOrEqual(
+        expect(cvBox?.height, 'height of the CV link, compact or not').toBeGreaterThanOrEqual(
           FINGER_TARGET_HEIGHT_PX,
         );
         expect(await navigation.evaluate(isScrollable), 'menu higher than the screen').toBe(false);
