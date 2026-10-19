@@ -27,14 +27,14 @@ export const FONT_MEDIA_TYPE = 'font/woff2';
 export const FONT_DISPLAY = 'swap';
 
 /**
- * Web fonts of the site, which it serves itself from `public/fonts/`, next to their licenses
- * (`*-OFL.txt`), so that no page requests Google. The files are the `latin` subsets that Google
- * Fonts served to Windows and Linux, byte for byte, with their hinting: macOS, iOS and Android
- * ignore it, so every system draws the text as before. The `font-faces` plugin of
- * `vite.config.ts` declares them in the head of every page, and preloads both files, since every
- * page shows text in both fonts. `pnpm og-image` reads the files as data URLs, and the standalone
- * build embeds them the same way: keep their names and their folder, which other scripts read.
- * The weights and styles describe the files, as Google Fonts declared them, not a design choice.
+ * Web fonts of the pages, which the site serves itself from `public/fonts/`, next to their
+ * licenses (`*-OFL.txt`), so that no page requests Google. The files are the `latin` subsets that
+ * Google Fonts served to Windows and Linux, byte for byte, with their hinting: macOS, iOS and
+ * Android ignore it, so every system draws the text as before. The `font-faces` plugin of
+ * `vite.config.ts` declares them in the head of every page, and preloads their files, since every
+ * page shows text in them. `pnpm og-image` reads the files as data URLs, and the standalone build
+ * embeds them the same way: keep their names and their folder, which other scripts read. The
+ * weights and styles describe the files, as Google Fonts declared them, not a design choice.
  */
 export const FONT_FACES: readonly FontFaceDeclaration[] = [
   {
@@ -45,14 +45,21 @@ export const FONT_FACES: readonly FontFaceDeclaration[] = [
     style: 'normal',
     unicodeRange: LATIN_UNICODE_RANGE,
   },
-  {
-    family: 'Saira Stencil One',
-    url: '/fonts/saira-stencil-one-latin.woff2',
-    weight: '400',
-    style: 'normal',
-    unicodeRange: LATIN_UNICODE_RANGE,
-  },
 ];
+
+/**
+ * Web font of the logo, the display font of the theme, which no page loads for its two letters:
+ * the header draws the logo as their outline, which `pnpm icons` writes from this file with the
+ * icons, and `pnpm og-image` draws the logo in it. Its file sits with the other fonts in
+ * `public/fonts/`, next to its license, as Google Fonts served it.
+ */
+export const LOGO_FONT_FACE: FontFaceDeclaration = {
+  family: 'Saira Stencil One',
+  url: '/fonts/saira-stencil-one-latin.woff2',
+  weight: '400',
+  style: 'normal',
+  unicodeRange: LATIN_UNICODE_RANGE,
+};
 
 /**
  * Media query of the visitors who asked their system to reduce motion, for instance because of a

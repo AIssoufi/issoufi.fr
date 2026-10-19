@@ -168,6 +168,10 @@ export const theme = {
   },
   fonts: {
     body: fontFamilies.montserrat,
+    /**
+     * Font of the logo, which no page loads: the header draws the logo as the outline of its
+     * letters, and the scripts that draw the icons and the link preview read it.
+     */
     display: fontFamilies.sairaStencilOne,
     code: fontFamilies.sourceCodePro,
   },

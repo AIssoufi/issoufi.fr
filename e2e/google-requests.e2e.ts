@@ -1,7 +1,7 @@
 import { expect, test } from '@playwright/test';
 
 import { LANGUAGES } from '../src/i18n/constants.ts';
-import { FONT_FACES } from '../src/theme/constants.ts';
+import { FONT_FACES, LOGO_FONT_FACE } from '../src/theme/constants.ts';
 import { PAGES } from '../src/utils/pages.ts';
 import { PAGE_SELECTOR } from './constants.ts';
 import { getCheckedRoutes, isGoogleUrl } from './utils.ts';
@@ -30,8 +30,14 @@ for (const language of LANGUAGES) {
         });
 
         expect(requestedUrls.filter(isGoogleUrl), 'requests to Google').toEqual([]);
-        // Every page shows text in each font: the body text, and the logo of the header
+        // Every page shows text in each font of the pages
         FONT_FACES.forEach(({ family }) => expect(loadedFamilies).toContain(family));
+        // The header draws the logo as the outline of its letters, which weighs far less
+        expect(
+          requestedUrls.filter(url => new URL(url).pathname === LOGO_FONT_FACE.url),
+          'requests for the font of the logo',
+        ).toEqual([]);
+        expect(loadedFamilies).not.toContain(LOGO_FONT_FACE.family);
       });
     }
   });

@@ -116,6 +116,19 @@ describe('readGlyphOutlines', () => {
     expect(glyphs[1].contours).toHaveLength(1);
   });
 
+  it('reads the vertical metrics of the font, which give the height of a line', () => {
+    const { ascender, descender, lineGap } = readGlyphOutlines({
+      file: LOGO_FONT_FILE,
+      text: 'AI',
+    });
+
+    expect({ ascender, descender, lineGap }).toEqual({
+      ascender: 1135,
+      descender: -439,
+      lineGap: 0,
+    });
+  });
+
   it('reads the curves of a round glyph as off-curve points', () => {
     const [o] = readGlyphOutlines({ file: LOGO_FONT_FILE, text: 'O' }).glyphs;
 
