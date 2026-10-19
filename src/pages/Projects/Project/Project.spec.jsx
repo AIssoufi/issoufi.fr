@@ -8,8 +8,10 @@ import { stubMatchMedia } from '../../../mediaQueryTestUtils';
 import {
   blendColors,
   declaredStyle,
+  FORCED_COLORS_MEDIA,
   getContrastRatio,
   listStyleRules,
+  MIN_ICON_CONTRAST_RATIO,
   serializeCssValue,
 } from '../../../styleTestUtils';
 import { INTERACTIVE_SELECTOR } from '../../testUtils';
@@ -65,15 +67,6 @@ const CARD_BOX = { left: 100, top: 100, width: 200, height: 100 };
  * the vertical axis and half of it around the horizontal one, so the two cannot be mixed up.
  */
 const CARD_POINTER = { x: CARD_BOX.width, y: CARD_BOX.height / 4 };
-
-/**
- * Smallest contrast that the Web Content Accessibility Guidelines ask of the shapes of an icon
- * against what surrounds it (success criterion 1.4.11).
- */
-const MIN_ICON_CONTRAST_RATIO = 3;
-
-/** Media query of forced colors mode, such as a contrast theme of Windows. */
-const FORCED_COLORS_MEDIA = '(forced-colors: active)';
 
 /** Like button of a card, found by its French accessible name, which holds the project name. */
 const likeButtonOf = name => screen.getByRole('button', { name: `Aimer ${name}` });

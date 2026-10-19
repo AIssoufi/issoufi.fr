@@ -3,7 +3,6 @@ import React from 'react';
 import VisuallyHidden from '../../../components/VisuallyHidden';
 import JobSummary from '../JobSummary';
 import Project from '../Project';
-import Technologies from '../Technologies';
 import TimelinePeriod from '../TimelinePeriod';
 
 import {
@@ -88,7 +87,6 @@ const Role = ({ jobName, startDate, endDate, technologies, children }: RoleProps
 };
 
 Role.Project = Project;
-Role.Technologies = Technologies;
 
 /** Props of {@link ExperienceGroup}. Every part is optional. */
 interface ExperienceGroupProps extends CompanyCtxValue {

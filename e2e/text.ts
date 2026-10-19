@@ -98,11 +98,16 @@ export interface DrawnCharacter {
  */
 export const listDrawnCharacters = (root: Element): DrawnCharacter[] => {
   const blockIndexes = new Map<Element, number>();
+  // An inline element belongs to the lines of its parent, up to the root
+  const belongsToParentLines = (
+    candidate: Element,
+  ): candidate is Element & { parentElement: Element } =>
+    candidate !== root &&
+    candidate.parentElement !== null &&
+    getComputedStyle(candidate).display.startsWith('inline');
   const findBlock = (element: Element) => {
     let block = element;
-    const isInline = (candidate: Element) =>
-      getComputedStyle(candidate).display.startsWith('inline');
-    while (block !== root && block.parentElement && isInline(block)) block = block.parentElement;
+    while (belongsToParentLines(block)) block = block.parentElement;
     return block;
   };
   const range = document.createRange();

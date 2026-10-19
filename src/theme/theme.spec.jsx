@@ -4,13 +4,10 @@ import { join } from 'node:path';
 import { render } from '@testing-library/react';
 import styled, { th, ThemeProvider } from '@xstyled/styled-components';
 
-import { declaredStyle, getContrastRatio } from '../styleTestUtils';
+import { declaredStyle, getContrastRatio, MIN_TEXT_CONTRAST_RATIO } from '../styleTestUtils';
 import { MIN_FONT_SIZE_PX } from './constants';
-import { findRawThemeValues, findRawValues } from './testUtils';
+import { findRawThemeValues, findRawValues, getSmallestFontSizePx } from './testUtils';
 import { theme } from './theme';
-
-/** Smallest contrast that the Web Content Accessibility Guidelines ask of a text (1.4.3, AA). */
-const MIN_TEXT_CONTRAST_RATIO = 4.5;
 
 /** Source of the semantic tokens, which may only read the primitives of tokens.ts. */
 const THEME_FILE = join('src', 'theme', 'theme.ts');
@@ -112,9 +109,8 @@ describe('theme', () => {
   });
 
   it(`keeps every font size at ${MIN_FONT_SIZE_PX} px or more, so that every text stays readable`, () => {
-    // A fluid size never gets under the smallest size of its clamp(), its first value
-    const getSmallestSizePx = size => Number.parseFloat(String(size).replace(/^clamp\(/, ''));
-    const isReadable = size => getSmallestSizePx(size) >= MIN_FONT_SIZE_PX;
+    // A fluid size never gets under the smallest value of its clamp()
+    const isReadable = size => getSmallestFontSizePx(size) >= MIN_FONT_SIZE_PX;
     const smallSizes = Object.entries(theme.fontSizes).filter(([, size]) => !isReadable(size));
 
     expect(smallSizes).toEqual([]);

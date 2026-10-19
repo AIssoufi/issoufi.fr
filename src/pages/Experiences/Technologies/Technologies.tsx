@@ -10,8 +10,9 @@ interface TechnologiesProps {
 
 /**
  * Row of chips listing the technologies of a job or a project, a list that screen readers
- * announce with its number of items. Renders nothing when the list is empty or missing. Also
- * exposed as `Experience.Technologies` and `ExperienceGroup.Role.Technologies`.
+ * announce with its number of items. Renders nothing when the list is empty or missing. A job card
+ * renders the technologies of its job from its own `technologies` prop, and a `Project` those of
+ * the project.
  *
  * @example
  * <Technologies technologies={['React.js', 'TypeScript']} />

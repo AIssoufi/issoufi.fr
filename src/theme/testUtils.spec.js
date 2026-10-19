@@ -1,4 +1,4 @@
-import { findRawThemeValues, findRawValues } from './testUtils';
+import { findRawThemeValues, findRawValues, getSmallestFontSizePx } from './testUtils';
 
 /** Values found in a source, as `kind value` strings, to compare them at a glance. */
 const valuesIn = source => findRawValues(source).map(({ kind, value }) => `${kind} ${value}`);
@@ -280,5 +280,32 @@ describe('findRawThemeValues', () => {
     ['an object', { radii: { sm: '8px' } }],
   ])('finds nothing in %s', (_description, source) => {
     expect(findRawThemeValues(source)).toEqual([]);
+  });
+});
+
+describe('getSmallestFontSizePx', () => {
+  it.each([
+    ['12px', 12],
+    ['13.5px', 13.5],
+    [' 16px ', 16],
+    ['clamp(16px, 12px + 0.75vmin, 24px)', 16],
+    ['clamp( 24px , 12px + 4vmin, 72px)', 24],
+  ])('reads %j as %d px', (size, expected) => {
+    expect(getSmallestFontSizePx(size)).toBe(expected);
+  });
+
+  it.each([
+    ['a size in rem', '1rem'],
+    ['a size in em', '0.75em'],
+    ['a clamp whose smallest value is in rem', 'clamp(1rem, 2vw, 24px)'],
+    ['a min() of two sizes', 'min(12px, 2vw)'],
+    ['a size with a unit after the pixels', '12pxx'],
+    ['a negative size', '-12px'],
+    ['an empty string', ''],
+    ['a number', 12],
+    ['null', null],
+    ['nothing', undefined],
+  ])('cannot read %s', (_case, size) => {
+    expect(getSmallestFontSizePx(size)).toBeNaN();
   });
 });

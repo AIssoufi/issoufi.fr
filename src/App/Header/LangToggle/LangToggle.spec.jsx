@@ -4,16 +4,15 @@ import { MemoryRouter, useLocation } from 'react-router';
 
 import i18n from '../../../i18n';
 import { LANGUAGE_STORAGE_KEY } from '../../../i18n/constants';
-import { declaredStyle, getContrastRatio } from '../../../styleTestUtils';
+import {
+  declaredStyle,
+  FORCED_COLORS_MEDIA,
+  getContrastRatio,
+  MIN_TEXT_CONTRAST_RATIO,
+} from '../../../styleTestUtils';
 import { theme } from '../../../theme';
 import UrlLanguage from '../../UrlLanguage';
 import LangToggle from './LangToggle';
-
-/** Smallest contrast that the Web Content Accessibility Guidelines ask of a text (1.4.3, AA). */
-const MIN_TEXT_CONTRAST_RATIO = 4.5;
-
-/** Media query of forced colors mode, such as a contrast theme of Windows. */
-const FORCED_COLORS_MEDIA = '(forced-colors: active)';
 
 /** The indicator is the first child of the toggle, before the language buttons. */
 const getIndicator = () => screen.getByRole('group').firstElementChild;

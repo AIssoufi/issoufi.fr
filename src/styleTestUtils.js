@@ -19,6 +19,23 @@ export const listStyleRules = () =>
 const normalizeSelector = selector => selector.trim().replace(/\s*([>+~])\s*/g, '$1');
 
 /**
+ * The selectors of a selector list, split at its commas, but not at those of a function inside a
+ * selector, such as `:is(.a, .b)`.
+ */
+const splitSelectorList = selectorList => {
+  const selectors = [''];
+  let parenthesisDepth = 0;
+  for (const character of selectorList) {
+    if (character === '(') parenthesisDepth += 1;
+    if (character === ')') parenthesisDepth -= 1;
+    const isListComma = character === ',' && parenthesisDepth === 0;
+    if (isListComma) selectors.push('');
+    else selectors[selectors.length - 1] += character;
+  }
+  return selectors;
+};
+
+/**
  * Value that the generated CSS declares for a property on one of the element's classes, or on one
  * of its pseudo-elements, states or children, outside any media query or inside the given one;
  * the last declaration wins. Used by the tests, since jsdom's computed styles ignore media
@@ -53,7 +70,8 @@ export const declaredStyle = ({ element, property, media = '', pseudo = '' } = {
   const isRuleOfElement = entry => {
     const isInMedia = entry.media === media;
     // The @keyframes rules have no selector
-    const ruleSelectors = entry.rule.selectorText?.split(',').map(normalizeSelector) ?? [];
+    const selectorList = entry.rule.selectorText ?? '';
+    const ruleSelectors = splitSelectorList(selectorList).map(normalizeSelector);
     return isInMedia && ruleSelectors.some(selector => classSelectors.includes(selector));
   };
   const values = listStyleRules()
@@ -174,8 +192,18 @@ export const blendColors = ({ foreground, background } = {}) => {
   return `rgba(${red}, ${green}, ${blue}, ${roundBlend(alpha)})`;
 };
 
-/** Channel value, from 0 to 1, up to which the sRGB curve is a straight line. */
-const SRGB_LINEAR_THRESHOLD = 0.04045;
+/**
+ * Terms of the sRGB transfer function, which turns a channel value, from 0 to 1, into a light
+ * intensity: a straight line up to `linearThreshold`, of slope `1 / linearSlope`, then
+ * `((value + offset) / scale) ** gamma`.
+ */
+const SRGB_CURVE = {
+  linearThreshold: 0.04045,
+  linearSlope: 12.92,
+  offset: 0.055,
+  scale: 1.055,
+  gamma: 2.4,
+};
 
 /** Weight of each channel in the relative luminance: the eye sees green as the brightest. */
 const LUMINANCE_WEIGHTS = { red: 0.2126, green: 0.7152, blue: 0.0722 };
@@ -184,13 +212,29 @@ const LUMINANCE_WEIGHTS = { red: 0.2126, green: 0.7152, blue: 0.0722 };
 const CONTRAST_FLARE = 0.05;
 
 /**
+ * Smallest contrast that the Web Content Accessibility Guidelines ask of a text at level AA
+ * (success criterion 1.4.3), against its background.
+ */
+export const MIN_TEXT_CONTRAST_RATIO = 4.5;
+
+/**
+ * Smallest contrast that the Web Content Accessibility Guidelines ask of the shapes of an icon or
+ * a control against what surrounds it (success criterion 1.4.11).
+ */
+export const MIN_ICON_CONTRAST_RATIO = 3;
+
+/** Media query of forced colors mode, such as a contrast theme of Windows. */
+export const FORCED_COLORS_MEDIA = '(forced-colors: active)';
+
+/**
  * Relative luminance of an opaque color, as the Web Content Accessibility Guidelines define it:
  * 0 for black, 1 for white. Each channel goes through the sRGB transfer function first.
  */
 const getRelativeLuminance = color => {
   const toLinear = channel => {
     const value = color[channel] / MAX_CHANNEL;
-    return value <= SRGB_LINEAR_THRESHOLD ? value / 12.92 : ((value + 0.055) / 1.055) ** 2.4;
+    const { linearThreshold, linearSlope, offset, scale, gamma } = SRGB_CURVE;
+    return value <= linearThreshold ? value / linearSlope : ((value + offset) / scale) ** gamma;
   };
   return CHANNELS.reduce((sum, channel) => sum + LUMINANCE_WEIGHTS[channel] * toLinear(channel), 0);
 };

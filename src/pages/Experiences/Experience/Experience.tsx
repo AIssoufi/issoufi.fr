@@ -1,6 +1,5 @@
 import JobSummary from '../JobSummary';
 import Project from '../Project';
-import Technologies from '../Technologies';
 
 import { Article, Details, JobTechnologies } from './Experience.styled';
 
@@ -81,7 +80,6 @@ const Experience = ({
   </Article>
 );
 
-Experience.Technologies = Technologies;
 Experience.Project = Project;
 
 export default Experience;

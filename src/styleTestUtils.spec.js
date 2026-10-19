@@ -88,6 +88,17 @@ describe('declaredStyle', () => {
     expect(declaredStyle({ element, property: 'fill', pseudo: ' > svg' })).toBe('');
   });
 
+  it('keeps whole the selectors whose function holds a comma', () => {
+    const element = setUp({
+      css: '.card:is(:hover, :focus-visible) >svg, .other { stroke: red; }',
+    });
+
+    expect(
+      declaredStyle({ element, property: 'stroke', pseudo: ':is(:hover, :focus-visible) > svg' }),
+    ).toBe('red');
+    expect(declaredStyle({ element, property: 'stroke', pseudo: ':is(:hover' })).toBe('');
+  });
+
   it('reads a rule whose selector list holds the selector among others', () => {
     const element = setUp({
       css: `@media ${TABLET_MEDIA} { .card >svg,.card:hover>svg { stroke: red; } }
@@ -190,6 +201,9 @@ describe('parseColor', () => {
     ['rgba(127.5, 127.5, 127.5, 1)', { red: 127.5, green: 127.5, blue: 127.5, alpha: 1 }],
     ['#8b3168', { red: 139, green: 49, blue: 104, alpha: 1 }],
     ['#FFF', { red: 255, green: 255, blue: 255, alpha: 1 }],
+    ['rgb(255, 255, 255)', { red: 255, green: 255, blue: 255, alpha: 1 }],
+    ['rgb(0 0 0 / 100%)', { red: 0, green: 0, blue: 0, alpha: 1 }],
+    ['rgba(0, 0, 0, 1)', { red: 0, green: 0, blue: 0, alpha: 1 }],
   ])('reads the channels of %s', (value, expected) => {
     expect(parseColor(value)).toEqual(expected);
   });
@@ -201,6 +215,7 @@ describe('parseColor', () => {
     ['a hexadecimal color of 4 digits', '#ffff'],
     ['a channel over 255', 'rgb(256, 0, 0)'],
     ['an alpha over 1', 'rgba(0, 0, 0, 1.5)'],
+    ['an alpha over 100 %', 'rgb(0 0 0 / 101%)'],
     ['a negative channel', 'rgb(-1, 0, 0)'],
     ['two channels', 'rgb(0, 0)'],
     ['a number', 255],

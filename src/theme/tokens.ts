@@ -36,7 +36,7 @@ export const rgb = {
   green: '50, 180, 100',
 } as const;
 
-/** Solid colors of the palette. */
+/** Colors of the palette, solid or translucent; the alpha of a translucent one ends its name. */
 export const palette = {
   white: '#ffffff',
   gray200: '#e5e5e5',

@@ -1,8 +1,14 @@
 import { expect, test } from '@playwright/test';
 
 import { LANGUAGE_NAMES } from '../src/App/Header/LangToggle/constants';
+import { DEFAULT_LANGUAGE, LANGUAGES } from '../src/i18n/constants';
 import { fr } from '../src/i18n/fr';
+import type { Language } from '../src/i18n/types';
 import { FORCED_COLORS_SCREEN_WIDTHS_PX, PROJECTS_ROUTE, SCREEN_HEIGHT_PX } from './constants';
+
+/** A language of the site other than the default one, whose button the toggle test presses. */
+const OTHER_LANGUAGE: Language =
+  LANGUAGES.find(language => language !== DEFAULT_LANGUAGE) ?? DEFAULT_LANGUAGE;
 
 /** Start of the French name of each like button, before the name of its project. */
 const LIKE_NAME_START = fr.projects.like.split('{{name}}')[0];
@@ -22,20 +28,23 @@ for (const width of FORCED_COLORS_SCREEN_WIDTHS_PX) {
 
     test('the active language looks different from the other one', async ({ page }) => {
       await page.goto(PROJECTS_ROUTE);
-      const frenchButton = page.getByRole('button', { name: LANGUAGE_NAMES.fr });
-      await expect(frenchButton).toHaveAttribute('aria-pressed', 'true');
-      const activeImage = await frenchButton.screenshot();
+      const defaultLanguageButton = page.getByRole('button', {
+        name: LANGUAGE_NAMES[DEFAULT_LANGUAGE],
+      });
+      await expect(defaultLanguageButton).toHaveAttribute('aria-pressed', 'true');
+      const activeImage = await defaultLanguageButton.screenshot();
 
-      await page.getByRole('button', { name: LANGUAGE_NAMES.en }).click();
-      await expect(page.locator('html')).toHaveAttribute('lang', 'en');
-      await expect(frenchButton).toHaveAttribute('aria-pressed', 'false');
+      await page.getByRole('button', { name: LANGUAGE_NAMES[OTHER_LANGUAGE] }).click();
+      await expect(page.locator('html')).toHaveAttribute('lang', OTHER_LANGUAGE);
+      await expect(defaultLanguageButton).toHaveAttribute('aria-pressed', 'false');
       // Away from the toggle, whose hover would change its look too
       await page.mouse.move(0, 0);
-      const inactiveImage = await frenchButton.screenshot();
+      const inactiveImage = await defaultLanguageButton.screenshot();
 
-      expect(activeImage.equals(inactiveImage), 'the French button, active then inactive').toBe(
-        false,
-      );
+      expect(
+        activeImage.equals(inactiveImage),
+        'the default language button, active then inactive',
+      ).toBe(false);
     });
 
     test('a liked project looks different from the others', async ({ page }) => {
