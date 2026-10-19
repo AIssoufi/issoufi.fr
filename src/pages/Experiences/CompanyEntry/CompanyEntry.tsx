@@ -51,6 +51,7 @@ const CompanyEntry = ({ experience }: CompanyEntryProps) => {
             jobName={translateKey({ t, key: role.titleKey })}
             startDate={translateKey({ t, key: role.startKey })}
             endDate={translateKey({ t, key: role.endKey })}
+            technologies={role.technologies}
           >
             <RoleDescription role={role} />
           </ExperienceGroup.Role>
@@ -75,6 +76,7 @@ const CompanyEntry = ({ experience }: CompanyEntryProps) => {
           jobName={translateKey({ t, key: role?.titleKey })}
           startDate={startDate}
           endDate={endDate}
+          technologies={role?.technologies}
         >
           <RoleDescription role={role} />
         </Experience>

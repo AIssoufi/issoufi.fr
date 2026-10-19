@@ -13,7 +13,7 @@ export const Start = styled.span`
 `;
 
 export const Separator = styled.span`
-  font-size: ${th.fontSize(11)};
+  font-size: ${th.fontSize(12)};
   color: ${th.color('foreground-a25')};
   line-height: ${th.lineHeight(120)};
 `;
@@ -28,7 +28,7 @@ export const End = styled.span`
   text-align: right;
 `;
 
-/* ── Role — smaller and dimmer, sized by its column ────────── */
+/* ── Role — dimmer, sized by its column ────────────────────── */
 
 export const RoleStart = styled.span`
   font-weight: ${th.fontWeight('bold')};
@@ -43,7 +43,7 @@ export const RoleSeparator = styled.span`
 
 export const RoleEnd = styled.span`
   font-weight: ${th.fontWeight('medium')};
-  color: ${th.color('foreground-a40')};
+  color: ${th.color('foreground-a55')};
   line-height: ${th.lineHeight(150)};
 `;
 

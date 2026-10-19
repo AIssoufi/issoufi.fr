@@ -15,7 +15,7 @@ export const Code = styled.p`
   font-size: ${th.fontSize(72)};
   font-weight: ${th.fontWeight('extrabold')};
   line-height: ${th.lineHeight(100)};
-  color: ${th.color('accent')};
+  color: ${th.color('accent-foreground')};
 
   @media (min-width: ${th('screens.tablet')}) {
     font-size: ${th.fontSize(120)};
@@ -56,7 +56,7 @@ const pillAction = css`
 
   &:hover {
     border-color: ${th.color('accent')};
-    color: ${th.color('accent')};
+    color: ${th.color('accent-foreground')};
   }
 `;
 

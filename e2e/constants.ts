@@ -421,6 +421,49 @@ export const MAX_WORD_SHIFT_PX = 2;
 export const POINTER_REST_MS = 500;
 
 /**
+ * Screen widths, in pixels, at which axe-core checks the contrast of the texts of every page: a
+ * phone (375), with the mobile menu closed then open, and a common desktop width (1440).
+ */
+export const CONTRAST_SCREEN_WIDTHS_PX = [375, 1440] as const;
+
+/** Screen widths, in pixels, among {@link CONTRAST_SCREEN_WIDTHS_PX}, that show the mobile menu. */
+export const MENU_CONTRAST_SCREEN_WIDTHS_PX = [375] as const;
+
+/**
+ * Rule of axe-core that checks the contrast of each text against its background: 4.5:1, or 3:1 for
+ * a large text, the level AA of the Web Content Accessibility Guidelines (success criterion 1.4.3).
+ */
+export const COLOR_CONTRAST_RULE = 'color-contrast';
+
+/**
+ * Screen widths, in pixels, at which no page may show a text under the smallest font size of the
+ * site (`MIN_FONT_SIZE_PX`, `src/theme/constants.ts`): the narrowest phones (320), a common phone
+ * (375), a tablet held upright (768), a laptop (1440), a screen past the `wide` breakpoint (1920)
+ * and a large desktop screen (2560).
+ */
+export const TEXT_SIZE_SCREEN_WIDTHS_PX = [320, 375, 768, 1440, 1920, 2560] as const;
+
+/**
+ * Screen widths, in pixels, at which no line of text of the Experiences page may hold more than
+ * {@link MAX_LINE_CHARACTERS}: a laptop (1440), where the cards of the timeline reach their largest
+ * width, then wider screens (1920 and 2560), where the content of the page keeps that width.
+ */
+export const LINE_LENGTH_SCREEN_WIDTHS_PX = [1440, 1920, 2560] as const;
+
+/**
+ * Most characters, spaces included, that a line of text may hold: 80, the upper end of the 50 to 80
+ * that keep a long text easy to follow from one line to the next.
+ */
+export const MAX_LINE_CHARACTERS = 80;
+
+/**
+ * Screen widths, in pixels, at which forced colors mode, such as a contrast theme of Windows, must
+ * still show the active language and a liked project: a phone (375) and a common desktop width
+ * (1440).
+ */
+export const FORCED_COLORS_SCREEN_WIDTHS_PX = [375, 1440] as const;
+
+/**
  * Screen widths, in pixels, at which no thumbnail or logo may be enlarged on a 2x screen: a phone,
  * with one column of cards (375), and a laptop, with three (1440).
  */

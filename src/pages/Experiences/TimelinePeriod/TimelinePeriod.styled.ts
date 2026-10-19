@@ -23,11 +23,11 @@ export const Column = styled.div`
   }
 `;
 
-/* ── Role — smaller and dimmer, sized by its column ────────── */
+/* ── Role — dimmer, sized by its column ────────────────────── */
 
 export const RoleColumn = styled(Column)`
   @media (min-width: ${th('screens.tablet')}) {
-    font-size: ${th.fontSize(10)};
+    font-size: ${th.fontSize(12)};
     letter-spacing: ${th.letterSpacing(2)};
     white-space: nowrap;
   }

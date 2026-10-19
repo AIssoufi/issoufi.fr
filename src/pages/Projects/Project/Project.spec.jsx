@@ -5,7 +5,15 @@ import i18n from '../../../i18n';
 import { theme } from '../../../theme';
 import { holdsFunctionSource } from '../../../cssRuleGuard';
 import { stubMatchMedia } from '../../../mediaQueryTestUtils';
-import { declaredStyle, listStyleRules, serializeCssValue } from '../../../styleTestUtils';
+import {
+  blendColors,
+  declaredStyle,
+  FORCED_COLORS_MEDIA,
+  getContrastRatio,
+  listStyleRules,
+  MIN_ICON_CONTRAST_RATIO,
+  serializeCssValue,
+} from '../../../styleTestUtils';
 import { INTERACTIVE_SELECTOR } from '../../testUtils';
 
 import {
@@ -965,6 +973,73 @@ describe('Project', () => {
       expect(style('padding')).toBe('0px');
       expect(style('border-radius')).toBe(theme.radii.circle);
       expect(style('justify-content')).toBe('center');
+    });
+
+    // The button lies over the thumbnail, whose colors the gradient and the glow of the card only
+    // dim or lighten: a white and a black thumbnail are the worst cases for a light heart
+    it.each([
+      ['white', '#ffffff'],
+      ['black', '#000000'],
+    ])(
+      'keeps the heart at 3:1 against its button over a %s thumbnail, at rest, hovered and liked',
+      (_thumbnail, thumbnailColor) => {
+        storeLikedIds([1]);
+        render(<Project projects={projects} />);
+        // Value of the state, or of the rest state that it does not change
+        const stateStyle = ({ button, property, pseudo }) =>
+          declaredStyle({ element: button, property, pseudo }) ||
+          declaredStyle({ element: button, property, pseudo: pseudo.replace(':hover', '') });
+        const heartContrast = ({ button, state }) => {
+          const fill = stateStyle({ button, property: 'background-color', pseudo: state });
+          const heart = stateStyle({ button, property: 'stroke', pseudo: `${state} > svg` });
+          const background = blendColors({ foreground: fill, background: thumbnailColor });
+          return getContrastRatio({ foreground: heart, background });
+        };
+        const restButton = likeButtonOf('Calculator');
+        const likedButton = likeButtonOf('Chess');
+
+        expect(heartContrast({ button: restButton, state: '' })).toBeGreaterThanOrEqual(
+          MIN_ICON_CONTRAST_RATIO,
+        );
+        expect(heartContrast({ button: restButton, state: ':hover' })).toBeGreaterThanOrEqual(
+          MIN_ICON_CONTRAST_RATIO,
+        );
+        expect(heartContrast({ button: likedButton, state: '' })).toBeGreaterThanOrEqual(
+          MIN_ICON_CONTRAST_RATIO,
+        );
+        expect(heartContrast({ button: likedButton, state: ':hover' })).toBeGreaterThanOrEqual(
+          MIN_ICON_CONTRAST_RATIO,
+        );
+      },
+    );
+
+    it('fills the heart of a liked project in the color of a selection in forced colors mode', () => {
+      storeLikedIds([1]);
+      render(<Project projects={projects} />);
+      const forcedHeartStyle = ({ button, property, pseudo = '>svg' }) =>
+        declaredStyle({ element: button, property, media: FORCED_COLORS_MEDIA, pseudo });
+
+      // Forced colors mode keeps the colors of an SVG but empties the background of its button
+      expect(forcedHeartStyle({ button: likeButtonOf('Chess'), property: 'fill' })).toBe(
+        'highlight',
+      );
+      expect(forcedHeartStyle({ button: likeButtonOf('Chess'), property: 'stroke' })).toBe(
+        'highlight',
+      );
+      expect(forcedHeartStyle({ button: likeButtonOf('Calculator'), property: 'fill' })).toBe(
+        'transparent',
+      );
+      expect(forcedHeartStyle({ button: likeButtonOf('Calculator'), property: 'stroke' })).toBe(
+        'buttontext',
+      );
+      // Hovered, the heart keeps the colors of forced colors mode
+      expect(
+        forcedHeartStyle({
+          button: likeButtonOf('Calculator'),
+          property: 'stroke',
+          pseudo: ':hover > svg',
+        }),
+      ).toBe('buttontext');
     });
 
     it('shows the cards of a page in a single row', () => {

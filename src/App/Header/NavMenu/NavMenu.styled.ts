@@ -94,7 +94,7 @@ export const NavItem = styled.li`
     color ${th.duration(200)} ${th.timingFunction('standard')};
 
   &:active a {
-    color: ${th.color('accent')};
+    color: ${th.color('accent-foreground')};
   }
 
   &:active {
@@ -124,7 +124,7 @@ export const NavItem = styled.li`
     }
 
     &:hover a {
-      color: ${th.color('accent')};
+      color: ${th.color('accent-foreground')};
     }
 
     &:active {
@@ -148,7 +148,7 @@ export const NavItem = styled.li`
     }
 
     > a.active {
-      color: ${th.color('accent')};
+      color: ${th.color('accent-foreground')};
       font-weight: ${th.fontWeight('semibold')};
     }
   }
@@ -220,7 +220,7 @@ export const MenuCvLink = styled(CvLink)`
     transition-property: transform, color;
 
     &:hover {
-      color: ${th.color('accent')};
+      color: ${th.color('accent-foreground')};
       transform: scale(1.06);
     }
 

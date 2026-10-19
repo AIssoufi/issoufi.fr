@@ -75,7 +75,7 @@ export const JobPeriod = styled.span`
 
 export const JobDuration = styled.div`
   display: inline-flex;
-  font-size: ${th.fontSize(11)};
+  font-size: ${th.fontSize(12)};
   font-weight: ${th.fontWeight('medium')};
   color: ${th.color('foreground-secondary')};
   background: ${th.color('foreground-a5')};
