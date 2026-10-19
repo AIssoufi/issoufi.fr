@@ -70,7 +70,6 @@ export const HomeLink = styled(LocalizedLink)`
 export const ActionButton = styled.button`
   ${pillAction}
   background-color: transparent;
-  font-family: inherit;
 
   @media ${HOVER_POINTER_QUERY} {
     &:hover {
