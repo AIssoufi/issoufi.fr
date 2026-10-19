@@ -109,8 +109,9 @@ const openSection = async ({ page, title, language = DEFAULT_LANGUAGE }: OpenSec
   const section = page.locator('section', {
     has: page.getByRole('heading', { level: 2, name: title }),
   });
-  const list = section.getByRole('list');
-  const cards = list.getByRole('listitem');
+  // The list of cards, before the list of tools of each card
+  const list = section.getByRole('list').first();
+  const cards = list.locator(':scope > li');
   // Measured before the chunk of the page is loaded, there would be no card to measure
   await expect(cards.first()).toBeVisible();
   // The web fonts that replace the fallback font change where the text of a card wraps
@@ -267,7 +268,7 @@ for (const width of PROJECT_CARD_SCREEN_WIDTHS_PX) {
         }
         // A last page as full as the first one would show the same number of cards before the click
         await expect(
-          cards.first().getByRole('img'),
+          cards.first().locator('img'),
           'screenshot of the first card of the last page',
         ).toHaveAttribute('src', getThumbnailUrl(projects[lastPageStart]));
         await expect(cards, 'cards of the last page').toHaveCount(projects.length - lastPageStart);

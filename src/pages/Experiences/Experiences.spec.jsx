@@ -125,6 +125,20 @@ describe('Experiences', () => {
       expect(titles).toEqual(ROLES.map(({ titleKey }) => i18n.t(titleKey)));
     });
 
+    it('marks the job titles that the French page keeps in English with their language', () => {
+      render(<Experiences />);
+
+      const englishTitles = screen
+        .getAllByRole('heading', { level: 3 })
+        .filter(heading => heading.getAttribute('lang') === 'en')
+        .map(({ textContent }) => textContent);
+      expect(englishTitles).toEqual([
+        'Lead Frontend Engineer — UI Kit Owner & Architect',
+        'Senior Full-Stack Engineer — Core Platform (React, Node.js, GraphQL)',
+        'Full-Stack JavaScript Engineer — React, Node.js, AWS',
+      ]);
+    });
+
     it('gives every project a level 4 heading, in the order of the data', () => {
       render(<Experiences />);
 
@@ -247,6 +261,16 @@ describe('Experiences', () => {
         expect(unusedKeys).toEqual([]);
       },
     );
+
+    it('gives a job title the language of the English page when French writes it the same', () => {
+      // Kept up to date both ways: a title translated into French loses it, an English one gets it
+      ROLES.forEach(({ titleKey, titleLanguage }) => {
+        const isWrittenAlike =
+          getText({ translations: fr, key: titleKey }) ===
+          getText({ translations: en, key: titleKey });
+        expect(titleLanguage, titleKey).toBe(isWrittenAlike ? 'en' : undefined);
+      });
+    });
 
     it('gives every company its own id', () => {
       const ids = experiences.map(({ id }) => id);

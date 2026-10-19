@@ -117,17 +117,32 @@ const stubImages = () => {
   return images;
 };
 
-/** Thumbnail of a card, found by the project name. */
-const thumbnailOf = name => screen.getByRole('img', { name });
+/** Notice that screen readers read after the name of a card that links to its project. */
+const NEW_TAB_NOTICE = '(nouvel onglet)';
 
-/** Element that lays out the cards: the list holding a card's thumbnail. */
-const gridOf = name => screen.getByRole('img', { name }).closest('ul');
+/** Card of a project: the item of the grid that holds its name. */
+const cardOf = name => screen.getByText(name).closest('li');
 
-/** Card of a project: the item of the grid that holds its thumbnail. */
-const cardOf = name => screen.getByRole('img', { name }).closest('li');
+/** Element that lays out the cards: the list holding a card. */
+const gridOf = name => cardOf(name).closest('ul');
 
-/** Link of a card title, found by the project name. */
-const linkOf = name => screen.getByRole('link', { name });
+/** Thumbnail of a card, found by the project name, an image that screen readers skip. */
+const thumbnailOf = name => cardOf(name).querySelector('img');
+
+/** Link of a card title, found by its name: the project name, then the notice of its new tab. */
+const linkOf = name => screen.getByRole('link', { name: `${name} ${NEW_TAB_NOTICE}` });
+
+/** List of the cards of the section, the first list, which holds the list of tools of each card. */
+const cardList = () => screen.getAllByRole('list')[0];
+
+/** Cards shown, in their order: the items of the list of cards, without the tools in them. */
+const shownCards = () => [...cardList().children];
+
+/** Name of a card, the text of its heading without the notice that only screen readers read. */
+const cardNameOf = card => card.querySelector('h3')?.textContent.replace(NEW_TAB_NOTICE, '').trim();
+
+/** Names of the cards shown, in their order. */
+const shownCardNames = () => shownCards().map(cardNameOf);
 
 /**
  * Ways to press a like button: with the mouse, then with each key that presses a focused button.
@@ -223,31 +238,30 @@ describe('Project', () => {
         />,
       );
 
-      expect(screen.queryByRole('heading')).not.toBeInTheDocument();
+      expect(screen.queryByRole('heading', { level: 2 })).not.toBeInTheDocument();
       expect(screen.getByRole('group')).not.toHaveAttribute('aria-labelledby');
     },
   );
 
   it('lists the cards, without a main landmark, which only the page renders', async () => {
     render(<Project projects={projects} />);
-    const cards = () => within(screen.getByRole('list')).getAllByRole('listitem');
-
-    expect(cards()).toHaveLength(ROW_CARD_COUNT);
+    expect(shownCards()).toHaveLength(ROW_CARD_COUNT);
+    shownCards().forEach(card => expect(card.tagName).toBe('LI'));
 
     await userEvent.click(screen.getByText('Tout afficher (4)'));
 
-    expect(cards()).toHaveLength(projects.length);
+    expect(shownCards()).toHaveLength(projects.length);
     expect(screen.queryByRole('main')).not.toBeInTheDocument();
   });
 
   it('gives the cards an explicit list role, which Safari drops from lists without bullets', async () => {
     render(<Project projects={projects} />);
 
-    expect(screen.getByRole('list')).toHaveAttribute('role', 'list');
+    expect(cardList()).toHaveAttribute('role', 'list');
 
     await userEvent.click(screen.getByText('Tout afficher (4)'));
 
-    expect(screen.getByRole('list')).toHaveAttribute('role', 'list');
+    expect(cardList()).toHaveAttribute('role', 'list');
   });
 
   it('groups the section controls under the section title, without a navigation landmark', () => {
@@ -342,19 +356,115 @@ describe('Project', () => {
 
     expect(linkOf('Chess')).toHaveAttribute('href', 'https://example.com/chess');
     expect(linkOf('Chess')).toHaveAttribute('target', '_blank');
-    expect(linkOf('Chess')).toHaveAttribute('rel', 'noreferrer');
+    expect(linkOf('Chess')).toHaveAttribute('rel', 'noopener noreferrer');
     expect(screen.getAllByRole('link')).toEqual([linkOf('Chess')]);
     expect(cardOf('Calculator')).toHaveTextContent('Calculator');
   });
+
+  it('names each card with a level 3 heading, under the level 2 heading of the section', () => {
+    render(
+      <Project
+        title="Projets personnels"
+        projects={projects}
+      />,
+    );
+
+    const cardHeadings = screen.getAllByRole('heading', { level: 3 });
+    expect(cardHeadings).toHaveLength(ROW_CARD_COUNT);
+    expect(cardHeadings.map(heading => heading.closest('li'))).toEqual(shownCards());
+    expect(screen.getByRole('heading', { level: 3, name: 'Calculator' })).toBeInTheDocument();
+  });
+
+  it('puts the link of a card in its heading, which tells that it opens a new tab', () => {
+    render(<Project projects={projects} />);
+
+    const heading = screen.getByRole('heading', { level: 3, name: `Chess ${NEW_TAB_NOTICE}` });
+    expect(linkOf('Chess').parentElement).toBe(heading);
+    expect(screen.getByText(NEW_TAB_NOTICE)).toHaveStyle({ position: 'absolute' });
+  });
+
+  it('tells in English that the link of a card opens a new tab once the language changes', async () => {
+    render(<Project projects={projects} />);
+
+    await act(() => i18n.changeLanguage('en'));
+
+    expect(screen.getByRole('link', { name: 'Chess (opens in a new tab)' })).toBeInTheDocument();
+  });
+
+  it('reads the name of a card once, its thumbnail being hidden from screen readers', () => {
+    render(<Project projects={projects} />);
+
+    expect(screen.queryByRole('img')).not.toBeInTheDocument();
+    expect(thumbnailOf('Chess')).toHaveAttribute('alt', '');
+    expect(screen.getAllByText('Chess')).toHaveLength(1);
+  });
+
+  it.each([undefined, '', '   '])('renders no empty heading for a card whose name is %j', name => {
+    render(<Project projects={[project(9, name)]} />);
+
+    expect(screen.queryByRole('heading')).not.toBeInTheDocument();
+    expect(screen.getByText('Application web')).toBeInTheDocument();
+  });
+
+  it('lists the tools of a card in their order, in a list with an explicit role', () => {
+    render(<Project projects={[LONG_TECH_LINE_PROJECT]} />);
+
+    const tools = within(cardOf(LONG_TECH_LINE_PROJECT.name)).getByRole('list');
+    expect(tools).toHaveAttribute('role', 'list');
+    expect(
+      within(tools)
+        .getAllByRole('listitem')
+        .map(item => item.textContent),
+    ).toEqual(LONG_TECH_LINE_PROJECT.tools);
+  });
+
+  it('separates the tools with a dot that screen readers skip, after every tool but the last', () => {
+    render(<Project projects={[LONG_TECH_LINE_PROJECT]} />);
+
+    const [firstTool] = within(cardOf(LONG_TECH_LINE_PROJECT.name)).getAllByRole('listitem');
+    const separator = declaredStyle({
+      element: firstTool,
+      property: 'content',
+      pseudo: ':not(:last-child)::after',
+    });
+
+    // Stylis drops the optional spaces around the slash
+    expect(separator).toMatch(/^(['"]) · \1\s*\/\s*(['"])\2$/);
+    expect(firstTool.textContent).toBe('HTML 5');
+    expect(declaredStyle({ element: firstTool, property: 'display' })).toBe('inline');
+  });
+
+  it('lists each tool once, without the entries of the data that are not names', () => {
+    render(
+      <Project
+        projects={[project(9, 'Draft', { tools: ['HTML 5', '', 42, null, 'HTML 5', 'Vite'] })]}
+      />,
+    );
+
+    const tools = within(cardOf('Draft')).getAllByRole('listitem');
+    expect(tools.map(item => item.textContent)).toEqual(['HTML 5', 'Vite']);
+  });
+
+  it.each([undefined, null, [], ['', '  '], 'HTML 5', { 0: 'HTML 5' }])(
+    'shows no list of tools for the tools %j',
+    tools => {
+      render(<Project projects={[project(9, 'Draft', { tools })]} />);
+
+      expect(within(cardOf('Draft')).queryByRole('list')).not.toBeInTheDocument();
+      expect(cardOf('Draft')).toHaveTextContent('Application web');
+    },
+  );
 
   it('keeps the card itself, its thumbnail and its like button out of the link', () => {
     render(<Project projects={projects} />);
 
     expect(cardOf('Chess').tagName).toBe('LI');
     expect(cardOf('Chess').closest('a')).toBeNull();
-    expect(screen.getByRole('img', { name: 'Chess' }).closest('a')).toBeNull();
+    expect(thumbnailOf('Chess').closest('a')).toBeNull();
     expect(likeButtonOf('Chess').closest('a')).toBeNull();
-    expect(linkOf('Chess')).toHaveTextContent(/^Chess$/);
+    expect(linkOf('Chess')).toHaveTextContent(`Chess ${NEW_TAB_NOTICE}`, {
+      normalizeWhitespace: true,
+    });
     expect(linkOf('Chess').querySelector(INTERACTIVE_SELECTOR)).toBeNull();
   });
 
@@ -534,22 +644,21 @@ describe('Project', () => {
     });
 
     it.each([undefined, null, [], [{ url: '', width: 480, height: 300 }], 'chess.webp'])(
-      'leaves a thumbnail without source for the files %j, still named after its project',
+      'shows no image for the files %j, the card keeping its name and its like button',
       thumbnails => {
         render(<Project projects={[project(1, 'Chess', { thumbnails })]} />);
-        const thumbnail = thumbnailOf('Chess');
 
-        ['src', 'srcset', 'sizes', 'width', 'height'].forEach(attribute =>
-          expect(thumbnail).not.toHaveAttribute(attribute),
-        );
+        expect(thumbnailOf('Chess')).toBeNull();
+        expect(screen.getByRole('heading', { level: 3, name: 'Chess' })).toBeInTheDocument();
+        expect(likeButtonOf('Chess')).toBeInTheDocument();
       },
     );
 
     it('downloads every thumbnail once the screen nears it, by default', () => {
       render(<Project projects={projects} />);
 
-      within(screen.getByRole('list'))
-        .getAllByRole('img')
+      cardList()
+        .querySelectorAll('img')
         .forEach(thumbnail => {
           expect(thumbnail).toHaveAttribute('loading', 'lazy');
           expect(thumbnail).not.toHaveAttribute('fetchpriority');
@@ -563,9 +672,9 @@ describe('Project', () => {
           projects={projects}
         />,
       );
-      const [first, ...others] = within(screen.getByRole('list')).getAllByRole('img');
+      const [first, ...others] = cardList().querySelectorAll('img');
 
-      expect(first).toHaveAccessibleName('Chess');
+      expect(first).toBe(thumbnailOf('Chess'));
       expect(first).toHaveAttribute('loading', 'eager');
       expect(first).toHaveAttribute('fetchpriority', 'high');
       others.forEach(thumbnail => {
@@ -683,18 +792,18 @@ describe('Project', () => {
       showWholeCards(count);
       render(<Project projects={projects} />);
       const { previousButton, nextButton } = pageButtons();
-      const firstCard = () => within(screen.getByRole('list')).getAllByRole('img')[0];
+      const firstCardName = () => shownCardNames()[0];
 
-      expect(firstCard()).toHaveAccessibleName(firstCardOfEachPage[0]);
+      expect(firstCardName()).toBe(firstCardOfEachPage[0]);
       for (const name of firstCardOfEachPage.slice(1)) {
         await userEvent.click(nextButton);
-        expect(firstCard()).toHaveAccessibleName(name);
+        expect(firstCardName()).toBe(name);
       }
       expect(nextButton).toHaveAttribute('aria-disabled', 'true');
 
       for (const name of firstCardOfEachPage.slice(0, -1).reverse()) {
         await userEvent.click(previousButton);
-        expect(firstCard()).toHaveAccessibleName(name);
+        expect(firstCardName()).toBe(name);
       }
       expect(previousButton).toHaveAttribute('aria-disabled', 'true');
     },
@@ -706,7 +815,7 @@ describe('Project', () => {
 
     await userEvent.click(pageButtons().nextButton);
 
-    const cards = within(screen.getByRole('list')).getAllByRole('listitem');
+    const cards = shownCards();
     expect(cards).toHaveLength(ROW_CARD_COUNT);
     expect(cards[0]).toHaveTextContent('Calculator');
   });
@@ -716,14 +825,13 @@ describe('Project', () => {
     const { rerender } = render(<Project projects={projects} />);
     const { nextButton } = pageButtons();
     for (let page = 1; page < projects.length; page += 1) await userEvent.click(nextButton);
-    expect(screen.getByRole('img')).toHaveAccessibleName('Connect Four');
+    expect(shownCardNames()).toEqual(['Connect Four']);
 
     // Two cards shown whole: the last page starts on the third project
     showWholeCards(2);
     rerender(<Project projects={projects} />);
 
-    const cards = within(screen.getByRole('list')).getAllByRole('img');
-    expect(cards.map(card => card.getAttribute('alt'))).toEqual(['Plugin store', 'Connect Four']);
+    expect(shownCardNames()).toEqual(['Plugin store', 'Connect Four']);
     expect(nextButton).toHaveAttribute('aria-disabled', 'true');
     expect(pageButtons().previousButton).toHaveAttribute('aria-disabled', 'false');
   });
@@ -768,7 +876,7 @@ describe('Project', () => {
     await userEvent.keyboard('{Enter}');
     await userEvent.keyboard('{Enter}');
     expect(nextButton).toHaveFocus();
-    expect(screen.getByRole('img')).toHaveAccessibleName('Connect Four');
+    expect(shownCardNames()).toEqual(['Connect Four']);
   });
 
   it('puts the section buttons in the order of the screen, which Tab follows', async () => {
@@ -846,11 +954,10 @@ describe('Project', () => {
     expect(card.style.getPropertyValue('--mouse-y')).toBe(`${CARD_POINTER.y}px`);
   });
 
-  it('leaves the tech line of a project without tools empty', () => {
+  it('shows no list of tools for a project without tools', () => {
     render(<Project projects={[TOOLLESS_PROJECT]} />);
 
-    const [, , techLine] = screen.getByText(TOOLLESS_PROJECT.name).parentElement.children;
-    expect(techLine).toBeEmptyDOMElement();
+    expect(within(cardOf(TOOLLESS_PROJECT.name)).queryByRole('list')).not.toBeInTheDocument();
   });
 
   describe('layout', () => {
@@ -887,7 +994,7 @@ describe('Project', () => {
 
       const linkLayer = property =>
         declaredStyle({ element: linkOf('Chess'), property, pseudo: '::after' });
-      const thumbnailOverlay = screen.getByRole('img', { name: 'Chess' }).parentElement;
+      const thumbnailOverlay = thumbnailOf('Chess').parentElement;
       const thumbnailGradientZIndex = declaredStyle({
         element: thumbnailOverlay,
         property: 'z-index',
@@ -1165,7 +1272,7 @@ describe('Project', () => {
       const grid = gridOf(LONG_TECH_LINE_PROJECT.name);
       expect(declaredStyle({ element: grid, property: 'display' })).not.toBe('');
 
-      const techLine = screen.getByText(LONG_TECH_LINE_PROJECT.tools.join(' · '));
+      const techLine = within(cardOf(LONG_TECH_LINE_PROJECT.name)).getByRole('list');
       expect(inheritedWhiteSpace(techLine)).toBe('normal');
     });
   });

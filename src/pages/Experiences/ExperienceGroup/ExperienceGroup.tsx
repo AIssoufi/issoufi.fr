@@ -34,6 +34,12 @@ interface RoleProps {
   /** Job title for this role, already translated. */
   jobName?: string;
   /**
+   * Language of the job title when it differs from the language of the page, such as `en` for a
+   * title kept in English on the French page: the title gets it as its `lang`, so that a screen
+   * reader reads it in that language. A value that is not a language of the site is ignored.
+   */
+  jobNameLanguage?: string;
+  /**
    * Start of the role as a month and a year, e.g. "juin 2021".
    * The duration is shown, in the active language, only when both dates are valid.
    */
@@ -56,7 +62,14 @@ interface RoleProps {
  * `h3` and computed duration), the description and the technologies of the role, laid out as in
  * an `Experience` card. Outside a group, the summary is omitted.
  */
-const Role = ({ jobName, startDate, endDate, technologies, children }: RoleProps) => {
+const Role = ({
+  jobName,
+  jobNameLanguage,
+  startDate,
+  endDate,
+  technologies,
+  children,
+}: RoleProps) => {
   const company = React.useContext(CompanyCtx);
 
   return (
@@ -71,6 +84,7 @@ const Role = ({ jobName, startDate, endDate, technologies, children }: RoleProps
           <JobSummary
             variant="role"
             jobName={jobName}
+            jobNameLanguage={jobNameLanguage}
             entityName={company.entityName}
             entityLogoUrl={company.entityLogoUrl}
             contractType={company.contractType}

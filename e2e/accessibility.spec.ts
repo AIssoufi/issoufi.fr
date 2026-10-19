@@ -1,4 +1,4 @@
-import { listBrowserHeadingLevels, listBrowserTexts } from './accessibility';
+import { countBrowserNodes, listBrowserHeadingLevels, listBrowserTexts } from './accessibility';
 
 /** Node id of the document in the fake protocol. */
 const DOCUMENT_NODE_ID = 1;
@@ -22,6 +22,9 @@ const headingNode = (level: unknown, ignored = false) => ({
   properties: [{ name: 'level', value: { type: 'integer', value: level } }],
   ignored,
 });
+
+/** An image node of the accessibility tree, ignored by the browser or not. */
+const imageNode = (ignored = false) => ({ role: { type: 'role', value: 'image' }, ignored });
 
 /** Parameters of {@link createFakeTreeSession}. */
 interface CreateFakeTreeSessionParams {
@@ -184,6 +187,62 @@ describe('listBrowserHeadingLevels', () => {
       await expect(listBrowserHeadingLevels({ session, selector: ROW_SELECTOR })).rejects.toBe(
         error,
       );
+    });
+  });
+});
+
+describe('countBrowserNodes', () => {
+  it('counts the nodes of the role in each element, without the ignored ones', async () => {
+    const { session, send } = createFakeTreeSession({
+      nodesById: { 11: [imageNode(), imageNode(true), imageNode()], 12: [imageNode(true)] },
+    });
+
+    expect(await countBrowserNodes({ session, selector: ROW_SELECTOR, role: 'image' })).toEqual([
+      2, 0,
+    ]);
+    expect(send).toHaveBeenCalledWith('Accessibility.queryAXTree', { nodeId: 12, role: 'image' });
+  });
+
+  it('counts nothing when no element matches', async () => {
+    const { session, send } = createFakeTreeSession();
+
+    expect(await countBrowserNodes({ session, selector: 'article', role: 'image' })).toEqual([]);
+    expect(send).not.toHaveBeenCalledWith('Accessibility.queryAXTree', expect.anything());
+  });
+
+  describe('edge cases', () => {
+    it.each([
+      ['are not a list', null],
+      ['are missing', undefined],
+    ])('counts no node when the nodes %s', async (_case, nodes) => {
+      const { session } = createFakeTreeSession({ nodesById: { 11: nodes }, nodeIds: [11] });
+
+      expect(await countBrowserNodes({ session, selector: ROW_SELECTOR, role: 'image' })).toEqual([
+        0,
+      ]);
+    });
+
+    it('skips a null node', async () => {
+      const { session } = createFakeTreeSession({
+        nodesById: { 11: [null, imageNode()] },
+        nodeIds: [11],
+      });
+
+      expect(await countBrowserNodes({ session, selector: ROW_SELECTOR, role: 'image' })).toEqual([
+        1,
+      ]);
+    });
+
+    it('rejects with the error of the protocol', async () => {
+      const error = new Error('Accessibility.queryAXTree: no node');
+      const { session } = createFakeTreeSession({
+        failingMethod: 'Accessibility.queryAXTree',
+        error,
+      });
+
+      await expect(
+        countBrowserNodes({ session, selector: ROW_SELECTOR, role: 'image' }),
+      ).rejects.toBe(error);
     });
   });
 });

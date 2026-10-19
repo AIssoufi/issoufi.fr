@@ -85,6 +85,10 @@ export const fr = {
     // Name of the document that the link downloads, which `pnpm cv` writes in its title
     documentName: 'CV',
   },
+  newTabLink: {
+    // Read by screen readers after the text of every link that opens a new tab
+    notice: '(nouvel onglet)',
+  },
   home: {
     title1: 'Développeur full-stack JavaScript',
     title2Pre: 'passionné par l’',

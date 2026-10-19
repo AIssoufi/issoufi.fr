@@ -86,6 +86,39 @@ export const listBrowserTexts = async ({
   );
 };
 
+/** Parameters of {@link countBrowserNodes}. */
+interface CountBrowserNodesParams extends ReadBrowserTreeParams {
+  /** Role of the nodes to count, as the protocol names it, such as `image` or `listitem`. */
+  role: string;
+}
+
+/**
+ * Counts the nodes of a role that the browser gives screen readers in each element that matches a
+ * selector, from its accessibility tree (`Accessibility.queryAXTree` of the DevTools protocol),
+ * without the nodes it ignores: an image with an empty alternative text, or a part hidden by
+ * `aria-hidden` or by `display: none`. The element itself counts when it has the role, as a list
+ * item among the items of its own list would.
+ *
+ * @returns One count per matching element, in the order of the page. An empty list when no
+ * element matches.
+ * @throws Rejects with the error of the protocol when one of its commands fails, as for an
+ * invalid selector.
+ *
+ * @example
+ * await countBrowserNodes({ session, selector: 'section > ul > li', role: 'image' }); // [0, 0]
+ */
+export const countBrowserNodes = async ({
+  session,
+  selector,
+  role,
+}: CountBrowserNodesParams): Promise<number[]> => {
+  const nodeIds = await querySelectorAll({ session, selector });
+
+  return Promise.all(
+    nodeIds.map(async nodeId => (await queryBrowserNodes({ session, nodeId, role })).length),
+  );
+};
+
 /**
  * Reads the level of each heading that the browser gives screen readers in the first element that
  * matches a selector, from its accessibility tree, without the headings that it ignores, such as

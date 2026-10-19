@@ -115,6 +115,17 @@ describe('Experience', () => {
     expect(screen.getByText('Description du poste')).toBeInTheDocument();
   });
 
+  it('marks the job title with the language it is written in', () => {
+    render(
+      <Experience
+        jobName="Full-Stack JavaScript Engineer"
+        jobNameLanguage="en"
+      />,
+    );
+
+    expect(screen.getByRole('heading', { level: 3 })).toHaveAttribute('lang', 'en');
+  });
+
   it('is an article holding the level 3 heading of the job', () => {
     render(<Experience jobName="Full-Stack Engineer" />);
     const article = screen.getByRole('article');

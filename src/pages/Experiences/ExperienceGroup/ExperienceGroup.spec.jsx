@@ -115,6 +115,22 @@ describe('ExperienceGroup', () => {
     expect(screen.getAllByRole('heading', { level: 3 })).toHaveLength(2);
   });
 
+  it('marks the job title of each role with its own language', () => {
+    render(
+      <ExperienceGroup entityName="Sewan Groupe">
+        <ExperienceGroup.Role
+          jobName="Lead Frontend Engineer"
+          jobNameLanguage="en"
+        />
+        <ExperienceGroup.Role jobName="Développeur React.js" />
+      </ExperienceGroup>,
+    );
+    const [english, french] = screen.getAllByRole('heading', { level: 3 });
+
+    expect(english).toHaveAttribute('lang', 'en');
+    expect(french).not.toHaveAttribute('lang');
+  });
+
   it('reads the period of a role once in its column and once in its card, each one for its screens', () => {
     render(
       <ExperienceGroup entityName="Sewan Groupe">

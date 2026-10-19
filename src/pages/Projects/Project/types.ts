@@ -30,7 +30,10 @@ export interface ProjectItemData {
    * of the visitor's like in `localStorage`, so it must stay with its project.
    */
   id: number;
-  /** Project name, already translated, shown as the card title and the thumbnail alt text. */
+  /**
+   * Project name, already translated: the level 3 heading of the card, and the end of the name of
+   * its like button. A card without a name has no heading.
+   */
   name: string;
   /** Kind of project, translated, e.g. "Web application", or "Application web" in French. */
   type: string;
@@ -45,7 +48,10 @@ export interface ProjectItemData {
    * has no link when it is missing, or when the project has no name to label the link with.
    */
   url?: string;
-  /** Technologies, shown under the name separated by ` · `. */
+  /**
+   * Technologies, a list under the name shown as one line separated by dots, each once. An entry
+   * that is not a name is left out, and the card shows no list without one.
+   */
   tools: string[];
 }
 
