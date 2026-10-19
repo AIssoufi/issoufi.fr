@@ -16,8 +16,16 @@ import {
  */
 const MAX_SHORT_NAME_CHARACTERS = 12;
 
+/** Parameters of {@link readManifest}. */
+interface ReadManifestParams {
+  /** Language of the manifest. */
+  language: Language;
+  /** Years of experience that the description of the manifest gives. */
+  years?: number;
+}
+
 /** Reads the manifest of a language as an object. */
-const readManifest = (language: Language, years = 8) =>
+const readManifest = ({ language, years = 8 }: ReadManifestParams) =>
   JSON.parse(renderWebManifest({ language, years }));
 
 describe('getWebManifestUrl', () => {
@@ -80,7 +88,7 @@ describe('findWebManifestLanguage', () => {
 
 describe('renderWebManifest', () => {
   it('describes the French site, opening on the French home page', () => {
-    expect(readManifest('fr')).toEqual({
+    expect(readManifest({ language: 'fr' })).toEqual({
       id: '/',
       lang: 'fr',
       dir: 'ltr',
@@ -106,7 +114,7 @@ describe('renderWebManifest', () => {
   });
 
   it('describes the English site, opening on the English home page', () => {
-    expect(readManifest('en', 9)).toMatchObject({
+    expect(readManifest({ language: 'en', years: 9 })).toMatchObject({
       lang: 'en',
       dir: 'ltr',
       name: 'ADAM Issoufi - Full-stack JavaScript Developer',
@@ -118,7 +126,7 @@ describe('renderWebManifest', () => {
   });
 
   it('installs every language as the same app, which opens any page of the site', () => {
-    const manifests = LANGUAGES.map(language => readManifest(language));
+    const manifests = LANGUAGES.map(language => readManifest({ language }));
 
     manifests.forEach(manifest => {
       expect(manifest.id).toBe('/');
@@ -129,14 +137,14 @@ describe('renderWebManifest', () => {
 
   it('keeps a short name that the home screens show whole', () => {
     LANGUAGES.forEach(language => {
-      expect(readManifest(language).short_name.length).toBeLessThanOrEqual(
+      expect(readManifest({ language }).short_name.length).toBeLessThanOrEqual(
         MAX_SHORT_NAME_CHARACTERS,
       );
     });
   });
 
   it('lists the icons that Chrome needs to install the app, with absolute URLs', () => {
-    const { icons } = readManifest('en');
+    const { icons } = readManifest({ language: 'en' });
     const anyPurposeSizes = icons
       .filter(({ purpose }: { purpose: string }) => purpose === 'any')
       .map(({ sizes }: { sizes: string }) => sizes);
@@ -155,7 +163,9 @@ describe('renderWebManifest', () => {
   it.each([undefined, 'de' as Language])(
     'describes the site in the default language for the language %o',
     language => {
-      expect(JSON.parse(renderWebManifest({ language, years: 8 }))).toEqual(readManifest('fr'));
+      expect(JSON.parse(renderWebManifest({ language, years: 8 }))).toEqual(
+        readManifest({ language: 'fr' }),
+      );
     },
   );
 });

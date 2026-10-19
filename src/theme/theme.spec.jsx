@@ -36,14 +36,15 @@ const NAMESPACE_BY_HELPER = {
   timingFunction: 'timingFunctions',
 };
 
-const listFiles = (directory, pattern) =>
+const listFiles = ({ directory, pattern }) =>
   readdirSync(directory).flatMap(entry => {
     const path = join(directory, entry);
-    if (statSync(path).isDirectory()) return listFiles(path, pattern);
+    if (statSync(path).isDirectory()) return listFiles({ directory: path, pattern });
     return pattern.test(entry) ? [path] : [];
   });
 
-const listStyleFiles = directory => listFiles(directory, /\.styled\.ts$|GlobalStyle\.ts$/);
+const listStyleFiles = directory =>
+  listFiles({ directory, pattern: /\.styled\.ts$|GlobalStyle\.ts$/ });
 
 /** Every `th.helper(key)` and `th('path')` call found in the style files, with its location. */
 const tokenUsages = listStyleFiles('src').flatMap(file =>
@@ -69,9 +70,11 @@ const resolve = ({ helper, key }) => {
   return namespace ? theme[namespace]?.[tokenKey] : undefined;
 };
 
-const leaves = (node, prefix = '') =>
+const leaves = ({ node, prefix = '' }) =>
   Object.entries(node).flatMap(([key, value]) =>
-    typeof value === 'object' ? leaves(value, `${prefix}${key}.`) : [[`${prefix}${key}`, value]],
+    typeof value === 'object'
+      ? leaves({ node: value, prefix: `${prefix}${key}.` })
+      : [[`${prefix}${key}`, value]],
   );
 
 describe('theme', () => {
@@ -124,7 +127,7 @@ describe('theme', () => {
   });
 
   it('imports styled-components only through @xstyled/styled-components', () => {
-    const sourceFiles = listFiles('src', /\.(ts|tsx|js|jsx)$/).filter(
+    const sourceFiles = listFiles({ directory: 'src', pattern: /\.(ts|tsx|js|jsx)$/ }).filter(
       // Type-only augmentation of the styled-components module is allowed
       file => !file.endsWith('styled.d.ts'),
     );
@@ -153,7 +156,9 @@ describe('theme', () => {
   });
 
   it('has no empty token', () => {
-    const empty = leaves(theme).filter(([, value]) => value === '' || value === undefined);
+    const empty = leaves({ node: theme }).filter(
+      ([, value]) => value === '' || value === undefined,
+    );
     expect(empty).toEqual([]);
   });
 
