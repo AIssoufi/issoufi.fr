@@ -257,8 +257,8 @@ interface RenderHeaderRulesParams {
  * write.
  *
  * @example
- * renderHeaderRules();
- * // '/assets/*\n  Cache-Control: public, max-age=31536000, immutable\n'
+ * renderHeaderRules({ rules: [{ path: '/assets/*', headers: { 'Cache-Control': 'immutable' } }] });
+ * // '/assets/*\n  Cache-Control: immutable\n'
  */
 export const renderHeaderRules = ({
   rules = HEADER_RULES,
