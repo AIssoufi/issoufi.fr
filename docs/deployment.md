@@ -30,6 +30,7 @@ Every morning from 6:07, Paris time, a scheduled workflow:
 2. merges the tested `develop` into `main`, whose CI deploys production.
 
 - A run every 30 minutes, until 8:37 in summer and 7:37 in winter, catches a run that GitHub delays or skips.
+- A run waits up to 20 minutes for a CI of `develop` still running. When `develop` has not passed its CI, the run fails, so that a later one tries again: a red run or badge may mean a deploy put off, whose notice or warning says why.
 - _Actions → Deploy to production → Run workflow_ releases and deploys at once; its `dry_run` option shows what it would do, without merging or pushing.
 - A warning says when someone has to act.
 - The deploy fetches `develop` again after the release: `actions/checkout` sets `origin/develop` back to the commit that started the run, which lacks the release merge.

@@ -80,7 +80,9 @@ jobs:
     needs: [schedule, release]
     if: ${{ !cancelled() && needs.schedule.outputs.due == 'true' }}
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    # Waits up to 20 minutes for a run of the CI of develop still going (RUN_WAIT_ATTEMPTS), after
+    # the checkout of the whole history
+    timeout-minutes: 30
     outputs:
       sha: ${{ steps.ci.outputs.sha }}
     steps:
@@ -116,6 +118,8 @@ jobs:
             echo "sha=$(git rev-parse origin/develop)" >> "$GITHUB_OUTPUT"
           fi
 
+      # Fails when the commit has not passed its CI, once a run still going finished: the run then
+      # does not count as the deploy of the day, and a later scheduled run tries again
       - id: ci
         name: Check the CI of develop
         if: steps.trees.outputs.sha != ''

@@ -318,14 +318,18 @@ export const RUN_SUCCESS_CONCLUSION = 'success';
 export const RUN_ACTION_REQUIRED_CONCLUSION = 'action_required';
 
 /**
- * Number of times the daily release reads a run of the CI before giving up, every
- * {@link RUN_WAIT_DELAY_MS}: the pull request run of the release pull request, which it may have
- * approved, then the run it starts on develop. 20 minutes in all, while a run of `ci.yml`, its
- * preview deployment and smoke test included, took about 5 minutes in October 2026.
+ * Number of times the daily release and the deploy read a run of the CI before giving up, every
+ * {@link RUN_WAIT_DELAY_MS}: the pull request run of the release pull request, which the release
+ * may have approved, the run it starts on develop, and the run of the commit to deploy that the
+ * deploy finds still going. 20 minutes in all, while a run of `ci.yml`, its preview deployment and
+ * smoke test included, took about 5 minutes in October 2026.
  */
 export const RUN_WAIT_ATTEMPTS = 40;
 
-/** Pause between two reads of a run of the CI that the daily release waits for, in milliseconds. */
+/**
+ * Pause between two reads of a run of the CI that the daily release or the deploy waits for, in
+ * milliseconds.
+ */
 export const RUN_WAIT_DELAY_MS = 30_000;
 
 /**

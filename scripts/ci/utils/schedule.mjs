@@ -142,8 +142,9 @@ const getEarlierRuns = ({ runId, runs = [], moment }) =>
  * Tells whether a run of `deploy-production.yml` is the deploy of the day. Its crons start a run
  * every 30 minutes in the morning, so that a run that GitHub skips is caught by the next one: a
  * scheduled run goes on from {@link DEPLOY_START_MINUTES} in {@link DEPLOY_TIME_ZONE}, until one of
- * them passes, and the later ones of the day stop. A failed run lets the next one try again. A run
- * started by hand always goes on.
+ * them passes, and the later ones of the day stop. A failed run lets the next one try again, such
+ * as one that found the commit to deploy untested (`check-develop-ci.mjs`). A run started by hand
+ * always goes on.
  * @param {ScheduledRunsParams} [params]
  * @returns {ScheduleVerdict} Whether the run goes on and why. It stops for an unknown event, an
  * unknown offset of the time zone, a time before 6:00, and a scheduled run of the day, since 6:00,
