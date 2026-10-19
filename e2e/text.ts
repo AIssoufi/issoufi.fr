@@ -10,9 +10,9 @@ export interface DrawnText {
 
 /**
  * Lists the texts that an element and its content show, one per text node, with the font size
- * each is drawn in. The text nodes holding only spaces and those of hidden elements, such as a
- * `<noscript>` or the closed mobile menu, are left out. Runs in the browser, passed to
- * `locator.evaluate`, so it uses nothing from outside its own body.
+ * each is drawn in. The text nodes holding only spaces and those of hidden elements, such as the
+ * closed mobile menu, are left out. Runs in the browser, passed to `locator.evaluate`, so it uses
+ * nothing from outside its own body.
  *
  * @param root - Node whose texts are listed, such as `body`. A text right under a root that
  * is not an element, such as a fragment, has no element to measure, and is left out.

@@ -1,7 +1,7 @@
 # Architecture
 
 A React single-page app, bundled by Vite.
-The build also writes one HTML file per page and language, so that search engines and link previews get the metadata of each page without running JavaScript.
+The build also writes one HTML file per page and language, so that search engines and link previews get the metadata and the content of each page without running JavaScript.
 
 ## Pages and languages
 
@@ -26,12 +26,22 @@ It also writes:
 
 A new route needs its entry in `src/utils/pages.ts`: without its HTML file, a reload returns a 404.
 
+## Rendering at build time
+
+- The build renders the app at the path of each page, in its language, and writes it into the HTML file with its styles: the page shows before any script runs, and without JavaScript.
+- React then hydrates it: it takes over the elements of the page instead of drawing them again.
+- The render runs in Node.js, in a thread of its own, through a Vite environment with the plugins that the app needs (`vite/prerender/`).
+- What depends on the visitor waits for the hydration (`useIsHydrated`): the likes, the durations of the jobs, which the build counts up to its own month, and the path typed on the not found page.
+- Each styled component gets an id from its module and its place in it, so the classes of the build are those that the browser computes.
+- Every Suspense boundary stays in place: React would move a large one to the end of the page, with an inline script that the Content Security Policy blocks.
+- The browser renders the app from scratch where the file holds another page than the one of its path: at the root URL that redirects to the stored language, on the not found pages, rendered without a path, and in the standalone build, whose page holds no render.
+
 ## Loading
 
 - The home page ships in the main bundle; the other pages load on demand, each from its own chunk.
 - Each HTML file preloads the chunks of its page.
 - The libraries sit in a chunk of their own, which changes less often than the site, so browsers keep it longer.
-- The app preloads the background photo of the page, in a lighter portrait version on phones.
+- The style of the page that the build rendered, or the preload of the app when its main script runs first, requests the background photo of the page, in a lighter portrait version on phones.
 - A tiny placeholder shows until the photo arrives, so a page never goes from black to its photo.
 - A page opened before a deployment reloads once when its chunk is gone.
 
@@ -62,7 +72,7 @@ src/
   utils/        pages, generated HTML, sitemap and manifests
 e2e/            browser tests and the screenshot comparison
 scripts/        CI scripts, and the generators of the link preview, the icons and the CV
-vite/           build helpers and the standalone build
+vite/           build helpers, the render at build time and the standalone build
 public/         images, fonts, icons and CVs
 docs/           these guides
 .github/        CI, release and deploy workflows, shared actions, Dependabot
