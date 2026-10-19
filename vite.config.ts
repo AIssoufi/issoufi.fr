@@ -173,14 +173,14 @@ const httpHeaders = (): Plugin => ({
 });
 
 /**
- * Minimum test coverage, in percent, below which `pnpm test:coverage` fails. Set two to three
- * points under the coverage of October 2026, Vite and CI helpers included, as measured by
- * Vitest 4 (99.6% of lines, 99.4% of statements, 98.8% of branches, 98.3% of functions), so a
- * change that drops tests fails the CI while a few untested lines of a new change do not.
- * Vitest 4 maps the V8 coverage onto the syntax tree and counts only the executable code, so its
- * figures differ from those of Vitest 3 for the same tests. Raise them when the coverage goes up.
+ * Minimum test coverage, in percent, below which `pnpm test:coverage` fails: 100% of the lines,
+ * statements, branches and functions, Vite and CI helpers included, as Vitest 4 measures them since
+ * October 2026, so the CI keeps every line of a new change tested. Code that a test cannot reach
+ * is removed when the types allow it, or else covered by a test that fakes the case. Vitest 4 maps
+ * the V8 coverage onto the syntax tree and counts only the executable code, so its figures differ
+ * from those of Vitest 3 for the same tests.
  */
-const COVERAGE_THRESHOLDS_PERCENT = { lines: 97, statements: 97, branches: 96, functions: 96 };
+const COVERAGE_THRESHOLDS_PERCENT = { lines: 100, statements: 100, branches: 100, functions: 100 };
 
 /**
  * Time a test may take before Vitest fails it, in milliseconds: twice its default of 5 s. Several
