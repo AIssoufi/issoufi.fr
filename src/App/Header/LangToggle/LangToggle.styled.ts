@@ -1,14 +1,21 @@
-import styled, { th } from '@xstyled/styled-components';
+import styled, { css, th } from '@xstyled/styled-components';
 
 import { HOVER_POINTER_QUERY } from '../../../theme/constants';
+import { fingerTargetCenteringOffset, fingerTargetSize } from '../../../theme/targets.styled';
 import { BUTTON_HEIGHT_PX, BUTTON_WIDTH_PX } from './constants';
+
+/* Space between the two buttons */
+const buttonGap = th.space(4);
+
+/* Offset of an edge placed in the middle of the gap between the buttons, out of the button */
+const halfGapOutside = css`calc(${buttonGap} / -2)`;
 
 export const Wrapper = styled.div`
   position: relative;
   display: flex;
   flex-direction: row;
   padding: ${th.space(4)};
-  gap: ${th.space(4)};
+  gap: ${buttonGap};
   border-radius: ${th.radius(30)};
   border: ${th.borderWidth('thin')} solid ${th.color('foreground-a10')};
   background: ${th.color('shade-a35')};
@@ -42,12 +49,12 @@ export const Indicator = styled.div<{ $index: number }>`
   background: ${th.color('accent-a35')};
   border: ${th.borderWidth('thin')} solid ${th.color('accent-a55')};
   box-shadow: ${th.shadow('accentGlowFaint')};
-  transform: translateX(calc(${({ $index }) => $index} * (100% + ${th.space(4)})));
+  transform: translateX(calc(${({ $index }) => $index} * (100% + ${buttonGap})));
   transition: transform ${th.duration(350)} ${th.timingFunction('spring')};
   pointer-events: none;
 
   @media (min-width: ${th('screens.tablet')}) {
-    transform: translateY(calc(${({ $index }) => $index} * (100% + ${th.space(4)})));
+    transform: translateY(calc(${({ $index }) => $index} * (100% + ${buttonGap})));
   }
 
   /* Forced colors mode removes its fill and its glow: a thicker border, in the color of a
@@ -73,10 +80,39 @@ export const Btn = styled.button<{ $active: boolean }>`
   color: ${({ $active }) => ($active ? th.color('accent-foreground') : th.color('foreground-a55'))};
   transition: color ${th.duration(250)} ${th.timingFunction('standard')};
 
+  /* Each button is smaller than a finger target, and too close to the other one for two centered
+     targets: an empty box of that size catches the taps of each, from the middle of the gap
+     between them outward, in a row on mobile */
+  &::after {
+    content: '';
+    position: absolute;
+    width: ${fingerTargetSize};
+    height: ${fingerTargetSize};
+  }
+
+  &:first-of-type::after {
+    inset: ${fingerTargetCenteringOffset} ${halfGapOutside} auto auto;
+  }
+
+  &:last-of-type::after {
+    inset: ${fingerTargetCenteringOffset} auto auto ${halfGapOutside};
+  }
+
   @media ${HOVER_POINTER_QUERY} {
     &:hover {
       color: ${({ $active }) =>
         $active ? th.color('accent-foreground') : th.color('foreground-a70')};
+    }
+  }
+
+  /* And in a column from tablet up */
+  @media (min-width: ${th('screens.tablet')}) {
+    &:first-of-type::after {
+      inset: auto auto ${halfGapOutside} ${fingerTargetCenteringOffset};
+    }
+
+    &:last-of-type::after {
+      inset: ${halfGapOutside} auto auto ${fingerTargetCenteringOffset};
     }
   }
 `;

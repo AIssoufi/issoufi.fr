@@ -287,8 +287,38 @@ describe('NavMenu', () => {
       expect(shortScreenStyle({ element: screen.getByRole('list'), property: 'gap' })).toBe('0px');
     });
 
+    it('lets each link take the taps of its whole item, as high as a finger target at least, even on a short screen', () => {
+      renderNavMenu({ items, mobileMenuIsOpen: true });
+      const [firstItem] = screen.getAllByRole('listitem');
+      const targetStyle = property =>
+        declaredStyle({ element: firstItem, property, pseudo: ' > a::after' });
+
+      expect(getComputedStyle(firstItem).position).toBe('relative');
+      expect(targetStyle('position')).toBe('absolute');
+      // Around the item, or past its edges when it is smaller than a finger target
+      expect(targetStyle('inset')).toBe(
+        serializeCssValue({
+          property: 'inset',
+          value: `calc(50% - max(50%, ${theme.sizes['finger-target']} / 2))`,
+        }),
+      );
+      // Lower than a finger target otherwise, so two targets would overlap with no gap between
+      expect(
+        declaredStyle({
+          element: firstItem,
+          property: 'min-height',
+          media: SHORT_SCREEN_MEDIA_QUERY,
+        }),
+      ).toBe(theme.sizes['finger-target']);
+    });
+
     it('keeps the menu as it is on a short screen of the desktop layout', () => {
       renderNavMenu({ items });
+      const [firstItem] = screen.getAllByRole('listitem', { hidden: true });
+
+      // The items of the bar keep their height, lower than the compact items of the mobile menu
+      expect(desktopStyle({ element: firstItem, property: 'display' })).toBe('list-item');
+      expect(desktopStyle({ element: firstItem, property: 'min-height' })).toBe('auto');
 
       expect(
         declaredStyle({

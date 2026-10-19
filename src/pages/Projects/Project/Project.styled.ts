@@ -3,6 +3,7 @@ import styled, { css, keyframes, th } from '@xstyled/styled-components';
 import List from '../../../components/List';
 import NewTabLink from '../../../components/NewTabLink';
 import { HOVER_POINTER_QUERY } from '../../../theme/constants';
+import { fingerTarget } from '../../../theme/targets.styled';
 import { CARD_PERSPECTIVE_PX, LIKE_ANIMATION_MS } from './constants';
 
 const heartPop = keyframes`
@@ -66,7 +67,9 @@ export const SectionControls = styled.div`
   gap: ${th.space(8)};
 `;
 
+/* Lower than a finger target */
 export const CtrlItem = styled.button`
+  position: relative;
   height: ${th.size(32)};
   border-radius: ${th.radius('pill')};
   padding: 0 ${th.space(14)};
@@ -81,6 +84,7 @@ export const CtrlItem = styled.button`
   -webkit-backdrop-filter: ${th('blurs.8')};
   transition-property: background-color, border-color, color;
   transition-duration: ${th.duration('base')};
+  ${fingerTarget}
 
   @media ${HOVER_POINTER_QUERY} {
     &:hover {
@@ -93,7 +97,10 @@ export const CtrlItem = styled.button`
   }
 `;
 
+/* Smaller than a finger target, and as far from the next control as the targets of both grow
+   past them: their targets meet without overlapping */
 export const IconBtn = styled.button`
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -110,6 +117,7 @@ export const IconBtn = styled.button`
   transition-duration: ${th.duration('base')};
   flex-shrink: 0;
   cursor: pointer;
+  ${fingerTarget}
 
   > svg {
     width: ${th.size(16)};
@@ -306,6 +314,9 @@ export const LikeButton = styled.button<{ $liked: boolean; $animating: boolean }
         animation: ${heartPop} ${LIKE_ANIMATION_MS}ms ${th.timingFunction('standard')} forwards;
       `}
   }
+
+  /* Smaller than a finger target */
+  ${fingerTarget}
 
   @media ${HOVER_POINTER_QUERY} {
     &:hover {

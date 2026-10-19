@@ -1,6 +1,7 @@
 import styled, { th } from '@xstyled/styled-components';
 
 import { HOVER_POINTER_QUERY } from '../../theme/constants';
+import { fingerTarget } from '../../theme/targets.styled';
 
 export const Container = styled.header`
   display: flex;
@@ -54,6 +55,12 @@ export const Logo = styled.div`
   transition-property: transform, color;
   transition-duration: ${th.duration('base')};
   letter-spacing: ${th.letterSpacing(2)};
+
+  /* Narrower than a finger target */
+  > a {
+    position: relative;
+    ${fingerTarget}
+  }
 
   @media ${HOVER_POINTER_QUERY} {
     :hover {

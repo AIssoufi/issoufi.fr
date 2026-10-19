@@ -1,3 +1,4 @@
+import { MAIN_CONTENT_ID } from '../src/constants/landmarks';
 import type { Language } from '../src/i18n/types';
 import { theme } from '../src/theme/theme';
 import type { BackgroundPhoto, Page } from '../src/utils/pages';
@@ -306,10 +307,39 @@ export const MAX_HEADER_SCREEN_SHARE = 0.15;
 export const MIN_TARGET_SIZE_PX = 24;
 
 /**
- * Smallest height, in pixels, of the CV link of the mobile menu, compact or not: the
- * `finger-target` size of the theme, the target size that the guidelines recommend for a finger.
+ * Smallest width and height, in pixels, of the area that a finger taps on a control of a touch
+ * screen, and of the CV link of the mobile menu, compact or not: the `finger-target` size of the
+ * theme, the target size that the guidelines recommend for a finger (success criterion 2.5.5).
  */
-export const FINGER_TARGET_HEIGHT_PX = Number.parseFloat(theme.sizes['finger-target']);
+export const FINGER_TARGET_SIZE_PX = Number.parseFloat(theme.sizes['finger-target']);
+
+/**
+ * Touch screens of the desktop layout, on which every control must take the taps of a finger over
+ * {@link FINGER_TARGET_SIZE_PX} each way, as on those of {@link MOBILE_LAYOUT_SCREENS}: phones held
+ * sideways (844 × 390, an iPhone 12, which reaches the tablet breakpoint) and tablets held upright
+ * (820 × 1180, an iPad Air) and sideways (1024 × 768, an iPad, and 1180 × 820, an iPad Air).
+ */
+export const DESKTOP_LAYOUT_TOUCH_SCREENS = [
+  { width: 844, height: 390 },
+  { width: 820, height: 1180 },
+  { width: 1024, height: 768 },
+  { width: 1180, height: 820 },
+] as const;
+
+/** Controls of a page that a finger taps: the links and the buttons. */
+export const CONTROL_SELECTOR = 'a[href], button';
+
+/**
+ * Skip link of every page, which shows only once the keyboard focuses it, which a tap never does:
+ * the browser test of the targets leaves it out.
+ */
+export const SKIP_LINK_SELECTOR = `a[href="#${MAIN_CONTENT_ID}"]`;
+
+/**
+ * Header of the site, right inside the app grid, which stays at the top of the screen, and from
+ * tablet up holds the language toggle that floats on the right edge, over the page.
+ */
+export const SITE_HEADER_SELECTOR = '[data-testid="app"] > header';
 
 /**
  * Screen lower than the open mobile menu, even compact, as a phone held sideways with the bars of

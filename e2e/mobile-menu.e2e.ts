@@ -8,7 +8,7 @@ import type { Translations } from '../src/i18n/types';
 import { localizePath } from '../src/i18n/utils';
 import { waitForEndingAnimations } from './animations';
 import {
-  FINGER_TARGET_HEIGHT_PX,
+  FINGER_TARGET_SIZE_PX,
   LANDSCAPE_PHONE_SCREENS,
   LONG_PAGE_ROUTE,
   MENU_OPENING_SCROLL_Y_PX,
@@ -140,7 +140,7 @@ for (const language of LANGUAGES) {
           .getByRole('link', { name: translations.cvLink.text })
           .boundingBox();
         expect(cvBox?.height, 'height of the CV link, compact or not').toBeGreaterThanOrEqual(
-          FINGER_TARGET_HEIGHT_PX,
+          FINGER_TARGET_SIZE_PX,
         );
         expect(await navigation.evaluate(isScrollable), 'menu higher than the screen').toBe(false);
         await expectLinksBesideToggle({ page, navigation, translations });

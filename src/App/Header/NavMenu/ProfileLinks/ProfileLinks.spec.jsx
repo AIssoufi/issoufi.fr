@@ -173,5 +173,57 @@ describe('ProfileLinks', () => {
       // A touch screen would keep the hover color of the icon tapped last
       expect(hoverColor('')).toBe('');
     });
+
+    it('gives each icon a target as large as a finger, which meets the other one in the middle of their gap on desktop', () => {
+      render(<ProfileLinks />);
+      const targetStyle = ({ name, property, pseudo = '::after', media = '' }) =>
+        declaredStyle({ element: getLink(name), property, pseudo, media });
+      const fingerTarget = theme.sizes['finger-target'];
+      const halfGapOutside = `calc(${theme.space[16]} / -2)`;
+      const centeringOffset = `calc((100% - ${fingerTarget}) / 2)`;
+
+      expect(targetStyle({ name: GITHUB.name, property: 'inset' })).toBe(
+        serializeCssValue({
+          property: 'inset',
+          value: `calc(50% - max(50%, ${fingerTarget} / 2))`,
+        }),
+      );
+      expect(
+        targetStyle({ name: GITHUB.name, property: 'width', media: DESKTOP_MEDIA_QUERY }),
+      ).toBe(fingerTarget);
+      expect(
+        targetStyle({
+          name: GITHUB.name,
+          property: 'inset',
+          pseudo: ':first-child::after',
+          media: DESKTOP_MEDIA_QUERY,
+        }),
+      ).toBe(
+        serializeCssValue({
+          property: 'inset',
+          value: `${centeringOffset} ${halfGapOutside} auto auto`,
+        }),
+      );
+      expect(
+        targetStyle({
+          name: LINKEDIN.name,
+          property: 'inset',
+          pseudo: ':last-child::after',
+          media: DESKTOP_MEDIA_QUERY,
+        }),
+      ).toBe(
+        serializeCssValue({
+          property: 'inset',
+          value: `${centeringOffset} auto auto ${halfGapOutside}`,
+        }),
+      );
+      expect(
+        declaredStyle({
+          element: getLink(GITHUB.name).parentElement,
+          property: 'gap',
+          media: DESKTOP_MEDIA_QUERY,
+        }),
+      ).toBe(theme.space[16]);
+    });
   });
 });
