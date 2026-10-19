@@ -177,11 +177,12 @@ export const PROJECT_READING_SCREEN_WIDTHS_PX = [375, 1440] as const;
  * each section with its "Show all" rows, and moves the row with its arrows: the narrowest phones
  * still in use (320), two common phone widths (375 and 414), with one column of cards, a tablet in
  * portrait (768), with two, the tablet breakpoint, where the desktop layout starts with two
- * columns still (800), two laptop widths (1280 and 1440), with three, then past the `wide`
- * breakpoint (1600), with the page content at its largest width (1720 and 2400).
+ * columns still (800), two laptop widths (1280 and 1440), with three, then the `wide` breakpoint
+ * (1600), where the cards grow with the app container, and two desktop screens wider than it
+ * (1920 and 2560).
  */
 export const PROJECT_CARD_SCREEN_WIDTHS_PX = [
-  320, 375, 414, 768, 800, 1280, 1440, 1720, 2400,
+  320, 375, 414, 768, 800, 1280, 1440, 1600, 1920, 2560,
 ] as const;
 
 /**
