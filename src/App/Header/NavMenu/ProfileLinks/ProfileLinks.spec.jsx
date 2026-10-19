@@ -7,16 +7,19 @@ import { declaredStyle, serializeCssValue } from '../../../../styleTestUtils';
 import { theme } from '../../../../theme';
 import ProfileLinks from './ProfileLinks';
 
-/** Each profile of the site owner: the name of its link in each language, and its URL. */
+/**
+ * Each profile of the site owner: the name of its link in each language, which ends with the
+ * notice of the new tab, and its URL.
+ */
 const PROFILES = [
   {
-    name: 'Profil GitHub d’ADAM Issoufi',
-    englishName: "ADAM Issoufi's GitHub profile",
+    name: 'Profil GitHub d’ADAM Issoufi (nouvel onglet)',
+    englishName: "ADAM Issoufi's GitHub profile (opens in a new tab)",
     url: 'https://github.com/AIssoufi',
   },
   {
-    name: 'Profil LinkedIn d’ADAM Issoufi',
-    englishName: "ADAM Issoufi's LinkedIn profile",
+    name: 'Profil LinkedIn d’ADAM Issoufi (nouvel onglet)',
+    englishName: "ADAM Issoufi's LinkedIn profile (opens in a new tab)",
     url: 'https://www.linkedin.com/in/issoufiadam',
   },
 ];
@@ -93,6 +96,19 @@ describe('ProfileLinks', () => {
       ({ name }) => {
         render(<ProfileLinks />);
         expect(getLink(name).querySelector('svg')).toHaveAttribute('aria-hidden', 'true');
+      },
+    );
+
+    it.each(PROFILES)(
+      'names $url with a text that the screen does not show, since the icon has none',
+      ({ url }) => {
+        render(<ProfileLinks />);
+
+        const link = screen.getAllByRole('link').find(item => item.getAttribute('href') === url);
+        expect(link).not.toHaveAttribute('aria-label');
+        [...link.querySelectorAll('span')].forEach(text =>
+          expect(text).toHaveStyle({ position: 'absolute', clipPath: 'inset(50%)' }),
+        );
       },
     );
 

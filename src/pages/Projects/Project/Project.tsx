@@ -5,6 +5,8 @@ import LikeIcon from './icons/heart.svg?react';
 import NextIcon from './icons/next.svg?react';
 import PreviousIcon from './icons/previous.svg?react';
 
+import { isNonBlankString } from '../../../utils/strings';
+import { listTechnologyNames } from '../../../utils/technologies';
 import { ROW_CARD_COUNT, THUMBNAIL_SIZES } from './constants';
 import { useCardTilt } from './hooks/useCardTilt';
 import { useLikes } from './hooks/useLikes';
@@ -20,6 +22,7 @@ import {
   ProjectItem,
   ProjectLink,
   ProjectName,
+  ProjectTool,
   ProjectTools,
   ProjectType,
   Section,
@@ -71,12 +74,17 @@ const NO_PROJECTS: ProjectItemData[] = [];
  * group labelled by the title, rather than a navigation landmark, with its buttons in the order
  * that the screen shows them. Cards tilt toward the mouse, and have a like button, named after the
  * project, whose pressed state is the visitor's own like, without a count, kept in their browser
- * by {@link useLikes}: no project is liked on a first visit. When the project has a `url` and a
- * name, the card title is a link to it, stretched over the whole card; the like button sits
- * beside that link, never inside it. The title is a level 2 heading, under the `h1` of the page;
- * without a title, the section has no heading and its controls have no name. Each thumbnail
- * downloads the file of its `srcset` that its width needs on the screen, once the screen nears it,
- * but the first one of a `priority` section, at once; hovering or focusing an arrow downloads the
+ * by {@link useLikes}: no project is liked on a first visit. The name of each card is a level 3
+ * heading, so that screen readers can go from card to card, and a card without a name has none.
+ * When the project has a `url` and a name, that heading holds a `NewTabLink` to it, stretched over
+ * the whole card, which screen readers announce as opening a new tab; the like button sits beside
+ * that link, never inside it.
+ * The tools of the card are a list, shown as one line of text with dots that screen readers skip.
+ * The title is a level 2 heading, under the `h1` of the page; without a title, the section has no
+ * heading and its controls have no name. The thumbnail is decorative, with an empty alt text,
+ * since the name follows it, and a card without a valid file shows none. Each thumbnail downloads
+ * the file of its `srcset` that its width needs on the screen, once the screen nears it, but the
+ * first one of a `priority` section, at once; hovering or focusing an arrow downloads the
  * thumbnails of the page it would show, so that they never show empty.
  */
 const Project = ({ title, projects = NO_PROJECTS, priority = false }: ProjectProps) => {
@@ -183,6 +191,9 @@ const Project = ({ title, projects = NO_PROJECTS, priority = false }: ProjectPro
           const linkUrl = getProjectLinkUrl({ url, name });
           const thumbnail = getThumbnailSources(thumbnails);
           const isPriorityThumbnail = project === priorityProject;
+          // A blank name would leave an empty heading, which screen readers announce as such
+          const hasName = isNonBlankString(name);
+          const toolNames = listTechnologyNames(tools);
 
           return (
             <ProjectItem
@@ -190,17 +201,20 @@ const Project = ({ title, projects = NO_PROJECTS, priority = false }: ProjectPro
               {...cardTilt}
             >
               <ImageContainer>
-                <Thumbnail
-                  alt={name}
-                  loading={isPriorityThumbnail ? 'eager' : 'lazy'}
-                  fetchPriority={isPriorityThumbnail ? 'high' : undefined}
-                  decoding="async"
-                  sizes={thumbnail ? THUMBNAIL_SIZES : undefined}
-                  srcSet={thumbnail?.srcSet}
-                  src={thumbnail?.src}
-                  width={thumbnail?.width}
-                  height={thumbnail?.height}
-                />
+                {/* Decorative, since the name of the card follows it */}
+                {thumbnail && (
+                  <Thumbnail
+                    alt=""
+                    loading={isPriorityThumbnail ? 'eager' : 'lazy'}
+                    fetchPriority={isPriorityThumbnail ? 'high' : undefined}
+                    decoding="async"
+                    sizes={THUMBNAIL_SIZES}
+                    srcSet={thumbnail.srcSet}
+                    src={thumbnail.src}
+                    width={thumbnail.width}
+                    height={thumbnail.height}
+                  />
+                )}
                 <LikeButton
                   type="button"
                   aria-label={t('projects.like', { name })}
@@ -213,21 +227,19 @@ const Project = ({ title, projects = NO_PROJECTS, priority = false }: ProjectPro
                 </LikeButton>
               </ImageContainer>
               <ProjectInfo>
-                <ProjectName>
-                  {linkUrl ? (
-                    <ProjectLink
-                      href={linkUrl}
-                      target="_blank"
-                      rel="noreferrer"
-                    >
-                      {name}
-                    </ProjectLink>
-                  ) : (
-                    name
-                  )}
-                </ProjectName>
+                {hasName && (
+                  <ProjectName>
+                    {linkUrl ? <ProjectLink href={linkUrl}>{name}</ProjectLink> : name}
+                  </ProjectName>
+                )}
                 <ProjectType>{type}</ProjectType>
-                <ProjectTools>{(tools ?? []).join(' · ')}</ProjectTools>
+                {toolNames.length > 0 && (
+                  <ProjectTools>
+                    {toolNames.map(toolName => (
+                      <ProjectTool key={toolName}>{toolName}</ProjectTool>
+                    ))}
+                  </ProjectTools>
+                )}
               </ProjectInfo>
             </ProjectItem>
           );

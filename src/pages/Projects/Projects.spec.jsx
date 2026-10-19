@@ -3,6 +3,7 @@ import userEvent from '@testing-library/user-event';
 
 import i18n from '../../i18n';
 import { LANGUAGES } from '../../i18n/constants';
+import { en } from '../../i18n/en';
 import { fr } from '../../i18n/fr';
 import { theme } from '../../theme';
 import { declaredStyle, serializeCssValue } from '../../styleTestUtils';
@@ -52,9 +53,22 @@ const FILLED_TEXT = /\S/;
 
 const TABLET_MEDIA = `(min-width: ${theme.screens.tablet})`;
 
+/** French name of the first personal project, the first card of the page on every layout. */
+const FIRST_PROJECT_NAME = fr.projects.names[personalProjectsData.projects[0].nameKey];
+
 /** Thumbnail of the first personal project, which the first section shows on every layout. */
 const firstThumbnail = () =>
-  screen.getByRole('img', { name: fr.projects.names[personalProjectsData.projects[0].nameKey] });
+  screen.getByText(FIRST_PROJECT_NAME).closest('li').querySelector('img');
+
+/** Cards that the page shows, in their order: the items that a level 3 heading names. */
+const listCards = () =>
+  screen.getAllByRole('heading', { level: 3 }).map(heading => heading.closest('li'));
+
+/** Name that the heading of a card shows: its first text, before what only screen readers read. */
+const cardNameOf = card => {
+  const heading = card.querySelector('h3');
+  return (heading.querySelector('a') ?? heading).firstChild.textContent;
+};
 
 /** Clicks "Show all" in every section, so that each row shows all its cards. */
 const showAllProjects = async () => {
@@ -168,7 +182,7 @@ describe('Projects', () => {
     render(<Projects />);
     const [firstThumbnail, ...otherThumbnails] = document.querySelectorAll('img');
 
-    expect(firstThumbnail).toHaveAccessibleName('Jeu d’échecs');
+    expect(firstThumbnail.closest('li')).toHaveTextContent('Jeu d’échecs');
     expect(firstThumbnail).toHaveAttribute('loading', 'eager');
     expect(firstThumbnail).toHaveAttribute('fetchpriority', 'high');
     // The first page of the personal section, then of the freelance one
@@ -213,10 +227,10 @@ describe('Projects', () => {
     await showAllProjects();
     await act(() => i18n.changeLanguage(language));
 
-    const cards = screen.getAllByRole('listitem');
+    const cards = listCards();
     expect(cards).toHaveLength(expectedCards.length);
     expectedCards.forEach(([name, type], index) => {
-      expect(within(cards[index]).getByRole('img', { name })).toBeInTheDocument();
+      expect(cardNameOf(cards[index])).toBe(name);
       expect(within(cards[index]).getByText(type)).toBeInTheDocument();
     });
   });
@@ -227,8 +241,8 @@ describe('Projects', () => {
       render(<Projects />);
       await showAllProjects();
 
-      expect(screen.getByText(name)).toBeInTheDocument();
-      expect(screen.getByRole('img', { name })).toBeInTheDocument();
+      expect(screen.getByText(name).closest('h3')).toBeInTheDocument();
+      expect(listCards().map(cardNameOf)).toContain(name);
     },
   );
 
@@ -258,8 +272,9 @@ describe('Projects', () => {
     /** First like button of each section, the personal one then the freelance one. */
     const firstLikeOfEachSection = () =>
       screen
-        .getAllByRole('list')
-        .map(list => within(list).getAllByRole('button', { name: LIKE_BUTTON_NAME })[0]);
+        .getAllByRole('heading', { level: 2 })
+        .map(title => title.closest('section'))
+        .map(section => within(section).getAllByRole('button', { name: LIKE_BUTTON_NAME })[0]);
     const { unmount } = render(<Projects />);
     await userEvent.click(firstLikeOfEachSection()[0]);
     unmount();
@@ -273,17 +288,28 @@ describe('Projects', () => {
     expect(firstFreelanceLike).toHaveAttribute('aria-pressed', 'false');
   });
 
-  it('links every project that has a url, with no interactive element inside a link', async () => {
-    render(<Projects />);
-    await showAllProjects();
+  it.each([
+    ['fr', fr],
+    ['en', en],
+  ])(
+    'links every project that has a url, telling that it opens a new tab, in %s',
+    async (language, translations) => {
+      render(<Projects />);
+      await showAllProjects();
+      await act(() => i18n.changeLanguage(language));
 
-    const links = screen.getAllByRole('link');
-    const linkedProjectNames = allProjects
-      .filter(({ url }) => url)
-      .map(({ nameKey }) => fr.projects.names[nameKey]);
-    expect(links.map(link => link.textContent)).toEqual(linkedProjectNames);
-    for (const link of links) expect(link.querySelector(INTERACTIVE_SELECTOR)).toBeNull();
-  });
+      const links = screen.getAllByRole('link');
+      const linkNames = allProjects
+        .filter(({ url }) => url)
+        .map(
+          ({ nameKey }) =>
+            `${translations.projects.names[nameKey]} ${translations.newTabLink.notice}`,
+        );
+      expect(links.map(link => link.textContent)).toEqual(linkNames);
+      links.forEach((link, index) => expect(link).toHaveAccessibleName(linkNames[index]));
+      for (const link of links) expect(link.querySelector(INTERACTIVE_SELECTOR)).toBeNull();
+    },
+  );
 });
 
 /** Layouts of the cards of a section: the row, then every card after "Show all". */

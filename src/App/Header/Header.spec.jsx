@@ -81,11 +81,11 @@ const CV_LINK_NAME = 'Télécharger CV';
 /** The link that downloads the CV, the last link of the navigation, after the profile icons. */
 const getCvLink = () => screen.getByRole('link', { name: CV_LINK_NAME, hidden: true });
 
-/** Name of the GitHub icon, the first of the profile icons. */
-const GITHUB_LINK_NAME = 'Profil GitHub d’ADAM Issoufi';
+/** Name of the GitHub icon, the first of the profile icons, which tells that it opens a new tab. */
+const GITHUB_LINK_NAME = 'Profil GitHub d’ADAM Issoufi (nouvel onglet)';
 
 /** Name of the LinkedIn icon, which follows the GitHub icon. */
-const LINKEDIN_LINK_NAME = 'Profil LinkedIn d’ADAM Issoufi';
+const LINKEDIN_LINK_NAME = 'Profil LinkedIn d’ADAM Issoufi (nouvel onglet)';
 
 /** The LinkedIn icon of the navigation. */
 const getLinkedInLink = () => screen.getByRole('link', { name: LINKEDIN_LINK_NAME, hidden: true });

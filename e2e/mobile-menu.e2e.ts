@@ -58,16 +58,16 @@ interface GetMenuLinksParams {
 }
 
 /**
- * Every link of the open menu, in its order: the pages, the GitHub and LinkedIn icons, then the CV
- * link.
+ * Every link of the open menu, in its order: the pages, the GitHub and LinkedIn icons, named with
+ * the notice that they open a new tab, then the CV link.
  */
 const getMenuLinks = ({ navigation, translations }: GetMenuLinksParams) =>
   [
     translations.nav.home,
     translations.nav.projects,
     translations.nav.experience,
-    translations.githubLink.label,
-    translations.linkedInLink.label,
+    `${translations.githubLink.label} ${translations.newTabLink.notice}`,
+    `${translations.linkedInLink.label} ${translations.newTabLink.notice}`,
     translations.cvLink.text,
   ].map(name => ({ name, link: navigation.getByRole('link', { name, exact: true }) }));
 

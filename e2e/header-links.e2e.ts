@@ -28,10 +28,19 @@ import {
 /** Translations of each language, to find the links of the header by their names. */
 const TRANSLATIONS = { fr, en } satisfies Record<Language, Translations>;
 
-/** Profiles that the GitHub then the LinkedIn icon open, with the name of each icon. */
+/**
+ * Profiles that the GitHub then the LinkedIn icon open, with the name of each icon: its label,
+ * then the notice that it opens a new tab.
+ */
 const getProfiles = (translations: Translations) => [
-  { name: translations.githubLink.label, url: GITHUB_PROFILE_URL },
-  { name: translations.linkedInLink.label, url: LINKEDIN_PROFILE_URL },
+  {
+    name: `${translations.githubLink.label} ${translations.newTabLink.notice}`,
+    url: GITHUB_PROFILE_URL,
+  },
+  {
+    name: `${translations.linkedInLink.label} ${translations.newTabLink.notice}`,
+    url: LINKEDIN_PROFILE_URL,
+  },
 ];
 
 /** Names of the links of the navigation, in their order: the pages, the icons, then the CV link. */

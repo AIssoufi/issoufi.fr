@@ -77,6 +77,9 @@ export const en = {
     text: 'Download CV',
     documentName: 'CV',
   },
+  newTabLink: {
+    notice: '(opens in a new tab)',
+  },
   home: {
     title1: 'Full-stack JavaScript Developer',
     title2Pre: 'passionate about ',

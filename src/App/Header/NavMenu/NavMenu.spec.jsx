@@ -26,8 +26,11 @@ const renderNavMenu = ({ path = '/', ...props } = {}) =>
 /** Name of the link that downloads the CV, which its text gives. */
 const CV_LINK_NAME = 'Télécharger CV';
 
-/** Names of the profile icons, in their order. */
-const PROFILE_LINK_NAMES = ['Profil GitHub d’ADAM Issoufi', 'Profil LinkedIn d’ADAM Issoufi'];
+/** Names of the profile icons, in their order, which tell that they open a new tab. */
+const PROFILE_LINK_NAMES = [
+  'Profil GitHub d’ADAM Issoufi (nouvel onglet)',
+  'Profil LinkedIn d’ADAM Issoufi (nouvel onglet)',
+];
 
 /** Value that the navigation declares for a property on an element on the desktop layout. */
 const desktopStyle = ({ element, property, pseudo }) =>

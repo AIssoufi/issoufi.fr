@@ -152,6 +152,27 @@ export const LINK_INITIATOR_TYPE = 'link';
 export const PROJECTS_ROUTE: Page['path'] = '/projects';
 
 /**
+ * Card of each project of the Projects page: an item of the list of cards of its section, which
+ * holds the list of its tools.
+ */
+export const PROJECT_CARD_SELECTOR = `${PAGE_SELECTOR} section > ul > li`;
+
+/** List of the tools of each project card. */
+export const PROJECT_TOOLS_SELECTOR = `${PROJECT_CARD_SELECTOR} ul`;
+
+/**
+ * Dot that the screen shows between two tools of a project card, a decoration that screen readers
+ * must not read. The texts of the cards use none.
+ */
+export const TOOL_SEPARATOR = '·';
+
+/**
+ * Screen widths, in pixels, at which the browser test of the Projects page reads its cards as
+ * screen readers do: a phone, with one column of cards, and a laptop, with three.
+ */
+export const PROJECT_READING_SCREEN_WIDTHS_PX = [375, 1440] as const;
+
+/**
  * Screen widths, in pixels, at which the browser test of the project cards compares the row of
  * each section with its "Show all" rows, and moves the row with its arrows: the narrowest phones
  * still in use (320), two common phone widths (375 and 414), with one column of cards, a tablet in
