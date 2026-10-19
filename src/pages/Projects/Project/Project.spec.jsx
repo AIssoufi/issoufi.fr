@@ -3,7 +3,12 @@ import userEvent from '@testing-library/user-event';
 
 import i18n from '../../../i18n/index.ts';
 import { theme } from '../../../theme/index.ts';
-import { FORCED_COLORS_QUERY, HOVER_POINTER_QUERY } from '../../../theme/constants.ts';
+import {
+  CONTROL_HOVER_SCALE,
+  FORCED_COLORS_QUERY,
+  FULL_MOTION_QUERY,
+  HOVER_POINTER_QUERY,
+} from '../../../theme/constants.ts';
 import { holdsFunctionSource } from '../../../cssRuleGuard.ts';
 import { stubMatchMedia } from '../../../mediaQueryTestUtils.ts';
 import {
@@ -11,6 +16,7 @@ import {
   declaredStyle,
   getContrastRatio,
   listStyleRules,
+  mediaDeclaringStyle,
   MIN_ICON_CONTRAST_RATIO,
   serializeCssValue,
 } from '../../../styleTestUtils.js';
@@ -80,6 +86,9 @@ const CARD_BOX = { left: 100, top: 100, width: 200, height: 100 };
  * the vertical axis and half of it around the horizontal one, so the two cannot be mixed up.
  */
 const CARD_POINTER = { x: CARD_BOX.width, y: CARD_BOX.height / 4 };
+
+/** Media query of a pointer that hovers, for a visitor who did not ask to reduce motion. */
+const FULL_MOTION_HOVER_QUERY = `${HOVER_POINTER_QUERY} and ${FULL_MOTION_QUERY}`;
 
 /** Like button of a card, found by its French accessible name, which holds the project name. */
 const likeButtonOf = name => screen.getByRole('button', { name: `Aimer ${name}` });
@@ -1089,7 +1098,7 @@ describe('Project', () => {
       };
       const hoverRuleIndex = lastTransformRuleIndex({
         state: ':hover',
-        media: HOVER_POINTER_QUERY,
+        media: FULL_MOTION_HOVER_QUERY,
       });
 
       expect(
@@ -1097,15 +1106,41 @@ describe('Project', () => {
           element: likeButton,
           property: 'transform',
           pseudo: ':hover',
-          media: HOVER_POINTER_QUERY,
+          media: FULL_MOTION_HOVER_QUERY,
         }),
-      ).toBe('scale(1.06)');
-      expect(declaredStyle({ element: likeButton, property: 'transform', pseudo: ':active' })).toBe(
-        'scale(0.93)',
-      );
+      ).toBe(`scale(${CONTROL_HOVER_SCALE})`);
+      expect(
+        declaredStyle({
+          element: likeButton,
+          property: 'transform',
+          pseudo: ':active',
+          media: FULL_MOTION_QUERY,
+        }),
+      ).toBe('scale(0.93)');
       // A pressed button is hovered too: the rule of :active must come last to win
       expect(hoverRuleIndex).toBeGreaterThan(-1);
-      expect(lastTransformRuleIndex({ state: ':active' })).toBeGreaterThan(hoverRuleIndex);
+      expect(
+        lastTransformRuleIndex({ state: ':active', media: FULL_MOTION_QUERY }),
+      ).toBeGreaterThan(hoverRuleIndex);
+    });
+
+    // GlobalStyle makes the transition instant with reduced motion: the button would jump
+    it('keeps the like button still on hover and press with reduced motion, while its colors change', () => {
+      render(<Project projects={projects} />);
+      const likeButton = likeButtonOf('Chess');
+      const transformMedia = pseudo =>
+        mediaDeclaringStyle({ element: likeButton, property: 'transform', pseudo });
+
+      expect(transformMedia(':hover')).toEqual([FULL_MOTION_HOVER_QUERY]);
+      expect(transformMedia(':active')).toEqual([FULL_MOTION_QUERY]);
+      expect(
+        declaredStyle({
+          element: likeButton,
+          property: 'border-color',
+          pseudo: ':hover',
+          media: HOVER_POINTER_QUERY,
+        }),
+      ).toBe(serializeCssValue({ property: 'border-color', value: theme.colors['accent-a70'] }));
     });
 
     it('plays the pop animation of the heart for exactly as long as its button stays animated', () => {

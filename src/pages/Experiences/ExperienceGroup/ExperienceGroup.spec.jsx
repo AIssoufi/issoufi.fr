@@ -1,6 +1,8 @@
 import { act, render, screen, within } from '@testing-library/react';
 
 import i18n from '../../../i18n/index.ts';
+import { mediaDeclaringStyle } from '../../../styleTestUtils.js';
+import { FULL_MOTION_QUERY, HOVER_POINTER_QUERY } from '../../../theme/constants.ts';
 import { getReadText } from '../../testUtils.js';
 import ExperienceGroup from './ExperienceGroup.tsx';
 
@@ -91,6 +93,20 @@ describe('ExperienceGroup', () => {
     const { container } = render(<ExperienceGroup entityName="Sewan Groupe" />);
 
     expect(container.firstChild.tagName).toBe('LI');
+  });
+
+  // GlobalStyle makes the transition instant with reduced motion: the card would jump
+  it('raises the card of a role on hover only without reduced motion, while its shadow grows for every visitor', () => {
+    render(
+      <ExperienceGroup entityName="Sewan Groupe">
+        <ExperienceGroup.Role jobName="Lead Frontend Engineer" />
+      </ExperienceGroup>,
+    );
+    const hoverMedia = property =>
+      mediaDeclaringStyle({ element: screen.getByRole('article'), property, pseudo: ':hover' });
+
+    expect(hoverMedia('transform')).toEqual([`${HOVER_POINTER_QUERY} and ${FULL_MOTION_QUERY}`]);
+    expect(hoverMedia('box-shadow')).toEqual([HOVER_POINTER_QUERY]);
   });
 
   it('shows each role in an article, under its level 3 heading', () => {

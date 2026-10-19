@@ -1,6 +1,6 @@
 import { css, th } from '@xstyled/styled-components';
 
-import { HOVER_POINTER_QUERY } from '../../theme/constants.ts';
+import { FULL_MOTION_QUERY, HOVER_POINTER_QUERY } from '../../theme/constants.ts';
 
 /* Width of the timeline line, which Timeline (Experiences.styled.ts) draws. */
 export const lineWidth = th.size(2);
@@ -86,8 +86,14 @@ export const card = css`
 
   @media ${HOVER_POINTER_QUERY} {
     &:hover {
-      transform: translateY(${th.space(-2)});
       box-shadow: ${th.shadow('cardHover')};
+    }
+  }
+
+  /* Not with reduced motion, where the instant transition would make it jump */
+  @media ${HOVER_POINTER_QUERY} and ${FULL_MOTION_QUERY} {
+    &:hover {
+      transform: translateY(${th.space(-2)});
     }
   }
 `;

@@ -77,6 +77,14 @@ export const REDUCED_MOTION_QUERY = '(prefers-reduced-motion: reduce)';
 export const FULL_MOTION_QUERY = '(prefers-reduced-motion: no-preference)';
 
 /**
+ * Scale of a control under a pointer that hovers it, unless the visitor asked to reduce motion: a
+ * growth of 6% shows which control the pointer is on, without pushing its neighbours or blurring
+ * its text. The buttons (`GlobalStyle`), the links of the header bar (`NavMenu`), the language
+ * links (`LangToggle`) and the like button of a project card read it.
+ */
+export const CONTROL_HOVER_SCALE = 1.06;
+
+/**
  * Media query of the screens whose main pointer hovers, precisely, such as a mouse or a trackpad.
  * Every `:hover` of the styles sits in a block of it, alone or joined to other conditions by `and`
  * (`@media (min-width: …) and ${HOVER_POINTER_QUERY}`), which `theme.spec.jsx` checks: a touch

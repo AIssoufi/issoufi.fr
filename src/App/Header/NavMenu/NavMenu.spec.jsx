@@ -2,9 +2,13 @@ import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router';
 
-import { declaredStyle, serializeCssValue } from '../../../styleTestUtils.js';
+import { declaredStyle, mediaDeclaringStyle, serializeCssValue } from '../../../styleTestUtils.js';
 import { theme } from '../../../theme/index.ts';
-import { HOVER_POINTER_QUERY } from '../../../theme/constants.ts';
+import {
+  CONTROL_HOVER_SCALE,
+  FULL_MOTION_QUERY,
+  HOVER_POINTER_QUERY,
+} from '../../../theme/constants.ts';
 import { DESKTOP_MEDIA_QUERY, NO_SCRIPT_MOBILE_MEDIA_QUERY } from '../constants.ts';
 import NavMenu from './NavMenu.tsx';
 
@@ -39,6 +43,9 @@ const desktopStyle = ({ element, property, pseudo }) =>
 
 /** Media query of the desktop layout under a pointer that hovers, which the hover styles need. */
 const DESKTOP_HOVER_MEDIA_QUERY = `${DESKTOP_MEDIA_QUERY} and ${HOVER_POINTER_QUERY}`;
+
+/** Media query of the hover styles that move, for a visitor who did not ask to reduce motion. */
+const DESKTOP_FULL_MOTION_HOVER_MEDIA_QUERY = `${DESKTOP_HOVER_MEDIA_QUERY} and ${FULL_MOTION_QUERY}`;
 
 /** The link that downloads the CV, found even while the closed mobile menu hides it. */
 const getCvLink = () => screen.getByRole('link', { name: CV_LINK_NAME, hidden: true });
@@ -249,10 +256,30 @@ describe('NavMenu', () => {
       expect(hoverStyle({ element: getCvLink(), property: 'color' })).toBe(
         serializeCssValue({ property: 'color', value: theme.colors['accent-foreground'] }),
       );
+      expect(hoverStyle({ element: firstItem, property: 'background' })).toBe('transparent');
       for (const element of [getCvLink(), firstItem]) {
-        expect(hoverStyle({ element, property: 'transform' })).toBe('scale(1.06)');
+        expect(
+          declaredStyle({
+            element,
+            property: 'transform',
+            pseudo: ':hover',
+            media: DESKTOP_FULL_MOTION_HOVER_MEDIA_QUERY,
+          }),
+        ).toBe(`scale(${CONTROL_HOVER_SCALE})`);
         // A touch screen would keep the hover style of the link tapped last
         expect(desktopStyle({ element, property: 'transform', pseudo: ':hover' })).toBe('');
+      }
+    });
+
+    // GlobalStyle makes the transition instant with reduced motion: the link would jump
+    it('grows on hover in no other media query, so not with reduced motion, as the logo does', () => {
+      renderNavMenu({ items });
+      const [firstItem] = screen.getAllByRole('listitem', { hidden: true });
+
+      for (const element of [getCvLink(), firstItem]) {
+        expect(mediaDeclaringStyle({ element, property: 'transform', pseudo: ':hover' })).toEqual([
+          DESKTOP_FULL_MOTION_HOVER_MEDIA_QUERY,
+        ]);
       }
     });
   });

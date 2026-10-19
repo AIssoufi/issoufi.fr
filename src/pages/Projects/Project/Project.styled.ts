@@ -2,7 +2,12 @@ import styled, { css, keyframes, th } from '@xstyled/styled-components';
 
 import List from '../../../components/List/index.ts';
 import NewTabLink from '../../../components/NewTabLink/index.ts';
-import { FORCED_COLORS_QUERY, HOVER_POINTER_QUERY } from '../../../theme/constants.ts';
+import {
+  CONTROL_HOVER_SCALE,
+  FORCED_COLORS_QUERY,
+  FULL_MOTION_QUERY,
+  HOVER_POINTER_QUERY,
+} from '../../../theme/constants.ts';
 import { fingerTarget } from '../../../theme/targets.styled.ts';
 import { CARD_PERSPECTIVE_PX, LIKE_ANIMATION_MS } from './constants.ts';
 
@@ -324,7 +329,6 @@ export const LikeButton = styled.button<{ $liked: boolean; $animating: boolean }
     &:hover {
       border-color: ${th.color('accent-a70')};
       background: ${th.color('accent-backdrop')};
-      transform: scale(1.06);
 
       > svg {
         stroke: ${th.color('accent-foreground')};
@@ -332,8 +336,18 @@ export const LikeButton = styled.button<{ $liked: boolean; $animating: boolean }
     }
   }
 
-  &:active {
-    transform: scale(0.93);
+  /* Not with reduced motion, where the instant transition would make it jump. A pressed button is
+     hovered too: the rule of :active comes last to win */
+  @media ${HOVER_POINTER_QUERY} and ${FULL_MOTION_QUERY} {
+    &:hover {
+      transform: scale(${CONTROL_HOVER_SCALE});
+    }
+  }
+
+  @media ${FULL_MOTION_QUERY} {
+    &:active {
+      transform: scale(0.93);
+    }
   }
 
   /* Forced colors mode turns the background of the button into the color of the page, and keeps

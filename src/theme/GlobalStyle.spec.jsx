@@ -5,7 +5,13 @@ import { screen } from '@testing-library/react';
 import styled, { ThemeProvider } from '@xstyled/styled-components';
 
 import { listStyleRules, serializeCssValue } from '../styleTestUtils.js';
-import { FORCED_COLORS_QUERY, HOVER_POINTER_QUERY, REDUCED_MOTION_QUERY } from './constants.ts';
+import {
+  CONTROL_HOVER_SCALE,
+  FORCED_COLORS_QUERY,
+  FULL_MOTION_QUERY,
+  HOVER_POINTER_QUERY,
+  REDUCED_MOTION_QUERY,
+} from './constants.ts';
 import { GlobalStyle } from './GlobalStyle.ts';
 import { theme } from './theme.ts';
 
@@ -155,19 +161,38 @@ describe('GlobalStyle', () => {
 
     const [buttonRule] = findRulesSelecting({
       selectors: ['button:hover'],
-      media: HOVER_POINTER_QUERY,
+      media: `${HOVER_POINTER_QUERY} and ${FULL_MOTION_QUERY}`,
     });
     const [linkRule] = findRulesSelecting({ selectors: ['a:hover'], media: tabletHoverQuery });
-    expect(buttonRule.style.getPropertyValue('transform')).toBe('scale(1.06)');
+    expect(buttonRule.style.getPropertyValue('transform')).toBe(`scale(${CONTROL_HOVER_SCALE})`);
     expect(linkRule.style.getPropertyValue('color')).toBe(
       serializeCssValue({ property: 'color', value: theme.colors['accent-foreground'] }),
     );
     // A touch screen keeps the hover style of the last control tapped
     const isHoverRuleOfEveryPointer = ({ media, rule }) => {
-      const isForHoverPointers = media.endsWith(HOVER_POINTER_QUERY);
+      const isForHoverPointers = media.includes(HOVER_POINTER_QUERY);
       return !isForHoverPointers && Boolean(rule.selectorText?.includes(':hover'));
     };
     expect(listStyleRules().filter(isHoverRuleOfEveryPointer)).toEqual([]);
+  });
+
+  // The reduced motion rule makes the transition instant: the button would jump
+  it('grows a hovered button only without reduced motion, while its pointer cursor stays', () => {
+    renderWithGlobalStyle();
+    const ruleDeclares = property => entry =>
+      entry.rule.selectorText === 'button:hover' &&
+      entry.rule.style.getPropertyValue(property) !== '';
+
+    expect(
+      listStyleRules()
+        .filter(ruleDeclares('transform'))
+        .map(({ media }) => media),
+    ).toEqual([`${HOVER_POINTER_QUERY} and ${FULL_MOTION_QUERY}`]);
+    expect(
+      listStyleRules()
+        .filter(ruleDeclares('cursor'))
+        .map(({ media }) => media),
+    ).toEqual([HOVER_POINTER_QUERY]);
   });
 
   it('draws the icons in the foreground color, and in the text color in forced colors mode', () => {
