@@ -47,7 +47,7 @@ interface ProjectCardBox extends CardBox {
 interface CardListLayout {
   /** Box of the list, the part of it that the screen shows. */
   list: CardBox;
-  /** Box of each card, in the order of the page. */
+  /** Box of each card shown, in the order of the page. */
   cards: ProjectCardBox[];
   /** Width of everything the list holds, wider than the list when it scrolls sideways. */
   scrollWidth: number;
@@ -57,7 +57,8 @@ interface CardListLayout {
 
 /**
  * Measures the list of cards of a section, in page coordinates, so that scrolling to a button
- * moves nothing.
+ * moves nothing. Only the cards shown count: those out of the page of the row stay in the list,
+ * hidden.
  */
 const measureCardList = (list: Locator): Promise<CardListLayout> =>
   list.evaluate(listElement => {
@@ -67,7 +68,8 @@ const measureCardList = (list: Locator): Promise<CardListLayout> =>
       width,
       height,
     });
-    const cards = [...listElement.children].map(card => ({
+    const shownCards = [...listElement.children].filter(card => card.checkVisibility());
+    const cards = shownCards.map(card => ({
       ...toPageBox(card.getBoundingClientRect()),
       imageUrl: card.querySelector('img')?.getAttribute('src') ?? '',
     }));
@@ -111,7 +113,8 @@ const openSection = async ({ page, title, language = DEFAULT_LANGUAGE }: OpenSec
   });
   // The list of cards, before the list of tools of each card
   const list = section.getByRole('list').first();
-  const cards = list.locator(':scope > li');
+  // The cards shown: those out of the page of the row stay in the list, hidden
+  const cards = list.locator(':scope > li:visible');
   // Measured before the chunk of the page is loaded, there would be no card to measure
   await expect(cards.first()).toBeVisible();
   // The web fonts that replace the fallback font change where the text of a card wraps

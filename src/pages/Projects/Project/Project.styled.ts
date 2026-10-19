@@ -7,6 +7,7 @@ import {
   FORCED_COLORS_QUERY,
   FULL_MOTION_QUERY,
   HOVER_POINTER_QUERY,
+  NO_SCRIPT_QUERY,
 } from '../../../theme/constants.ts';
 import { fingerTarget } from '../../../theme/targets.styled.ts';
 import { CARD_PERSPECTIVE_PX, LIKE_ANIMATION_MS } from './constants.ts';
@@ -70,6 +71,11 @@ export const SectionControls = styled.div`
   flex-direction: row;
   align-items: center;
   gap: ${th.space(8)};
+
+  /* Its buttons do nothing without JavaScript, where the list shows every card */
+  @media ${NO_SCRIPT_QUERY} {
+    display: none;
+  }
 `;
 
 /* Lower than a finger target */
@@ -145,6 +151,12 @@ export const IconBtn = styled.button`
   }
 `;
 
+// Cards of a list wrapped onto as many rows as they need, rather than in a row that scrolls
+const wrappedRows = css`
+  flex-wrap: wrap;
+  row-gap: ${th.space(5)};
+`;
+
 export const ProjectGrid = styled(List)<{ $displayAll: boolean }>`
   display: flex;
   flex-direction: row;
@@ -165,15 +177,15 @@ export const ProjectGrid = styled(List)<{ $displayAll: boolean }>`
   }
 
   /* "Show all" keeps the cards of the row and wraps them onto as many rows as they need */
-  ${props =>
-    props.$displayAll &&
-    css`
-      flex-wrap: wrap;
-      row-gap: ${th.space(5)};
-    `}
+  ${props => props.$displayAll && wrappedRows}
+
+  /* Without JavaScript, the list shows every card as "Show all" does, since its buttons need it */
+  @media ${NO_SCRIPT_QUERY} {
+    ${wrappedRows}
+  }
 `;
 
-export const ProjectItem = styled.li`
+export const ProjectItem = styled.li<{ $offPage: boolean }>`
   /* Box covered by the stretched link of the title */
   position: relative;
   display: flex;
@@ -206,6 +218,19 @@ export const ProjectItem = styled.li`
   @media (min-width: ${th('screens.three-project-columns')}) {
     flex: 0 0 calc(33.333% - 2 * ${cardMargin});
   }
+
+  /* A card out of the page of the row stays in the HTML of the build, for the visitors and the
+     crawlers without JavaScript, but shows only there: hidden from the first paint, its lazy
+     thumbnail downloads nothing */
+  ${props =>
+    props.$offPage &&
+    css`
+      display: none;
+
+      @media ${NO_SCRIPT_QUERY} {
+        display: flex;
+      }
+    `}
 `;
 
 export const ImageContainer = styled.header`

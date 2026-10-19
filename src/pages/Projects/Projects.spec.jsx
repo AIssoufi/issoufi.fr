@@ -10,11 +10,7 @@ import { declaredStyle, serializeCssValue } from '../../styleTestUtils.js';
 import { getPage } from '../../utils/pages.ts';
 import { readPublicWebpSize } from '../../publicFileTestUtils.ts';
 import { INTERACTIVE_SELECTOR, readBackgroundImages } from '../testUtils.js';
-import {
-  MAX_THUMBNAIL_ASPECT_RATIO,
-  ROW_CARD_COUNT,
-  THUMBNAIL_FILE_WIDTHS_PX,
-} from './Project/constants.ts';
+import { MAX_THUMBNAIL_ASPECT_RATIO, THUMBNAIL_FILE_WIDTHS_PX } from './Project/constants.ts';
 import { getThumbnailSources } from './Project/utils.ts';
 import freelanceProjectsData from './.data/freelance-projects.json';
 import personalProjectsData from './.data/personal-projects.json';
@@ -185,8 +181,8 @@ describe('Projects', () => {
     expect(firstThumbnail.closest('li')).toHaveTextContent('Jeu d’échecs');
     expect(firstThumbnail).toHaveAttribute('loading', 'eager');
     expect(firstThumbnail).toHaveAttribute('fetchpriority', 'high');
-    // The first page of the personal section, then of the freelance one
-    expect(otherThumbnails).toHaveLength(2 * ROW_CARD_COUNT - 1);
+    // Every card of both sections, those out of their first page hidden, which download nothing
+    expect(otherThumbnails).toHaveLength(allProjects.length - 1);
     otherThumbnails.forEach(thumbnail => {
       expect(thumbnail).toHaveAttribute('loading', 'lazy');
       expect(thumbnail).toHaveAttribute('fetchpriority', 'low');
