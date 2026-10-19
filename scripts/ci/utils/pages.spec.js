@@ -12,7 +12,6 @@ import {
   compareFile,
   comparePage,
   getFileChecks,
-  getMediaType,
   getPageChecks,
   isPageCheck,
   readPageHead,
@@ -295,7 +294,7 @@ describe('getFileChecks', () => {
     );
   });
 
-  it('checks every file of the build that the site serves as built', () => {
+  it('checks the web app manifest of every language that the build writes', () => {
     expect(
       getFileChecks(getWebManifestFiles().map(({ fileName }) => fileName)).map(({ file }) => file),
     ).toEqual(getWebManifestFiles().map(({ fileName }) => fileName));
@@ -437,21 +436,6 @@ describe('compareFile', () => {
         '/en/manifest.webmanifest: content differs from en/manifest.webmanifest of the build',
       ]);
     });
-  });
-});
-
-describe('getMediaType', () => {
-  it.each([
-    ['application/manifest+json', 'application/manifest+json'],
-    ['application/manifest+json; charset=utf-8', 'application/manifest+json'],
-    [' Text/HTML ;charset=UTF-8', 'text/html'],
-    ['text/plain;\n charset=utf-8', 'text/plain'],
-  ])('reads %j as %j', (contentType, mediaType) => {
-    expect(getMediaType(contentType)).toBe(mediaType);
-  });
-
-  it.each([undefined, null, '', 42, {}])('gives an empty media type for %o', contentType => {
-    expect(getMediaType(contentType)).toBe('');
   });
 });
 

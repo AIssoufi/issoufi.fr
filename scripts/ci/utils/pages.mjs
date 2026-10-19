@@ -7,7 +7,6 @@ import {
   HTML_FILE_PATTERN,
   HTTP_NOT_FOUND,
   HTTP_OK,
-  MEDIA_TYPE_PARAMETERS_PATTERN,
   MISSING_PAGE_ROUTE,
   NOT_FOUND_PAGE_FILE,
   PATH_SEPARATOR,
@@ -17,6 +16,7 @@ import {
   WINDOWS_PATH_SEPARATOR_PATTERN,
 } from '../constants.mjs';
 import { toList } from './lists.mjs';
+import { getMediaType } from './media-types.mjs';
 
 /**
  * A page or another file of the build to request on the deployed site.
@@ -168,20 +168,6 @@ export const getFileChecks = fileNames => {
       })),
   );
 };
-
-/**
- * Reads the media type of a `Content-Type` header: its value without its parameters, in lower case,
- * as media types are compared.
- * @param {unknown} contentType - Value of the header, e.g. `Application/JSON; charset=utf-8`.
- * @returns {string} The media type, e.g. `application/json`, or `''` for a missing header or a
- * value that is not a string.
- * @example
- * getMediaType('application/manifest+json; charset=utf-8'); // 'application/manifest+json'
- */
-export const getMediaType = contentType =>
-  typeof contentType === 'string'
-    ? contentType.replace(MEDIA_TYPE_PARAMETERS_PATTERN, '').trim().toLowerCase()
-    : '';
 
 /**
  * Title and canonical URL of an HTML page, read by {@link readPageHead}.
