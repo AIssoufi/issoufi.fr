@@ -1,7 +1,7 @@
 import type { ComponentType, SVGProps } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { GITHUB_PROFILE_URL, LINKEDIN_PROFILE_URL } from './constants';
+import { GITHUB_PROFILE_URL, LINKEDIN_PROFILE_URL } from '../../../../constants/profiles';
 import GitHubIcon from './icons/github.svg?react';
 import LinkedInIcon from './icons/linkedin.svg?react';
 import { Link, Row } from './ProfileLinks.styled';

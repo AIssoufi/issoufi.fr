@@ -4,10 +4,7 @@ import { resolve } from 'node:path';
 import { build, normalizePath, type Plugin, resolveConfig, type Rollup } from 'vite';
 
 import { isGoogleHost } from './e2e/utils';
-import {
-  GITHUB_PROFILE_URL,
-  LINKEDIN_PROFILE_URL,
-} from './src/App/Header/NavMenu/ProfileLinks/constants';
+import { GITHUB_PROFILE_URL, LINKEDIN_PROFILE_URL } from './src/constants/profiles';
 import { LANGUAGES } from './src/i18n/constants';
 import { en } from './src/i18n/en';
 import { fr } from './src/i18n/fr';

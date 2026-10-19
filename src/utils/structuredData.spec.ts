@@ -1,7 +1,4 @@
-import {
-  GITHUB_PROFILE_URL,
-  LINKEDIN_PROFILE_URL,
-} from '../App/Header/NavMenu/ProfileLinks/constants';
+import { GITHUB_PROFILE_URL, LINKEDIN_PROFILE_URL } from '../constants/profiles';
 import { LANGUAGES } from '../i18n/constants';
 import type { Language } from '../i18n/types';
 import { EXPERIENCES_PAGE, getPageFiles, getPageUrl, HOME_PAGE, PROJECTS_PAGE } from './pages';
