@@ -81,6 +81,29 @@ export const declaredStyle = ({ element, property, media = '', pseudo = '' } = {
 };
 
 /**
+ * Conditions of the media queries in which the generated CSS declares a property on one of the
+ * element's classes, or on one of its pseudo-elements, states or children, as
+ * {@link declaredStyle} reads them. Lets a test check that an effect applies under one condition
+ * and in no other, such as a hover scale kept from the visitors who reduce motion.
+ *
+ * @param {object} params
+ * @param {Element} [params.element] - Element whose classes hold the declarations.
+ * @param {string} [params.property] - CSS property, such as `transform`.
+ * @param {string} [params.pseudo] - What follows the class in the selector, such as `:hover`.
+ * @returns {string[]} Each condition once, in the order of the document; `''` stands for the rules
+ * outside any media query. Empty when no rule declares it, when the element is missing, or when
+ * `property` or `pseudo` is not a string.
+ *
+ * @example
+ * mediaDeclaringStyle({ element: button, property: 'transform', pseudo: ':hover' });
+ * // ['(hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference)']
+ */
+export const mediaDeclaringStyle = ({ element, property, pseudo = '' } = {}) => {
+  const allMedia = new Set(listStyleRules().map(({ media }) => media));
+  return [...allMedia].filter(media => declaredStyle({ element, property, pseudo, media }) !== '');
+};
+
+/**
  * A CSS value as the CSSOM serializes it, so that a test can compare it with what
  * {@link declaredStyle} returns: a length of `0` becomes `0px`, and a `calc()` whose terms share a
  * unit is reduced to its result.

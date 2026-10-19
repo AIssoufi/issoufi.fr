@@ -1,7 +1,7 @@
 import { render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router';
 
-import { declaredStyle, listStyleRules, serializeCssValue } from '../../../styleTestUtils.js';
+import { declaredStyle, mediaDeclaringStyle, serializeCssValue } from '../../../styleTestUtils.js';
 import { theme } from '../../../theme/index.ts';
 import { FULL_MOTION_QUERY, HOVER_POINTER_QUERY } from '../../../theme/constants.ts';
 import { LOGO_HOVER_SCALE, LOGO_OUTLINE } from './constants.ts';
@@ -156,10 +156,11 @@ describe('Logo', () => {
     // GlobalStyle makes the transition instant with reduced motion: the logo would jump
     it('grows in no other media query, so not with reduced motion', () => {
       renderAt();
-      const allMedia = new Set(listStyleRules().map(({ media }) => media));
-      const scalingMedia = [...allMedia].filter(
-        media => hoverStyle({ property: 'transform', media }) !== '',
-      );
+      const scalingMedia = mediaDeclaringStyle({
+        element: getLink().parentElement,
+        property: 'transform',
+        pseudo: ' > a:hover',
+      });
 
       expect(scalingMedia).toEqual([fullMotionHoverQuery]);
     });
