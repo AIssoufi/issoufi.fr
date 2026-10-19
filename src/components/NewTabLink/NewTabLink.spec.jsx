@@ -12,13 +12,21 @@ describe('NewTabLink', () => {
     await act(() => i18n.changeLanguage('fr'));
   });
 
-  it('renders a link to a new tab holding the notice alone, without any props', () => {
+  it('renders nothing without any props', () => {
     const { container } = render(<NewTabLink />);
 
-    const anchor = container.querySelector('a');
-    expect(anchor).toHaveAttribute('target', '_blank');
-    expect(anchor).toHaveTextContent('(nouvel onglet)');
+    expect(container).toBeEmptyDOMElement();
   });
+
+  it.each([undefined, null, '', '   ', 42])(
+    'renders its content alone, with no link nor notice, for the href %j',
+    href => {
+      const { container } = render(<NewTabLink href={href}>GitHub</NewTabLink>);
+
+      expect(container.querySelector('a')).not.toBeInTheDocument();
+      expect(container).toHaveTextContent(/^GitHub$/);
+    },
+  );
 
   it('names the link after its content, then tells that it opens a new tab', () => {
     render(<NewTabLink href={URL}>GitHub</NewTabLink>);
