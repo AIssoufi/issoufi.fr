@@ -154,7 +154,7 @@ describe('isOnControl', () => {
   });
 
   it.each([
-    ['a paragraph', '<p>Texte</p>', 'p'],
+    ['a paragraph', '<p>Text</p>', 'p'],
     ['a word of the title', '<h1><span>UX</span></h1>', 'span'],
   ])('is false on %s', (_case, html, selector) => {
     document.body.innerHTML = html;

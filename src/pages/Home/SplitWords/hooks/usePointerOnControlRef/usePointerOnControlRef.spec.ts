@@ -5,7 +5,7 @@ import { usePointerOnControlRef } from './usePointerOnControlRef';
 /** Adds a link holding a word, a button and a plain paragraph to the document. */
 const renderControls = () => {
   document.body.innerHTML =
-    '<a href="/projects"><span>Voir mes projets</span></a><button type="button">Menu</button><p>Texte</p>';
+    '<a href="/projects"><span>Voir mes projets</span></a><button type="button">Menu</button><p>Text</p>';
   return {
     link: document.querySelector('a') as Element,
     linkText: document.querySelector('a span') as Element,

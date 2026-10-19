@@ -1,6 +1,7 @@
 import { fireEvent, render, screen } from '@testing-library/react';
 
 import { stubMatchMedia } from '../../../mediaQueryTestUtils';
+import { RETURN_DELAY_MS } from './constants';
 import { SplitWords } from './SplitWords';
 
 const FRAME_MS = 16;
@@ -11,6 +12,17 @@ const RESTING_TRANSFORM = 'translate(0px, 0px) rotate(0deg)';
 const PUSHED_LEFT_TRANSFORM = /^translate\(-[\d.]+px, 0px\) rotate\(0deg\)$/;
 
 const getWords = container => [...container.querySelectorAll('span')];
+
+/** Distance in pixels of a word from its place, read from the transform the animation writes. */
+const getShift = word => {
+  const [, x, y] = word.style.transform.match(/translate\((\S+)px, (\S+)px\)/);
+  return Math.hypot(Number(x), Number(y));
+};
+
+/** Largest distance in pixels of a word back in its place once its spring has settled. */
+const SETTLED_SHIFT_PX = 0.5;
+/** Time for a spring to settle once it pulls a word back, in milliseconds. */
+const SPRING_SETTLING_MS = 2000;
 
 describe('SplitWords', () => {
   it('renders nothing without children', () => {
@@ -84,6 +96,28 @@ describe('SplitWords', () => {
         expect(word.style.transform).toMatch(PUSHED_LEFT_TRANSFORM);
       },
     );
+
+    it('puts back a pushed word once the mouse moves onto a link', () => {
+      // performance.now() dates each push, after which the spring waits RETURN_DELAY_MS
+      vi.useFakeTimers({
+        toFake: ['requestAnimationFrame', 'cancelAnimationFrame', 'performance'],
+      });
+      const { container } = render(
+        <>
+          <SplitWords>Developer</SplitWords>
+          <a href="/projects">Voir mes projets</a>
+        </>,
+      );
+      const [word] = getWords(container);
+      fireEvent.mouseMove(window, PUSHING_POINTER);
+      vi.advanceTimersByTime(FRAME_MS);
+      expect(word.style.transform).toMatch(PUSHED_LEFT_TRANSFORM);
+
+      fireEvent.mouseMove(screen.getByRole('link'), PUSHING_POINTER);
+      vi.advanceTimersByTime(RETURN_DELAY_MS + SPRING_SETTLING_MS);
+
+      expect(getShift(word)).toBeLessThan(SETTLED_SHIFT_PX);
+    });
 
     it('keeps animating the remaining words after some are removed', () => {
       const { container, rerender } = render(

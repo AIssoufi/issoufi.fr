@@ -1,4 +1,4 @@
-import { type MutableRefObject, useEffect, useRef } from 'react';
+import { type RefObject, useEffect, useRef } from 'react';
 
 import { isOnControl } from '../../utils';
 
@@ -11,7 +11,7 @@ import { isOnControl } from '../../utils';
  * @returns A ref whose `current` is `true` while the mouse is over a control, `false` before the
  * first move.
  */
-export function usePointerOnControlRef(): MutableRefObject<boolean> {
+export function usePointerOnControlRef(): RefObject<boolean> {
   const isOnControlRef = useRef(false);
 
   useEffect(() => {
