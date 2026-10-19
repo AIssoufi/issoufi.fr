@@ -1,8 +1,5 @@
 import styled, { th } from '@xstyled/styled-components';
 
-import { HOVER_POINTER_QUERY } from '../../theme/constants.ts';
-import { fingerTarget } from '../../theme/targets.styled.ts';
-
 export const Container = styled.header`
   display: flex;
   flex-direction: row;
@@ -46,32 +43,6 @@ export const Brand = styled.div`
   flex-direction: row;
   align-items: baseline;
   gap: ${th.space(8)};
-`;
-
-export const Logo = styled.div`
-  font-family: ${th.font('display')};
-  font-size: ${th.fontSize(34)};
-  transform: scale(1);
-  transition-property: transform, color;
-  transition-duration: ${th.duration('base')};
-  letter-spacing: ${th.letterSpacing(2)};
-
-  /* Narrower than a finger target */
-  > a {
-    position: relative;
-    ${fingerTarget}
-  }
-
-  @media ${HOVER_POINTER_QUERY} {
-    :hover {
-      transform: scale(1.08);
-      color: ${th.color('accent-foreground')};
-    }
-  }
-
-  @media (max-height: ${th('screenHeights.short')}) {
-    font-size: ${th.fontSize(28)};
-  }
 `;
 
 export const BuildVersion = styled.span`

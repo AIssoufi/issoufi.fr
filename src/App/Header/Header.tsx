@@ -1,7 +1,6 @@
 import { useId, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import LocalizedLink from '../../components/LocalizedLink/index.ts';
 import { useMediaQuery } from '../../hooks/useMediaQuery/index.ts';
 import { useUrlLanguage } from '../../hooks/useUrlLanguage/index.ts';
 import { localizePath } from '../../i18n/utils.ts';
@@ -11,6 +10,7 @@ import { useEscapeKey } from './hooks/useEscapeKey/index.ts';
 import { useInertOutside } from './hooks/useInertOutside/index.ts';
 import { useScrollLock } from './hooks/useScrollLock/index.ts';
 import LangToggle from './LangToggle/index.ts';
+import Logo from './Logo/index.ts';
 import NavMenu from './NavMenu/index.ts';
 import { formatVersion } from './utils.ts';
 
@@ -20,7 +20,6 @@ import {
   BuildVersion,
   Container,
   FloatingControls,
-  Logo,
   Menu,
 } from './Header.styled.ts';
 
@@ -90,9 +89,7 @@ const Header = ({ testId, version = __APP_VERSION__ }: HeaderProps) => {
   return (
     <Container data-testid={testId}>
       <Brand>
-        <Logo>
-          <LocalizedLink to="/">AI</LocalizedLink>
-        </Logo>
+        <Logo />
         {showsVersion && (
           <BuildVersion>{t('header.buildVersion', { version: versionText })}</BuildVersion>
         )}
