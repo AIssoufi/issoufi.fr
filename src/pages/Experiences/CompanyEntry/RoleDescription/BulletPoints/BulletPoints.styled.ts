@@ -27,4 +27,12 @@ export const BulletItem = styled.li`
     font-size: ${th.fontSize(15)};
     line-height: ${th.lineHeight(145)};
   }
+
+  @media (min-width: ${th('screens.wide')}) {
+    font-size: ${th.fontSize(16)};
+
+    &::before {
+      font-size: ${th.fontSize(17)};
+    }
+  }
 `;

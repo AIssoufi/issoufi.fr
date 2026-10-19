@@ -17,7 +17,7 @@ export const Column = styled.div`
     /* dot on the timeline line */
     &::after {
       ${timelineDot}
-      right: ${th.space(-8)}; /* right edge at 90px + 8px, so centered at 90px */
+      right: ${th.space(-8)}; /* right edge 8px past the column, so centered on its right edge */
       top: ${th.space(5)};
     }
   }
@@ -30,5 +30,9 @@ export const RoleColumn = styled(Column)`
     font-size: ${th.fontSize(12)};
     letter-spacing: ${th.letterSpacing(2)};
     white-space: nowrap;
+  }
+
+  @media (min-width: ${th('screens.wide')}) {
+    font-size: ${th.fontSize(14)};
   }
 `;

@@ -5,10 +5,10 @@ import { localizePath } from '../src/i18n/utils';
 import {
   MAX_DOT_OFFSET_PX,
   SCREEN_HEIGHT_PX,
-  SCREEN_WIDTHS_PX,
   TIMELINE_DOT_ATTRIBUTE,
   TIMELINE_LINE_ATTRIBUTE,
   TIMELINE_ROUTE,
+  TIMELINE_SCREEN_WIDTHS_PX,
 } from './constants';
 import { getMarkedPseudoElementQuads } from './pseudo-elements';
 import { getCenterDistanceX } from './utils';
@@ -17,7 +17,7 @@ import { getCenterDistanceX } from './utils';
 // border and the box-sizing of the dots: jsdom computes no layout, so only a real browser sees a
 // dot off the line
 for (const language of LANGUAGES) {
-  for (const width of SCREEN_WIDTHS_PX) {
+  for (const width of TIMELINE_SCREEN_WIDTHS_PX) {
     test.describe(`in ${language}, on a ${width} px wide screen`, () => {
       test.use({ viewport: { width, height: SCREEN_HEIGHT_PX } });
 

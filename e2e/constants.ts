@@ -89,6 +89,13 @@ export const PSEUDO_ELEMENT_TYPES = ['before', 'after'] as const;
 export const MAX_DOT_OFFSET_PX = 0.5;
 
 /**
+ * Screen widths, in pixels, at which the dots of the timeline must be centered on its line: those
+ * of {@link SCREEN_WIDTHS_PX}, then a desktop screen past the `wide` breakpoint (1920), where the
+ * period column, along whose right edge the line runs, is wider.
+ */
+export const TIMELINE_SCREEN_WIDTHS_PX = [...SCREEN_WIDTHS_PX, 1920] as const;
+
+/**
  * Screen widths, in pixels, at which the browser test of the Experiences page checks what screen
  * readers read: the narrowest phones still in use (320), two common phone widths (375 and 414)
  * and a tablet in portrait (768), below the tablet breakpoint, where the header of each card shows
@@ -479,7 +486,8 @@ export const TEXT_SIZE_SCREEN_WIDTHS_PX = [320, 375, 768, 1440, 1920, 2560] as c
 /**
  * Screen widths, in pixels, at which no line of text of the Experiences page may hold more than
  * {@link MAX_LINE_CHARACTERS}: a laptop (1440), where the cards of the timeline reach their largest
- * width, then wider screens (1920 and 2560), where the content of the page keeps that width.
+ * width below the `wide` breakpoint, then wider screens (1920 and 2560), past it, where the cards
+ * and their texts are larger.
  */
 export const LINE_LENGTH_SCREEN_WIDTHS_PX = [1440, 1920, 2560] as const;
 

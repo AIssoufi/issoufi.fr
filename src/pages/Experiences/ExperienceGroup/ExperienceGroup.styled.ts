@@ -84,6 +84,10 @@ export const RoleDetails = styled.div`
   line-height: ${th.lineHeight(160)};
   margin-top: ${th.space(10)};
   ${cardDetails}
+
+  @media (min-width: ${th('screens.wide')}) {
+    font-size: ${th.fontSize(16)};
+  }
 `;
 
 export const RoleTechnologies = styled(Technologies)`
