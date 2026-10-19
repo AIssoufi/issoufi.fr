@@ -16,6 +16,9 @@ import {
  */
 const MAX_SHORT_NAME_CHARACTERS = 12;
 
+/** Years of experience that the manifests of the tests give, unless a test says otherwise. */
+const EXPERIENCE_YEARS = 8;
+
 /** Parameters of {@link readManifest}. */
 interface ReadManifestParams {
   /** Language of the manifest. */
@@ -25,7 +28,7 @@ interface ReadManifestParams {
 }
 
 /** Reads the manifest of a language as an object. */
-const readManifest = ({ language, years = 8 }: ReadManifestParams) =>
+const readManifest = ({ language, years = EXPERIENCE_YEARS }: ReadManifestParams) =>
   JSON.parse(renderWebManifest({ language, years }));
 
 describe('getWebManifestUrl', () => {
@@ -157,13 +160,13 @@ describe('renderWebManifest', () => {
   });
 
   it('ends with a line break', () => {
-    expect(renderWebManifest({ language: 'fr', years: 8 })).toMatch(/\}\n$/);
+    expect(renderWebManifest({ language: 'fr', years: EXPERIENCE_YEARS })).toMatch(/\}\n$/);
   });
 
   it.each([undefined, 'de' as Language])(
     'describes the site in the default language for the language %o',
     language => {
-      expect(JSON.parse(renderWebManifest({ language, years: 8 }))).toEqual(
+      expect(JSON.parse(renderWebManifest({ language, years: EXPERIENCE_YEARS }))).toEqual(
         readManifest({ language: 'fr' }),
       );
     },
