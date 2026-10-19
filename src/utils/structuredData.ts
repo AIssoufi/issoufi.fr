@@ -189,14 +189,14 @@ export function getStructuredData({ page, language }: GetStructuredDataParams): 
   };
 }
 
-/** Writes a character as the `\uXXXX` escape of JSON, e.g. `<` as `<`. */
+/** Writes a character as the `\uXXXX` escape of JSON, e.g. `<` as `\u003c`. */
 const toUnicodeEscape = (character: string) =>
   `\\u${character.charCodeAt(0).toString(HEXADECIMAL_RADIX).padStart(UNICODE_ESCAPE_DIGITS, '0')}`;
 
 /**
  * Writes structured data as a JSON text that a script element of an HTML page can hold as it is:
- * on one line, with `<`, `>` and `&` escaped (`<`, `>`, `&`), so that a text such
- * as `</script>` cannot end the element, and the JSON stays the same once parsed.
+ * on one line, with `<`, `>` and `&` escaped (`\u003c`, `\u003e`, `\u0026`), so that a text
+ * such as `</script>` cannot end the element, and the JSON stays the same once parsed.
  *
  * @param data - Structured data of a page (see {@link getStructuredData}).
  *
