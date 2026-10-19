@@ -1,5 +1,10 @@
 // @vitest-environment node
-import { findPdfProblems, readPdf } from './pdf.mjs';
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
+
+import { CV_URLS } from '../../../src/App/Header/NavMenu/CvLink/constants';
+import { PUBLIC_DIR } from '../../utils/constants.mjs';
+import { findPdfProblems, isSamePdfApartFromDates, readPdf } from './pdf.mjs';
 
 /**
  * Writes a small PDF file, one page per entry, each with its text in Helvetica and, when it has a
@@ -185,5 +190,89 @@ describe('findPdfProblems', () => {
       'it has 3 pages, out of 1 to 2',
       'the link mailto:adam@example.com is missing',
     ]);
+  });
+});
+
+describe('isSamePdfApartFromDates', () => {
+  /** Writes the bytes of a PDF whose information dictionary holds these entries. */
+  const encodeInfo = info => new TextEncoder().encode(`%PDF-1.4\n1 0 obj\n<< ${info} >>\nendobj\n`);
+  const INFO =
+    "/Creator (Chromium) /CreationDate (D:20261018172454+00'00') /ModDate (D:20261018172454+00'00')";
+  const PDF = encodeInfo(INFO);
+
+  it('finds a PDF the same as itself', () => {
+    expect(isSamePdfApartFromDates({ pdf: PDF, otherPdf: PDF.slice() })).toBe(true);
+  });
+
+  // A real PDF whose date changes length also moves the offsets of its cross-reference table,
+  // which then differ: that file is written again
+  it('ignores the creation and the modification dates', () => {
+    const otherPdf = encodeInfo(
+      "/Creator (Chromium) /CreationDate (D:20261018234147+00'00') /ModDate (D:20261019034028Z)",
+    );
+
+    expect(isSamePdfApartFromDates({ pdf: PDF, otherPdf })).toBe(true);
+  });
+
+  it('ignores a date written right after its key', () => {
+    const pdf = encodeInfo("/CreationDate(D:20261018172454+00'00')/ModDate(D:20261018172454Z)");
+    const otherPdf = encodeInfo(
+      "/CreationDate(D:20261019034028+00'00')/ModDate(D:20261019034028Z)",
+    );
+
+    expect(isSamePdfApartFromDates({ pdf, otherPdf })).toBe(true);
+  });
+
+  it('ignores a date that holds an escaped parenthesis', () => {
+    const otherPdf = encodeInfo(
+      "/Creator (Chromium) /CreationDate (D:2026\\)1018) /ModDate (D:20261018172454+00'00')",
+    );
+
+    expect(isSamePdfApartFromDates({ pdf: PDF, otherPdf })).toBe(true);
+  });
+
+  it('finds a PDF with another byte than its dates different', () => {
+    const otherPdf = encodeInfo(INFO.replace('Chromium', 'Chromiun'));
+
+    expect(isSamePdfApartFromDates({ pdf: PDF, otherPdf })).toBe(false);
+  });
+
+  it('finds a PDF without its dates different from one with them', () => {
+    const otherPdf = encodeInfo('/Creator (Chromium)');
+
+    expect(isSamePdfApartFromDates({ pdf: PDF, otherPdf })).toBe(false);
+  });
+
+  it('compares PDFs without dates byte for byte', () => {
+    const pdf = encodeInfo('/Creator (Chromium)');
+
+    expect(isSamePdfApartFromDates({ pdf, otherPdf: pdf.slice() })).toBe(true);
+    expect(isSamePdfApartFromDates({ pdf, otherPdf: encodeInfo('/Creator (Skia)') })).toBe(false);
+  });
+
+  it('compares empty files', () => {
+    expect(isSamePdfApartFromDates({ pdf: new Uint8Array(), otherPdf: new Uint8Array() })).toBe(
+      true,
+    );
+    expect(isSamePdfApartFromDates({ pdf: PDF, otherPdf: new Uint8Array() })).toBe(false);
+  });
+
+  it('finds no file the same as a PDF', () => {
+    expect(isSamePdfApartFromDates({ pdf: PDF })).toBe(false);
+    expect(isSamePdfApartFromDates({ pdf: PDF, otherPdf: undefined })).toBe(false);
+  });
+
+  it.each(Object.values(CV_URLS))('ignores the dates of %s only', url => {
+    const pdf = readFileSync(join(PUBLIC_DIR, url));
+    const redatedText = pdf
+      .toString('latin1')
+      .replace(/(\/(?:CreationDate|ModDate) \(D:)\d{14}/g, '$119700101000000');
+    const redatedPdf = Buffer.from(redatedText, 'latin1');
+    // The last byte of the file, a line feed, written as another one
+    const changedPdf = Buffer.concat([pdf.subarray(0, -1), Buffer.from(' ')]);
+
+    expect(redatedPdf.equals(pdf)).toBe(false);
+    expect(isSamePdfApartFromDates({ pdf, otherPdf: redatedPdf })).toBe(true);
+    expect(isSamePdfApartFromDates({ pdf, otherPdf: changedPdf })).toBe(false);
   });
 });
