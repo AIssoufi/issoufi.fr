@@ -161,15 +161,7 @@ jobs:
         with:
           name: dist
           path: dist
-      # Only the browser of the Playwright version in the lockfile is cached: the system libraries
-      # it needs are installed on every run, and an installed browser is not downloaded again
-      - id: playwright
-        run: echo "version=$(pnpm exec playwright --version | cut -d ' ' -f 2)" >> "$GITHUB_OUTPUT"
-      - uses: actions/cache@v6
-        with:
-          path: ~/.cache/ms-playwright
-          key: playwright-${{ runner.os }}-${{ steps.playwright.outputs.version }}
-      - run: pnpm exec playwright install --with-deps --only-shell chromium
+      - uses: ./.github/actions/playwright
       # Playwright splits the tests in file order into slices of the same number of tests
       - run: pnpm test:browser --shard="$SHARD"
         env:
