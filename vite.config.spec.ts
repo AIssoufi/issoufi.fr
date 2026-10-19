@@ -1,7 +1,7 @@
 // @vitest-environment node
 import { existsSync } from 'node:fs';
 import { resolve } from 'node:path';
-import { build, normalizePath, type Plugin, resolveConfig, type Rollup } from 'vite';
+import { build, normalizePath, type Plugin, resolveConfig, type Rolldown } from 'vite';
 
 import { isGoogleHost } from './e2e/utils';
 import { GITHUB_PROFILE_URL, LINKEDIN_PROFILE_URL } from './src/constants/profiles';
@@ -26,10 +26,13 @@ import { getWebManifestFiles, getWebManifestUrl, renderWebManifest } from './src
 import {
   ASSETS_DIR,
   HEADERS_FILE_NAME,
+  NODE_MODULES_PATTERN,
   PAGE_ENTRY_FILE,
   PAGES_DIR,
   PAGES_PROJECT_HOST,
   SECURITY_HEADERS,
+  SHARED_CHUNK_NAME,
+  VENDOR_CHUNK_NAME,
 } from './vite/constants';
 import { renderHeaderRules } from './vite/utils';
 
@@ -47,7 +50,7 @@ const LINK_TAG_PATTERN = /<link\b[^>]*>/g;
 
 /**
  * Name of a file of the assets folder: a name, then the 8 characters of the hash of its content
- * that Rollup writes for `[hash]`, then an extension.
+ * that Rolldown writes for `[hash]`, then an extension.
  */
 const HASHED_FILE_NAME_PATTERN = new RegExp(`^${ASSETS_DIR}/[^/]+-[\\w-]{8}\\.\\w+$`);
 
@@ -55,15 +58,17 @@ const HASHED_FILE_NAME_PATTERN = new RegExp(`^${ASSETS_DIR}/[^/]+-[\\w-]{8}\\.\\
 const PAGE_ENTRY_PATTERN = new RegExp(`/${PAGES_DIR}/[^/]+/${PAGE_ENTRY_FILE}$`);
 
 /** File of the build: a chunk of scripts or an asset, such as an HTML page. */
-type OutputFile = Rollup.OutputChunk | Rollup.OutputAsset;
+type OutputFile = Rolldown.OutputChunk | Rolldown.OutputAsset;
 
 /** Files of the build, written in memory only. */
 let output: OutputFile[] = [];
 
-/** Output options of the build, as Rollup normalized them, with the templates of the file names. */
-let outputOptions: Rollup.NormalizedOutputOptions | undefined;
+/**
+ * Output options of the build, as Rolldown normalized them, with the templates of the file names.
+ */
+let outputOptions: Rolldown.NormalizedOutputOptions | undefined;
 
-/** Records the output options of the build, once Rollup has normalized them. */
+/** Records the output options of the build, once Rolldown has normalized them. */
 const recordOutputOptions = (): Plugin => ({
   name: 'record-output-options',
   renderStart(options) {
@@ -79,7 +84,7 @@ const buildSite = async (plugins: Plugin[]) => {
     plugins,
     build: { write: false },
   });
-  return (Array.isArray(result) ? result[0] : (result as Rollup.RollupOutput)).output;
+  return (Array.isArray(result) ? result[0] : (result as Rolldown.RolldownOutput)).output;
 };
 
 beforeAll(async () => {
@@ -93,10 +98,10 @@ afterAll(() => {
 });
 
 /** Tells whether a file of the build is a chunk of scripts. */
-const isChunk = (file: OutputFile): file is Rollup.OutputChunk => file.type === 'chunk';
+const isChunk = (file: OutputFile): file is Rolldown.OutputChunk => file.type === 'chunk';
 
 /** Tells whether a file of the build is an asset, such as an HTML page. */
-const isAsset = (file: OutputFile): file is Rollup.OutputAsset => file.type === 'asset';
+const isAsset = (file: OutputFile): file is Rolldown.OutputAsset => file.type === 'asset';
 
 /** Reads a file of the build, such as an HTML page, or an empty string when the build has none. */
 const getSource = (fileName: string) =>
@@ -109,7 +114,11 @@ const getSource = (fileName: string) =>
 const getFileNameTemplate = (file: OutputFile) => {
   if (isAsset(file)) {
     const template = outputOptions?.assetFileNames;
-    return typeof template === 'function' ? template(file) : template;
+    if (typeof template !== 'function') return template;
+
+    // The function reads the asset as Rolldown passes it before naming it
+    const { type, names, originalFileNames, source } = file;
+    return template({ type, names, originalFileNames, source });
   }
 
   const template = file.isEntry ? outputOptions?.entryFileNames : outputOptions?.chunkFileNames;
@@ -151,7 +160,7 @@ interface GetStaticImportUrlsParams {
 /** Parameters of {@link walkStaticImports}. */
 interface WalkStaticImportsParams {
   /** Chunks of a build, by URL. */
-  chunks: Map<string, Rollup.OutputChunk>;
+  chunks: Map<string, Rolldown.OutputChunk>;
   /** URLs of the chunks to start from. */
   urls: string[];
   /** URLs to neither list nor walk through. */
@@ -395,6 +404,59 @@ const getPolicyDirectives = (headersFile: string) => {
   );
 };
 
+/** Folder of the modules of the site, as a module path of the build. */
+const SITE_SOURCE_DIR = normalizePath(resolve('src'));
+
+/** Module of the `Page` component, which the home page and the lazy pages render. */
+const PAGE_COMPONENT_MODULE = normalizePath(resolve('src/components/Page/Page.tsx'));
+
+/** Tells whether a module of the build is part of a library of `node_modules`. */
+const isLibraryModule = (moduleId: string) => NODE_MODULES_PATTERN.test(moduleId);
+
+/** Tells whether a module of the build is a module of the site, in `src/`. */
+const isSiteModule = (moduleId: string) => moduleId.startsWith(`${SITE_SOURCE_DIR}/`);
+
+/** Finds the chunk of the build that has a name, such as the vendor chunk. */
+const findNamedChunk = (name: string) => output.filter(isChunk).find(chunk => chunk.name === name);
+
+/** Finds the entry chunk of the build, the main chunk that every page loads. */
+const findEntryChunk = () => output.filter(isChunk).find(chunk => chunk.isEntry);
+
+describe('chunks of the build', () => {
+  it(`puts the libraries of the first load in the ${VENDOR_CHUNK_NAME} chunk, apart from the code of the site`, () => {
+    const vendorChunk = findNamedChunk(VENDOR_CHUNK_NAME);
+    const otherFirstLoadChunks = [findEntryChunk(), findNamedChunk(SHARED_CHUNK_NAME)];
+
+    expect(vendorChunk?.fileName).toMatch(new RegExp(`^${ASSETS_DIR}/${VENDOR_CHUNK_NAME}-`));
+    expect(vendorChunk?.moduleIds.some(isLibraryModule)).toBe(true);
+    expect(vendorChunk?.moduleIds.filter(isSiteModule)).toEqual([]);
+    otherFirstLoadChunks.forEach(chunk => {
+      expect(chunk?.moduleIds.filter(isLibraryModule)).toEqual([]);
+    });
+  });
+
+  it(`puts the modules that the main chunk shares with the lazy pages in the ${SHARED_CHUNK_NAME} chunk`, () => {
+    const sharedChunk = findNamedChunk(SHARED_CHUNK_NAME);
+    const pageChunksUsingIt = output.filter(isChunk).filter(chunk => {
+      const isPageChunk = PAGE_ENTRY_PATTERN.test(chunk.facadeModuleId ?? '');
+      return isPageChunk && chunk.imports.includes(sharedChunk?.fileName ?? '');
+    });
+
+    expect(sharedChunk?.fileName).toMatch(new RegExp(`^${ASSETS_DIR}/${SHARED_CHUNK_NAME}-`));
+    expect(sharedChunk?.moduleIds).toContain(PAGE_COMPONENT_MODULE);
+    expect(findEntryChunk()?.imports).toContain(sharedChunk?.fileName);
+    expect(pageChunksUsingIt.length).toBeGreaterThan(0);
+  });
+
+  it(`preloads the ${VENDOR_CHUNK_NAME} and ${SHARED_CHUNK_NAME} chunks from the home page, so the size report counts them`, () => {
+    const preloadedUrls = getPreloadedUrls(getSource(HOME_PAGE.fileName));
+
+    [VENDOR_CHUNK_NAME, SHARED_CHUNK_NAME].forEach(name => {
+      expect(preloadedUrls).toContain(`/${findNamedChunk(name)?.fileName}`);
+    });
+  });
+});
+
 describe('pages generated by the build', () => {
   const [homePage] = PAGES;
   const pageFiles = getPageFiles();
@@ -618,7 +680,7 @@ describe('pages generated by a build where two lazy pages share a module', () =>
 
   /** URL of the chunk of the shared module. */
   const getSharedChunkUrl = () => {
-    const isSharedChunk = (chunk: Rollup.OutputChunk) =>
+    const isSharedChunk = (chunk: Rolldown.OutputChunk) =>
       Object.keys(chunk.modules).includes(RESOLVED_SHARED_MODULE_ID);
     const chunk = sharingOutput.filter(isChunk).find(isSharedChunk);
     return chunk && `/${chunk.fileName}`;

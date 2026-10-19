@@ -1,5 +1,6 @@
-import type { Rollup } from 'vite';
+import type { Rolldown } from 'vite';
 
+import { SITEMAP_FILE_NAME } from '../../../src/utils/sitemap';
 import { HEADERS_FILE_NAME } from '../../constants';
 import {
   ESCAPED_INLINE_SCRIPT_BREAKER,
@@ -15,18 +16,19 @@ import { escapeRegExp, isFileName } from './strings';
 /**
  * Tells whether a file of the build is one that only a web server needs: every HTML page but
  * `index.html`, such as `projects.html` or `404.html`, the web app manifests, such as
- * `en/manifest.webmanifest`, and the `_headers` of Cloudflare Pages at its root. Opened from the
- * disk, the standalone build shows every route from `index.html`, no browser installs it as an app,
- * and no server reads its headers.
+ * `en/manifest.webmanifest`, the `_headers` of Cloudflare Pages and the sitemap at its root. Opened
+ * from the disk, the standalone build shows every route from `index.html`, no browser installs it
+ * as an app, no server reads its headers, and no search engine reads its sitemap.
  *
  * @param fileName - Path of the file in the build, e.g. `projects.html`.
- * @returns `true` for an HTML page other than `index.html`, for a web app manifest and for
- * `_headers`, `false` otherwise, and when the name is missing or not a string.
+ * @returns `true` for an HTML page other than `index.html`, for a web app manifest, for `_headers`
+ * and for `sitemap.xml`, `false` otherwise, and when the name is missing or not a string.
  *
  * @example
  * isServerOnlyFile('404.html'); // true
  * isServerOnlyFile('manifest.webmanifest'); // true
  * isServerOnlyFile('_headers'); // true
+ * isServerOnlyFile('sitemap.xml'); // true
  * isServerOnlyFile('index.html'); // false
  */
 export const isServerOnlyFile = (fileName?: unknown): boolean => {
@@ -36,14 +38,15 @@ export const isServerOnlyFile = (fileName?: unknown): boolean => {
   const isServerOnlyPage = isHtmlFile && !isStandalonePage;
   const isWebManifest = isName && WEB_MANIFEST_FILE_PATTERN.test(fileName);
   const isHeadersFile = fileName === HEADERS_FILE_NAME;
-  return isServerOnlyPage || isWebManifest || isHeadersFile;
+  const isSitemap = fileName === SITEMAP_FILE_NAME;
+  return isServerOnlyPage || isWebManifest || isHeadersFile || isSitemap;
 };
 
 /**
  * Tells whether a file of the build is an entry chunk, the script that the page loads, as opposed
  * to an asset or a chunk that another script imports.
  *
- * @param file - File of the bundle, as Rollup passes it to `generateBundle`.
+ * @param file - File of the bundle, as Rolldown passes it to `generateBundle`.
  * @returns `true` for a chunk marked as an entry, `false` otherwise, and when the file is missing
  * or not an object.
  *
@@ -51,17 +54,17 @@ export const isServerOnlyFile = (fileName?: unknown): boolean => {
  * isEntryChunk({ type: 'chunk', isEntry: true, fileName: 'assets/index-1a2b.js' }); // true
  * isEntryChunk({ type: 'asset', fileName: 'index.html' }); // false
  */
-export const isEntryChunk = (file?: unknown): file is Rollup.OutputChunk => {
+export const isEntryChunk = (file?: unknown): file is Rolldown.OutputChunk => {
   const isObject = typeof file === 'object' && file !== null;
   if (!isObject) return false;
 
-  const { type, isEntry } = file as Partial<Rollup.OutputChunk>;
+  const { type, isEntry } = file as Partial<Rolldown.OutputChunk>;
   return type === 'chunk' && isEntry === true;
 };
 
 /**
  * Replaces the preload markers that Vite leaves in a chunk whose dynamic imports are inlined
- * (`inlineDynamicImports`) with "no file to preload". Vite writes `__VITE_PRELOAD__` in place of
+ * (`codeSplitting: false`) with "no file to preload". Vite writes `__VITE_PRELOAD__` in place of
  * the files to preload with each dynamic import, and fills it in when it renders the chunk; once
  * the imports are inlined, it finds none of them and leaves the marker, a variable that does not
  * exist when the code runs, so loading a lazy page would throw.

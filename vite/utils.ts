@@ -74,9 +74,11 @@ export const getServerPorts = (env: Env = {}): ServerPorts => {
   return { dev: port ?? DEFAULT_DEV_PORT, preview: port ?? DEFAULT_PREVIEW_PORT };
 };
 
-/** Chunk of the build, as Rollup passes it to `output.chunkFileNames`: the fields that name it. */
+/**
+ * Chunk of the build, as Rolldown passes it to `output.chunkFileNames`: the fields that name it.
+ */
 interface ChunkNameInfo {
-  /** Name Rollup gives the chunk: the file name of its main module, without the extension. */
+  /** Name Rolldown gives the chunk: the file name of its main module, without the extension. */
   name?: string;
   /** Path of the main module of the chunk, `null` for a chunk of modules shared by others. */
   facadeModuleId?: string | null;
@@ -88,7 +90,7 @@ interface ChunkNameInfo {
  * `Projects` rather than `index` in the build and in the size report of the CI.
  *
  * @param chunk - Chunk to name. Defaults to none.
- * @returns The folder of the `index` module, the name Rollup gave otherwise, and
+ * @returns The folder of the `index` module, the name Rolldown gave otherwise, and
  * {@link FALLBACK_CHUNK_NAME} when the chunk has no name.
  *
  * @example
@@ -107,7 +109,7 @@ export const getChunkName = ({ name, facadeModuleId }: ChunkNameInfo = {}): stri
   return parentFolder || name;
 };
 
-/** File of the build, as Rollup passes it to `generateBundle`: the fields that find a chunk. */
+/** File of the build, as Rolldown passes it to `generateBundle`: the fields that find a chunk. */
 interface BundleFile {
   /** `chunk` for a script, `asset` for any other file. */
   type?: string;
@@ -121,12 +123,12 @@ interface BundleFile {
   imports?: readonly string[];
 }
 
-/** Files of the build, by file name, as Rollup passes them to `generateBundle`. */
+/** Files of the build, by file name, as Rolldown passes them to `generateBundle`. */
 type BuildBundle = Record<string, BundleFile | null | undefined>;
 
 /** Parameters of {@link getPageChunkFile} and {@link getPageChunkFiles}. */
 interface GetPageChunkFileParams {
-  /** Files of the build, by file name, as Rollup passes them to `generateBundle`. */
+  /** Files of the build, by file name, as Rolldown passes them to `generateBundle`. */
   bundle?: BuildBundle;
   /** Folder of the page in `src/pages`, e.g. `Projects`. */
   folder?: string;
