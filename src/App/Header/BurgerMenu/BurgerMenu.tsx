@@ -1,7 +1,8 @@
 import type { Ref } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { BottomBar, Button, MiddleBar, TopBar } from './BurgerMenu.styled.ts';
+import BurgerIcon from './BurgerIcon/index.ts';
+import { Button } from './BurgerMenu.styled.ts';
 
 /** Props of {@link BurgerMenu}. */
 interface BurgerMenuProps {
@@ -21,11 +22,9 @@ interface BurgerMenuProps {
 }
 
 /**
- * Burger button that opens and closes the mobile menu. Its icon is three bars drawn in CSS, shown
- * with the first render: when the menu opens, the outer bars slide onto the middle one, then the
- * bars turn into a cross; when it closes, the cross turns back, then the bars slide apart. A menu
- * open from the first render shows the cross at once.
- * The parent owns the open state and passes it back through `isOpen`.
+ * Burger button that opens and closes the mobile menu, with the bars of {@link BurgerIcon}, which
+ * turn into a cross while the menu is open. The parent owns the open state and passes it back
+ * through `isOpen`.
  *
  * It is a native button, so `Tab` reaches it and `Enter` or `Space` toggles the menu. Screen
  * readers announce it with a translated name that follows the state ("Ouvrir le menu" / "Open
@@ -52,9 +51,7 @@ const BurgerMenu = ({ isOpen = false, menuId, onOpen, onClose, ref }: BurgerMenu
       aria-controls={controlledMenuId}
       onClick={handleBurgerMenuClick}
     >
-      <TopBar $isOpen={isOpen} />
-      <MiddleBar $isOpen={isOpen} />
-      <BottomBar $isOpen={isOpen} />
+      <BurgerIcon isOpen={isOpen} />
     </Button>
   );
 };

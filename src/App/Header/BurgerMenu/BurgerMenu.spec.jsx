@@ -3,36 +3,13 @@ import userEvent from '@testing-library/user-event';
 import { createRef } from 'react';
 
 import i18n from '../../../i18n/index.ts';
-import { declaredStyle, serializeCssValue } from '../../../styleTestUtils.js';
+import { declaredStyle } from '../../../styleTestUtils.js';
 import { theme } from '../../../theme/index.ts';
 import BurgerMenu from './BurgerMenu.tsx';
-import { MIDDLE_BAR_OPEN_ROTATION_DEG, TOP_BAR_OPEN_ROTATION_DEG } from './constants.ts';
+import { TOP_BAR_OPEN_ROTATION_DEG } from './BurgerIcon/constants.ts';
 
 /** The top, middle and bottom bars of the icon, in this order. */
 const getBars = () => [...screen.getByRole('button').children];
-
-/**
- * Transitions declared on an element, one per property, as the CSSOM lists them: jsdom joins them
- * with a bare comma, where a browser adds a space.
- */
-const transitionsOf = element =>
-  declaredStyle({ element, property: 'transition' })
-    .split(',')
-    .map(transition => transition.trim());
-
-/** Transitions of the bars while the menu opens: they slide together, then turn into a cross. */
-const OPENING_TRANSITIONS = [
-  `translate ${theme.durations[200]} ${theme.timingFunctions.inOut}`,
-  `rotate ${theme.durations[700]} ${theme.timingFunctions.standard} ${theme.durations[200]}`,
-  `opacity 0s ${theme.durations[200]}`,
-];
-
-/** Transitions of the bars while the menu closes: the cross turns back, then they slide apart. */
-const CLOSING_TRANSITIONS = [
-  `rotate ${theme.durations[300]} ${theme.timingFunctions.standard}`,
-  `translate ${theme.durations[100]} ${theme.timingFunctions.inOut} ${theme.durations[300]}`,
-  `opacity 0s ${theme.durations[300]}`,
-];
 
 describe('BurgerMenu', () => {
   afterEach(async () => {
@@ -101,69 +78,15 @@ describe('BurgerMenu', () => {
       expect(screen.getByRole('button').querySelector('svg')).not.toBeInTheDocument();
     });
 
-    it('draws each bar in the size of the icon and in the color of the button', () => {
-      render(<BurgerMenu />);
-
-      getBars().forEach(bar => {
-        expect(declaredStyle({ element: bar, property: 'width' })).toBe(theme.sizes['burger-bar']);
-        expect(declaredStyle({ element: bar, property: 'height' })).toBe(
-          theme.sizes['burger-bar-thickness'],
-        );
-        expect(declaredStyle({ element: bar, property: 'background' })).toBe(
-          serializeCssValue({ property: 'background', value: 'currentColor' }),
-        );
-        expect(declaredStyle({ element: bar, property: 'border-radius' })).toBe(theme.radii.pill);
-      });
-    });
-
-    it('stacks the bars while the menu is closed, the outer ones away from the middle one', () => {
-      render(<BurgerMenu />);
-      const [topBar, middleBar, bottomBar] = getBars();
-      const gap = theme.space['burger-bar-gap'];
-
-      expect(declaredStyle({ element: topBar, property: 'translate' })).toBe(
-        serializeCssValue({ property: 'translate', value: `0 -${gap}` }),
-      );
-      expect(declaredStyle({ element: middleBar, property: 'translate' })).toBe('');
-      expect(declaredStyle({ element: bottomBar, property: 'translate' })).toBe(
-        serializeCssValue({ property: 'translate', value: `0 ${gap}` }),
-      );
-      getBars().forEach(bar => {
-        expect(declaredStyle({ element: bar, property: 'rotate' })).toBe('');
-        expect(declaredStyle({ element: bar, property: 'opacity' })).toBe('');
-      });
-    });
-
-    it('turns the top and middle bars into a cross while the menu is open, and hides the bottom one', () => {
-      render(<BurgerMenu isOpen />);
-      const [topBar, middleBar, bottomBar] = getBars();
-
-      expect(declaredStyle({ element: topBar, property: 'translate' })).toBe('none');
-      expect(declaredStyle({ element: topBar, property: 'rotate' })).toBe(
-        `${TOP_BAR_OPEN_ROTATION_DEG}deg`,
-      );
-      expect(declaredStyle({ element: middleBar, property: 'rotate' })).toBe(
-        `${MIDDLE_BAR_OPEN_ROTATION_DEG}deg`,
-      );
-      expect(declaredStyle({ element: bottomBar, property: 'translate' })).toBe('none');
-      expect(declaredStyle({ element: bottomBar, property: 'opacity' })).toBe('0');
-    });
-
-    it('slides the bars together before turning them into a cross when the menu opens', () => {
+    it('shows a cross while the menu is open, and the bars of a closed menu otherwise', () => {
       const { rerender } = render(<BurgerMenu />);
+      expect(declaredStyle({ element: getBars()[0], property: 'rotate' })).toBe('');
 
       rerender(<BurgerMenu isOpen />);
 
-      getBars().forEach(bar => expect(transitionsOf(bar)).toEqual(OPENING_TRANSITIONS));
-    });
-
-    it('turns the cross back before sliding the bars apart when the menu closes', () => {
-      const { rerender } = render(<BurgerMenu isOpen />);
-
-      rerender(<BurgerMenu isOpen={false} />);
-
-      getBars().forEach(bar => expect(transitionsOf(bar)).toEqual(CLOSING_TRANSITIONS));
-      expect(declaredStyle({ element: getBars()[0], property: 'rotate' })).toBe('');
+      expect(declaredStyle({ element: getBars()[0], property: 'rotate' })).toBe(
+        `${TOP_BAR_OPEN_ROTATION_DEG}deg`,
+      );
     });
 
     it('keeps the bars of a closed menu when isOpen is missing', () => {
