@@ -3,6 +3,8 @@ import { useTranslation } from 'react-i18next';
 import Period from '../Period';
 import { computeDuration, formatDuration } from '../utils/duration';
 
+import { LOGO_SIZE_PX } from './constants';
+
 import {
   EntityLogo,
   JobDetails,
@@ -22,8 +24,9 @@ interface JobSummaryProps {
   /** Company name, written first in the company details. */
   entityName?: string;
   /**
-   * Absolute URL of the company logo, e.g. `/wibilong.png`. No logo when missing. The logo is
-   * decorative, with an empty alt text, since the company name is written next to it.
+   * Absolute URL of the company logo, e.g. `/wibilong.webp`, a square file of twice the size that
+   * it shows at, {@link LOGO_SIZE_PX}. No logo when missing. The logo is decorative, with an empty
+   * alt text, since the company name is written next to it.
    */
   entityLogoUrl?: string;
   /** Contract type, e.g. "CDI" or "Alternance". */
@@ -61,7 +64,7 @@ interface JobSummaryProps {
  * <JobSummary
  *   jobName="Lead Frontend Engineer"
  *   entityName="Sewan Groupe"
- *   entityLogoUrl="/sewan.png"
+ *   entityLogoUrl="/sewan.webp"
  *   startDate="août 2021"
  *   endDate="Aujourd'hui"
  *   variant="role"
@@ -90,6 +93,8 @@ const JobSummary = ({
         <EntityLogo
           src={entityLogoUrl}
           alt=""
+          width={LOGO_SIZE_PX}
+          height={LOGO_SIZE_PX}
         />
       )}
       <JobInfo>

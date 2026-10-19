@@ -7,7 +7,14 @@ import { fr } from '../../i18n/fr';
 import { theme } from '../../theme';
 import { declaredStyle, serializeCssValue } from '../../styleTestUtils';
 import { getPage } from '../../utils/pages';
-import { INTERACTIVE_SELECTOR, isPublicFile, readBackgroundImages } from '../testUtils';
+import { readPublicWebpSize } from '../../publicFileTestUtils';
+import { INTERACTIVE_SELECTOR, readBackgroundImages } from '../testUtils';
+import {
+  MAX_THUMBNAIL_ASPECT_RATIO,
+  ROW_CARD_COUNT,
+  THUMBNAIL_FILE_WIDTHS_PX,
+} from './Project/constants';
+import { getThumbnailSources } from './Project/utils';
 import freelanceProjectsData from './.data/freelance-projects.json';
 import personalProjectsData from './.data/personal-projects.json';
 import { Projects } from './Projects';
@@ -113,12 +120,64 @@ describe('Projects', () => {
     expect(style('clip-path')).toBe('inset(50%)');
   });
 
-  it.each(allProjects.map(({ nameKey, imageUrl }) => [nameKey, imageUrl]))(
-    'serves the screenshot of %s from public/ (%s)',
-    (_nameKey, imageUrl) => {
-      expect(isPublicFile(imageUrl)).toBe(true);
+  describe.each(allProjects.map(project => [project.nameKey, project]))(
+    'screenshot of %s',
+    (_nameKey, { thumbnails }) => {
+      it('serves each file from public/ as a WebP image of the size that the data gives it', () => {
+        expect(thumbnails.length).toBeGreaterThan(0);
+        thumbnails.forEach(({ url, width, height }) => {
+          expect(readPublicWebpSize(url), url).toEqual({ width, height });
+        });
+      });
+
+      it('gives its files distinct widths, in the ratio of the widest one', () => {
+        const widths = thumbnails.map(({ width }) => width);
+        expect(new Set(widths).size).toBe(widths.length);
+        const widest = thumbnails.reduce((wider, file) =>
+          file.width > wider.width ? file : wider,
+        );
+        thumbnails.forEach(({ url, width, height }) => {
+          // A resized file rounds its height to a whole pixel
+          expect(Math.abs(height - (width * widest.height) / widest.width), url).toBeLessThan(1);
+        });
+      });
+
+      it('has a file at each standard width below its widest, which its original may narrow', () => {
+        const widths = thumbnails.map(({ width }) => width).sort((first, second) => first - second);
+        const widest = widths[widths.length - 1];
+
+        expect(widest).toBeLessThanOrEqual(Math.max(...THUMBNAIL_FILE_WIDTHS_PX));
+        expect(widths.slice(0, -1)).toEqual(
+          THUMBNAIL_FILE_WIDTHS_PX.filter(standardWidth => standardWidth < widest),
+        );
+      });
+
+      it('is no wider than 16:10, so that its files serve a card of any width', () => {
+        thumbnails.forEach(({ url, width, height }) => {
+          expect(width / height, url).toBeLessThanOrEqual(MAX_THUMBNAIL_ASPECT_RATIO);
+        });
+      });
+
+      it('gives every card the files of its screenshot, in its srcset', () => {
+        expect(getThumbnailSources(thumbnails)?.srcSet.split(', ')).toHaveLength(thumbnails.length);
+      });
     },
   );
+
+  it('downloads the first thumbnail at once, before the others, which wait for the screen', () => {
+    render(<Projects />);
+    const [firstThumbnail, ...otherThumbnails] = document.querySelectorAll('img');
+
+    expect(firstThumbnail).toHaveAccessibleName('Jeu d’échecs');
+    expect(firstThumbnail).toHaveAttribute('loading', 'eager');
+    expect(firstThumbnail).toHaveAttribute('fetchpriority', 'high');
+    // The first page of the personal section, then of the freelance one
+    expect(otherThumbnails).toHaveLength(2 * ROW_CARD_COUNT - 1);
+    otherThumbnails.forEach(thumbnail => {
+      expect(thumbnail).toHaveAttribute('loading', 'lazy');
+      expect(thumbnail).not.toHaveAttribute('fetchpriority');
+    });
+  });
 
   it('shows the background photo of its entry in PAGES, over its placeholder', () => {
     const { url, portraitUrl, placeholderUrl } = getPage('/projects').backgroundPhoto;

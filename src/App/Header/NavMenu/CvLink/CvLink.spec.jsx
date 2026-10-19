@@ -2,7 +2,7 @@ import { act, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
 import i18n from '../../../../i18n';
-import { isPublicFile } from '../../../../pages/testUtils';
+import { isPublicFile } from '../../../../publicFileTestUtils';
 import { CV_URLS } from './constants';
 import CvLink from './CvLink';
 

@@ -88,7 +88,7 @@ interface ExperienceGroupProps extends CompanyCtxValue {
  * `ExperienceGroup.Role` children through a context, so they are written once.
  *
  * @example
- * <ExperienceGroup entityName="Sewan Groupe" entityLogoUrl="/sewan.png" contractType="CDI">
+ * <ExperienceGroup entityName="Sewan Groupe" entityLogoUrl="/sewan.webp" contractType="CDI">
  *   <ExperienceGroup.Role
  *     jobName="Lead Frontend Engineer"
  *     startDate="août 2021"

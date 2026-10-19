@@ -5,7 +5,7 @@
       "nameKey": "exp.sewan.name",
       "contractKey": "exp.sewan.contract",
       "cityKey": "exp.sewan.city",
-      "logoUrl": "/sewan.png",
+      "logoUrl": "/sewan.webp",
       "roles": [
         {
           "titleKey": "exp.sewanLead.title",
@@ -74,7 +74,7 @@
       "nameKey": "exp.wibilong.name",
       "contractKey": "exp.wibilong.contract",
       "cityKey": "exp.wibilong.city",
-      "logoUrl": "/wibilong.png",
+      "logoUrl": "/wibilong.webp",
       "roles": [
         {
           "titleKey": "exp.wibilong.title",
@@ -101,7 +101,7 @@
       "nameKey": "exp.supralog.name",
       "contractKey": "exp.supralog.contract",
       "cityKey": "exp.supralog.city",
-      "logoUrl": "/supralog.png",
+      "logoUrl": "/supralog.webp",
       "roles": [
         {
           "titleKey": "exp.supralog.title",
@@ -145,7 +145,7 @@
       "nameKey": "exp.beepeers.name",
       "contractKey": "exp.beepeers.contract",
       "cityKey": "exp.beepeers.city",
-      "logoUrl": "/beepeers.jpg",
+      "logoUrl": "/beepeers.webp",
       "roles": [
         {
           "titleKey": "exp.beepeers.title",

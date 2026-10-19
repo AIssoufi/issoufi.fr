@@ -1,5 +1,7 @@
 import styled, { th } from '@xstyled/styled-components';
 
+import { LOGO_SIZE_PX } from './constants';
+
 export const Summary = styled.header`
   display: flex;
   flex-direction: row;
@@ -7,8 +9,8 @@ export const Summary = styled.header`
 `;
 
 export const EntityLogo = styled.img`
-  height: ${th.size(54)};
-  width: ${th.size(54)};
+  height: ${LOGO_SIZE_PX}px;
+  width: ${LOGO_SIZE_PX}px;
   object-fit: cover;
   border-radius: ${th.radius('sm')};
   border: ${th.border('card')};

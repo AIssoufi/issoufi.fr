@@ -8,6 +8,8 @@ import { localizePath } from '../src/i18n/utils';
 import freelanceProjectsData from '../src/pages/Projects/.data/freelance-projects.json' with { type: 'json' };
 import personalProjectsData from '../src/pages/Projects/.data/personal-projects.json' with { type: 'json' };
 import { ROW_CARD_COUNT } from '../src/pages/Projects/Project/constants';
+import type { ProjectItemData } from '../src/pages/Projects/Project/types';
+import { getThumbnailSources } from '../src/pages/Projects/Project/utils';
 import {
   MAX_CARD_OFFSET_PX,
   PROJECT_CARD_SCREEN_WIDTHS_PX,
@@ -22,6 +24,10 @@ const TEXTS = { fr: fr.projects, en: en.projects };
 /** Texts of the Projects page in the language of a first visit, which most tests open it in. */
 const texts = TEXTS[DEFAULT_LANGUAGE];
 
+/** `src` of the screenshot of a project on its card, which names the card. */
+const getThumbnailUrl = ({ thumbnails }: Pick<ProjectItemData, 'thumbnails'>) =>
+  getThumbnailSources(thumbnails)?.src ?? '';
+
 /**
  * Sections of the Projects page, with their title in each language and the projects that each one
  * shows, in order.
@@ -33,7 +39,7 @@ const SECTIONS = [
 
 /** Box of a card, with the URL of the screenshot it shows, which names its project. */
 interface ProjectCardBox extends CardBox {
-  /** `src` of the screenshot of the card, the `imageUrl` of its project. */
+  /** `src` of the screenshot of the card, the widest of the `thumbnails` of its project. */
   imageUrl: string;
 }
 
@@ -263,7 +269,7 @@ for (const width of PROJECT_CARD_SCREEN_WIDTHS_PX) {
         await expect(
           cards.first().getByRole('img'),
           'screenshot of the first card of the last page',
-        ).toHaveAttribute('src', projects[lastPageStart].imageUrl);
+        ).toHaveAttribute('src', getThumbnailUrl(projects[lastPageStart]));
         await expect(cards, 'cards of the last page').toHaveCount(projects.length - lastPageStart);
         const lastPage = await measureCardList(list);
 
@@ -297,7 +303,7 @@ for (const width of PROJECT_CARD_SCREEN_WIDTHS_PX) {
           const showAllButton = section.getByRole('button', {
             name: languageTexts.showAll.replace('{{count}}', String(projects.length)),
           });
-          const projectImages = projects.map(({ imageUrl }) => imageUrl);
+          const projectImages = projects.map(getThumbnailUrl);
 
           // The buttons stand from left to right in the order of the page, which Tab follows
           const buttons = [previousButton, nextButton, showAllButton];

@@ -7,7 +7,7 @@ const CHESS: ProjectData = {
   id: 1,
   nameKey: 'chess',
   typeKey: 'webApp',
-  imageUrl: '/chess.webp',
+  thumbnails: [{ url: '/chess-480.webp', width: 480, height: 300 }],
   url: 'https://aissoufi.github.io/chess/',
   tools: ['HTML 5', 'CSS 3'],
 };
@@ -17,7 +17,7 @@ const TROUILLET_DECORS: ProjectData = {
   id: 7,
   nameKey: 'trouilletDecors',
   typeKey: 'showcaseWebsite',
-  imageUrl: '/trouillet-decors.jpeg',
+  thumbnails: [{ url: '/trouillet-decors-480.webp', width: 480, height: 413 }],
   tools: ['WordPress'],
 };
 
@@ -65,7 +65,7 @@ describe('translateProjects', () => {
         id: 1,
         name: 'Jeu d’échecs',
         type: 'Application web',
-        imageUrl: '/chess.webp',
+        thumbnails: [{ url: '/chess-480.webp', width: 480, height: 300 }],
         url: 'https://aissoufi.github.io/chess/',
         tools: ['HTML 5', 'CSS 3'],
       },
@@ -73,7 +73,7 @@ describe('translateProjects', () => {
         id: 7,
         name: 'Trouillet Décors',
         type: 'Site vitrine',
-        imageUrl: '/trouillet-decors.jpeg',
+        thumbnails: [{ url: '/trouillet-decors-480.webp', width: 480, height: 413 }],
         tools: ['WordPress'],
       },
     ]);

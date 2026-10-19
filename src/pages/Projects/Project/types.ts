@@ -1,3 +1,28 @@
+/** One file of the screenshot of a project: the same image as the other files, at one width. */
+export interface ThumbnailFile {
+  /**
+   * Absolute URL of the file in `public/`, e.g. `/chess-480.webp`, written whole: the standalone
+   * build rewrites it into a relative URL.
+   */
+  url: string;
+  /** Width of the file in pixels, its `w` descriptor in `srcset`. */
+  width: number;
+  /** Height of the file in pixels. */
+  height: number;
+}
+
+/** Attributes of the `img` of a thumbnail, built by `getThumbnailSources` from its files. */
+export interface ThumbnailSources {
+  /** Widest file, for the browsers that ignore `srcset`. */
+  src: string;
+  /** Every file with its width (`/chess-480.webp 480w, …`), among which the browser picks. */
+  srcSet: string;
+  /** Width of the widest file, which gives the `img` the ratio of the screenshot. */
+  width: number;
+  /** Height of the widest file. */
+  height: number;
+}
+
 /** One project card, with its texts in the language of the page. */
 export interface ProjectItemData {
   /**
@@ -9,8 +34,12 @@ export interface ProjectItemData {
   name: string;
   /** Kind of project, translated, e.g. "Web application", or "Application web" in French. */
   type: string;
-  /** Absolute URL of the screenshot in `public/`, e.g. `/chess.webp`. */
-  imageUrl: string;
+  /**
+   * Files of the screenshot of the project, the same image at several widths, among which the
+   * browser downloads the one that the card needs on its screen. The card shows no image without
+   * a valid one.
+   */
+  thumbnails: ThumbnailFile[];
   /**
    * Page opened in a new tab by the link of the card title, which covers the whole card. The card
    * has no link when it is missing, or when the project has no name to label the link with.
