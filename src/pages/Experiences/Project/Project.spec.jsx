@@ -1,5 +1,6 @@
 import { render, screen, within } from '@testing-library/react';
 
+import { MIN_FONT_SIZE_PX } from '../../../theme/constants';
 import Project from './Project';
 
 describe('Project', () => {
@@ -23,6 +24,14 @@ describe('Project', () => {
     expect(screen.getByText('Espace licencié de la FFBaD')).toBeInTheDocument();
     expect(screen.getByText('React.js')).toBeInTheDocument();
     expect(screen.getByText('NestJS')).toBeInTheDocument();
+  });
+
+  it('shows its state badge at the smallest font size of the site', () => {
+    render(<Project state="En production" />);
+
+    expect(getComputedStyle(screen.getByText('En production')).fontSize).toBe(
+      `${MIN_FONT_SIZE_PX}px`,
+    );
   });
 
   it('shows no toggle arrow, since the description is always shown', () => {

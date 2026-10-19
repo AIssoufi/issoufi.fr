@@ -2,7 +2,6 @@ import { useTranslation } from 'react-i18next';
 
 import { translateKey } from '../../../../i18n/utils';
 import Project from '../../Project';
-import Technologies from '../../Technologies';
 import type { ProjectData, RoleData } from '../../types';
 import BulletPoints from './BulletPoints';
 import TextSegments from './TextSegments';
@@ -18,10 +17,11 @@ const NO_PROJECTS: ProjectData[] = [];
 /**
  * Description of a role of the Experiences page, in the active language and without a wrapping
  * element, to put inside an `Experience` or an `ExperienceGroup.Role`: its introduction, its
- * bullet points, a {@link Project} block for each of its projects, then its technologies.
+ * bullet points, then a {@link Project} block for each of its projects. The technologies of the
+ * role are not part of it: the card shows them apart, next to its summary on a wide screen.
  *
  * @example
- * <Experience jobName="Full-Stack JavaScript Engineer">
+ * <Experience jobName="Full-Stack JavaScript Engineer" technologies={role.technologies}>
  *   <RoleDescription role={role} />
  * </Experience>
  */
@@ -45,7 +45,6 @@ const RoleDescription = ({ role }: RoleDescriptionProps) => {
           <BulletPoints textKeys={project.bulletKeys} />
         </Project>
       ))}
-      <Technologies technologies={role?.technologies} />
     </>
   );
 };

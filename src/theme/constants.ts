@@ -61,3 +61,10 @@ export const FONT_FACES: readonly FontFaceDeclaration[] = [
  * `src/hooks`).
  */
 export const REDUCED_MOTION_QUERY = '(prefers-reduced-motion: reduce)';
+
+/**
+ * Smallest font size of the site, in pixels: the size of its metadata (dates, badges, tags, the
+ * version of the build), under which a text gets hard to read. `theme.spec.jsx` checks every font
+ * size of the theme against it, and `readable-text.e2e.ts` every text that a page shows.
+ */
+export const MIN_FONT_SIZE_PX = 12;

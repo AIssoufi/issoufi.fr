@@ -195,7 +195,7 @@ describe('Header', () => {
       renderHeader();
 
       const versionStyle = getComputedStyle(screen.getByText(`build v${packageJson.version}`));
-      expect(versionStyle.fontSize).toBe(theme.fontSizes[11]);
+      expect(versionStyle.fontSize).toBe(theme.fontSizes[12]);
       expect(versionStyle.color).toBe(theme.colors['foreground-a65']);
     });
   });
