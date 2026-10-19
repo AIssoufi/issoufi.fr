@@ -1,4 +1,7 @@
-import { GITHUB_PROFILE_URL } from '../../src/App/Header/GitHubLink/constants';
+import {
+  GITHUB_PROFILE_URL,
+  LINKEDIN_PROFILE_URL,
+} from '../../src/App/Header/NavMenu/ProfileLinks/constants';
 import { DEFAULT_LANGUAGE, LANGUAGES } from '../../src/i18n/constants';
 import { en } from '../../src/i18n/en';
 import { fr } from '../../src/i18n/fr';
@@ -23,6 +26,7 @@ export const CV_SOURCES = {
   getPageUrl,
   homePath: HOME_PAGE.path,
   siteUrl: SITE_URL,
+  linkedInUrl: LINKEDIN_PROFILE_URL,
   gitHubUrl: GITHUB_PROFILE_URL,
   cvData,
   experiences,

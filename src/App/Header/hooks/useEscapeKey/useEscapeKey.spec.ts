@@ -104,74 +104,7 @@ describe('useEscapeKey', () => {
     unmount();
     pressKey('Escape');
 
-    expect(removeEventListener).toHaveBeenCalledWith('keydown', expect.any(Function), {
-      capture: false,
-    });
+    expect(removeEventListener).toHaveBeenCalledWith('keydown', expect.any(Function));
     expect(onEscape).not.toHaveBeenCalled();
-  });
-
-  describe('top layer', () => {
-    it('keeps the Escape it handles from reaching the layers under it', () => {
-      const onTopEscape = vi.fn();
-      const onUnderEscape = vi.fn();
-      // The layer under it listens first, as the open menu does before its tooltip shows
-      renderHook(() => useEscapeKey({ onEscape: onUnderEscape }));
-      renderHook(() => useEscapeKey({ onEscape: onTopEscape, isTopLayer: true }));
-
-      pressKey('Escape');
-
-      expect(onTopEscape).toHaveBeenCalledTimes(1);
-      expect(onUnderEscape).not.toHaveBeenCalled();
-    });
-
-    it('lets Escape reach the layers under it while inactive', () => {
-      const onUnderEscape = vi.fn();
-      renderHook(() => useEscapeKey({ onEscape: onUnderEscape }));
-      renderHook(() => useEscapeKey({ isActive: false, isTopLayer: true }));
-
-      pressKey('Escape');
-
-      expect(onUnderEscape).toHaveBeenCalledTimes(1);
-    });
-
-    it('lets the other keys reach the page', () => {
-      const onKeyDown = vi.fn();
-      document.addEventListener('keydown', onKeyDown);
-      renderHook(() => useEscapeKey({ isTopLayer: true }));
-
-      pressKey('Enter');
-
-      document.removeEventListener('keydown', onKeyDown);
-      expect(onKeyDown).toHaveBeenCalledTimes(1);
-    });
-
-    it('lets Escape reach the other listeners without isTopLayer', () => {
-      const onOtherEscape = vi.fn();
-      document.addEventListener('keydown', onOtherEscape);
-      renderHook(() => useEscapeKey({ isTopLayer: undefined }));
-
-      pressKey('Escape');
-
-      document.removeEventListener('keydown', onOtherEscape);
-      expect(onOtherEscape).toHaveBeenCalledTimes(1);
-    });
-
-    it('listens in the capture phase, until unmount', () => {
-      const addEventListener = vi.spyOn(document, 'addEventListener');
-      const removeEventListener = vi.spyOn(document, 'removeEventListener');
-      const onEscape = vi.fn();
-      const { unmount } = renderHook(() => useEscapeKey({ onEscape, isTopLayer: true }));
-      expect(addEventListener).toHaveBeenCalledWith('keydown', expect.any(Function), {
-        capture: true,
-      });
-
-      unmount();
-      pressKey('Escape');
-
-      expect(removeEventListener).toHaveBeenCalledWith('keydown', expect.any(Function), {
-        capture: true,
-      });
-      expect(onEscape).not.toHaveBeenCalled();
-    });
   });
 });

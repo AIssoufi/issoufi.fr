@@ -139,15 +139,15 @@ export const PROJECT_CARD_SCREEN_WIDTHS_PX = [
 export const MAX_CARD_OFFSET_PX = 0.5;
 
 /**
- * Screen widths, in pixels, at which the language toggle floats on the right edge of the screen,
- * with the GitHub icon under it: the tablet breakpoint (800), two laptops (1280 and 1440), then a
- * screen wider than the app container (1920).
+ * Screen widths, in pixels, of the desktop layout, at which the header shows its links, the
+ * GitHub and LinkedIn icons and the CV link on one line: the tablet breakpoint (800), two laptops
+ * (1280 and 1440), then a screen wider than the app container (1920).
  */
-export const FLOATING_CONTROLS_SCREEN_WIDTHS_PX = [800, 1280, 1440, 1920] as const;
+export const DESKTOP_SCREEN_WIDTHS_PX = [800, 1280, 1440, 1920] as const;
 
 /**
  * Screen widths, in pixels, below the tablet breakpoint, at which the mobile menu holds the GitHub
- * icon.
+ * and LinkedIn icons and the CV link.
  */
 export const MOBILE_SCREEN_WIDTHS_PX = [320, 375, 414] as const;
 
@@ -158,33 +158,21 @@ export const MOBILE_SCREEN_WIDTHS_PX = [320, 375, 414] as const;
 export const LONG_PAGE_ROUTE: Page['path'] = '/experiences';
 
 /**
- * Largest distance, in pixels, allowed between the horizontal center of the GitHub icon and the
- * center of the control it is centered under. Half a pixel lets through subpixel rounding, but not
- * a 1 px shift.
+ * Largest distance, in pixels, allowed between the centers of two items of the header that should
+ * line up: the vertical centers of the items of its bar on desktop, or the horizontal center of an
+ * item of the mobile menu and the center of the menu. Half a pixel lets through subpixel rounding,
+ * but not a 1 px shift.
  */
-export const MAX_ICON_OFFSET_PX = 0.5;
+export const MAX_ALIGNMENT_OFFSET_PX = 0.5;
 
 /**
- * Name of the file that the CV button downloads in each language, the end of its URL (`CV_URLS`,
- * `src/App/Header/CvLink/constants.ts`).
+ * Name of the file that the CV link downloads in each language, the end of its URL (`CV_URLS`,
+ * `src/App/Header/NavMenu/CvLink/constants.ts`).
  */
 export const CV_FILE_NAMES = {
   fr: 'CV - Adam Issoufi.pdf',
   en: 'CV - Adam Issoufi (EN).pdf',
 } as const satisfies Record<Language, string>;
-
-/**
- * Largest distance, in pixels, allowed between the center of a tooltip and the center of the
- * control it is centered on, across or along the side it shows on. Half a pixel lets through
- * subpixel rounding, but not a 1 px shift.
- */
-export const MAX_TOOLTIP_OFFSET_PX = 0.5;
-
-/**
- * Space, in pixels, between a tooltip and the control it describes: the `tooltip-gap` of the
- * theme, which an invisible bridge fills.
- */
-export const TOOLTIP_GAP_PX = Number.parseFloat(theme.space['tooltip-gap']);
 
 /** Name of the "Show all" buttons of the Projects page, in both languages, whatever their count. */
 export const SHOW_ALL_BUTTON_NAME = /^(Tout afficher|Show all) \(\d+\)$/;
@@ -238,10 +226,10 @@ export const MAX_HEADER_SCREEN_SHARE = 0.15;
 export const MIN_TARGET_SIZE_PX = 24;
 
 /**
- * Smallest height, in pixels, of the CV button of the mobile menu, compact or not: the
- * `round-button` size of the theme, the target size that the guidelines recommend for a finger.
+ * Smallest height, in pixels, of the CV link of the mobile menu, compact or not: the
+ * `finger-target` size of the theme, the target size that the guidelines recommend for a finger.
  */
-export const FINGER_TARGET_HEIGHT_PX = Number.parseFloat(theme.sizes['round-button']);
+export const FINGER_TARGET_HEIGHT_PX = Number.parseFloat(theme.sizes['finger-target']);
 
 /**
  * Screen lower than the open mobile menu, even compact, as a phone held sideways with the bars of
