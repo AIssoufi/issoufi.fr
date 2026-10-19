@@ -19,9 +19,9 @@ import {
   PROJECT_TOOLS_SELECTOR,
   PROJECTS_ROUTE,
   SCREEN_HEIGHT_PX,
-  SHOW_ALL_BUTTON_NAME,
   TOOL_SEPARATOR,
 } from './constants.ts';
+import { showAllProjects } from './projects.ts';
 import { countOccurrences, findSkippedHeadingLevels } from './utils.ts';
 
 /** Translations of each language, to name the cards as the page does. */
@@ -54,10 +54,7 @@ for (const language of LANGUAGES) {
         await page.goto(localizePath({ path: PROJECTS_ROUTE, language }));
         // A route that lost its language would test the default language twice
         await expect(page.locator('html')).toHaveAttribute('lang', language);
-        // Every card, once its chunk is loaded: a clicked "Show all" becomes "Show less"
-        const showAllButtons = page.getByRole('button', { name: SHOW_ALL_BUTTON_NAME });
-        await expect(showAllButtons.first()).toBeVisible();
-        while ((await showAllButtons.count()) > 0) await showAllButtons.first().click();
+        await showAllProjects(page);
         await expect(page.locator(PROJECT_CARD_SELECTOR)).toHaveCount(cards.length);
       });
 
