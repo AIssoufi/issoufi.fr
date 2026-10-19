@@ -251,7 +251,11 @@ export const describeRunOutcome = run => {
  * Whether a commit can be deployed, and why, from {@link getCiVerdict}.
  * @typedef {object} CiVerdict
  * @property {boolean} isTested - Whether the CI run of the commit finished with a success.
- * @property {string} message - Why, for the log, or for a notice when the deploy stops.
+ * @property {'notice' | 'warning'} level - Level of the annotation that says why the deploy
+ * stops: `warning` when someone has to act, for a run that ended without passing or that waits
+ * for approval; `notice` when the CI has not run or is still running, which a later run checks
+ * again, and for a tested commit.
+ * @property {string} message - Why, for the log, or for the annotation when the deploy stops.
  */
 
 /**
@@ -266,29 +270,39 @@ export const describeRunOutcome = run => {
 
 /**
  * Tells whether a commit passed its CI, so that only a tested commit reaches production: its
- * latest run must be completed with a success. A run still in progress, failed, cancelled or
- * timed out stops the deploy until the next one.
+ * latest run must be completed with a success. Any other run stops the deploy, and the deploy
+ * workflow fails so that a later scheduled run tries again (`check-develop-ci.mjs`).
  * @param {GetCiVerdictParams} params
- * @returns {CiVerdict} Whether the commit is tested and why. A missing run, or a run of another
- * commit, counts as untested.
+ * @returns {CiVerdict} Whether the commit is tested, the level of the annotation and why. A
+ * missing run, or a run of another commit, counts as untested.
  * @example
  * getCiVerdict({ run: { sha, status: 'in_progress', conclusion: null, url }, sha });
- * // { isTested: false, message: 'Nothing deployed: the CI of develop is still running on
- * // 58ff9ea (in_progress): https://github.com/…' }
+ * // { isTested: false, level: 'notice', message: 'Nothing deployed: a later scheduled run tries
+ * // again, since the CI of develop is still running on 58ff9ea (in_progress): https://…' }
  */
 export const getCiVerdict = ({ run, sha, branch = DEVELOP_BRANCH }) => {
   const isRunOfCommit = isCommitSha(sha) && run?.sha === sha;
   if (!isRunOfCommit) {
     return {
       isTested: false,
-      message: `Nothing deployed: the CI has not run on ${branch} for ${shortenSha(sha) || 'this commit'}.`,
+      level: 'notice',
+      message: `Nothing deployed: a later scheduled run tries again, since the CI has not run on ${branch} for ${shortenSha(sha) || 'this commit'}.`,
     };
   }
 
   const { isSuccess, outcome } = describeRunOutcome(run);
-  return isSuccess
-    ? { isTested: true, message: `The CI of ${branch} ${outcome}` }
-    : { isTested: false, message: `Nothing deployed: the CI of ${branch} ${outcome}` };
+  if (isSuccess) {
+    return { isTested: true, level: 'notice', message: `The CI of ${branch} ${outcome}` };
+  }
+
+  // A run that ended without passing, or that GitHub holds, needs someone to act, unlike one that
+  // is still going
+  const needsSomeone = !isRunningRun(run);
+  return {
+    isTested: false,
+    level: needsSomeone ? 'warning' : 'notice',
+    message: `Nothing deployed: a later scheduled run tries again, since the CI of ${branch} ${outcome}`,
+  };
 };
 
 /**

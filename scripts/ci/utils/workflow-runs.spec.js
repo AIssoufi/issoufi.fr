@@ -316,9 +316,13 @@ describe('readRuns', () => {
 });
 
 describe('getCiVerdict', () => {
+  /** Start of the message of a deploy that stops. */
+  const STOPPED = 'Nothing deployed: a later scheduled run tries again, since';
+
   it('lets a commit whose run passed through', () => {
     expect(getCiVerdict({ run: run(), sha: SHA, branch: 'develop' })).toEqual({
       isTested: true,
+      level: 'notice',
       message: `The CI of develop passed on 58ff9ea: ${RUN_URL}`,
     });
   });
@@ -329,55 +333,80 @@ describe('getCiVerdict', () => {
     );
   });
 
-  it.each(['queued', 'in_progress', 'waiting'])('stops while the run is %s', status => {
-    expect(getCiVerdict({ run: run({ status, conclusion: null }), sha: SHA })).toEqual({
-      isTested: false,
-      message: `Nothing deployed: the CI of develop is still running on 58ff9ea (${status}): ${RUN_URL}`,
-    });
+  it('names another branch', () => {
+    expect(getCiVerdict({ run: run({ conclusion: 'failure' }), sha: SHA, branch: 'main' })).toEqual(
+      {
+        isTested: false,
+        level: 'warning',
+        message: `${STOPPED} the CI of main did not pass on 58ff9ea (failure): ${RUN_URL}`,
+      },
+    );
   });
 
-  it.each(['failure', 'cancelled', 'timed_out', 'skipped'])(
-    'stops when the run ended with %s',
-    conclusion => {
-      expect(getCiVerdict({ run: run({ conclusion }), sha: SHA })).toEqual({
+  it.each(['queued', 'in_progress', 'waiting', 'pending', 'requested'])(
+    'stops with a notice while the run is %s',
+    status => {
+      expect(getCiVerdict({ run: run({ status, conclusion: null }), sha: SHA })).toEqual({
         isTested: false,
-        message: `Nothing deployed: the CI of develop did not pass on 58ff9ea (${conclusion}): ${RUN_URL}`,
+        level: 'notice',
+        message: `${STOPPED} the CI of develop is still running on 58ff9ea (${status}): ${RUN_URL}`,
       });
     },
   );
 
-  it('stops while the run waits for approval', () => {
-    expect(getCiVerdict({ run: run({ conclusion: 'action_required' }), sha: SHA }).message).toBe(
-      `Nothing deployed: the CI of develop is waiting for someone to approve it on 58ff9ea: ${RUN_URL}`,
-    );
-  });
+  it.each(['failure', 'cancelled', 'timed_out', 'skipped', 'startup_failure', 'neutral'])(
+    'stops with a warning when the run ended with %s',
+    conclusion => {
+      expect(getCiVerdict({ run: run({ conclusion }), sha: SHA })).toEqual({
+        isTested: false,
+        level: 'warning',
+        message: `${STOPPED} the CI of develop did not pass on 58ff9ea (${conclusion}): ${RUN_URL}`,
+      });
+    },
+  );
 
-  it('stops when a completed run has no conclusion', () => {
-    expect(getCiVerdict({ run: run({ conclusion: null }), sha: SHA }).message).toBe(
-      `Nothing deployed: the CI of develop did not pass on 58ff9ea (no conclusion): ${RUN_URL}`,
-    );
-  });
-
-  it.each([undefined, null])('stops when the commit has no run (%o)', missingRun => {
-    expect(getCiVerdict({ run: missingRun, sha: SHA })).toEqual({
+  it('stops with a warning while the run waits for approval', () => {
+    expect(getCiVerdict({ run: run({ conclusion: 'action_required' }), sha: SHA })).toEqual({
       isTested: false,
-      message: 'Nothing deployed: the CI has not run on develop for 58ff9ea.',
+      level: 'warning',
+      message: `${STOPPED} the CI of develop is waiting for someone to approve it on 58ff9ea: ${RUN_URL}`,
     });
   });
 
-  it('stops when the run tested another commit', () => {
-    expect(getCiVerdict({ run: run({ sha: OTHER_SHA }), sha: SHA }).isTested).toBe(false);
+  it('stops with a warning when a completed run has no conclusion', () => {
+    expect(getCiVerdict({ run: run({ conclusion: null }), sha: SHA })).toEqual({
+      isTested: false,
+      level: 'warning',
+      message: `${STOPPED} the CI of develop did not pass on 58ff9ea (no conclusion): ${RUN_URL}`,
+    });
   });
 
-  it.each([undefined, '', '58ff9ea'])('stops for the commit %o', sha => {
+  it.each([undefined, null])('stops with a notice when the commit has no run (%o)', missingRun => {
+    expect(getCiVerdict({ run: missingRun, sha: SHA })).toEqual({
+      isTested: false,
+      level: 'notice',
+      message: `${STOPPED} the CI has not run on develop for 58ff9ea.`,
+    });
+  });
+
+  it('stops with a notice when the run tested another commit', () => {
+    expect(getCiVerdict({ run: run({ sha: OTHER_SHA }), sha: SHA })).toEqual({
+      isTested: false,
+      level: 'notice',
+      message: `${STOPPED} the CI has not run on develop for 58ff9ea.`,
+    });
+  });
+
+  it.each([undefined, '', '58ff9ea', SHA.toUpperCase()])('stops for the commit %o', sha => {
     const verdict = getCiVerdict({ run: run(), sha });
     expect(verdict.isTested).toBe(false);
-    expect(verdict.message).toMatch(/^Nothing deployed: the CI has not run on develop for /);
+    expect(verdict.level).toBe('notice');
+    expect(verdict.message.startsWith(`${STOPPED} the CI has not run on develop for `)).toBe(true);
   });
 
   it('names a missing commit', () => {
     expect(getCiVerdict({ run: run() }).message).toBe(
-      'Nothing deployed: the CI has not run on develop for this commit.',
+      `${STOPPED} the CI has not run on develop for this commit.`,
     );
   });
 });

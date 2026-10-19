@@ -118,6 +118,8 @@ jobs:
             echo "sha=$(git rev-parse origin/develop)" >> "$GITHUB_OUTPUT"
           fi
 
+      # Fails when the commit has not passed its CI, once a run still going finished: the run then
+      # does not count as the deploy of the day, and a later scheduled run tries again
       - id: ci
         name: Check the CI of develop
         if: steps.trees.outputs.sha != ''
