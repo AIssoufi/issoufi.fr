@@ -142,7 +142,7 @@ const COVERAGE_THRESHOLDS_PERCENT = { lines: 97, statements: 97, branches: 96, f
 /**
  * Time a test may take before Vitest fails it, in milliseconds: twice its default of 5 s. Several
  * suites often share one machine, as when ticket workers test their worktrees at the same time,
- * and the heaviest renders then outlast the default, although they take about 1 s alone.
+ * and the heaviest renders then outlast the default, although they take under 1 s alone.
  */
 const TEST_TIMEOUT_MS = 10_000;
 
