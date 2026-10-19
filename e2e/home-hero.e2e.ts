@@ -3,7 +3,7 @@ import { expect, type Page, test } from '@playwright/test';
 import { LANGUAGES } from '../src/i18n/constants';
 import { localizePath } from '../src/i18n/utils';
 import { HOME_PAGE } from '../src/utils/pages';
-import { waitForEndingAnimations } from './animations';
+import { recordLargestShift, waitForEndingAnimations } from './animations';
 import {
   HERO_POINTER_SCREENS,
   HERO_SCREENS,
@@ -41,37 +41,6 @@ const openHomePage = async ({ page, route }: OpenHomePageParams) => {
     await document.fonts.ready;
   });
   await page.locator(PAGE_SELECTOR).evaluate(waitForEndingAnimations);
-};
-
-/** Parameters of {@link recordLargestWordShift}, besides the words that Playwright gives it. */
-interface RecordLargestWordShiftParams {
-  /** Number of animation frames to wait, at the end of each of which the words are measured. */
-  frameCount: number;
-}
-
-/**
- * Waits a number of animation frames, in which a word of the home title reacts to the pointer,
- * and returns the largest distance that a word stood from its place at the end of any of them: the
- * offset of the `translate()` that `SplitWords` writes in its inline style, without the parallax
- * and the float animation that move the whole title. Counting frames rather than milliseconds
- * keeps the check as strict on a loaded machine, which draws fewer frames per second. Runs in the
- * browser, so it uses nothing from outside its own body.
- *
- * @returns The largest shift, in px, `0` without any word.
- */
-const recordLargestWordShift = async (
-  words: Element[],
-  { frameCount }: RecordLargestWordShiftParams,
-) => {
-  let largestShift = 0;
-  for (let frame = 0; frame < frameCount; frame += 1) {
-    await new Promise(resolve => requestAnimationFrame(resolve));
-    for (const word of words) {
-      const { e: x, f: y } = new DOMMatrixReadOnly((word as HTMLElement).style.transform);
-      largestShift = Math.max(largestShift, Math.hypot(x, y));
-    }
-  }
-  return largestShift;
 };
 
 // jsdom computes no layout, so only a real browser sees the buttons fall below the screen
@@ -124,7 +93,7 @@ for (const language of LANGUAGES) {
           for (const point of getButtonAimPoints(await button.boundingBox())) {
             await page.mouse.move(point.x, point.y);
 
-            const largestShift = await words.evaluateAll(recordLargestWordShift, {
+            const largestShift = await words.evaluateAll(recordLargestShift, {
               frameCount: POINTER_REST_FRAME_COUNT,
             });
             expect(
@@ -147,7 +116,7 @@ for (const language of LANGUAGES) {
           word.y + word.height / 2 - word.height * WORD_AIM_HEIGHT_RATIO,
         );
 
-        const largestShift = await words.evaluateAll(recordLargestWordShift, {
+        const largestShift = await words.evaluateAll(recordLargestShift, {
           frameCount: POINTER_REST_FRAME_COUNT,
         });
         expect(largestShift, 'largest shift of a word, in px').toBeGreaterThan(MAX_WORD_SHIFT_PX);

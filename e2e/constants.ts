@@ -415,10 +415,13 @@ export const MAX_WORD_SHIFT_PX = 2;
 
 /**
  * Number of animation frames that the pointer rests at a point, each of which measures the words
- * of the home title. A word pushed stays where it went until 900 ms after the last push, so the
- * pushes of the points of a button add up: without the rule that a mouse over a control pushes
- * nothing, the words within reach move 4.6 px at least over the top edge of a button, more than
- * twice {@link MAX_WORD_SHIFT_PX}.
+ * of the home title. A word pushed stays where it went until `RETURN_DELAY_MS`
+ * (`src/pages/Home/SplitWords/constants.ts`) after the last push, so the pushes of the points of
+ * a button add up: without the rule that a mouse over a control pushes nothing, the farthest word
+ * goes 4.6 px at least from its place while the pointer crosses the top edge of a button, on every
+ * short screen, more than twice {@link MAX_WORD_SHIFT_PX}. That delay counts milliseconds, not
+ * frames: on a machine so slow that crossing a button outlasts it, the words would go back between
+ * two points, and the check would pass more easily.
  */
 export const POINTER_REST_FRAME_COUNT = 4;
 

@@ -59,3 +59,43 @@ export const listLastingAnimations = (
     const pseudoElement = effect?.pseudoElement ?? '';
     return [`${name} on <${tag}>${pseudoElement}, ends after ${endTime} ms`];
   });
+
+/** Options of {@link recordLargestShift}, the argument that `locator.evaluateAll` passes to it. */
+interface RecordLargestShiftOptions {
+  /** Number of animation frames to wait, at the end of each of which the elements are measured. */
+  frameCount: number;
+}
+
+/**
+ * Waits a number of animation frames and returns the largest distance that an element stood from
+ * its place at the end of any of them: the offset of the translation of its inline `transform`,
+ * such as the `translate()` that `SplitWords` writes on each word of the home title, without the
+ * animations of its parents. Counting frames rather than milliseconds measures as many steps of a
+ * `requestAnimationFrame` loop on a loaded machine, which draws fewer frames per second. Runs in
+ * the browser, passed to `locator.evaluateAll`, so it uses nothing from outside its own body.
+ *
+ * @param elements - Elements to measure, such as the words of a title.
+ * @param options - The argument that `locator.evaluateAll` passes after the elements.
+ * @returns The largest shift, in px; `0` without any element, without any frame, or when no
+ * element has a translation.
+ *
+ * @example
+ * await page.getByRole('heading', { level: 1 }).locator('span')
+ *   .evaluateAll(recordLargestShift, { frameCount: 4 });
+ * // 0
+ */
+export const recordLargestShift = async (
+  elements: Element[],
+  { frameCount }: RecordLargestShiftOptions,
+): Promise<number> => {
+  let largestShift = 0;
+  for (let frame = 0; frame < frameCount; frame += 1) {
+    await new Promise(resolve => requestAnimationFrame(resolve));
+    for (const element of elements) {
+      const transform = (element as HTMLElement).style?.transform ?? '';
+      const { e: x, f: y } = new DOMMatrixReadOnly(transform);
+      largestShift = Math.max(largestShift, Math.hypot(x, y));
+    }
+  }
+  return largestShift;
+};

@@ -1,4 +1,4 @@
-import { listLastingAnimations, waitForEndingAnimations } from './animations';
+import { listLastingAnimations, recordLargestShift, waitForEndingAnimations } from './animations';
 
 /** Parameters of {@link fakeAnimation}. */
 interface FakeAnimationParams {
@@ -188,5 +188,111 @@ describe('listLastingAnimations', () => {
     const { container } = fakeContainer([{ effect: null }]);
 
     expect(listLastingAnimations(container, { maxDurationMs: MAX_DURATION_MS })).toEqual([]);
+  });
+});
+
+/**
+ * A stand-in for `DOMMatrixReadOnly`, which jsdom lacks, that reads the offset of the first
+ * `translate(Xpx, Ypx)` of a transform, and none from any other transform.
+ */
+class FakeMatrix {
+  e = 0;
+  f = 0;
+
+  constructor(transform = '') {
+    const match = /translate\((-?[\d.]+)px, (-?[\d.]+)px\)/.exec(transform);
+    if (!match) return;
+    this.e = Number(match[1]);
+    this.f = Number(match[2]);
+  }
+}
+
+/** Elements whose inline `transform` is each of the given values. */
+const transformedElements = (transforms: string[]) =>
+  transforms.map(transform => {
+    const element = document.createElement('span');
+    element.style.transform = transform;
+    return element;
+  });
+
+/**
+ * Makes `requestAnimationFrame` call back at once, after running the step of the frame of the
+ * given index, and returns its spy.
+ */
+const runFrames = (stepFrame: (frame: number) => void = () => {}) => {
+  let frame = 0;
+  return vi.spyOn(window, 'requestAnimationFrame').mockImplementation(callback => {
+    stepFrame(frame);
+    callback(frame);
+    frame += 1;
+    return frame;
+  });
+};
+
+describe('recordLargestShift', () => {
+  beforeEach(() => {
+    vi.stubGlobal('DOMMatrixReadOnly', FakeMatrix);
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+    vi.unstubAllGlobals();
+  });
+
+  it('waits the given number of frames', async () => {
+    const requestFrame = runFrames();
+
+    await recordLargestShift(transformedElements(['']), { frameCount: 4 });
+
+    expect(requestFrame).toHaveBeenCalledTimes(4);
+  });
+
+  it('gives the largest distance of any element from its place, a negative offset included', async () => {
+    runFrames();
+    const elements = transformedElements([
+      'translate(3px, 4px) rotate(2deg)',
+      'translate(-6px, -8px) rotate(-1deg)',
+      'translate(1px, 0px)',
+    ]);
+
+    expect(await recordLargestShift(elements, { frameCount: 1 })).toBe(10);
+  });
+
+  it('keeps the peak of an element that goes back to its place in a later frame', async () => {
+    const [word] = transformedElements(['translate(0px, 0px)']);
+    const offsets = ['translate(0px, 2px)', 'translate(0px, 7px)', 'translate(0px, 0px)'];
+    runFrames(frame => {
+      word.style.transform = offsets[frame];
+    });
+
+    expect(await recordLargestShift([word], { frameCount: offsets.length })).toBe(7);
+  });
+
+  it('gives 0 for elements without a transform', async () => {
+    runFrames();
+
+    expect(await recordLargestShift(transformedElements(['', '']), { frameCount: 2 })).toBe(0);
+  });
+
+  it('gives 0 for an element without an inline style', async () => {
+    runFrames();
+    const element = document.createElementNS('https://example.com/no-style', 'word');
+
+    expect(await recordLargestShift([element], { frameCount: 1 })).toBe(0);
+  });
+
+  it('gives 0 without any element', async () => {
+    runFrames();
+
+    expect(await recordLargestShift([], { frameCount: 2 })).toBe(0);
+  });
+
+  it.each([0, -1, Number.NaN])('gives 0 at once for %s frames', async frameCount => {
+    const requestFrame = runFrames();
+
+    expect(
+      await recordLargestShift(transformedElements(['translate(5px, 0px)']), { frameCount }),
+    ).toBe(0);
+    expect(requestFrame).not.toHaveBeenCalled();
   });
 });
