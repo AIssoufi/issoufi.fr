@@ -57,4 +57,5 @@ They run in both languages, on screens from small phones to large desktops:
 
 - **Animations**: wait for them to end before measuring a box (`waitForEndingAnimations`), or open the page with reduced motion. An element still sliding in stands elsewhere.
 - **Proof**: check that a new test fails without its fix, at every size it covers.
+- **Download priorities**: Chromium raises the priority of an image that shows on the screen while it downloads, which a local server answers first. Slow the network down (`SLOW_4G_NETWORK`), as `e2e/download-priorities.e2e.ts` does.
 - **Screenshots**: a screen that changes with no change of the code draws something that moves from a run to the next, such as the time, a random value or a late image. Fix it in `e2e/pages.visual.ts` rather than tolerate a difference.
