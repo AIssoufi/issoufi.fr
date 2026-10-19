@@ -16,6 +16,7 @@ import {
   WINDOWS_PATH_SEPARATOR_PATTERN,
 } from '../constants.mjs';
 import { toList } from './lists.mjs';
+import { getMediaType } from './media-types.mjs';
 
 /**
  * A page or another file of the build to request on the deployed site.
@@ -23,6 +24,8 @@ import { toList } from './lists.mjs';
  * @property {string} file - File of the build, e.g. `projects.html` or `sitemap.xml`.
  * @property {string} route - Path to request, e.g. `/projects`.
  * @property {number} status - HTTP status the site must answer with.
+ * @property {string} [mediaType] - Media type the site must send the file with, e.g.
+ * `application/manifest+json`. Left out, any media type passes.
  */
 
 /**
@@ -129,26 +132,41 @@ export const getPageChecks = fileNames =>
 
 /**
  * Lists the files of the build, other than its pages, that the deployed site must serve unchanged
- * at its root ({@link SERVED_AS_BUILT_FILES}), such as `sitemap.xml` at `/sitemap.xml`.
+ * ({@link SERVED_AS_BUILT_FILES}), such as `sitemap.xml` at `/sitemap.xml`, and
+ * `en/manifest.webmanifest` at `/en/manifest.webmanifest`, with the media type it must have.
  * @param {string[]} [fileNames] - Paths of the files of the build, relative to its folder, as
  * `readdirSync` lists them with `recursive`. Any value that is not an array counts as none.
- * @returns {PageCheck[]} One check per such file at the root of the build, with a 200 status, in
- * the order of {@link SERVED_AS_BUILT_FILES}. A file the build does not have, or has only in a
- * folder (`en/robots.txt`), gets none.
+ * @returns {PageCheck[]} One check per such file with a 200 status, in the order of
+ * {@link SERVED_AS_BUILT_FILES}, then of the build. A file the build does not have, or has only in
+ * a folder (`en/robots.txt`) when the site serves the one of its root only, gets none.
  * @example
- * getFileChecks(['index.html', 'robots.txt', 'sitemap.xml']);
+ * getFileChecks(['index.html', 'robots.txt', 'en/manifest.webmanifest']);
  * // [
  * //   { file: 'robots.txt', route: '/robots.txt', status: 200 },
- * //   { file: 'sitemap.xml', route: '/sitemap.xml', status: 200 },
+ * //   {
+ * //     file: 'en/manifest.webmanifest',
+ * //     route: '/en/manifest.webmanifest',
+ * //     status: 200,
+ * //     mediaType: 'application/manifest+json',
+ * //   },
  * // ]
  */
 export const getFileChecks = fileNames => {
-  const buildFiles = toList(fileNames);
-  return SERVED_AS_BUILT_FILES.filter(file => buildFiles.includes(file)).map(file => ({
-    file,
-    route: `${PATH_SEPARATOR}${file}`,
-    status: HTTP_OK,
-  }));
+  const buildFiles = toList(fileNames).filter(isNonEmptyString).map(toPosixPath);
+  return SERVED_AS_BUILT_FILES.flatMap(({ name, isInEveryFolder = false, mediaType }) =>
+    buildFiles
+      .filter(file => {
+        const { folderRoute, name: fileName } = splitBuildPath(file);
+        const isServedFolder = folderRoute === '' || isInEveryFolder;
+        return fileName === name && isServedFolder;
+      })
+      .map(file => ({
+        file,
+        route: `${PATH_SEPARATOR}${file}`,
+        status: HTTP_OK,
+        ...(mediaType ? { mediaType } : {}),
+      })),
+  );
 };
 
 /**
@@ -252,11 +270,14 @@ export const comparePage = ({ page, status, servedHtml, builtHtml }) => {
  * counts as empty.
  * @property {string} [builtText] - Content of the file in the build. Missing or not a string, it
  * counts as empty.
+ * @property {string | null} [contentType] - `Content-Type` header of the response, compared with
+ * the media type of the check when it has one. Missing, it counts as no media type.
  */
 
 /**
  * Compares a file that the deployed site served, such as `sitemap.xml`, with the file of the
- * build: same status as expected, and the same content, character for character.
+ * build: same status as expected, the media type of the check when it has one, and the same
+ * content, character for character.
  * @param {CompareFileParams} params
  * @returns {string[]} The problems found, empty when the file is served as built, and a single
  * problem when the file check is missing or malformed.
@@ -268,7 +289,7 @@ export const comparePage = ({ page, status, servedHtml, builtHtml }) => {
  *   builtText: 'User-agent: *\nSitemap: https://issoufi.fr/sitemap.xml\n',
  * }); // ['/robots.txt: content differs from robots.txt of the build']
  */
-export const compareFile = ({ check, status, servedText, builtText }) => {
+export const compareFile = ({ check, status, servedText, builtText, contentType }) => {
   if (!isPageCheck(check)) {
     return ['A file check without a file, a route or an integer status cannot be compared'];
   }
@@ -276,6 +297,14 @@ export const compareFile = ({ check, status, servedText, builtText }) => {
   const served = typeof servedText === 'string' ? servedText : '';
   const built = typeof builtText === 'string' ? builtText : '';
   const problems = compareStatus({ check, status });
+
+  const servedMediaType = getMediaType(contentType);
+  const hasWrongMediaType =
+    isNonEmptyString(check.mediaType) && servedMediaType !== check.mediaType;
+  if (hasWrongMediaType) {
+    const servedAs = servedMediaType || 'no media type';
+    problems.push(`${check.route}: served as ${servedAs} instead of ${check.mediaType}`);
+  }
 
   // Without content in the build, an empty served file would pass the comparison
   const isEmptyInBuild = built === '';

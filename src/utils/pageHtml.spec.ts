@@ -5,6 +5,7 @@ import { en } from '../i18n/en';
 import { fr } from '../i18n/fr';
 import { addModulePreload, renderNotFoundHtml, renderPageHtml } from './pageHtml';
 import { OG_IMAGE_PATHS, PAGES, SITE_URL, getNotFoundFiles, getPageFiles } from './pages';
+import { getWebManifestUrl } from './webManifest';
 
 const [home, projects, experiences] = PAGES;
 
@@ -207,6 +208,50 @@ describe('links between the translations of a page', () => {
   it('adds no link to a template without a head', () => {
     expect(renderPageHtml({ template: '<p>%PAGE_TITLE%</p>', page: home, years: 8 })).toBe(
       '<p>ADAM Issoufi - Développeur full-stack JavaScript</p>',
+    );
+  });
+});
+
+describe('link to the web app manifest', () => {
+  const html = readFileSync('index.html', 'utf-8');
+
+  /** Lists the URL of each manifest link of a page. */
+  const getManifestUrls = (page: string) =>
+    [...page.matchAll(/<link rel="manifest" href="([^"]*)" \/>/g)].map(([, href]) => href);
+
+  it('is not in index.html, whose pages each link the manifest of their language', () => {
+    expect(html).not.toContain('rel="manifest"');
+  });
+
+  it.each([
+    { language: 'fr', manifestUrl: '/manifest.webmanifest' },
+    { language: 'en', manifestUrl: '/en/manifest.webmanifest' },
+  ] as const)('links $manifestUrl from each $language page', ({ language, manifestUrl }) => {
+    PAGES.forEach(page => {
+      expect(getManifestUrls(renderPageHtml({ template: html, page, language, years: 8 }))).toEqual(
+        [manifestUrl],
+      );
+    });
+  });
+
+  it.each(LANGUAGES)('links the manifest of %s from its not found page', language => {
+    const page = renderNotFoundHtml({ template: html, language, years: 8 });
+
+    expect(getManifestUrls(page)).toEqual([getWebManifestUrl(language)]);
+  });
+
+  it('puts the link in the head, after the links to the translations', () => {
+    const page = renderPageHtml({ template: html, page: projects, language: 'en', years: 8 });
+
+    expect(page).toContain(
+      '\n    <meta property="og:locale:alternate" content="fr_FR" />' +
+        '\n    <link rel="manifest" href="/en/manifest.webmanifest" />\n  </head>',
+    );
+  });
+
+  it('adds no link to a template without a head', () => {
+    expect(renderNotFoundHtml({ template: '<p>%PAGE_TITLE%</p>', years: 8 })).toBe(
+      '<p>Page introuvable - ADAM Issoufi</p>',
     );
   });
 });

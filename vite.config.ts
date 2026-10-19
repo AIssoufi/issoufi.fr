@@ -15,6 +15,12 @@ import {
 } from './src/utils/pages';
 import { renderSitemap, SITEMAP_FILE_NAME } from './src/utils/sitemap';
 import {
+  findWebManifestLanguage,
+  getWebManifestFiles,
+  renderWebManifest,
+  WEB_MANIFEST_MEDIA_TYPE,
+} from './src/utils/webManifest';
+import {
   ALL_ENV_VARIABLES_PREFIX,
   ASSETS_DIR,
   HEADERS_FILE_NAME,
@@ -122,6 +128,30 @@ const sitemap = (): Plugin => ({
 });
 
 /**
+ * Vite plugin that emits the web app manifest of each language, `manifest.webmanifest` at the root
+ * of the build and `en/manifest.webmanifest` (see {@link renderWebManifest}), which the pages of
+ * that language link, and that the dev server sends at the same URLs.
+ */
+const webManifests = (): Plugin => ({
+  name: 'web-manifests',
+  configureServer: server => {
+    server.middlewares.use((request, response, next) => {
+      const language = findWebManifestLanguage(request.url);
+      if (!language) return next();
+
+      response.setHeader('Content-Type', WEB_MANIFEST_MEDIA_TYPE);
+      response.end(renderWebManifest({ language, years: getYearsOfExperience() }));
+    });
+  },
+  generateBundle() {
+    const years = getYearsOfExperience();
+    getWebManifestFiles().forEach(({ language, fileName }) => {
+      this.emitFile({ type: 'asset', fileName, source: renderWebManifest({ language, years }) });
+    });
+  },
+});
+
+/**
  * Vite plugin that emits `_headers` at the root of the build, the HTTP headers that Cloudflare
  * Pages adds to the files it serves, by path (see {@link renderHeaderRules}): the security headers
  * of every file, such as its Content Security Policy, `X-Robots-Tag: noindex` on the `pages.dev`
@@ -154,10 +184,10 @@ const COVERAGE_THRESHOLDS_PERCENT = { lines: 97, statements: 97, branches: 96, f
 const TEST_TIMEOUT_MS = 10_000;
 
 /**
- * Vite and Vitest configuration: React with SVG components, the web fonts, page metadata, sitemap
- * and HTTP headers plugins, the dev and preview servers on the port of the worktree (see
- * {@link getServerPorts}), which fail when it is taken, the preview server with the security
- * headers of the site, and the tests in jsdom with coverage.
+ * Vite and Vitest configuration: React with SVG components, the web fonts, page metadata, sitemap,
+ * web app manifests and HTTP headers plugins, the dev and preview servers on the port of the
+ * worktree (see {@link getServerPorts}), which fail when it is taken, the preview server with the
+ * security headers of the site, and the tests in jsdom with coverage.
  * @see https://vitejs.dev/config/
  */
 export default defineConfig(({ mode }) => {
@@ -165,7 +195,7 @@ export default defineConfig(({ mode }) => {
 
   return {
     base: '/',
-    plugins: [react(), svgr(), fontFaces(), pageMeta(), sitemap(), httpHeaders()],
+    plugins: [react(), svgr(), fontFaces(), pageMeta(), sitemap(), webManifests(), httpHeaders()],
     // The version that release-please writes in package.json, shown after the logo of the header
     // (src/App/Header) and typed in src/vite-env.d.ts; the tests read it too
     define: { __APP_VERSION__: JSON.stringify(packageJson.version) },
@@ -210,6 +240,7 @@ export default defineConfig(({ mode }) => {
           'scripts/utils/**/*.mjs',
           'scripts/ci/utils/**/*.mjs',
           'scripts/og-image/utils/**/*.mjs',
+          'scripts/icons/utils/**/*.mjs',
           'scripts/cv/utils/**/*.mjs',
         ],
         exclude: [
