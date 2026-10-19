@@ -50,14 +50,24 @@ export const companyBlock = css`
   }
 `;
 
-/* Width of the period column of a timeline row on desktop. The line runs along its right edge. */
-export const periodColumnWidth = th.size(90);
+/* Width of the period column of a timeline row on desktop: wide enough for the longest of its
+   dates, "Aujourd’hui", 74 px at 12 px, next to the padding of the column. The line runs along
+   its right edge. */
+export const periodColumnWidth = th.size(94);
+
+/* Width of the period column from the wide breakpoint, where its dates are larger: wide enough
+   for the longest of them, "Aujourd’hui", 86 px at 14 px, next to the padding of the column. */
+export const widePeriodColumnWidth = th.size(110);
 
 /* Desktop layout of a timeline row: the period column, then the content. */
 export const timelineRow = css`
   @media (min-width: ${th('screens.tablet')}) {
     display: grid;
     grid-template-columns: ${periodColumnWidth} 1fr;
+  }
+
+  @media (min-width: ${th('screens.wide')}) {
+    grid-template-columns: ${widePeriodColumnWidth} 1fr;
   }
 `;
 

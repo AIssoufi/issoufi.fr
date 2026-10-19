@@ -31,6 +31,10 @@ export const JobName = styled.h3`
   @media (min-width: ${th('screens.tablet')}) {
     font-size: ${th.fontSize(17)};
   }
+
+  @media (min-width: ${th('screens.wide')}) {
+    font-size: ${th.fontSize(19)};
+  }
 `;
 
 export const RoleName = styled.h3`
@@ -43,6 +47,10 @@ export const RoleName = styled.h3`
   @media (min-width: ${th('screens.tablet')}) {
     font-size: ${th.fontSize(15)};
   }
+
+  @media (min-width: ${th('screens.wide')}) {
+    font-size: ${th.fontSize(17)};
+  }
 `;
 
 export const JobDetails = styled.div`
@@ -50,6 +58,10 @@ export const JobDetails = styled.div`
   font-weight: ${th.fontWeight('medium')};
   color: ${th.color('foreground-secondary')};
   margin-top: ${th.space(2)};
+
+  @media (min-width: ${th('screens.wide')}) {
+    font-size: ${th.fontSize(15)};
+  }
 `;
 
 /* The period, then the duration, on one line while they fit. Each one keeps its own top margin,
@@ -84,4 +96,8 @@ export const JobDuration = styled.div`
   padding: ${th.space(2)} ${th.space(9)};
   margin-top: ${th.space(4)};
   width: fit-content;
+
+  @media (min-width: ${th('screens.wide')}) {
+    font-size: ${th.fontSize(14)};
+  }
 `;

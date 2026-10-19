@@ -52,6 +52,10 @@ export const SectionTitle = styled.h2`
   @media (min-width: ${th('screens.tablet')}) {
     font-size: ${th.fontSize(40)};
   }
+
+  @media (min-width: ${th('screens.wide')}) {
+    font-size: ${th.fontSize(44)};
+  }
 `;
 
 export const SectionControls = styled.div`
@@ -190,6 +194,11 @@ export const ImageContainer = styled.header`
   position: relative;
   border: ${th.borderWidth('thin')} solid ${th.color('foreground-a8')};
 
+  /* As much higher as the cards get wider with the app container, so they keep their shape */
+  @media (min-width: ${th('screens.wide')}) {
+    height: ${th.size(248)};
+  }
+
   &::before {
     content: '';
     position: absolute;
@@ -318,6 +327,10 @@ export const ProjectName = styled.h3`
   font-weight: ${th.fontWeight('bold')};
   letter-spacing: ${th.letterSpacing(1)};
   margin-bottom: ${th.space(3)};
+
+  @media (min-width: ${th('screens.wide')}) {
+    font-size: ${th.fontSize(18)};
+  }
 `;
 
 // Its ::after covers the whole card, so that a click anywhere on it opens the project, while the
@@ -342,15 +355,23 @@ export const ProjectLink = styled(NewTabLink)`
   }
 `;
 
-export const ProjectType = styled.div`
+// The type and the tools of a project, under its name
+const projectMetadata = css`
   font-size: ${th.fontSize(13)};
   color: ${th.color('foreground-muted')};
+
+  @media (min-width: ${th('screens.wide')}) {
+    font-size: ${th.fontSize(15)};
+  }
+`;
+
+export const ProjectType = styled.div`
+  ${projectMetadata}
 `;
 
 // A list that wraps as one line of text, its tools separated by dots
 export const ProjectTools = styled(List)`
-  font-size: ${th.fontSize(13)};
-  color: ${th.color('foreground-muted')};
+  ${projectMetadata}
 `;
 
 export const ProjectTool = styled.li`

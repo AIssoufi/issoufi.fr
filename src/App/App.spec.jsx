@@ -3,7 +3,11 @@ import userEvent from '@testing-library/user-event';
 
 import { LANGUAGE_STORAGE_KEY } from '../i18n/constants';
 import { declaredStyle } from '../styleTestUtils';
+import { theme } from '../theme';
 import App from './App';
+
+/** Media query of the wide screens, from the `wide` breakpoint. */
+const WIDE_MEDIA = `(min-width: ${theme.screens.wide})`;
 
 /** Runs the i18n setup again, as on a new page load. */
 const reloadI18n = async () => {
@@ -144,6 +148,16 @@ describe('App', () => {
 
     expect(declaredStyle({ element: app, property: 'min-height' })).toBe('100vh');
     expect(declaredStyle({ element: app, property: 'height' })).toBe('');
+  });
+
+  it('widens its container from the wide breakpoint, and only there', () => {
+    render(<App />);
+    const app = screen.getByTestId('app');
+
+    expect(declaredStyle({ element: app, property: 'max-width' })).toBe(theme.sizes.container);
+    expect(declaredStyle({ element: app, property: 'max-width', media: WIDE_MEDIA })).toBe(
+      theme.sizes['container-wide'],
+    );
   });
 
   describe('skip link', () => {

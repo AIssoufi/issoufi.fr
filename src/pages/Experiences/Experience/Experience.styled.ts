@@ -16,6 +16,10 @@ export const Details = styled.div`
   position: relative;
   line-height: ${th.lineHeight(160)};
   ${cardDetails}
+
+  @media (min-width: ${th('screens.wide')}) {
+    font-size: ${th.fontSize(16)};
+  }
 `;
 
 export const JobTechnologies = styled(Technologies)`

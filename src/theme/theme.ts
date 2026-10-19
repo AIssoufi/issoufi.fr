@@ -119,8 +119,14 @@ export const theme = {
   },
   sizes: {
     ...sizes,
-    /** Largest width of the app container. */
+    /** Largest width of the app container, up to the `wide` breakpoint. */
     container: sizes[1440],
+    /**
+     * Largest width of the app container from the `wide` breakpoint: the width of the screen at
+     * that breakpoint, so the content keeps more than 60 % of a 2560 px screen, where the
+     * 1440 px of `container` left it 54 %.
+     */
+    'container-wide': sizes[1600],
     /**
      * Height of the site header: the logo, 54 px high, with 20 px above and below. Its blurred
      * band, fixed on the screen, has the same height, so it covers the header and nothing else.
@@ -268,7 +274,11 @@ export const theme = {
      * (`text-measure`) next to a summary of more than 300 px.
      */
     'two-job-columns': breakpoints[64],
-    /** Wide screens. */
+    /**
+     * From this width, 1600 px, the layout scales up one step, so that a large screen shows the
+     * content in proportion instead of a narrow column in its middle: the app container widens to
+     * `container-wide`, and the pages enlarge their texts and their cards with it.
+     */
     wide: breakpoints[100],
   },
   /**

@@ -118,12 +118,14 @@ export const sizes = {
   44: '44px',
   48: '48px',
   50: '50px',
-  90: '90px',
   94: '94px',
+  110: '110px',
   222: '222px',
   240: '240px',
+  248: '248px',
   640: '640px',
   1440: '1440px',
+  1600: '1600px',
 } as const;
 
 /** Widths and heights that follow the font size of the element; keys are hundredths of an em. */
@@ -184,6 +186,7 @@ export const fontSizes = {
   16: '16px',
   17: '17px',
   18: '18px',
+  19: '19px',
   22: '22px',
   26: '26px',
   28: '28px',
@@ -191,6 +194,7 @@ export const fontSizes = {
   36: '36px',
   40: '40px',
   42: '42px',
+  44: '44px',
   72: '72px',
   120: '120px',
 } as const;
