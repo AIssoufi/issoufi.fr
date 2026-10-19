@@ -6,6 +6,7 @@ import {
   DEVELOP_BRANCH,
   LATEST_RUN_PAGE_SIZE,
   PUSH_EVENT,
+  RUN_ACTION_REQUIRED_CONCLUSION,
   RUN_COMPLETED_STATUS,
   RUN_SUCCESS_CONCLUSION,
   RUN_WAIT_ATTEMPTS,
@@ -89,10 +90,13 @@ export const getWorkflowRunsUrl = ({
 /**
  * A run of a workflow, as {@link readRun} reads it from the REST API.
  * @typedef {object} WorkflowRun
+ * @property {number} id - Identifier of the run, to read it again with {@link fetchRun}.
  * @property {string} sha - Commit the run tested.
  * @property {string} status - `queued`, `in_progress`, `completed`…
  * @property {string | null} conclusion - `success`, `failure`, `cancelled`…, or `null` while the
  * run has not finished.
+ * @property {Date} createdAt - Moment GitHub created the run, which for a scheduled run is when
+ * its cron fired, delays of the scheduler included.
  * @property {string} url - Page of the run on GitHub.
  */
 
@@ -100,26 +104,54 @@ export const getWorkflowRunsUrl = ({
  * Reads a run of a workflow from an answer of the REST API.
  * @param {unknown} value - The run, as the API writes it.
  * @returns {WorkflowRun | undefined} The run, or `undefined` when the value is not an object, or
- * when it lacks its commit, status, conclusion or page.
+ * when it lacks its identifier, commit, status, conclusion, creation date or page.
  * @example
- * readRun({ head_sha, status: 'completed', conclusion: 'success', html_url });
- * // { sha: head_sha, status: 'completed', conclusion: 'success', url: html_url }
+ * readRun({ id: 123, head_sha, status: 'completed', conclusion: 'success', created_at, html_url });
+ * // { id: 123, sha: head_sha, status: 'completed', conclusion: 'success', createdAt, url }
  */
 export const readRun = value => {
   const isObject = typeof value === 'object' && value !== null;
   if (!isObject) return undefined;
 
   const {
+    id,
     head_sha: sha,
     status,
     conclusion,
+    created_at: creationDate,
     html_url: url,
   } = /** @type {Record<string, unknown>} */ (value);
+  const createdAt = new Date(typeof creationDate === 'string' ? creationDate : Number.NaN);
+  const hasCreationDate = !Number.isNaN(createdAt.getTime());
   const hasConclusion = typeof conclusion === 'string' || conclusion === null;
   const isRun =
-    isCommitSha(sha) && typeof status === 'string' && hasConclusion && typeof url === 'string';
-  return isRun ? { sha, status, conclusion, url } : undefined;
+    isPositiveInteger(id) &&
+    isCommitSha(sha) &&
+    typeof status === 'string' &&
+    hasConclusion &&
+    hasCreationDate &&
+    typeof url === 'string';
+  return isRun ? { id, sha, status, conclusion, createdAt, url } : undefined;
 };
+
+/**
+ * Tells whether GitHub holds a run until someone approves it
+ * ({@link RUN_ACTION_REQUIRED_CONCLUSION}).
+ * @param {WorkflowRun | undefined} run - The run, from {@link readRun}.
+ * @returns {boolean} False without a run.
+ * @example
+ * isHeldRun({ ...run, status: 'completed', conclusion: 'action_required' }); // true
+ */
+export const isHeldRun = run =>
+  run?.status === RUN_COMPLETED_STATUS && run.conclusion === RUN_ACTION_REQUIRED_CONCLUSION;
+
+/**
+ * Tells whether a run has finished, whatever its conclusion. A run held for approval reads as
+ * completed, but has not run yet: approving it starts it again.
+ * @param {WorkflowRun | undefined} run - The run, from {@link readRun}.
+ * @returns {boolean} False without a run.
+ */
+const isFinishedRun = run => run?.status === RUN_COMPLETED_STATUS && !isHeldRun(run);
 
 /**
  * Reads the latest run from the answer of the endpoint that lists the runs of a workflow, newest
@@ -139,6 +171,22 @@ export const readLatestRun = response => {
 };
 
 /**
+ * Reads every run from the answer of the endpoint that lists the runs of a workflow, in its
+ * order, newest first.
+ * @param {unknown} response - Parsed JSON answer, with its `workflow_runs` list.
+ * @returns {WorkflowRun[]} The runs that {@link readRun} can read, or an empty list when the list
+ * is missing.
+ * @example
+ * readRuns({ workflow_runs: [apiRun, { odd: true }] }); // [run]
+ */
+export const readRuns = response => {
+  const runs = /** @type {Record<string, unknown> | null | undefined} */ (response)?.workflow_runs;
+  if (!Array.isArray(runs)) return [];
+
+  return runs.map(readRun).filter(run => run !== undefined);
+};
+
+/**
  * How a run ended, from {@link describeRunOutcome}.
  * @typedef {object} RunOutcome
  * @property {boolean} isSuccess - Whether the run finished with a success.
@@ -147,11 +195,13 @@ export const readLatestRun = response => {
  */
 
 /**
- * Tells how a run of a workflow ended, for a message about it: passed, still running, or did not
- * pass. A run still in progress, failed, cancelled or timed out does not count as a success.
+ * Tells how a run of a workflow ended, for a message about it: passed, still running, waiting for
+ * approval, or did not pass. A run still in progress, held, failed, cancelled or timed out does
+ * not count as a success.
  * @param {WorkflowRun | undefined} run - The run, from {@link readRun}.
  * @returns {RunOutcome} Whether the run passed, and the end of a sentence that says what
  * happened: `passed on <commit>: <page>`, `is still running on <commit> (<status>): <page>`,
+ * `is waiting for someone to approve it on <commit>: <page>`,
  * `did not pass on <commit> (<conclusion>): <page>`, or `could not be read.` without a run.
  * @example
  * `The CI of develop ${describeRunOutcome(run).outcome}`;
@@ -161,6 +211,13 @@ export const describeRunOutcome = run => {
   if (!run) return { isSuccess: false, outcome: 'could not be read.' };
 
   const commit = shortenSha(run.sha);
+  if (isHeldRun(run)) {
+    return {
+      isSuccess: false,
+      outcome: `is waiting for someone to approve it on ${commit}: ${run.url}`,
+    };
+  }
+
   const isCompleted = run.status === RUN_COMPLETED_STATUS;
   if (!isCompleted) {
     return {
@@ -295,6 +352,60 @@ export const fetchRun = async ({ runId, ...api }) => {
 };
 
 /**
+ * Parameters of {@link approveRun}: those of {@link fetchRun}, whose `token` needs the
+ * `actions: write` permission.
+ * @typedef {FetchRunParams} ApproveRunParams
+ */
+
+/**
+ * Approves a run that GitHub holds ({@link isHeldRun}), as _Approve workflows to run_ does on the
+ * pull request: GitHub starts it again, with a new attempt of the same run.
+ * @param {ApproveRunParams} params
+ * @returns {Promise<void>}
+ * @throws {Error} When the identifier is not a positive integer, or when GitHub refuses, for
+ * example to a token that may not approve the run.
+ * @example
+ * await approveRun({ runId: 123 });
+ */
+export const approveRun = async ({ runId, ...api }) => {
+  assertRunId(runId);
+
+  await requestRepositoryApi({ ...api, path: `/actions/runs/${runId}/approve`, method: 'POST' });
+};
+
+/**
+ * Parameters of {@link fetchWorkflowRuns}.
+ * @typedef {object} FetchWorkflowRunsParams
+ * @property {string} workflow - File name of the workflow, e.g. `deploy-production.yml`.
+ * @property {string} event - Event that started the runs, e.g. `schedule`.
+ * @property {number} perPage - Number of runs to read, newest first, up to 100.
+ * @property {string} [apiUrl] - REST API of GitHub. Defaults to the `GITHUB_API_URL` variable.
+ * @property {string} [repository] - Repository as `owner/name`. Defaults to the
+ * `GITHUB_REPOSITORY` variable.
+ * @property {string} [token] - Token to read the runs with, which needs the `actions: read`
+ * permission. Defaults to the `GITHUB_TOKEN` variable.
+ */
+
+/**
+ * Asks the REST API of GitHub for the latest runs of a workflow started by one event, on any
+ * branch and commit.
+ * @param {FetchWorkflowRunsParams} params
+ * @returns {Promise<WorkflowRun[]>} The runs, newest first, without those {@link readRun} cannot
+ * read.
+ * @throws {Error} When the repository is invalid, or when the API answers with an error status.
+ * @example
+ * await fetchWorkflowRuns({ workflow: 'deploy-production.yml', event: 'schedule', perPage: 20 });
+ */
+export const fetchWorkflowRuns = async ({ workflow, event, perPage, ...api }) =>
+  readRuns(
+    await requestRepositoryApi({
+      ...api,
+      path: `/actions/workflows/${encodeURIComponent(workflow)}/runs`,
+      query: { event, per_page: String(perPage) },
+    }),
+  );
+
+/**
  * A run that {@link dispatchWorkflow} started.
  * @typedef {object} DispatchedRun
  * @property {number} id - Identifier of the run, to follow it with {@link fetchRun}.
@@ -375,7 +486,9 @@ export const dispatchWorkflow = async ({ workflow, ref, ...api }) => {
 
 /**
  * Waits for a run of a workflow to finish, reading it at regular intervals. A read that fails,
- * such as an error of the API, is tried again at the next attempt.
+ * such as an error of the API, is tried again at the next attempt. A run held for approval
+ * ({@link isHeldRun}) has not finished: once approved with {@link approveRun}, it goes on with a
+ * new attempt.
  * @param {WaitForRunParams} params
  * @returns {Promise<WorkflowRun | undefined>} The run once completed, or as last read when it was
  * still going after every attempt, or `undefined` when no answer of the API could be read as a
@@ -405,7 +518,7 @@ export const waitForRun = async ({
     } catch (error) {
       lastError = error;
     }
-    if (run?.status === RUN_COMPLETED_STATUS) return run;
+    if (isFinishedRun(run)) return run;
     if (attempt < attempts) await new Promise(resolve => setTimeout(resolve, delayMs));
   }
 

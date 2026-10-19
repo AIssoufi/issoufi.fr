@@ -285,6 +285,13 @@ export const RUN_COMPLETED_STATUS = 'completed';
 export const RUN_SUCCESS_CONCLUSION = 'success';
 
 /**
+ * Conclusion of a completed workflow run that GitHub holds until someone with write access
+ * approves it, as it does for the pull request runs of a pull request that GitHub Actions opened.
+ * Approving it starts the same run again, as a new attempt.
+ */
+export const RUN_ACTION_REQUIRED_CONCLUSION = 'action_required';
+
+/**
  * Number of times the daily release reads a run of the CI it started before giving up, every
  * {@link RUN_WAIT_DELAY_MS}: 20 minutes in all, while a run of `ci.yml`, its preview deployment
  * and smoke test included, took about 5 minutes in October 2026.
