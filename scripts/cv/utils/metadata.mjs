@@ -9,7 +9,7 @@ import {
   UTF16_BYTE_ORDER_MARK,
   XREF_GENERATION_DIGITS,
   XREF_OFFSET_DIGITS,
-} from '../constants.mjs';
+} from './constants.mjs';
 
 /** @typedef {import('./types.mjs').CvContent} CvContent */
 

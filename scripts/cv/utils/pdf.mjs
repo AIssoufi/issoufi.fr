@@ -1,14 +1,8 @@
 // @ts-check
 import { getDocument, OPS, VerbosityLevel } from 'pdfjs-dist/legacy/build/pdf.mjs';
 
-import {
-  EM_DASH,
-  FONT_SUBSET_PREFIX_PATTERN,
-  PDF_DATE_PATTERN,
-  QUOTED_TEXT_LENGTH,
-  TYPE3_FONT_TYPE,
-  WHITESPACE_PATTERN,
-} from '../constants.mjs';
+import { EM_DASH, QUOTED_TEXT_LENGTH, WHITESPACE_PATTERN } from '../constants.mjs';
+import { FONT_SUBSET_PREFIX_PATTERN, PDF_DATE_PATTERN, TYPE3_FONT_TYPE } from './constants.mjs';
 
 /**
  * A font of a PDF, as pdf.js reads it.

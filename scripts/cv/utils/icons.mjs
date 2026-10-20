@@ -4,7 +4,7 @@ import {
   SVG_CLOSING_TAG,
   SVG_OPENING_PATTERN,
   XML_PROLOG_AND_COMMENTS_PATTERN,
-} from '../constants.mjs';
+} from './constants.mjs';
 
 /**
  * Writes the content of an SVG file as an icon inside the page of the CV: without its XML

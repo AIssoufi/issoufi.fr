@@ -1,7 +1,7 @@
 // @ts-check
 import { renderSVG } from 'uqr';
 
-import { QR_CODE_ATTRIBUTES, QR_CODE_OPTIONS, SVG_OPENING_PATTERN } from '../constants.mjs';
+import { QR_CODE_ATTRIBUTES, QR_CODE_OPTIONS, SVG_OPENING_PATTERN } from './constants.mjs';
 import { isFilled, toText } from './data.mjs';
 
 /**

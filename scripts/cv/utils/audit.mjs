@@ -1,7 +1,7 @@
 // @ts-check
 import { getDocument, VerbosityLevel } from 'pdfjs-dist/legacy/build/pdf.mjs';
 
-import { DESCRIPTIVE_INFO_KEYS } from '../constants.mjs';
+import { DESCRIPTIVE_INFO_KEYS } from './constants.mjs';
 
 /** @typedef {import('./pdf.mjs').PdfSummary} PdfSummary */
 

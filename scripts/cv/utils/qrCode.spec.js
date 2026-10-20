@@ -1,6 +1,6 @@
 import { encode } from 'uqr';
 
-import { QR_CODE_OPTIONS } from '../constants.mjs';
+import { QR_CODE_OPTIONS } from './constants.mjs';
 import { renderQrCode } from './qrCode.mjs';
 
 const SITE_URL = 'https://issoufi.fr/';

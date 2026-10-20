@@ -1,11 +1,7 @@
 // @ts-check
 import { PAGE_TITLE_SEPARATOR } from '../../utils/constants.mjs';
-import {
-  DETAILS_SEPARATOR,
-  EMAIL_PATTERN,
-  LANGUAGE_CODE_PATTERN,
-  MAILTO_PREFIX,
-} from '../constants.mjs';
+import { DETAILS_SEPARATOR } from '../constants.mjs';
+import { EMAIL_PATTERN, LANGUAGE_CODE_PATTERN, MAILTO_PREFIX } from './constants.mjs';
 import { isEntry, isFilled, toEntries, toText, toTexts } from './data.mjs';
 import { toLinkText, toLinkUrl } from './links.mjs';
 import { buildProfile, buildSkillGroups } from './profile.mjs';
