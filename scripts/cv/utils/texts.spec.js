@@ -137,8 +137,8 @@ describe('listCvLinks', () => {
       'tel:+33695758632',
       'https://issoufi.fr/',
       'https://www.linkedin.com/in/issoufiadam',
-      'https://github.com/AIssoufi/issoufi.fr',
-      'https://github.com/AIssoufi/issoufi.fr/tree/develop/docs/ai-workflow',
+      'https://issoufi.fr/code',
+      'https://issoufi.fr/method',
     ]);
   });
 });
