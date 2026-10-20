@@ -29,7 +29,7 @@ Every morning between 6:00 and 7:00, Paris time, a Cloudflare Worker starts a wo
 1. releases the version of the day (see [Releases](releases.md));
 2. merges the tested `develop` into `main`, whose CI deploys production.
 
-- The Worker, the deploy trigger of `scripts/deploy-trigger/`, starts the workflow on `develop` at 6:05 and 6:35 in Paris, in summer as in winter. Its Cron Triggers fire in UTC, at 4:05, 4:35, 5:05 and 5:35, and it starts a run only between 6:00 and 7:00 in Paris.
+- The Worker, the deploy trigger of `scripts/deploy-trigger/`, starts the workflow on `develop` at 6:05 and 6:35 in Paris, in summer as in winter. Its Cron Triggers fire in UTC, at 4:05, 4:35, 5:05 and 5:35, and it starts a run only between 6:00 and 7:00 in Paris. Why a Worker: [decision 0001](decisions/0001-cloudflare-worker-deploy-trigger.md).
 - GitHub's own schedule stays as a fallback: a run every 30 minutes from 6:07, until 8:37 in summer and 7:37 in winter. GitHub delays these runs by hours, or drops them, so they deploy only when the Worker could not.
 - The runs of the Worker show as _Scheduled deploy to production_ in the Actions tab. With those of GitHub's schedule, they are the scheduled runs: from 6:00, the first one that passes deploys, and the later ones of the day stop at once.
 - A run waits up to 20 minutes for a CI of `develop` still running. When `develop` has not passed its CI, the run fails, so that a later one tries again: a red run or badge may mean a deploy put off, whose notice or warning says why.
