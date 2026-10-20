@@ -19,6 +19,11 @@ export interface ProjectData {
   description?: TextSegmentData[];
   /** Translation keys of the bullet points under the description, in order. */
   bulletKeys?: string[];
+  /**
+   * Translation keys of the bullet points of `bulletKeys` that the CV writes, a selection that
+   * keeps it within its page budget. Missing when the CV writes them all.
+   */
+  cvBulletKeys?: string[];
   /** Technologies of the project, proper names written the same in every language. */
   technologies?: string[];
 }
@@ -45,6 +50,11 @@ export interface RoleData {
   intro?: TextSegmentData[];
   /** Translation keys of the bullet points under the introduction, in order. */
   bulletKeys?: string[];
+  /**
+   * Translation keys of the bullet points of `bulletKeys` that the CV writes, a selection that
+   * keeps it within its page budget. Missing when the CV writes them all.
+   */
+  cvBulletKeys?: string[];
   /** Projects of the role, in order. */
   projects?: ProjectData[];
   /** Technologies of the role, proper names written the same in every language. */

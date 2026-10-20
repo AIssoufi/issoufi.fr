@@ -16,6 +16,8 @@ const TEXTS = {
   'exp.acme.intro1': 'Développement de ',
   'exp.acme.introStrong': 'Rocket',
   'exp.acme.b1': 'Premier point',
+  'exp.acme.b2': 'Deuxième point',
+  'exp.acme.b3': 'Troisième point',
   'exp.acme.proj1Title': 'Fusée',
   'exp.acme.proj1State': 'En production',
 };
@@ -169,6 +171,63 @@ describe('buildExperiences', () => {
     expect(roles[0].intro).toEqual([{ text: 'Développement de ', isStrong: false }]);
     expect(roles[0].bullets).toEqual(['Premier point']);
     expect(roles[0].technologies).toEqual(['React.js']);
+  });
+
+  describe('the selection of bullet points for the CV', () => {
+    /** Bullet points of a role and of its project, built from the given lists of keys. */
+    const buildBullets = ({ bulletKeys, cvBulletKeys }) => {
+      const entry = { bulletKeys, cvBulletKeys };
+      const [{ roles }] = buildExperiences({
+        translate,
+        experiences: [{ roles: [{ ...entry, projects: [entry] }] }],
+      });
+      return { role: roles[0].bullets, project: roles[0].projects[0].bullets };
+    };
+
+    const BULLET_KEYS = ['exp.acme.b1', 'exp.acme.b2', 'exp.acme.b3'];
+
+    it('writes the selected bullet points in the order of the site', () => {
+      expect(
+        buildBullets({ bulletKeys: BULLET_KEYS, cvBulletKeys: ['exp.acme.b3', 'exp.acme.b1'] }),
+      ).toEqual({
+        role: ['Premier point', 'Troisième point'],
+        project: ['Premier point', 'Troisième point'],
+      });
+    });
+
+    it('leaves out a selected key that the site does not show', () => {
+      expect(
+        buildBullets({ bulletKeys: ['exp.acme.b1'], cvBulletKeys: ['exp.acme.b1', 'exp.acme.b2'] }),
+      ).toEqual({ role: ['Premier point'], project: ['Premier point'] });
+    });
+
+    it('writes no bullet point for an empty selection', () => {
+      expect(buildBullets({ bulletKeys: BULLET_KEYS, cvBulletKeys: [] })).toEqual({
+        role: [],
+        project: [],
+      });
+    });
+
+    it.each([[undefined], [null], ['exp.acme.b1'], [{}]])(
+      'writes every bullet point of the site when the selection is %j, which is no list',
+      cvBulletKeys => {
+        const bullets = ['Premier point', 'Deuxième point', 'Troisième point'];
+        expect(buildBullets({ bulletKeys: BULLET_KEYS, cvBulletKeys })).toEqual({
+          role: bullets,
+          project: bullets,
+        });
+      },
+    );
+
+    it.each([[undefined], [null], ['exp.acme.b1']])(
+      'writes no bullet point for a selection among bullet points that are %j, which is no list',
+      bulletKeys => {
+        expect(buildBullets({ bulletKeys, cvBulletKeys: ['exp.acme.b1'] })).toEqual({
+          role: [],
+          project: [],
+        });
+      },
+    );
   });
 
   it('gives empty texts to a role without keys', () => {

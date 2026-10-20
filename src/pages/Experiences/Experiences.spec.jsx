@@ -353,6 +353,13 @@ describe('Experiences', () => {
       });
     });
 
+    it('selects for the CV only bullet points that the page shows', () => {
+      const entries = [...ROLES, ...ROLES.flatMap(({ projects = [] }) => projects)];
+      entries.forEach(({ bulletKeys = [], cvBulletKeys = [] }) =>
+        cvBulletKeys.forEach(key => expect(bulletKeys, key).toContain(key)),
+      );
+    });
+
     it('gives every company its own id', () => {
       const ids = experiences.map(({ id }) => id);
       expect(new Set(ids).size).toBe(ids.length);

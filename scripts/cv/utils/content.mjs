@@ -60,6 +60,22 @@ const translateTexts = ({ translate, keys }) =>
   (Array.isArray(keys) ? keys : []).map(key => translate(key)).filter(isFilled);
 
 /**
+ * Lists the bullet points that the CV writes for a role or a project: those of its `bulletKeys`
+ * that its `cvBulletKeys` selects, so that a role longer on the site than the page budget of the
+ * CV allows still fits, and the CV never writes a text that the site does not show.
+ * @param {Record<string, any>} entry - Role or project of `.data/experiences.json`.
+ * @returns {unknown} The keys of `bulletKeys`, in their order: all of them when `cvBulletKeys`
+ * is not a list, none when `bulletKeys` is not a list but `cvBulletKeys` is.
+ */
+const selectCvBulletKeys = ({ bulletKeys, cvBulletKeys }) => {
+  if (!Array.isArray(cvBulletKeys)) return bulletKeys;
+
+  /** @param {unknown} key - Key of `bulletKeys`. */
+  const isSelected = key => cvBulletKeys.includes(key);
+  return Array.isArray(bulletKeys) ? bulletKeys.filter(isSelected) : [];
+};
+
+/**
  * Parameters of {@link buildRole}.
  * @typedef {object} BuildRoleParams
  * @property {Translate} translate - Translates a key in the language of the CV.
@@ -77,12 +93,12 @@ const buildRole = ({ translate, role }) => ({
   start: translate(role.startKey),
   end: translate(role.endKey),
   intro: translateSegments({ translate, segments: role.intro }),
-  bullets: translateTexts({ translate, keys: role.bulletKeys }),
+  bullets: translateTexts({ translate, keys: selectCvBulletKeys(role) }),
   projects: toEntries(role.projects).map(project => ({
     title: translate(project.titleKey),
     state: translate(project.stateKey),
     description: translateSegments({ translate, segments: project.description }),
-    bullets: translateTexts({ translate, keys: project.bulletKeys }),
+    bullets: translateTexts({ translate, keys: selectCvBulletKeys(project) }),
     technologies: toTexts(project.technologies),
   })),
   technologies: toTexts(role.technologies),
