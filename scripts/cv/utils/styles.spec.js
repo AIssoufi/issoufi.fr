@@ -66,10 +66,16 @@ describe('renderCvStyles', () => {
     expect(styles).toContain('text-wrap: pretty;');
   });
 
-  it('justifies the paragraphs, the bullet points and the skills', () => {
+  it('justifies the profile and the skills, and never hyphenates a word', () => {
     expect(styles).toMatch(
-      /\.summary,\s*\.text,\s*\.bullets li,\s*\.skills li \{[^}]*text-align: justify;/,
+      /\.summary,\s*\.summary \+ \.text,\s*\.skills li \{[^}]*text-align: justify;/,
     );
+    expect(styles).not.toContain('hyphens');
+  });
+
+  it('leaves the paragraphs and the bullet points of the experiences aligned on the left', () => {
+    // The rule of the profile and the skills is the only one that justifies
+    expect(styles.match(/text-align: justify;/g)).toHaveLength(1);
   });
 
   it('prints on A4 paper', () => {
