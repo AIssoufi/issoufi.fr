@@ -45,6 +45,7 @@ They run in both languages, on screens from small phones to large desktops:
 
 - **Logged errors**: fix the warning. Await a page loaded with `React.lazy` with a `findBy` query or `waitFor`. Silence an error that the test expects with `vi.spyOn(console, 'error').mockImplementation(() => {})`.
 - **Setup**: it runs for the specs of the node environment too, so it guards every DOM global it touches.
+- **Texts of the lazy pages**: the setup adds every text, those of the lazy pages included. A spec cannot see a component of the main bundle read a text of a lazy page (`projects.*`, `exp.*`), which shows its key on the other pages: keep those texts to their page.
 - **Wrappers**: the setup wraps every render in the theme, so a spec adds no `ThemeProvider`. Wrap a component that routes in `<BrowserRouter>`.
 - **Styles**: styled-components writes its rules to the CSSOM, not to the text of `<style>`. Read them with `listStyleRules` and `declaredStyle`, check with `mediaDeclaringStyle` that an effect applies under one media query and in no other, and build an expected value with `serializeCssValue`, since the CSSOM rewrites values (`0` as `0px`).
 - **What jsdom ignores**: media queries (but `all` and `screen`), pseudo-elements in `getComputedStyle`, and the focus of an element hidden by `display: none`. Read the declared rules instead.
