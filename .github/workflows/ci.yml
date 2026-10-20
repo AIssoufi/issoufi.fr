@@ -96,6 +96,11 @@ jobs:
         env:
           BASE_SHA: ${{ github.event.pull_request.base.sha }}
           HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+      # GitHub writes the title in the merge commit, where release-please reads it as a commit
+      - name: Lint the title of the pull request
+        run: printf '%s\n' "$TITLE" | pnpm exec commitlint --config scripts/commits/title.config.mjs --verbose
+        env:
+          TITLE: ${{ github.event.pull_request.title }}
 
   dependencies:
     # Fails when a pull request adds or upgrades to a dependency with a known vulnerability
