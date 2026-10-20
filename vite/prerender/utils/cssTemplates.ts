@@ -32,6 +32,49 @@ const findTagRootName = (tag: ESTree.Expression) => {
   return node.type === 'Identifier' ? node.name : undefined;
 };
 
+/** Parameters of {@link findCssTemplates}. */
+interface FindCssTemplatesParams {
+  /** Code of a module of the app, TypeScript or JavaScript, with or without JSX. */
+  code: string;
+  /** Path of the module, e.g. `src/App/App.styled.ts`: its extension tells the language. */
+  modulePath: string;
+}
+
+/**
+ * Finds the CSS templates of a module, those whose tag starts with a name imported from
+ * {@link STYLED_MODULE}: ``styled.a`…` ``, ``styled(Link)`…` ``, ``css`…` ``, ``keyframes`…` ``…
+ *
+ * @returns The templates, nested ones included, or an empty list when the module has none or
+ * cannot be parsed.
+ *
+ * @example
+ * findCssTemplates({
+ *   code: "import { css } from '@xstyled/styled-components';\nconst a = css`color: red;`;",
+ *   modulePath: 'src/a.styled.ts',
+ * });
+ * // [the template literal `color: red;`]
+ */
+export const findCssTemplates = ({
+  code,
+  modulePath,
+}: FindCssTemplatesParams): ESTree.TemplateLiteral[] => {
+  if (!code.includes(STYLED_MODULE)) return [];
+
+  const { program, errors } = parseSync(modulePath, code);
+  const styledNames = errors.length === 0 ? findStyledModuleNames(program) : new Set<string>();
+  if (styledNames.size === 0) return [];
+
+  const templates: ESTree.TemplateLiteral[] = [];
+  new Visitor({
+    TaggedTemplateExpression: ({ tag, quasi }) => {
+      const rootName = findTagRootName(tag);
+      const isCssTemplate = rootName !== undefined && styledNames.has(rootName);
+      if (isCssTemplate) templates.push(quasi);
+    },
+  }).visit(program);
+  return templates;
+};
+
 /** Change of the raw text of a template, between two interpolations. */
 interface QuasiEdit {
   /** Index in the code where the raw text starts, after the backtick or the brace before it. */
@@ -51,11 +94,10 @@ interface MinifyCssTemplatesParams {
 }
 
 /**
- * Minifies the CSS templates of a module, those whose tag starts with a name imported from
- * {@link STYLED_MODULE} (see {@link minifyCssQuasis}): their comments and indentation would
- * otherwise go to the browser in the JavaScript, where styled-components reads them. The classes
- * that styled-components derives from the text of a template change with it, so the render of the
- * pages in Node.js minifies them too.
+ * Minifies the CSS templates of a module (see {@link findCssTemplates}, {@link minifyCssQuasis}):
+ * their comments and indentation would otherwise go to the browser in the JavaScript, where
+ * styled-components reads them. The classes that styled-components derives from the text of a
+ * template change with it, so the render of the pages in Node.js minifies them too.
  *
  * @returns The code with its CSS templates minified, or `null` when it has none to minify, cannot
  * be parsed, or when the code or the path is missing or blank.
@@ -69,31 +111,20 @@ interface MinifyCssTemplatesParams {
  */
 export const minifyCssTemplates = ({ code, modulePath }: MinifyCssTemplatesParams = {}):
   string | null => {
-  const canParse =
-    typeof code === 'string' && code.includes(STYLED_MODULE) && isNonBlankString(modulePath);
+  const canParse = typeof code === 'string' && isNonBlankString(modulePath);
   if (!canParse) return null;
 
-  const { program, errors } = parseSync(modulePath, code);
-  const styledNames = errors.length === 0 ? findStyledModuleNames(program) : new Set<string>();
-  if (styledNames.size === 0) return null;
-
   const edits: QuasiEdit[] = [];
-  new Visitor({
-    TaggedTemplateExpression: ({ tag, quasi }) => {
-      const rootName = findTagRootName(tag);
-      const isCssTemplate = rootName !== undefined && styledNames.has(rootName);
-      if (!isCssTemplate) return;
-
-      const minified = minifyCssQuasis(quasi.quasis.map(({ value }) => value.raw));
-      quasi.quasis.forEach((element, index) => {
-        const text = minified[index];
-        if (text === element.value.raw) return;
-        // The span of an element starts at the backtick or the brace before its raw text
-        const start = element.start + 1;
-        edits.push({ start, end: start + element.value.raw.length, text });
-      });
-    },
-  }).visit(program);
+  findCssTemplates({ code, modulePath }).forEach(({ quasis }) => {
+    const minified = minifyCssQuasis(quasis.map(({ value }) => value.raw));
+    quasis.forEach((element, index) => {
+      const text = minified[index];
+      if (text === element.value.raw) return;
+      // The span of an element starts at the backtick or the brace before its raw text
+      const start = element.start + 1;
+      edits.push({ start, end: start + element.value.raw.length, text });
+    });
+  });
   if (edits.length === 0) return null;
 
   // From the end of the code, so that each position still points where it did in the parsed code.
