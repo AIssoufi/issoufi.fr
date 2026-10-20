@@ -197,9 +197,17 @@ export const SITE_URL = 'https://issoufi.fr/';
 
 /**
  * Other addresses of the production site, without HTTPS and with `www`, which must redirect to
- * {@link SITE_URL}. The redirects are set in Cloudflare, so the CI checks them on `main` only.
+ * {@link SITE_URL} in one hop. The redirects are set in Cloudflare, so the CI checks them on
+ * `main` only.
  */
 export const REDIRECTED_SITE_URLS = ['http://issoufi.fr/', 'https://www.issoufi.fr/'];
+
+/**
+ * Number of answers that the redirect check reads from an address, one per hop, before it stops
+ * following its redirects: enough to tell a target reached in a few hops from a chain that never
+ * ends, while a browser follows 20.
+ */
+export const MAX_REDIRECT_HOPS = 5;
 
 /** Number of times the smoke test checks the site before failing, while a deployment spreads. */
 export const SMOKE_TEST_ATTEMPTS = 5;
