@@ -204,11 +204,10 @@ const buildProfiles = ({ siteUrl, siteDomain, linkedInUrl }) => {
 
 /**
  * Gathers everything the CV of one language writes: the name and the job title of the home page,
- * the contact details and the links to the site and the profiles of its owner, a QR code to the
- * site when `showQrCode` of the data of the CV is `true`, the experiences of the Experiences page,
- * the projects of the Projects page, and the skills and the education of the data of the CV,
- * which the site does not show, with the subject and the keywords that its document information
- * gives.
+ * the contact details and the links to the site and the profiles of its owner, the experiences
+ * of the Experiences page, the projects of the Projects page, and the skills and the education
+ * of the data of the CV, which the site does not show, with the subject and the keywords that its
+ * document information gives.
  * @param {BuildCvContentParams} params
  * @returns {CvContent} The content, with empty texts where the data or a translation lacks one.
  * @example
@@ -229,7 +228,6 @@ export const buildCvContent = ({
   const texts = isEntry(cvData?.languages?.[language]) ? cvData.languages[language] : {};
   const contact = isEntry(cvData?.contact) ? cvData.contact : {};
   const documentName = translate('cvLink.documentName');
-  const isQrCodeShown = cvData?.showQrCode === true;
 
   return {
     language,
@@ -244,7 +242,6 @@ export const buildCvContent = ({
     passion: homeTexts.passion,
     contacts: buildContacts({ contact, texts }),
     profiles: buildProfiles({ siteUrl, siteDomain: homeTexts.site, linkedInUrl }),
-    qrCodeUrl: isQrCodeShown ? toLinkUrl(siteUrl) : '',
     profile: buildProfile(texts),
     skills: { title: toText(texts.skillsTitle), items: buildSkillGroups(texts.skills) },
     experiences: {

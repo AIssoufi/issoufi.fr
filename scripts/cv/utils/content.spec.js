@@ -308,34 +308,6 @@ describe('buildCvContent', () => {
     expect(buildCvContent(PARAMS).profiles).toEqual(PROFILES);
   });
 
-  it('leaves the QR code out of a CV whose data does not ask for it', () => {
-    expect(buildCvContent(PARAMS).qrCodeUrl).toBe('');
-  });
-
-  it('leads the QR code to the home page of the language when the data asks for it', () => {
-    const cvData = { ...CV_DATA, showQrCode: true };
-
-    expect(buildCvContent({ ...PARAMS, cvData }).qrCodeUrl).toBe('https://issoufi.fr/');
-  });
-
-  it.each([false, 'true', 1, null])(
-    'leaves the QR code out when it is asked for with %j',
-    value => {
-      const cvData = { ...CV_DATA, showQrCode: value };
-
-      expect(buildCvContent({ ...PARAMS, cvData }).qrCodeUrl).toBe('');
-    },
-  );
-
-  it.each(['', 'issoufi.fr', 'javascript:alert(1)'])(
-    'leaves the QR code out when the URL of the site is %j',
-    siteUrl => {
-      const cvData = { ...CV_DATA, showQrCode: true };
-
-      expect(buildCvContent({ ...PARAMS, cvData, siteUrl }).qrCodeUrl).toBe('');
-    },
-  );
-
   it('keeps the icon of each contact detail when the one before it is left out', () => {
     const cvData = { ...CV_DATA, contact: { ...CV_DATA.contact, email: '' } };
 

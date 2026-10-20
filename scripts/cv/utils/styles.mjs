@@ -79,20 +79,8 @@ export const renderCvStyles = theme => {
         font-weight: ${fontWeights.bold};
       }
       .header {
-        display: flex;
-        align-items: center;
-        column-gap: ${CV_LAYOUT.qrCodeGap};
         padding-bottom: ${CV_LAYOUT.headerMarginBottom};
         border-bottom: ${CV_LAYOUT.ruleWidth} solid ${colors['accent-soft']};
-      }
-      .identity {
-        flex-grow: 1;
-      }
-      .qr-code {
-        flex-shrink: 0;
-        width: ${CV_LAYOUT.qrCodeSize};
-        height: ${CV_LAYOUT.qrCodeSize};
-        color: ${ink};
       }
       .name {
         color: ${colors.accent};

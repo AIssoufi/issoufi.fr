@@ -1,7 +1,7 @@
 // @ts-check
 // Constants of the formats that the helpers of `pnpm cv` read and write: the SVG drawings of the
-// icons and of the QR code, the PDF that Chromium prints (its fonts, its dates, its trailer and its
-// document information), and the URLs and addresses of the contact details.
+// icons, the PDF that Chromium prints (its fonts, its dates, its trailer and its document
+// information), and the URLs and addresses of the contact details.
 
 /** XML declarations and comments of an SVG file, which an icon inside the page leaves out. */
 export const XML_PROLOG_AND_COMMENTS_PATTERN = /<\?xml[\s\S]*?\?>|<!--[\s\S]*?-->/g;
@@ -17,26 +17,6 @@ export const SVG_CLOSING_TAG = '</svg>';
  * from screen readers and from the tags of the PDF, since the text next to it says what it shows.
  */
 export const ICON_ATTRIBUTES = 'class="icon" aria-hidden="true"';
-
-/**
- * Options of `uqr` for the QR code of the CV, which leads to the site: the medium error correction
- * of printed codes, which still reads with a crease or a stain, no border, since the white of the
- * page around it gives its quiet zone, and dark modules in the color of the text, on nothing.
- * @type {import('uqr').QrCodeGenerateSvgOptions}
- */
-export const QR_CODE_OPTIONS = {
-  ecc: 'M',
-  border: 0,
-  blackColor: 'currentColor',
-  whiteColor: 'none',
-};
-
-/**
- * Attributes that the QR code of the CV gets: the class that sizes it, and the attribute that
- * hides it from screen readers and from the tags of the PDF, since the header writes the address
- * of the site it leads to.
- */
-export const QR_CODE_ATTRIBUTES = 'class="qr-code" aria-hidden="true"';
 
 /** Type that pdf.js gives a Type 3 font, whose glyphs are drawings rather than a font file. */
 export const TYPE3_FONT_TYPE = 'Type3';

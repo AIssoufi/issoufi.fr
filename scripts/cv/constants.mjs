@@ -199,10 +199,6 @@ export const CV_LAYOUT = {
   bulletMarkWidth: '0.9pt',
   /** Height of the bottom of the mark of a bullet point above the baseline of its text. */
   bulletMarkRaise: '0.12em',
-  /** Side of the QR code at the right of the header, which a phone reads from a printed page. */
-  qrCodeSize: '20mm',
-  /** Space between the texts of the header and the QR code, wider than its quiet zone. */
-  qrCodeGap: '5mm',
   /** Space between two contact details. */
   contactGap: '3.5mm',
   /** Side of the icon before a contact detail. */

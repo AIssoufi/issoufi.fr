@@ -1,7 +1,6 @@
 // @ts-check
 import { escapeHtml } from '../../utils/html.mjs';
 import { DETAILS_SEPARATOR, PERIOD_SEPARATOR, SKILLS_SEPARATOR } from '../constants.mjs';
-import { renderQrCode } from './qrCode.mjs';
 
 /** @typedef {import('./types.mjs').CvContent} CvContent */
 /** @typedef {import('./types.mjs').CvExperience} CvExperience */
@@ -275,10 +274,9 @@ const renderDegree = ({ degree, period, school }) => {
 
 /**
  * Builds the HTML page that Chromium prints to make the CV: the name, the job title and the
- * contact details, next to the QR code to the site when the CV has one, then the profile, the
- * skills and the experiences, which a reader looks for first, then the projects next to the
- * education, with the headings of a document, so that the PDF, tagged, reads in that order. Every
- * text is escaped.
+ * contact details, then the profile, the skills and the experiences, which a reader looks for
+ * first, then the projects next to the education, with the headings of a document, so that the
+ * PDF, tagged, reads in that order. Every text is escaped.
  * @param {RenderCvHtmlParams} params
  * @returns {string} A complete HTML document, in the language of the content.
  * @example
@@ -301,14 +299,11 @@ export const renderCvHtml = ({ content, styles, fontFaces, icons = {} }) => {
   </head>
   <body>
     <header class="header">
-      <div class="identity">
-        <h1 class="name">${escapeHtml(content.name)}</h1>
-        <p class="job-title">${escapeHtml(content.jobTitle)}</p>
-        ${renderElement({ tag: 'p', className: 'tagline', html: renderSegments(content.passion) })}
-        <ul class="contacts">${content.contacts.map(renderHeaderContact).join('')}</ul>
-        <ul class="contacts">${content.profiles.map(renderHeaderContact).join('')}</ul>
-      </div>
-      ${renderQrCode(content.qrCodeUrl)}
+      <h1 class="name">${escapeHtml(content.name)}</h1>
+      <p class="job-title">${escapeHtml(content.jobTitle)}</p>
+      ${renderElement({ tag: 'p', className: 'tagline', html: renderSegments(content.passion) })}
+      <ul class="contacts">${content.contacts.map(renderHeaderContact).join('')}</ul>
+      <ul class="contacts">${content.profiles.map(renderHeaderContact).join('')}</ul>
     </header>
     <main>
       ${renderProfile({ profile, separator: labelSeparator })}
