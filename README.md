@@ -48,7 +48,7 @@ flowchart LR
 - **Review agents** check each change: one against the conventions, one in a browser.
 - A **lessons journal** turns mistakes into rules, tests or hooks, so that they do not happen twice.
 
-More in [AI workflow](docs/ai-workflow.md).
+More in [AI workflow](docs/ai-workflow/README.md).
 
 ## Getting started
 
@@ -66,13 +66,13 @@ The browser tests need Chromium once: `pnpm exec playwright install --only-shell
 
 ## Documentation
 
-| Guide                                | Content                                  |
-| ------------------------------------ | ---------------------------------------- |
-| [Development](docs/development.md)   | Setup, scripts and checks                |
-| [Architecture](docs/architecture.md) | How the app and its pages are built      |
-| [Assets](docs/assets.md)             | Images, fonts, icons and the CV          |
-| [Testing](docs/testing.md)           | Unit and browser tests                   |
-| [Deployment](docs/deployment.md)     | CI, hosting and the daily deploy         |
-| [Releases](docs/releases.md)         | Versions, changelog and standalone build |
-| [Conventions](docs/conventions.md)   | Git, code, styles and accessibility      |
-| [AI workflow](docs/ai-workflow.md)   | Agents, reviews and lessons              |
+| Guide                                     | Content                                  |
+| ----------------------------------------- | ---------------------------------------- |
+| [Development](docs/development.md)        | Setup, scripts and checks                |
+| [Architecture](docs/architecture.md)      | How the app and its pages are built      |
+| [Assets](docs/assets.md)                  | Images, fonts, icons and the CV          |
+| [Testing](docs/testing.md)                | Unit and browser tests                   |
+| [Deployment](docs/deployment.md)          | CI, hosting and the daily deploy         |
+| [Releases](docs/releases.md)              | Versions, changelog and standalone build |
+| [Conventions](docs/conventions.md)        | Git, code, styles and accessibility      |
+| [AI workflow](docs/ai-workflow/README.md) | Agents, reviews and lessons              |
