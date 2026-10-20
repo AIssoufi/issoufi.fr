@@ -60,20 +60,24 @@ const translateTexts = ({ translate, keys }) =>
   (Array.isArray(keys) ? keys : []).map(key => translate(key)).filter(isFilled);
 
 /**
- * Lists the bullet points that the CV writes for a role or a project: those of its `bulletKeys`
- * that its `cvBulletKeys` selects, so that a role longer on the site than the page budget of the
- * CV allows still fits, and the CV never writes a text that the site does not show.
- * @param {Record<string, any>} entry - Role or project of `.data/experiences.json`.
- * @returns {unknown} The keys of `bulletKeys`, in their order: all of them when `cvBulletKeys`
- * is not a list, none when `bulletKeys` is not a list but `cvBulletKeys` is.
+ * Parameters of {@link pickCvList}.
+ * @typedef {object} PickCvListParams
+ * @property {unknown} siteList - List that the site shows, e.g. the `bulletKeys` of a role.
+ * @property {unknown} cvList - Its version for the CV, e.g. the `cvBulletKeys` of the role.
  */
-const selectCvBulletKeys = ({ bulletKeys, cvBulletKeys }) => {
-  if (!Array.isArray(cvBulletKeys)) return bulletKeys;
 
-  /** @param {unknown} key - Key of `bulletKeys`. */
-  const isSelected = key => cvBulletKeys.includes(key);
-  return Array.isArray(bulletKeys) ? bulletKeys.filter(isSelected) : [];
-};
+/**
+ * Picks the list that the CV writes for a field of a role or a project: its `cv` version when
+ * the data gives one, so that the CV, which a recruiter reads in a few seconds, says less than the
+ * site, with fewer or shorter texts, and the site's list otherwise.
+ * @param {PickCvListParams} params
+ * @returns {unknown} `cvList` when it is a list, even an empty one, which leaves the field out of
+ * the CV; `siteList` otherwise.
+ * @example
+ * pickCvList({ siteList: ['exp.acme.b1', 'exp.acme.b2'], cvList: ['exp.acme.cvB1'] });
+ * // ['exp.acme.cvB1']
+ */
+const pickCvList = ({ siteList, cvList }) => (Array.isArray(cvList) ? cvList : siteList);
 
 /**
  * Parameters of {@link buildRole}.
@@ -83,7 +87,9 @@ const selectCvBulletKeys = ({ bulletKeys, cvBulletKeys }) => {
  */
 
 /**
- * Translates a role and its projects.
+ * Translates a role and its projects, with the `cv` version of a field when the role gives one:
+ * `cvIntro`, `cvBulletKeys`, `cvProjects` and `cvTechnologies` for a role, `cvBulletKeys` for a
+ * project.
  * @param {BuildRoleParams} params
  * @returns {CvRole} The role, as the CV writes it.
  */
@@ -92,16 +98,27 @@ const buildRole = ({ translate, role }) => ({
   titleLanguage: toLanguageCode(role.titleLanguage),
   start: translate(role.startKey),
   end: translate(role.endKey),
-  intro: translateSegments({ translate, segments: role.intro }),
-  bullets: translateTexts({ translate, keys: selectCvBulletKeys(role) }),
-  projects: toEntries(role.projects).map(project => ({
-    title: translate(project.titleKey),
-    state: translate(project.stateKey),
-    description: translateSegments({ translate, segments: project.description }),
-    bullets: translateTexts({ translate, keys: selectCvBulletKeys(project) }),
-    technologies: toTexts(project.technologies),
-  })),
-  technologies: toTexts(role.technologies),
+  intro: translateSegments({
+    translate,
+    segments: pickCvList({ siteList: role.intro, cvList: role.cvIntro }),
+  }),
+  bullets: translateTexts({
+    translate,
+    keys: pickCvList({ siteList: role.bulletKeys, cvList: role.cvBulletKeys }),
+  }),
+  projects: toEntries(pickCvList({ siteList: role.projects, cvList: role.cvProjects })).map(
+    project => ({
+      title: translate(project.titleKey),
+      state: translate(project.stateKey),
+      description: translateSegments({ translate, segments: project.description }),
+      bullets: translateTexts({
+        translate,
+        keys: pickCvList({ siteList: project.bulletKeys, cvList: project.cvBulletKeys }),
+      }),
+      technologies: toTexts(project.technologies),
+    }),
+  ),
+  technologies: toTexts(pickCvList({ siteList: role.technologies, cvList: role.cvTechnologies })),
 });
 
 /**
