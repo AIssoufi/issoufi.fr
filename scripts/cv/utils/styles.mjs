@@ -14,8 +14,8 @@ import { CV_LAYOUT, CV_PAPER_FORMAT } from '../constants.mjs';
 /**
  * Builds the style sheet of the CV from the design tokens of the site and the print sizes of
  * {@link CV_LAYOUT}: a sober A4 layout, dark text on white paper with the plum of the site for the
- * name, the section titles and the links, in one column but for the groups of projects, and the
- * skills next to the education. Ligatures are turned off, so a search for
+ * name, the section titles and the links, in one column but for the projects, next to the
+ * education. Ligatures are turned off, so a search for
  * "fi" finds the text in every PDF reader. A missing token shows as `undefined` in it.
  * @param {CvTheme} theme - Design tokens of the site.
  * @returns {string} The CSS of the page.
@@ -197,6 +197,22 @@ export const renderCvStyles = theme => {
       .state {
         color: ${colors.accent};
         font-weight: ${fontWeights.medium};
+      }
+      .skills,
+      .labeled-links {
+        list-style: none;
+      }
+      .skills li + li {
+        margin-top: ${CV_LAYOUT.blockGap};
+      }
+      .labeled-links {
+        display: flex;
+        flex-wrap: wrap;
+        column-gap: ${CV_LAYOUT.contactGap};
+        margin-top: ${CV_LAYOUT.blockGap};
+      }
+      .group + .group {
+        margin-top: ${CV_LAYOUT.itemGap};
       }
       .columns {
         display: grid;

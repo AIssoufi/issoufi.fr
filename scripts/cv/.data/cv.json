@@ -16,20 +16,89 @@
         "GraphQL",
         "GitLab CI/CD",
         "Agents IA",
-        "Claude Code"
+        "Claude Code",
+        "Design system",
+        "TDD"
       ],
+      "labelSeparator": "\u00a0: ",
       "phone": "06 95 75 86 32",
       "location": "Paris",
+      "profileTitle": "Profil",
+      "summary": "Développeur front-end senior chez Sewan, responsable de l’UI Kit React et TypeScript de sa plateforme SaaS B2B\u00a0: 118 packages, socle des écrans de 15 équipes produit. Architecture front, design system, monorepo et DX. Je développe avec des agents IA, que j’outille en continu de skills, de rules et de sous-agents spécialisés, pour produire du bon code et pas seulement du code qui fonctionne.",
+      "proof": "Mon site issoufi.fr est développé par une flotte d’agents Claude Code que je dirige\u00a0: tickets, Git worktrees, agents de revue et CI.",
+      "proofLinks": [
+        {
+          "label": "Code",
+          "url": "https://github.com/AIssoufi/issoufi.fr"
+        },
+        {
+          "label": "Méthode",
+          "url": "https://github.com/AIssoufi/issoufi.fr/tree/develop/docs/ai-workflow"
+        }
+      ],
       "skillsTitle": "Compétences",
       "skills": [
-        "Technologies\u00a0: HTML 5, CSS 3, JavaScript, TypeScript, Node.js, Express.js, React.js, Redux.js, GraphQL, SQL, Docker, Java SE",
-        "Intégration de maquettes",
-        "Développement d’API RESTful",
-        "Tests unitaires",
-        "Méthode agile Scrum",
-        "Maîtrise des concepts de la programmation orientée objet",
-        "Bonne connaissance des patrons de conception (singleton, observer/observable, etc.)",
-        "Capacités d’abstraction et de conception (diagrammes de classes, de cas d’utilisation et de séquence, schémas de base de données)"
+        {
+          "category": "Front-end",
+          "items": [
+            "React.js",
+            "TypeScript",
+            "JavaScript",
+            "styled-components",
+            "GraphQL (Apollo)",
+            "Redux.js",
+            "i18next",
+            "HTML",
+            "CSS",
+            "intégration de maquettes"
+          ]
+        },
+        {
+          "category": "Design system et architecture",
+          "items": [
+            "bibliothèque de composants (UI Kit)",
+            "packages composables",
+            "thème et marque blanche",
+            "monorepo (pnpm, Lerna)",
+            "packages versionnés sur un registre npm privé",
+            "Storybook"
+          ]
+        },
+        {
+          "category": "Qualité et DX",
+          "items": [
+            "Test Driven Development (TDD)",
+            "tests unitaires (Vitest, Jest)",
+            "revue de code",
+            "GitLab CI/CD",
+            "outillage (Vite, tsup, Webpack)",
+            "migration TypeScript"
+          ]
+        },
+        {
+          "category": "Développement augmenté par l’IA",
+          "items": [
+            "agents de codage IA (Claude Code, Codex, OpenCode)",
+            "sous-agents spécialisés",
+            "modèle et effort choisis par tâche",
+            "skills et rules maintenues en continu",
+            "trois ou quatre sujets en parallèle avec Git worktree"
+          ]
+        },
+        {
+          "category": "Back-end et cloud",
+          "items": [
+            "Node.js",
+            "Express.js",
+            "API REST",
+            "AWS Lambda (serverless)",
+            "Swagger",
+            "Docker",
+            "Kubernetes",
+            "Google Cloud Platform",
+            "SQL"
+          ]
+        }
       ],
       "educationTitle": "Formation",
       "education": [
@@ -62,20 +131,89 @@
         "GraphQL",
         "GitLab CI/CD",
         "AI agents",
-        "Claude Code"
+        "Claude Code",
+        "Design system",
+        "TDD"
       ],
+      "labelSeparator": ": ",
       "phone": "+33 6 95 75 86 32",
       "location": "Paris, France",
+      "profileTitle": "Summary",
+      "summary": "Senior Frontend Engineer at Sewan, owner of the React and TypeScript UI Kit of its B2B SaaS platform: 118 packages, the foundation of the screens of 15 product teams. Frontend architecture, design system, monorepo and DX. I develop with AI agents, which I equip continuously with skills, rules and specialized sub-agents, to produce good code, not just code that works.",
+      "proof": "My site issoufi.fr is built by a fleet of Claude Code agents that I direct: tickets, Git worktrees, review agents and CI.",
+      "proofLinks": [
+        {
+          "label": "Code",
+          "url": "https://github.com/AIssoufi/issoufi.fr"
+        },
+        {
+          "label": "Method",
+          "url": "https://github.com/AIssoufi/issoufi.fr/tree/develop/docs/ai-workflow"
+        }
+      ],
       "skillsTitle": "Skills",
       "skills": [
-        "Technologies: HTML 5, CSS 3, JavaScript, TypeScript, Node.js, Express.js, React.js, Redux.js, GraphQL, SQL, Docker, Java SE",
-        "Mockup integration",
-        "RESTful API development",
-        "Unit testing",
-        "Agile Scrum methodology",
-        "Solid grasp of object-oriented programming concepts",
-        "Good knowledge of design patterns (singleton, observer/observable, etc.)",
-        "Abstraction and design skills (class, use case and sequence diagrams, database schemas)"
+        {
+          "category": "Frontend",
+          "items": [
+            "React.js",
+            "TypeScript",
+            "JavaScript",
+            "styled-components",
+            "GraphQL (Apollo)",
+            "Redux.js",
+            "i18next",
+            "HTML",
+            "CSS",
+            "mockup integration"
+          ]
+        },
+        {
+          "category": "Design system and architecture",
+          "items": [
+            "component library (UI Kit)",
+            "composable packages",
+            "theming and white-label",
+            "monorepo (pnpm, Lerna)",
+            "versioned packages on a private npm registry",
+            "Storybook"
+          ]
+        },
+        {
+          "category": "Quality and DX",
+          "items": [
+            "Test Driven Development (TDD)",
+            "unit testing (Vitest, Jest)",
+            "code review",
+            "GitLab CI/CD",
+            "tooling (Vite, tsup, Webpack)",
+            "TypeScript migration"
+          ]
+        },
+        {
+          "category": "AI-augmented development",
+          "items": [
+            "AI coding agents (Claude Code, Codex, OpenCode)",
+            "specialized sub-agents",
+            "model and effort chosen per task",
+            "skills and rules maintained continuously",
+            "three or four topics in parallel with Git worktree"
+          ]
+        },
+        {
+          "category": "Backend and cloud",
+          "items": [
+            "Node.js",
+            "Express.js",
+            "REST API",
+            "AWS Lambda (serverless)",
+            "Swagger",
+            "Docker",
+            "Kubernetes",
+            "Google Cloud Platform",
+            "SQL"
+          ]
+        }
       ],
       "educationTitle": "Education",
       "education": [

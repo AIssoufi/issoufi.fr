@@ -1,13 +1,15 @@
 // @ts-check
 import { escapeHtml } from '../../utils/html.mjs';
-import { DETAILS_SEPARATOR, PERIOD_SEPARATOR } from '../constants.mjs';
+import { DETAILS_SEPARATOR, PERIOD_SEPARATOR, SKILLS_SEPARATOR } from '../constants.mjs';
 
 /** @typedef {import('./types.mjs').CvContent} CvContent */
 /** @typedef {import('./types.mjs').CvExperience} CvExperience */
+/** @typedef {import('./types.mjs').CvLabeledLink} CvLabeledLink */
 /** @typedef {import('./types.mjs').CvLink} CvLink */
 /** @typedef {import('./types.mjs').CvProject} CvProject */
 /** @typedef {import('./types.mjs').CvProjectGroup} CvProjectGroup */
 /** @typedef {import('./types.mjs').CvProjectItem} CvProjectItem */
+/** @typedef {import('./types.mjs').CvProfile} CvProfile */
 /** @typedef {import('./types.mjs').CvRole} CvRole */
 /** @typedef {import('./types.mjs').CvDegree} CvDegree */
 
@@ -72,6 +74,80 @@ const renderContact = ({ text, url }) =>
   url
     ? `<li><a href="${escapeHtml(url)}">${escapeHtml(text)}</a></li>`
     : `<li>${escapeHtml(text)}</li>`;
+
+/**
+ * Parameters of {@link renderLabeledItem}.
+ * @typedef {object} RenderLabeledItemParams
+ * @property {string} label - Label of the item, e.g. "Front-end".
+ * @property {string} separator - What separates the label from the text, from `labelSeparator`.
+ * @property {string} html - Text that the label introduces, already escaped.
+ */
+
+/**
+ * Writes an item of a list whose label, in bold, introduces a text on the same line, as a
+ * category does its skills.
+ * @param {RenderLabeledItemParams} params
+ * @returns {string} The item.
+ */
+const renderLabeledItem = ({ label, separator, html }) =>
+  `<li><strong>${escapeHtml(label)}</strong>${escapeHtml(separator)}${html}</li>`;
+
+/**
+ * Parameters of {@link renderProfile}.
+ * @typedef {object} RenderProfileParams
+ * @property {CvProfile} profile - Profile to write.
+ * @property {string} separator - What separates the label of a link from it.
+ */
+
+/**
+ * Writes the profile that opens the CV: its summary, then where to check the practice it
+ * describes, each link after its label.
+ * @param {RenderProfileParams} params
+ * @returns {string} Its section.
+ */
+const renderProfile = ({ profile, separator }) => {
+  const links = profile.proofLinks.map(({ label, text, url }) =>
+    renderLabeledItem({
+      label,
+      separator,
+      html: `<a href="${escapeHtml(url)}">${escapeHtml(text)}</a>`,
+    }),
+  );
+
+  return `<section class="section">
+        <h2 class="section-title">${escapeHtml(profile.title)}</h2>
+        <p class="summary">${escapeHtml(profile.summary)}</p>
+        ${renderElement({ tag: 'p', className: 'text', html: escapeHtml(profile.proof) })}
+        <ul class="labeled-links">${links.join('')}</ul>
+      </section>`;
+};
+
+/**
+ * Parameters of {@link renderSkills}.
+ * @typedef {object} RenderSkillsParams
+ * @property {CvContent['skills']} skills - Skills to write, by category.
+ * @property {string} separator - What separates a category from its skills.
+ */
+
+/**
+ * Writes the skills, one line per category, its skills after it.
+ * @param {RenderSkillsParams} params
+ * @returns {string} Its section.
+ */
+const renderSkills = ({ skills, separator }) => {
+  const groups = skills.items.map(({ category, items }) =>
+    renderLabeledItem({
+      label: category,
+      separator,
+      html: escapeHtml(items.join(SKILLS_SEPARATOR)),
+    }),
+  );
+
+  return `<section class="section">
+        <h2 class="section-title">${escapeHtml(skills.title)}</h2>
+        <ul class="skills">${groups.join('')}</ul>
+      </section>`;
+};
 
 /**
  * Writes a project of a role.
@@ -180,8 +256,9 @@ const renderDegree = ({ degree, period, school }) => {
 
 /**
  * Builds the HTML page that Chromium prints to make the CV: the name, the job title and the
- * contact details, then the experiences, the projects, the skills and the education, with the
- * headings of a document, so that the PDF, tagged, reads in that order. Every text is escaped.
+ * contact details, then the profile, the skills and the experiences, which a reader looks for
+ * first, then the projects next to the education, with the headings of a document, so that the
+ * PDF, tagged, reads in that order. Every text is escaped.
  * @param {RenderCvHtmlParams} params
  * @returns {string} A complete HTML document, in the language of the content.
  * @example
@@ -189,7 +266,7 @@ const renderDegree = ({ degree, period, school }) => {
  * await page.pdf({ preferCSSPageSize: true, tagged: true });
  */
 export const renderCvHtml = ({ content, styles, fontFaces }) => {
-  const { experiences, projects, skills, education } = content;
+  const { profile, skills, experiences, projects, education, labelSeparator } = content;
 
   return `<!doctype html>
 <html lang="${escapeHtml(content.language)}">
@@ -209,18 +286,16 @@ export const renderCvHtml = ({ content, styles, fontFaces }) => {
       <ul class="contacts">${content.profiles.map(renderContact).join('')}</ul>
     </header>
     <main>
+      ${renderProfile({ profile, separator: labelSeparator })}
+      ${renderSkills({ skills, separator: labelSeparator })}
       <section class="section">
         <h2 class="section-title">${escapeHtml(experiences.title)}</h2>
         ${experiences.items.map(renderExperience).join('')}
       </section>
-      <section class="section">
-        <h2 class="section-title">${escapeHtml(projects.title)}</h2>
-        <div class="columns">${projects.items.map(renderProjectGroup).join('')}</div>
-      </section>
       <div class="columns">
         <section class="section">
-          <h2 class="section-title">${escapeHtml(skills.title)}</h2>
-          ${renderBullets(skills.items)}
+          <h2 class="section-title">${escapeHtml(projects.title)}</h2>
+          ${projects.items.map(renderProjectGroup).join('')}
         </section>
         <section class="section">
           <h2 class="section-title">${escapeHtml(education.title)}</h2>

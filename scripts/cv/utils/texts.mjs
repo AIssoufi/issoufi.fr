@@ -27,13 +27,19 @@ const isBlank = text => text.trim() === '';
  * listCvTexts(content).includes('Sewan Groupe'); // true
  */
 export const listCvTexts = content => {
-  const { experiences, projects, skills, education } = content;
+  const { profile, skills, experiences, projects, education } = content;
   const texts = [
     content.name,
     content.jobTitle,
     joinSegments(content.passion),
     ...content.contacts.map(({ text }) => text),
     ...content.profiles.map(({ text }) => text),
+    profile.title,
+    profile.summary,
+    profile.proof,
+    ...profile.proofLinks.flatMap(({ label, text }) => [label, text]),
+    skills.title,
+    ...skills.items.flatMap(({ category, items }) => [category, ...items]),
     experiences.title,
     ...experiences.items.flatMap(({ company, details, roles }) => [
       company,
@@ -56,8 +62,6 @@ export const listCvTexts = content => {
     ]),
     projects.title,
     ...projects.items.flatMap(({ title, items }) => [title, ...items.map(({ name }) => name)]),
-    skills.title,
-    ...skills.items,
     education.title,
     ...education.items.flatMap(({ degree, period, school }) => [degree, period, school]),
   ];
@@ -66,12 +70,14 @@ export const listCvTexts = content => {
 
 /**
  * Lists every link of the CV: the contact details that are links, the site and the profiles of
- * its owner, and the projects that have a URL.
+ * its owner, the proof of its profile, and the projects that have a URL.
  * @param {CvContent} content - Content of the CV, from `buildCvContent`.
  * @returns {string[]} The URLs, in the order of the page.
  */
 export const listCvLinks = content => [
-  ...[...content.contacts, ...content.profiles].map(({ url }) => url).filter(Boolean),
+  ...[...content.contacts, ...content.profiles, ...content.profile.proofLinks]
+    .map(({ url }) => url)
+    .filter(Boolean),
   ...content.projects.items.flatMap(({ items }) => items.map(({ url }) => url).filter(Boolean)),
 ];
 
@@ -81,13 +87,18 @@ export const listCvLinks = content => [
  * @returns {[string, string][]} The path and the text of each one, in the order of the page.
  */
 const listRequiredTexts = content => {
-  const { experiences, projects, skills, education } = content;
+  const { profile, skills, experiences, projects, education } = content;
   /** @type {[string, string][]} */
   const texts = [
     ['title', content.title],
     ['subject', content.subject],
     ['name', content.name],
     ['jobTitle', content.jobTitle],
+    ['labelSeparator', content.labelSeparator],
+    ['profile.title', profile.title],
+    ['profile.summary', profile.summary],
+    ['profile.proof', profile.proof],
+    ['skills.title', skills.title],
     ['experiences.title', experiences.title],
   ];
   experiences.items.forEach(({ company, roles }, index) => {
@@ -109,7 +120,7 @@ const listRequiredTexts = content => {
   projects.items.forEach(({ title }, index) =>
     texts.push([`projects.items[${index}].title`, title]),
   );
-  texts.push(['skills.title', skills.title], ['education.title', education.title]);
+  texts.push(['education.title', education.title]);
   return texts;
 };
 
@@ -159,8 +170,9 @@ export const findMissingCvTexts = content => {
     ['keywords', content.keywords],
     ['contacts', content.contacts],
     ['profiles', content.profiles],
-    ['experiences.items', content.experiences.items],
+    ['profile.proofLinks', content.profile.proofLinks],
     ['skills.items', content.skills.items],
+    ['experiences.items', content.experiences.items],
     ['education.items', content.education.items],
   ];
   const emptyLists = requiredLists.filter(([, items]) => items.length === 0).map(([path]) => path);

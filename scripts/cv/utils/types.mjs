@@ -57,6 +57,31 @@
  */
 
 /**
+ * A link that a label introduces, e.g. "Code : github.com/AIssoufi/issoufi.fr".
+ * @typedef {object} CvLabeledLink
+ * @property {string} label - What the link leads to, e.g. "Code".
+ * @property {string} text - Text of the link: its web address without its scheme.
+ * @property {string} url - URL it opens.
+ */
+
+/**
+ * The profile that opens the CV.
+ * @typedef {object} CvProfile
+ * @property {string} title - Title of the section, e.g. "Profil".
+ * @property {string} summary - Role, scope and practice of the author, in three or four lines.
+ * @property {string} proof - Where a reader can check the practice of AI agents that the summary
+ * describes.
+ * @property {CvLabeledLink[]} proofLinks - Links to that proof, each after its label.
+ */
+
+/**
+ * Skills of one category.
+ * @typedef {object} CvSkillGroup
+ * @property {string} category - Name of the category, e.g. "Front-end".
+ * @property {string[]} items - Skills, as the job descriptions write them, e.g. "React.js".
+ */
+
+/**
  * A project of the Projects page, which the CV names only: its kind and its technologies, older
  * than the experiences, would take the space of the recent ones.
  * @typedef {object} CvProjectItem
@@ -97,6 +122,8 @@
  * sets its author apart, which PDF readers show and recruiting tools index.
  * @property {string[]} keywords - Keywords of the document, in its information: terms that the
  * CV writes and that recruiting tools search, e.g. `React`.
+ * @property {string} labelSeparator - What separates a label from the text it introduces, e.g.
+ * the no-break space, the colon and the space of French.
  * @property {string} name - Name of the site's author.
  * @property {string} jobTitle - Job title.
  * @property {TextSegment[]} passion - Line about UX and UI design, as on the home page. The CV
@@ -104,9 +131,10 @@
  * @property {CvLink[]} contacts - Contact details, links or not: email, phone and city.
  * @property {CvLink[]} profiles - Links to the site and the LinkedIn profile of its owner, on
  * the line under the contact details.
+ * @property {CvProfile} profile - Profile that opens the CV, from the data of the CV.
+ * @property {CvSection<CvSkillGroup>} skills - Skills by category, from the data of the CV.
  * @property {CvSection<CvExperience>} experiences - Experiences of the Experiences page.
  * @property {CvSection<CvProjectGroup>} projects - Freelance then personal projects.
- * @property {CvSection<string>} skills - Skills, from the data of the CV.
  * @property {CvSection<CvDegree>} education - Degrees, from the data of the CV.
  */
 

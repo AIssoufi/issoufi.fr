@@ -8,6 +8,7 @@ import {
 } from '../constants.mjs';
 import { isEntry, isFilled, toEntries, toText, toTexts } from './data.mjs';
 import { toLinkText, toLinkUrl } from './links.mjs';
+import { buildProfile, buildSkillGroups } from './profile.mjs';
 
 /** @typedef {import('./types.mjs').CvContent} CvContent */
 /** @typedef {import('./types.mjs').CvDegree} CvDegree */
@@ -234,11 +235,14 @@ export const buildCvContent = ({
       .join(PAGE_TITLE_SEPARATOR),
     subject: toText(texts.subject),
     keywords: toTexts(texts.keywords),
+    labelSeparator: toText(texts.labelSeparator),
     name: homeTexts.name,
     jobTitle: homeTexts.jobTitle,
     passion: homeTexts.passion,
     contacts: buildContacts({ contact, texts }),
     profiles: buildProfiles({ siteUrl, siteDomain: homeTexts.site, linkedInUrl }),
+    profile: buildProfile(texts),
+    skills: { title: toText(texts.skillsTitle), items: buildSkillGroups(texts.skills) },
     experiences: {
       title: translate('exp.pageTitle'),
       items: buildExperiences({ translate, experiences }),
@@ -250,7 +254,6 @@ export const buildCvContent = ({
         { title: translate('projects.personal'), items: buildProjectItems(personalProjects) },
       ].filter(({ items }) => items.length > 0),
     },
-    skills: { title: toText(texts.skillsTitle), items: toTexts(texts.skills) },
     education: { title: toText(texts.educationTitle), items: buildDegrees(texts.education) },
   };
 };

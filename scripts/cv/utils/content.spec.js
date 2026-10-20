@@ -71,10 +71,15 @@ const CV_DATA = {
     fr: {
       subject: 'Développeur front-end senior',
       keywords: ['React', '', '  ', 42, null, 'TypeScript'],
+      labelSeparator: ' : ',
       phone: '06 00 00 00 00',
       location: 'Paris',
+      profileTitle: 'Profil',
+      summary: 'Développeur front-end',
+      proof: 'Mon site est développé par des agents',
+      proofLinks: [{ label: 'Code', url: 'https://github.com/AIssoufi/site' }],
       skillsTitle: 'Compétences',
-      skills: ['Tests unitaires', '', 42],
+      skills: [{ category: 'Qualité', items: ['Tests unitaires', '', 42] }, 'Tests'],
       educationTitle: 'Formation',
       education: [
         {
@@ -305,8 +310,27 @@ describe('buildCvContent', () => {
 
     expect(content.experiences.title).toBe('Expériences');
     expect(content.projects.title).toBe('Projets');
+    expect(content.profile.title).toBe('Profil');
     expect(content.skills.title).toBe('Compétences');
     expect(content.education.title).toBe('Formation');
+  });
+
+  it('writes the profile and the separator of its labels from the data of the CV', () => {
+    const content = buildCvContent(PARAMS);
+
+    expect(content.labelSeparator).toBe(' : ');
+    expect(content.profile).toEqual({
+      title: 'Profil',
+      summary: 'Développeur front-end',
+      proof: 'Mon site est développé par des agents',
+      proofLinks: [
+        {
+          label: 'Code',
+          text: 'github.com/AIssoufi/site',
+          url: 'https://github.com/AIssoufi/site',
+        },
+      ],
+    });
   });
 
   it('lists the freelance projects, then the personal ones', () => {
@@ -325,7 +349,7 @@ describe('buildCvContent', () => {
   it('keeps the skills and the degrees that are filled, a degree without its description', () => {
     const content = buildCvContent(PARAMS);
 
-    expect(content.skills.items).toEqual(['Tests unitaires']);
+    expect(content.skills.items).toEqual([{ category: 'Qualité', items: ['Tests unitaires'] }]);
     expect(content.education.items).toEqual([
       { degree: 'DUT Informatique', period: '2014 – 2016', school: 'IUT de Nice' },
     ]);
@@ -341,6 +365,8 @@ describe('buildCvContent', () => {
         { text: 'issoufi.fr', url: 'https://issoufi.fr/' },
         { text: 'linkedin.com/in/adam', url: 'https://www.linkedin.com/in/adam/' },
       ]);
+      expect(content.labelSeparator).toBe('');
+      expect(content.profile).toEqual({ title: '', summary: '', proof: '', proofLinks: [] });
       expect(content.skills).toEqual({ title: '', items: [] });
       expect(content.education).toEqual({ title: '', items: [] });
     },

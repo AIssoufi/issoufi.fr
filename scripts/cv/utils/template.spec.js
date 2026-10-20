@@ -39,11 +39,77 @@ describe('renderCvHtml', () => {
 
     expect(getTexts({ document, selector: 'h1' })).toEqual(['ADAM Issoufi']);
     expect(getTexts({ document, selector: 'h2' })).toEqual([
+      'Profil',
+      'Compétences',
       'Expériences',
       'Projets',
-      'Compétences',
       'Formation',
     ]);
+  });
+
+  it('writes the summary of the profile, then its proof, each link after its label', () => {
+    const content = {
+      ...FRENCH_CV,
+      labelSeparator: ' : ',
+      profile: {
+        title: 'Profil',
+        summary: 'Développeur front-end',
+        proof: 'Mon site est développé par des agents',
+        proofLinks: [
+          {
+            label: 'Code',
+            text: 'github.com/AIssoufi/site',
+            url: 'https://github.com/AIssoufi/site',
+          },
+        ],
+      },
+    };
+    const document = renderDocument(content);
+    const [profile] = document.querySelectorAll('.section');
+
+    expect(getTexts({ document: profile, selector: 'p' })).toEqual([
+      'Développeur front-end',
+      'Mon site est développé par des agents',
+    ]);
+    expect(profile.querySelector('.labeled-links').innerHTML).toBe(
+      '<li><strong>Code</strong> : <a href="https://github.com/AIssoufi/site">github.com/AIssoufi/site</a></li>',
+    );
+  });
+
+  it('leaves out the proof of the profile when it is empty', () => {
+    const content = { ...FRENCH_CV, profile: { ...FRENCH_CV.profile, proof: '' } };
+    const [profile] = renderDocument(content).querySelectorAll('.section');
+
+    expect(getTexts({ document: profile, selector: 'p' })).toEqual([FRENCH_CV.profile.summary]);
+  });
+
+  it('writes each category of skills on its line, in bold, its skills after it', () => {
+    const content = {
+      ...FRENCH_CV,
+      labelSeparator: ' : ',
+      skills: {
+        title: 'Compétences',
+        items: [
+          { category: 'Front-end', items: ['React.js', 'TypeScript'] },
+          { category: 'Qualité', items: ['Tests unitaires'] },
+        ],
+      },
+    };
+    const document = renderDocument(content);
+
+    expect(getTexts({ document, selector: '.skills li' })).toEqual([
+      'Front-end : React.js, TypeScript',
+      'Qualité : Tests unitaires',
+    ]);
+    expect(getTexts({ document, selector: '.skills strong' })).toEqual(['Front-end', 'Qualité']);
+  });
+
+  it('writes a category of the real French CV with its no-break space before the colon', () => {
+    const document = renderDocument(FRENCH_CV);
+
+    expect(document.querySelector('.skills li').textContent).toMatch(
+      /^Front-end\u00a0: React\.js, TypeScript, /,
+    );
   });
 
   it('writes the design skills of the line under the job title in bold', () => {
@@ -148,12 +214,15 @@ describe('renderCvHtml', () => {
       ...FRENCH_CV,
       name: '<script>alert(1)</script>',
       contacts: [{ text: 'R&D', url: 'https://example.com/?a="b"' }],
+      labelSeparator: ' <: ',
+      skills: { title: 'Compétences', items: [{ category: 'R&D', items: ['<b>', 'C&C'] }] },
     };
     const html = renderCvHtml({ content, styles, fontFaces: '' });
 
     expect(html).not.toContain('<script>');
     expect(html).toContain('&lt;script&gt;alert(1)&lt;/script&gt;');
     expect(html).toContain('<a href="https://example.com/?a=&quot;b&quot;">R&amp;D</a>');
+    expect(html).toContain('<li><strong>R&amp;D</strong> &lt;: &lt;b&gt;, C&amp;C</li>');
   });
 
   it('leaves out the empty parts: a role without introduction, period or technologies', () => {

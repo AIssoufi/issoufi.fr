@@ -10,6 +10,7 @@ const CONTENT = {
   title: 'CV - ADAM Issoufi - Développeur',
   subject: 'Développeur front-end',
   keywords: ['React', 'Tests unitaires'],
+  labelSeparator: ' : ',
   name: 'ADAM Issoufi',
   jobTitle: 'Développeur',
   passion: [
@@ -21,6 +22,18 @@ const CONTENT = {
     { text: 'Massy (91)', url: '' },
   ],
   profiles: [{ text: 'github.com/AIssoufi', url: 'https://github.com/AIssoufi' }],
+  profile: {
+    title: 'Profil',
+    summary: 'Développeur front-end',
+    proof: 'Mon site est développé par des agents',
+    proofLinks: [
+      { label: 'Code', text: 'github.com/AIssoufi/site', url: 'https://github.com/AIssoufi/site' },
+    ],
+  },
+  skills: {
+    title: 'Compétences',
+    items: [{ category: 'Qualité', items: ['Tests unitaires', 'Revue de code'] }],
+  },
   experiences: {
     title: 'Expériences',
     items: [
@@ -64,7 +77,6 @@ const CONTENT = {
       },
     ],
   },
-  skills: { title: 'Compétences', items: ['Tests unitaires'] },
   education: {
     title: 'Formation',
     items: [{ degree: 'DUT', period: '2014 – 2016', school: 'IUT de Nice' }],
@@ -80,6 +92,15 @@ describe('listCvTexts', () => {
       'adam@example.com',
       'Massy (91)',
       'github.com/AIssoufi',
+      'Profil',
+      'Développeur front-end',
+      'Mon site est développé par des agents',
+      'Code',
+      'github.com/AIssoufi/site',
+      'Compétences',
+      'Qualité',
+      'Tests unitaires',
+      'Revue de code',
       'Expériences',
       'Acme',
       'Développeur',
@@ -96,8 +117,6 @@ describe('listCvTexts', () => {
       'Projets freelance',
       'Study SARL',
       'Calculatrice',
-      'Compétences',
-      'Tests unitaires',
       'Formation',
       'DUT',
       '2014 – 2016',
@@ -120,10 +139,11 @@ describe('listCvTexts', () => {
 });
 
 describe('listCvLinks', () => {
-  it('lists the contact details, the profiles and the projects that are links', () => {
+  it('lists the contact details, the profiles, the proof and the projects that are links', () => {
     expect(listCvLinks(CONTENT)).toEqual([
       'mailto:adam@example.com',
       'https://github.com/AIssoufi',
+      'https://github.com/AIssoufi/site',
       'https://study.fr/',
     ]);
   });
@@ -134,6 +154,8 @@ describe('listCvLinks', () => {
       'tel:+33695758632',
       'https://issoufi.fr/',
       'https://www.linkedin.com/in/issoufiadam',
+      'https://github.com/AIssoufi/issoufi.fr',
+      'https://github.com/AIssoufi/issoufi.fr/tree/develop/docs/ai-workflow',
       'https://aissoufi.github.io/chess/',
     ]);
   });
@@ -190,16 +212,18 @@ describe('findMissingCvTexts', () => {
       ...CONTENT,
       contacts: [],
       profiles: [],
-      experiences: { ...CONTENT.experiences, items: [] },
+      profile: { ...CONTENT.profile, proofLinks: [] },
       skills: { ...CONTENT.skills, items: [] },
+      experiences: { ...CONTENT.experiences, items: [] },
       education: { ...CONTENT.education, items: [] },
     };
 
     expect(findMissingCvTexts(content)).toEqual([
       'contacts',
       'profiles',
-      'experiences.items',
+      'profile.proofLinks',
       'skills.items',
+      'experiences.items',
       'education.items',
     ]);
   });
@@ -220,17 +244,36 @@ describe('findMissingCvTexts', () => {
   it('reports the missing titles of the sections', () => {
     const content = {
       ...CONTENT,
+      profile: { ...CONTENT.profile, title: '' },
       skills: { ...CONTENT.skills, title: '' },
       education: { ...CONTENT.education, title: '' },
     };
 
-    expect(findMissingCvTexts(content)).toEqual(['skills.title', 'education.title']);
+    expect(findMissingCvTexts(content)).toEqual([
+      'profile.title',
+      'skills.title',
+      'education.title',
+    ]);
+  });
+
+  it('reports a missing separator of the labels, summary or proof of the profile', () => {
+    const content = {
+      ...CONTENT,
+      labelSeparator: '',
+      profile: { ...CONTENT.profile, summary: ' ', proof: '' },
+    };
+
+    expect(findMissingCvTexts(content)).toEqual([
+      'labelSeparator',
+      'profile.summary',
+      'profile.proof',
+    ]);
   });
 });
 
 describe('findUnwrittenKeywords', () => {
   it('finds none when the CV writes each keyword, whatever its case', () => {
-    const keywords = ['react', 'TESTS UNITAIRES', 'Study SARL', 'IUT de Nice'];
+    const keywords = ['react', 'TESTS UNITAIRES', 'Study SARL', 'IUT de Nice', 'revue de code'];
 
     expect(findUnwrittenKeywords({ ...CONTENT, keywords })).toEqual([]);
   });

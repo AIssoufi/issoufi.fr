@@ -165,6 +165,12 @@ export const QUOTED_TEXT_LENGTH = 60;
 export const DETAILS_SEPARATOR = ' · ';
 
 /**
+ * Separator of the skills of a category, a comma as a sentence lists terms, which a screening tool
+ * reads as separate terms.
+ */
+export const SKILLS_SEPARATOR = ', ';
+
+/**
  * Separator of the start and the end of a period, an en dash as on the Experiences page
  * (`INLINE_PERIOD_MARK`) and in the years of the education.
  */
