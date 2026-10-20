@@ -103,6 +103,26 @@ export const SVG_CLOSING_TAG = '</svg>';
  */
 export const ICON_ATTRIBUTES = 'class="icon" aria-hidden="true"';
 
+/**
+ * Options of `uqr` for the QR code of the CV, which leads to the site: the medium error correction
+ * of printed codes, which still reads with a crease or a stain, no border, since the white of the
+ * page around it gives its quiet zone, and dark modules in the color of the text, on nothing.
+ * @type {import('uqr').QrCodeGenerateSvgOptions}
+ */
+export const QR_CODE_OPTIONS = {
+  ecc: 'M',
+  border: 0,
+  blackColor: 'currentColor',
+  whiteColor: 'none',
+};
+
+/**
+ * Attributes that the QR code of the CV gets: the class that sizes it, and the attribute that
+ * hides it from screen readers and from the tags of the PDF, since the header writes the address
+ * of the site it leads to.
+ */
+export const QR_CODE_ATTRIBUTES = 'class="qr-code" aria-hidden="true"';
+
 /** Format of the font files of {@link CV_FONT_FILES}, in the `src` of their `@font-face` rules. */
 export const FONT_FORMAT = 'truetype';
 
@@ -293,6 +313,10 @@ export const CV_LAYOUT = {
   bulletMarkWidth: '0.9pt',
   /** Height of the bottom of the mark of a bullet point above the baseline of its text. */
   bulletMarkRaise: '0.12em',
+  /** Side of the QR code at the right of the header, which a phone reads from a printed page. */
+  qrCodeSize: '20mm',
+  /** Space between the texts of the header and the QR code, wider than its quiet zone. */
+  qrCodeGap: '5mm',
   /** Space between two contact details. */
   contactGap: '3.5mm',
   /** Side of the icon before a contact detail. */

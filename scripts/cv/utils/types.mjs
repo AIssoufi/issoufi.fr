@@ -137,6 +137,8 @@
  * @property {CvLink[]} contacts - Contact details, links or not: email, phone and city.
  * @property {CvLink[]} profiles - Links to the site and the LinkedIn profile of its owner, on
  * the line under the contact details.
+ * @property {string} qrCodeUrl - URL that the QR code of the header leads to, the home page of the
+ * site in the language, or `''` for a CV without QR code.
  * @property {CvProfile} profile - Profile that opens the CV, from the data of the CV.
  * @property {CvSection<CvSkillGroup>} skills - Skills by category, from the data of the CV.
  * @property {CvSection<CvExperience>} experiences - Experiences of the Experiences page.

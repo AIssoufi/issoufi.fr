@@ -155,6 +155,25 @@ describe('renderCvHtml', () => {
     );
   });
 
+  it('writes the QR code to the site after the texts of the header, hidden from screen readers', () => {
+    const content = { ...FRENCH_CV, qrCodeUrl: 'https://issoufi.fr/' };
+    const header = renderDocument(content).querySelector('.header');
+    const [identity, qrCode] = header.children;
+
+    expect(header.children).toHaveLength(2);
+    expect(identity.querySelector('h1').textContent).toBe('ADAM Issoufi');
+    expect(qrCode.tagName).toBe('svg');
+    expect(qrCode.getAttribute('class')).toBe('qr-code');
+    expect(qrCode.getAttribute('aria-hidden')).toBe('true');
+  });
+
+  it('writes no QR code when the CV has none', () => {
+    const document = renderDocument({ ...FRENCH_CV, qrCodeUrl: '' });
+
+    expect(document.querySelector('.header').children).toHaveLength(1);
+    expect(document.querySelector('.qr-code')).toBeNull();
+  });
+
   it('writes a contact detail without icon when the icons lack its own', () => {
     const document = renderDocument(FRENCH_CV);
 
