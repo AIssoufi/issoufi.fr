@@ -1,6 +1,6 @@
 /**
- * GitHub profile of the site owner, which the GitHub icon of the header opens, the CV links to
- * and the structured data of the pages name.
+ * GitHub profile of the site owner, which the GitHub icon of the header opens and the structured
+ * data of the pages name.
  */
 export const GITHUB_PROFILE_URL = 'https://github.com/AIssoufi';
 

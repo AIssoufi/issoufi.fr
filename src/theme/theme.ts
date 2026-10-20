@@ -68,7 +68,7 @@ const colors = {
   ...alphaVariants({
     name: 'shade',
     rgb: rgb.black,
-    opacities: [0, 30, 35, 40, 45, 50, 55, 80] as const,
+    opacities: [0, 30, 35, 40, 45, 50, 55, 65, 80] as const,
   }),
   /** Positive status, e.g. the "in production" badge. */
   success: palette.mint85,

@@ -26,6 +26,7 @@ import {
   CV_FINGERPRINTS_FILE,
   CV_FONT_FILES,
   CV_FONTS_DIR,
+  CV_ICON_FILES,
   CV_MAX_BYTES,
   CV_MAX_PAGES,
   DATA_MODULES,
@@ -34,11 +35,18 @@ import {
 } from './constants.mjs';
 import { getCvFingerprint } from './utils/fingerprint.mjs';
 import { renderFontFaces } from './utils/fonts.mjs';
+import { toInlineIcon } from './utils/icons.mjs';
 import { buildCvContents } from './utils/languages.mjs';
+import { addPdfInfo, buildPdfInfo, listCvPdfInfo } from './utils/metadata.mjs';
 import { findPdfProblems, isSamePdfApartFromDates, readPdf } from './utils/pdf.mjs';
 import { renderCvStyles } from './utils/styles.mjs';
 import { renderCvHtml } from './utils/template.mjs';
-import { findMissingCvTexts, listCvLinks, listCvTexts } from './utils/texts.mjs';
+import {
+  findMissingCvTexts,
+  findUnwrittenKeywords,
+  listCvLinks,
+  listCvTexts,
+} from './utils/texts.mjs';
 
 /**
  * Parameters of {@link printPdf}.
@@ -46,24 +54,28 @@ import { findMissingCvTexts, listCvLinks, listCvTexts } from './utils/texts.mjs'
  * @property {string} html - Page to print, from `renderCvHtml`.
  * @property {string[]} fonts - CSS fonts the page must load before it is printed, from
  * `listFontsInUse`.
+ * @property {Record<string, string>} info - Entries to add to the document information of the
+ * PDF, from `buildPdfInfo`.
  */
 
 /**
  * Prints the page in Chromium as an A4 PDF, once its fonts are loaded: tagged, so that screen
  * readers and applicant tracking systems read it in order, with its texts selectable and its
- * links clickable.
+ * links clickable. Chromium writes its title only: the document information gets the author, the
+ * subject and the keywords of the CV, from `info`.
  * @param {PrintPdfParams} params
  * @returns {Promise<Buffer>} The PDF file.
  * @throws {Error} When a font did not load, as when a weight of the CV has no file.
  */
-const printPdf = async ({ html, fonts }) => {
+const printPdf = async ({ html, fonts, info }) => {
   const browser = await chromium.launch();
   try {
     const page = await browser.newPage();
     await page.setContent(html, { waitUntil: 'networkidle' });
     await checkFontsLoaded({ page, fonts });
 
-    return await page.pdf({ preferCSSPageSize: true, printBackground: true, tagged: true });
+    const pdf = await page.pdf({ preferCSSPageSize: true, printBackground: true, tagged: true });
+    return addPdfInfo({ pdf, info });
   } finally {
     await browser.close();
   }
@@ -94,7 +106,6 @@ const contents = await buildCvContents({
   homePath: sources.pages.HOME_PAGE.path,
   siteUrl: sources.pages.SITE_URL,
   linkedInUrl: sources.profiles.LINKEDIN_PROFILE_URL,
-  gitHubUrl: sources.profiles.GITHUB_PROFILE_URL,
   cvData: data.cv.default,
   experiences: data.experiences.default,
   personalProjects: data.personalProjects.default,
@@ -104,6 +115,12 @@ contents.forEach(content => {
   const missingTexts = findMissingCvTexts(content);
   if (missingTexts.length > 0) {
     throw new Error(`Texts missing from the ${content.language} CV: ${missingTexts.join(', ')}`);
+  }
+  const unwrittenKeywords = findUnwrittenKeywords(content);
+  if (unwrittenKeywords.length > 0) {
+    throw new Error(
+      `Keywords of the ${content.language} CV that it never writes: ${unwrittenKeywords.join(', ')}`,
+    );
   }
 });
 
@@ -121,13 +138,25 @@ const fontFaces = renderFontFaces({
 });
 const fonts = listFontsInUse({ theme, fontsInUse: FONTS_IN_USE });
 
+const icons = Object.fromEntries(
+  Object.entries(CV_ICON_FILES).map(([name, file]) => [
+    name,
+    toInlineIcon(readFileSync(file, 'utf8')),
+  ]),
+);
+const invalidIcons = Object.keys(icons).filter(name => icons[name] === '');
+if (invalidIcons.length > 0) {
+  throw new Error(`Icons of the CV that hold no SVG drawing: ${invalidIcons.join(', ')}`);
+}
+
 /** @type {{ fileName: string, file: Buffer }[]} */
 const files = [];
 // One after the other, so that only one Chromium runs at a time
 for (const content of contents) {
   const fileName = join(PUBLIC_DIR, cvUrls[content.language]);
-  const html = renderCvHtml({ content, styles, fontFaces });
-  const file = await printPdf({ html, fonts });
+  const html = renderCvHtml({ content, styles, fontFaces, icons });
+  const info = buildPdfInfo(content);
+  const file = await printPdf({ html, fonts, info });
   const problems = findPdfProblems({
     pdf: await readPdf(file),
     byteCount: file.length,
@@ -136,12 +165,13 @@ for (const content of contents) {
     texts: listCvTexts(content),
     links: listCvLinks(content),
     fontFamily,
+    info: listCvPdfInfo(content),
   });
   if (problems.length > 0) {
     throw new Error(`${fileName} would be wrong:\n- ${problems.join('\n- ')}`);
   }
   // A second browser, as the next run of the script would launch
-  const reprint = await printPdf({ html, fonts });
+  const reprint = await printPdf({ html, fonts, info });
   if (!isSamePdfApartFromDates({ pdf: file, otherPdf: reprint })) {
     throw new Error(
       `Chromium printed ${fileName} twice with other bytes than its dates: each run would change ` +

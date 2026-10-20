@@ -4,7 +4,7 @@ import {
   TRAILING_SLASHES_PATTERN,
   WEB_PROTOCOLS,
   WWW_PREFIX,
-} from '../constants.mjs';
+} from './constants.mjs';
 
 /**
  * Reads a URL of the data that the CV can write as a link.

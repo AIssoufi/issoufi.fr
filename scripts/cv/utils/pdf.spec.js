@@ -6,74 +6,50 @@ import { getDocument } from 'pdfjs-dist/legacy/build/pdf.mjs';
 
 import { CV_URLS } from '../../../src/App/Header/NavMenu/CvLink/constants.ts';
 import { PUBLIC_DIR } from '../../utils/constants.mjs';
+import { EM_DASH } from '../constants.mjs';
 import { findPdfProblems, isSamePdfApartFromDates, readPdf } from './pdf.mjs';
-
-/**
- * Writes a small PDF file, one page per entry, each with its text in Helvetica and, when it has a
- * URL, a link.
- */
-const buildPdf = pages => {
-  const firstPageId = 4;
-  const objectsPerPage = 3;
-  const pageIds = pages.map((_page, index) => firstPageId + index * objectsPerPage);
-  const objects = [
-    '<< /Type /Catalog /Pages 2 0 R >>',
-    `<< /Type /Pages /Kids [${pageIds.map(id => `${id} 0 R`).join(' ')}] /Count ${pages.length} >>`,
-    '<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>',
-    ...pages.flatMap(({ text, url }, index) => {
-      const pageId = pageIds[index];
-      const stream = `BT /F1 12 Tf 20 100 Td (${text}) Tj ET`;
-      const annotations = url ? `/Annots [${pageId + 2} 0 R]` : '';
-      return [
-        `<< /Type /Page /Parent 2 0 R /MediaBox [0 0 300 200] /Contents ${pageId + 1} 0 R /Resources << /Font << /F1 3 0 R >> >> ${annotations} >>`,
-        `<< /Length ${stream.length} >>\nstream\n${stream}\nendstream`,
-        `<< /Type /Annot /Subtype /Link /Rect [20 90 200 120] /A << /S /URI /URI (${url}) >> >>`,
-      ];
-    }),
-  ];
-
-  let pdf = '%PDF-1.4\n';
-  const offsets = objects.map((body, index) => {
-    const offset = pdf.length;
-    pdf += `${index + 1} 0 obj\n${body}\nendobj\n`;
-    return offset;
-  });
-  const xrefOffset = pdf.length;
-  const entries = offsets.map(offset => `${String(offset).padStart(10, '0')} 00000 n \n`);
-  pdf += `xref\n0 ${objects.length + 1}\n0000000000 65535 f \n${entries.join('')}`;
-  pdf += `trailer\n<< /Size ${objects.length + 1} /Root 1 0 R >>\nstartxref\n${xrefOffset}\n%%EOF\n`;
-  return new TextEncoder().encode(pdf);
-};
+import { buildPdf } from './pdfTestUtils.js';
 
 describe('readPdf', () => {
   afterEach(() => {
     vi.restoreAllMocks();
   });
 
-  it('reads the text, the links and the fonts of each page', async () => {
+  it('reads the text, the links, the fonts and the document information of each page', async () => {
     const pdf = await readPdf(
-      buildPdf([
-        { text: 'ADAM Issoufi', url: 'mailto:adam@example.com' },
-        { text: 'Experiences', url: 'https://issoufi.fr/' },
-      ]),
+      buildPdf({
+        pages: [
+          { text: 'ADAM Issoufi', url: 'mailto:adam@example.com' },
+          { text: 'Experiences', url: 'https://issoufi.fr/' },
+        ],
+        info: '/Title (CV - ADAM Issoufi) /Subject <FEFF00E9>',
+      }),
     );
 
     expect(pdf).toEqual({
       pageCount: 2,
       text: 'ADAM Issoufi Experiences',
+      pages: ['ADAM Issoufi', 'Experiences'],
       links: ['mailto:adam@example.com', 'https://issoufi.fr/'],
       fonts: [{ name: 'Helvetica', type: 'Type1' }],
+      info: { PDFFormatVersion: '1.4', Title: 'CV - ADAM Issoufi', Subject: 'é' },
     });
   });
 
+  it('reads no document information but the version of a PDF without any', async () => {
+    const pdf = await readPdf(buildPdf({ pages: [{ text: 'CV' }] }));
+
+    expect(pdf.info).toEqual({ PDFFormatVersion: '1.4' });
+  });
+
   it('finds no link on a page without one', async () => {
-    const pdf = await readPdf(buildPdf([{ text: 'CV' }]));
+    const pdf = await readPdf(buildPdf({ pages: [{ text: 'CV' }] }));
 
     expect(pdf.links).toEqual([]);
   });
 
   it('leaves the data it reads untouched', async () => {
-    const data = buildPdf([{ text: 'CV' }]);
+    const data = buildPdf({ pages: [{ text: 'CV' }] });
     const copy = data.slice();
 
     await readPdf(data);
@@ -81,9 +57,24 @@ describe('readPdf', () => {
     expect(data).toEqual(copy);
   });
 
+  it('reads the lines of each page, which the text of the PDF joins with a space', async () => {
+    const pdf = await readPdf(
+      buildPdf({ pages: [{ text: 'ADAM Issoufi\nDeveloper\nParis' }, { text: 'Experience' }] }),
+    );
+
+    expect(pdf.pages).toEqual(['ADAM Issoufi\nDeveloper\nParis', 'Experience']);
+    expect(pdf.text).toBe('ADAM Issoufi Developer Paris Experience');
+  });
+
+  it('reads no line on a page without text', async () => {
+    const pdf = await readPdf(buildPdf({ pages: [{ text: '' }] }));
+
+    expect(pdf.pages).toEqual(['']);
+  });
+
   it('leaves out the marked-content items of the text, which hold none', async () => {
     // pdf.js lists them only with `includeMarkedContent`: a spy on its page prototype adds them
-    const loadingTask = getDocument({ data: buildPdf([{ text: 'CV' }]) });
+    const loadingTask = getDocument({ data: buildPdf({ pages: [{ text: 'CV' }] }) });
     const pagePrototype = Object.getPrototypeOf(await (await loadingTask.promise).getPage(1));
     await loadingTask.destroy();
     const { getTextContent } = pagePrototype;
@@ -97,7 +88,9 @@ describe('readPdf', () => {
       return { ...content, items };
     });
 
-    const pdf = await readPdf(buildPdf([{ text: 'ADAM Issoufi' }, { text: 'Experiences' }]));
+    const pdf = await readPdf(
+      buildPdf({ pages: [{ text: 'ADAM Issoufi' }, { text: 'Experiences' }] }),
+    );
 
     expect(pdf.text).toBe('ADAM Issoufi Experiences');
   });
@@ -117,6 +110,7 @@ describe('findPdfProblems', () => {
       { name: 'AAAAAA+Montserrat-Regular', type: 'CIDFontType2' },
       { name: 'BAAAAA+Montserrat-Bold', type: 'CIDFontType2' },
     ],
+    info: { PDFFormatVersion: '1.4', Title: 'CV - ADAM Issoufi', Subject: 'CV', Creator: 'Skia' },
   };
 
   /** Parameters of a right CV. */
@@ -128,6 +122,7 @@ describe('findPdfProblems', () => {
     texts: ['ADAM Issoufi', 'Développeur full-stack JavaScript', 'Expériences'],
     links: ['mailto:adam@example.com'],
     fontFamily: 'Montserrat',
+    info: { Title: 'CV - ADAM Issoufi', Subject: 'CV' },
   };
 
   it('finds none in a right CV', () => {
@@ -193,6 +188,20 @@ describe('findPdfProblems', () => {
     );
   });
 
+  it('reports an em dash in the text', () => {
+    const pdf = { ...PDF, text: `${PDF.text} oct. 2025 ${EM_DASH} sept. 2026` };
+
+    expect(findPdfProblems({ ...PARAMS, pdf })).toEqual([
+      'its text holds an em dash, which the site keeps out of its texts',
+    ]);
+  });
+
+  it('accepts an en dash and a hyphen', () => {
+    const pdf = { ...PDF, text: `${PDF.text} oct. 2025 – sept. 2026 full-stack` };
+
+    expect(findPdfProblems({ ...PARAMS, pdf })).toEqual([]);
+  });
+
   it('reports each missing text, quoting the start of a long one', () => {
     const longText =
       'Conception et évolution d’API de composants React robustes, documentées sous Storybook';
@@ -200,6 +209,46 @@ describe('findPdfProblems', () => {
     expect(findPdfProblems({ ...PARAMS, texts: ['Sewan Groupe', longText] })).toEqual([
       'the text "Sewan Groupe" is missing',
       'the text "Conception et évolution d’API de composants React robustes, …" is missing',
+    ]);
+  });
+
+  it('reports a text that the PDF reads before the one that precedes it on the page', () => {
+    const pdf = { ...PDF, text: 'ADAM Issoufi EXPÉRIENCES Développeur full-stack JavaScript' };
+
+    expect(findPdfProblems({ ...PARAMS, pdf })).toEqual([
+      'the text "Expériences" comes before "Développeur full-stack JavaScript", not after it',
+    ]);
+  });
+
+  it('reports a text that the PDF reads twice only once in its place', () => {
+    const texts = ['React.js', 'Sewan Groupe', 'React.js', 'Vite'];
+    const pdf = { ...PDF, text: 'React.js Sewan Groupe React.js · Vitest' };
+
+    expect(findPdfProblems({ ...PARAMS, pdf, texts })).toEqual([]);
+    expect(findPdfProblems({ ...PARAMS, pdf, texts: [...texts, 'React.js'] })).toEqual([
+      'the text "React.js" comes before "Vite", not after it',
+    ]);
+  });
+
+  it('reports a missing text as missing, not out of its place', () => {
+    const texts = ['ADAM Issoufi', 'Sewan Groupe', 'Expériences'];
+
+    expect(findPdfProblems({ ...PARAMS, texts })).toEqual(['the text "Sewan Groupe" is missing']);
+  });
+
+  it('skips a blank text, which every place of the PDF holds', () => {
+    expect(findPdfProblems({ ...PARAMS, texts: ['ADAM Issoufi', ' ', 'Expériences'] })).toEqual([]);
+    expect(findPdfProblems({ ...PARAMS, texts: ['Expériences', '', 'ADAM Issoufi'] })).toEqual([
+      'the text "ADAM Issoufi" comes before "Expériences", not after it',
+    ]);
+  });
+
+  it('reports each entry of the document information that the PDF lacks or holds otherwise', () => {
+    const info = { Title: 'CV - ADAM Issoufi - Développeur', Subject: 'CV', Keywords: 'React' };
+
+    expect(findPdfProblems({ ...PARAMS, info })).toEqual([
+      'its Title is "CV - ADAM Issoufi", not "CV - ADAM Issoufi - Développeur"',
+      'its Keywords is "", not "React"',
     ]);
   });
 

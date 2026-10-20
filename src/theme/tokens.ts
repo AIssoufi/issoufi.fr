@@ -238,6 +238,7 @@ export const letterSpacings = {
 export const lineHeights = {
   100: 1,
   120: 1.2,
+  130: 1.3,
   140: 1.4,
   145: 1.45,
   150: 1.5,

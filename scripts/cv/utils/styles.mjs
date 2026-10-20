@@ -1,5 +1,5 @@
 // @ts-check
-import { BULLET_MARK, CV_LAYOUT, CV_PAPER_FORMAT } from '../constants.mjs';
+import { CV_LAYOUT, CV_PAPER_FORMAT } from '../constants.mjs';
 
 /**
  * Design tokens of `src/theme/theme.ts` read by the CV.
@@ -14,9 +14,9 @@ import { BULLET_MARK, CV_LAYOUT, CV_PAPER_FORMAT } from '../constants.mjs';
 /**
  * Builds the style sheet of the CV from the design tokens of the site and the print sizes of
  * {@link CV_LAYOUT}: a sober A4 layout, dark text on white paper with the plum of the site for the
- * name, the section titles and the links, in one column but for the groups of projects, and the
- * skills next to the education. Ligatures are turned off, so a search for
- * "fi" finds the text in every PDF reader. A missing token shows as `undefined` in it.
+ * name, the section titles, the icons of the contact details and the links, in one column but for
+ * the projects, next to the education. Ligatures are turned off, so a search for "fi" finds the
+ * text in every PDF reader. A missing token shows as `undefined` in it.
  * @param {CvTheme} theme - Design tokens of the site.
  * @returns {string} The CSS of the page.
  * @example
@@ -46,8 +46,10 @@ export const renderCvStyles = theme => {
         font-family: ${fonts.body};
         font-size: ${CV_LAYOUT.bodyFontSize};
         font-weight: ${fontWeights.regular};
-        line-height: ${lineHeights[140]};
+        line-height: ${lineHeights[130]};
         font-variant-ligatures: none;
+        /* Keeps the last word of a paragraph off a line of its own. */
+        text-wrap: pretty;
         -webkit-print-color-adjust: exact;
         print-color-adjust: exact;
       }
@@ -107,6 +109,17 @@ export const renderCvStyles = theme => {
       .contacts + .contacts {
         margin-top: 0;
       }
+      .contacts li {
+        display: flex;
+        align-items: center;
+        column-gap: ${CV_LAYOUT.contactIconGap};
+      }
+      .icon {
+        flex-shrink: 0;
+        width: ${CV_LAYOUT.contactIconSize};
+        height: ${CV_LAYOUT.contactIconSize};
+        color: ${colors.accent};
+      }
       .section {
         margin-top: ${CV_LAYOUT.sectionMarginTop};
       }
@@ -128,22 +141,24 @@ export const renderCvStyles = theme => {
       .group-title,
       .degree {
         color: ${ink};
-        font-size: ${CV_LAYOUT.companyFontSize};
+        font-size: ${CV_LAYOUT.roleFontSize};
         font-weight: ${fontWeights.bold};
       }
-      .role-title {
-        font-weight: ${fontWeights.medium};
+      .company-name {
+        font-size: ${CV_LAYOUT.companyFontSize};
       }
       .details,
       .period,
-      .technologies,
-      .project-type {
-        color: ${colors['shade-a55']};
+      .technologies {
+        color: ${colors['shade-a65']};
         font-size: ${CV_LAYOUT.detailsFontSize};
         font-weight: ${fontWeights.medium};
       }
+      /* A role that fits on a page stays on one, so that a parser that reads page by page never
+         parts its bullet points from its title. */
       .role {
         margin-top: ${CV_LAYOUT.itemGap};
+        break-inside: avoid;
       }
       .role-header {
         display: flex;
@@ -163,23 +178,26 @@ export const renderCvStyles = theme => {
       .bullets {
         list-style: none;
       }
+      /* No element that holds text is positioned: Chromium paints a positioned one after the rest
+         of its page, so the text of the PDF would read it there. The mark is drawn, so it adds no
+         character to that text either. */
       .bullets li {
-        position: relative;
         padding-left: ${CV_LAYOUT.bulletIndent};
+        text-indent: -${CV_LAYOUT.bulletIndent};
       }
       .bullets li::before {
-        content: '${BULLET_MARK}';
-        position: absolute;
-        left: 0;
-        color: ${colors.accent};
-        font-weight: ${fontWeights.bold};
+        content: '';
+        display: inline-block;
+        width: ${CV_LAYOUT.bulletMarkSize};
+        height: ${CV_LAYOUT.bulletMarkSize};
+        margin-right: calc(${CV_LAYOUT.bulletIndent} - ${CV_LAYOUT.bulletMarkSize});
+        border-top: ${CV_LAYOUT.bulletMarkWidth} solid ${colors.accent};
+        border-right: ${CV_LAYOUT.bulletMarkWidth} solid ${colors.accent};
+        vertical-align: ${CV_LAYOUT.bulletMarkRaise};
+        transform: translateX(-${CV_LAYOUT.bulletMarkWidth}) rotate(45deg);
       }
-      .bullets li,
-      .entries li {
+      .bullets li {
         break-inside: avoid;
-      }
-      .entries li + li {
-        margin-top: ${CV_LAYOUT.entryGap};
       }
       .project {
         margin-top: ${CV_LAYOUT.itemGap};
@@ -196,6 +214,22 @@ export const renderCvStyles = theme => {
         color: ${colors.accent};
         font-weight: ${fontWeights.medium};
       }
+      .skills,
+      .labeled-links {
+        list-style: none;
+      }
+      .skills li + li {
+        margin-top: ${CV_LAYOUT.blockGap};
+      }
+      .labeled-links {
+        display: flex;
+        flex-wrap: wrap;
+        column-gap: ${CV_LAYOUT.contactGap};
+        margin-top: ${CV_LAYOUT.blockGap};
+      }
+      .group + .group {
+        margin-top: ${CV_LAYOUT.itemGap};
+      }
       .columns {
         display: grid;
         grid-template-columns: 1fr 1fr;
@@ -207,7 +241,10 @@ export const renderCvStyles = theme => {
       }
       .entries {
         margin-top: ${CV_LAYOUT.blockGap};
-        list-style: none;
+      }
+      /* A line of projects breaks between two names, never inside one. */
+      .entry {
+        white-space: nowrap;
       }
       .degree-entry {
         break-inside: avoid;

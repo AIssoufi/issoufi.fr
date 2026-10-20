@@ -10,6 +10,7 @@ import { CV_FINGERPRINTS_FILE, CV_MAX_BYTES, CV_MAX_PAGES } from './constants.mj
 import { CV_SOURCES } from './testUtils.js';
 import { getCvFingerprint } from './utils/fingerprint.mjs';
 import { buildCvContents } from './utils/languages.mjs';
+import { listCvPdfInfo } from './utils/metadata.mjs';
 import { findPdfProblems, readPdf } from './utils/pdf.mjs';
 import { listCvLinks, listCvTexts } from './utils/texts.mjs';
 
@@ -41,6 +42,7 @@ describe.each(contents.map(content => [content.language, content]))(
         texts: listCvTexts(content),
         links: listCvLinks(content),
         fontFamily: getFirstFontFamily(theme.fonts.body),
+        info: listCvPdfInfo(content),
       });
 
       expect(problems, 'problems of the CV: run `pnpm cv`, then commit the PDFs').toEqual([]);
