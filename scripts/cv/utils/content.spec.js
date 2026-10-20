@@ -269,8 +269,11 @@ describe('buildCvContent', () => {
       name: 'ADAM Issoufi',
       jobTitle: 'Développeur full-stack JavaScript',
       passion: HOME_TEXTS.passion,
-      subtitle: 'Je vous aide',
     });
+  });
+
+  it('leaves out the subtitle of the home page, which offers services to clients', () => {
+    expect(buildCvContent(PARAMS)).not.toHaveProperty('subtitle');
   });
 
   it('lists the contact details, the email address and the phone number as links', () => {

@@ -242,7 +242,6 @@ export const buildCvContent = ({
     name: homeTexts.name,
     jobTitle: homeTexts.jobTitle,
     passion: homeTexts.passion,
-    subtitle: homeTexts.subtitle,
     contacts: buildContacts({ contact, texts }),
     profiles: buildProfiles({ siteUrl, siteDomain: homeTexts.site, linkedInUrl }),
     experiences: {

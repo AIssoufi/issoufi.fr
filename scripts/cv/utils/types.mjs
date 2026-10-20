@@ -101,8 +101,8 @@
  * CV writes and that recruiting tools search, e.g. `React`.
  * @property {string} name - Name of the site's author.
  * @property {string} jobTitle - Job title.
- * @property {TextSegment[]} passion - Line about UX and UI design, as on the home page.
- * @property {string} subtitle - Line under it, as on the home page.
+ * @property {TextSegment[]} passion - Line about UX and UI design, as on the home page. The CV
+ * leaves out the line under it, which offers the services of a freelancer to clients.
  * @property {CvLink[]} contacts - Contact details, links or not: email, phone and city.
  * @property {CvLink[]} profiles - Links to the site and the LinkedIn profile of its owner, on
  * the line under the contact details.

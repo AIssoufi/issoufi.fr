@@ -32,7 +32,6 @@ export const listCvTexts = content => {
     content.name,
     content.jobTitle,
     joinSegments(content.passion),
-    content.subtitle,
     ...content.contacts.map(({ text }) => text),
     ...content.profiles.map(({ text }) => text),
     experiences.title,
@@ -97,7 +96,6 @@ const listRequiredTexts = content => {
     ['subject', content.subject],
     ['name', content.name],
     ['jobTitle', content.jobTitle],
-    ['subtitle', content.subtitle],
     ['experiences.title', experiences.title],
   ];
   experiences.items.forEach(({ company, roles }, index) => {

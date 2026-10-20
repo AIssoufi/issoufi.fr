@@ -196,9 +196,6 @@ const renderDegree = ({ degree, period, school, description }) => {
  */
 export const renderCvHtml = ({ content, styles, fontFaces }) => {
   const { experiences, projects, skills, education } = content;
-  const tagline = [renderSegments(content.passion), escapeHtml(content.subtitle)]
-    .filter(Boolean)
-    .join(escapeHtml(DETAILS_SEPARATOR));
 
   return `<!doctype html>
 <html lang="${escapeHtml(content.language)}">
@@ -213,7 +210,7 @@ export const renderCvHtml = ({ content, styles, fontFaces }) => {
     <header class="header">
       <h1 class="name">${escapeHtml(content.name)}</h1>
       <p class="job-title">${escapeHtml(content.jobTitle)}</p>
-      ${renderElement({ tag: 'p', className: 'tagline', html: tagline })}
+      ${renderElement({ tag: 'p', className: 'tagline', html: renderSegments(content.passion) })}
       <ul class="contacts">${content.contacts.map(renderContact).join('')}</ul>
       <ul class="contacts">${content.profiles.map(renderContact).join('')}</ul>
     </header>

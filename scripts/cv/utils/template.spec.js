@@ -50,7 +50,7 @@ describe('renderCvHtml', () => {
     const document = renderDocument(FRENCH_CV);
 
     expect(document.querySelector('.tagline').textContent).toBe(
-      'passionné par l’UX et l’UI\u00a0Design · Je vous aide à développer vos applications\u00a0web',
+      'passionné par l’UX et l’UI\u00a0Design',
     );
     expect(getTexts({ document, selector: '.tagline strong' })).toEqual(['UX', 'UI']);
   });
@@ -169,7 +169,6 @@ describe('renderCvHtml', () => {
     };
     const content = {
       ...FRENCH_CV,
-      subtitle: '',
       passion: [],
       experiences: {
         title: 'Expériences',

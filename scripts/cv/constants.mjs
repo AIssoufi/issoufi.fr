@@ -217,7 +217,7 @@ export const CV_LAYOUT = {
   nameFontSize: '22pt',
   /** Font size of the job title. */
   jobTitleFontSize: '12.5pt',
-  /** Font size of the line about design and of the subtitle. */
+  /** Font size of the line about design. */
   taglineFontSize: '9.5pt',
   /** Font size of the contact details. */
   contactFontSize: '8.4pt',

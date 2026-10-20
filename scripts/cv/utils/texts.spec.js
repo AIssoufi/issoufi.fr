@@ -16,7 +16,6 @@ const CONTENT = {
     { text: 'passionné par l’', isHighlighted: false },
     { text: 'UX', isHighlighted: true },
   ],
-  subtitle: 'Je vous aide',
   contacts: [
     { text: 'adam@example.com', url: 'mailto:adam@example.com' },
     { text: 'Massy (91)', url: '' },
@@ -78,7 +77,6 @@ describe('listCvTexts', () => {
       'ADAM Issoufi',
       'Développeur',
       'passionné par l’UX',
-      'Je vous aide',
       'adam@example.com',
       'Massy (91)',
       'github.com/AIssoufi',
