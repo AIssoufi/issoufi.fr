@@ -209,9 +209,11 @@ export const renderCvStyles = theme => {
       .bullets {
         list-style: none;
       }
+      /* The long lines of the profile and the skills are justified. The shorter ones of the
+         experiences stay aligned on the left, since justifying them would stretch their spaces,
+         and a hyphenated word would reach the text of the PDF cut in two. */
       .summary,
-      .text,
-      .bullets li,
+      .summary + .text,
       .skills li {
         text-align: justify;
       }
