@@ -1,5 +1,42 @@
 # Changelog
 
+## [1.5.0](https://github.com/AIssoufi/issoufi.fr/compare/v1.4.2...v1.5.0) (2026-10-20)
+
+
+### Features
+
+* **cv:** give the professional address and the city in the contacts of the CV ([2e8b04d](https://github.com/AIssoufi/issoufi.fr/commit/2e8b04d421c9595236816f85f2290657ec6b73ea))
+* **cv:** justify the paragraphs, bullet points and skills of the CV ([0fdf5da](https://github.com/AIssoufi/issoufi.fr/commit/0fdf5dac382d4de97652c34103157b8c9cad228e))
+* **cv:** keep each role of the CV on one page and no word alone on a line ([57e6310](https://github.com/AIssoufi/issoufi.fr/commit/57e631011cccc417e45be58950a052aec0e51107))
+* **cv:** leave the subtitle of the home page out of the CV ([012bb7e](https://github.com/AIssoufi/issoufi.fr/commit/012bb7e93cf9ccf563a6d8f8740ca3faf1f74f1c))
+* **cv:** name the projects and the degrees without their details ([ef727cc](https://github.com/AIssoufi/issoufi.fr/commit/ef727cc043147037fa239125883899481c408644))
+* **cv:** name the role in the document information of the CV ([3f9d4ea](https://github.com/AIssoufi/issoufi.fr/commit/3f9d4ea858769ebbd3e0a98ed649382a17c53ed4))
+* **cv:** open the CV with a profile and the skills grouped by category ([e25e913](https://github.com/AIssoufi/issoufi.fr/commit/e25e91367a18dc198809faadc1de8ad5236fd7f9))
+* **cv:** show an icon before each contact detail of the CV ([c8b03f8](https://github.com/AIssoufi/issoufi.fr/commit/c8b03f852d6e2f4e325bbbc895e713ad2c040359))
+* **cv:** write the CV in a larger and more contrasted text ([9dde324](https://github.com/AIssoufi/issoufi.fr/commit/9dde3243c18e76341685337a9572d3944ab30a0a))
+* **experiences:** enrich the UI Kit and Core roles with the facts of their owner ([e7138f1](https://github.com/AIssoufi/issoufi.fr/commit/e7138f155bc880ca899eb0323e43527f1fe86b33))
+
+
+### Bug Fixes
+
+* **cv:** leave the theme of the UI Kit role out of the CV ([9cec94c](https://github.com/AIssoufi/issoufi.fr/commit/9cec94c9c17e446d94f9650e174e15428bc1ce6a))
+* **cv:** read the bullet points of the CV in the order of the page ([7858c7b](https://github.com/AIssoufi/issoufi.fr/commit/7858c7b8aabf7c7f050100e98f2edb8b4e72ecda))
+* **cv:** separate the dates of a period with an en dash ([bcb7b38](https://github.com/AIssoufi/issoufi.fr/commit/bcb7b389f6b4cdd7d4f9ffeb1124631ba18c0b44))
+* **experiences:** count the approved merge requests of every author ([7e88e3e](https://github.com/AIssoufi/issoufi.fr/commit/7e88e3ec6853cbb14c3265410c3408f1ef97ba56))
+
+
+### Performance
+
+* **build:** minify the CSS templates of the app ([05a3731](https://github.com/AIssoufi/issoufi.fr/commit/05a37310af8cb0e1f2c868b31893b08dbe0ac86d))
+* **i18n:** load the texts of a lazy page with its chunk ([f3f70c7](https://github.com/AIssoufi/issoufi.fr/commit/f3f70c79b76a442f1004ee123e73e52f32173796))
+
+
+### Code Refactoring
+
+* **cv:** move the constants of the file formats next to the helpers that read them ([e441f6b](https://github.com/AIssoufi/issoufi.fr/commit/e441f6b2c54fb3e22a7004ada761adc29e9aa555))
+* **cv:** name the conditions that read the trailer of the PDF and the data files ([3ef32ac](https://github.com/AIssoufi/issoufi.fr/commit/3ef32ac47e36f3edbc42c0440583596e3528d38f))
+* **cv:** share the readers of the data of the CV ([6318021](https://github.com/AIssoufi/issoufi.fr/commit/63180211db9de6fb49df41257e9e953b818e0a24))
+
 ## [1.4.2](https://github.com/AIssoufi/issoufi.fr/compare/v1.4.1...v1.4.2) (2026-10-20)
 
 
