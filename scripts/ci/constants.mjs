@@ -198,9 +198,14 @@ export const SITE_URL = 'https://issoufi.fr/';
 /**
  * Other addresses of the production site, without HTTPS and with `www`, which must redirect to
  * {@link SITE_URL} in one hop. The redirects are set in Cloudflare, so the CI checks them on
- * `main` only.
+ * `main` only. `http://www.issoufi.fr/` took two hops, through `https://www.issoufi.fr/`, until
+ * the redirect rule of `www` matched HTTP too (issue #230).
  */
-export const REDIRECTED_SITE_URLS = ['http://issoufi.fr/', 'https://www.issoufi.fr/'];
+export const REDIRECTED_SITE_URLS = [
+  'http://issoufi.fr/',
+  'http://www.issoufi.fr/',
+  'https://www.issoufi.fr/',
+];
 
 /**
  * Number of answers that the redirect check reads from an address, one per hop, before it stops
