@@ -22,7 +22,7 @@ export const enExperiences = {
     end: 'Present',
     intro:
       'One of the three front-end developers of the Core team, born from the merger of Core Front and Core Back. I remain the owner of the UI Kit and work on cross-team topics.',
-    b1: 'Development with AI agents (Claude Code, Codex, OpenCode): specialized subagents, in-house skills and rules, three or four topics in parallel with Git worktree',
+    b1: 'Development with AI agents (Claude Code, Codex, OpenCode), after GitHub Copilot then Cursor: MCP servers (Jira, Confluence, Chrome DevTools, Figma, GitLab), specialized subagents, in-house skills and rules, three or four topics in parallel with Git worktree',
     b2: 'E-invoicing (France, Belgium, Spain), catalog and pricing, stock and rental, dashboards, integration of the PHP legacy',
     b3: 'UI Kit filters, one of the most used components: from a monolithic architecture to 13 composable packages, then migration of every page, some twenty inconsistencies fixed',
   },
@@ -34,16 +34,20 @@ export const enExperiences = {
     introStrong: '118 React and TypeScript packages',
     intro2:
       ' published on a private NPM registry, used by 15 product teams and by 47 of the 49 applications of the platform. Top contributor of the repository (1,040 commits among 80 contributors), author of 67 packages.',
-    b1: 'Composable architecture: legacy single package split into separately versioned packages (Form into 9 packages), Table v2 designed as 11 packages with 15 features, virtualization included',
-    b2: 'Customizable theme that makes the white-label offer possible, with automatically computed contrasts',
-    b3: 'Technical point of contact for 15 teams (reviews, support, documentation), led 5 epics and 5 scoping studies',
+    b1: 'Composable architecture: legacy single package split into separately versioned packages (Lerna 8, Changesets), Form into 9 packages, Table v2 designed as 11 packages with 15 features, virtualization included',
+    b2: 'Customizable theme of the white-label offer, text color computed from the background to keep the contrast; design tokens from the designers (Figma) ported into the theme (xstyled), no raw value allowed',
+    b3: '2,389 major versions over the 293 packages of its history; fixed a bug where a BREAKING CHANGE only bumped the patch, leaving the 15 teams without a breaking signal',
+    b4: 'Components ready for the end-to-end tests of QA: each app passes its own test ids for the page, unified props (old ones deprecated without breaking change), no default test id',
+    b5: 'Technical point of contact for 15 teams: author of the documentation and of the contribution processes, 458 merge requests approved over 11 repositories, led 5 epics and 5 scoping studies',
     proj1Title: 'Tooling overhaul, with no breaking change for the consuming teams',
     proj1B1: 'Full TypeScript migration: 771 files, no JavaScript left',
-    proj1B2:
-      'npm to pnpm, Node 16 to 22, Jest to Vitest, Webpack to tsup and Vite, Storybook 5.3 to 9, Lerna 4 to 8',
+    proj1B2: 'npm to pnpm, Node 16 to 22, Jest to Vitest, Webpack to tsup and Vite, Lerna 4 to 8',
     proj1B3:
-      'Median merge request pipeline time cut from 17 min 24 s to 9 min, 48% less, measured over 2,600 jobs',
-    proj1B4: '661 tests in 142 files, 79% of the packages covered, 33 seconds to run',
+      'Storybook 5.3 to 9 (CSF 3, Chromatic, test-runner): 151 stories, changelog of each package, deprecated badges',
+    proj1B4:
+      'Median merge request pipeline time cut from 17 min 24 s to 9 min (48% less, over 2,600 jobs)',
+    proj1B5:
+      '661 tests in 142 files, 93 of the 118 packages with at least one test, 33 seconds to run',
   },
   sewanFoundation: {
     title: 'Front-End Developer · Sophia GO application foundation',
