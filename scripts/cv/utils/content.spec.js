@@ -1,12 +1,9 @@
-import { buildCvContent, buildExperiences, buildProjectItems } from './content.mjs';
+import { buildCvContent, buildExperiences } from './content.mjs';
 
 /** Translations of a tiny site, by key. */
 const TEXTS = {
   'cvLink.documentName': 'CV',
   'exp.pageTitle': 'Expériences',
-  'projects.pageTitle': 'Projets',
-  'projects.freelance': 'Projets freelance',
-  'projects.personal': 'Projets personnels',
   'exp.acme.name': 'Acme',
   'exp.acme.contract': 'CDI',
   'exp.acme.city': 'Paris (75)',
@@ -106,10 +103,6 @@ const PARAMS = {
   homeTexts: HOME_TEXTS,
   cvData: CV_DATA,
   experiences: [ACME],
-  personalProjects: [{ id: 1, name: 'Calculatrice', type: 'Application web', tools: ['React.js'] }],
-  freelanceProjects: [
-    { id: 2, name: 'Study SARL', type: 'Site web', tools: ['PHP'], url: 'https://study.fr/' },
-  ],
   siteUrl: 'https://issoufi.fr/',
   linkedInUrl: 'https://www.linkedin.com/in/adam/',
 };
@@ -358,33 +351,6 @@ describe('buildExperiences', () => {
   });
 });
 
-describe('buildProjectItems', () => {
-  it('keeps the name and the link of each project, without its kind or its technologies', () => {
-    expect(buildProjectItems(PARAMS.freelanceProjects)).toEqual([
-      { name: 'Study SARL', url: 'https://study.fr/' },
-    ]);
-  });
-
-  it('leaves out a project without name, and a link that is not a web address', () => {
-    const projects = [
-      { name: '', url: 'https://study.fr/' },
-      { name: '  ', url: 'https://study.fr/' },
-      { name: 42, url: 'https://study.fr/' },
-      { name: 'Puissance 4', url: 'javascript:alert(1)' },
-      { name: 'Calculatrice', url: 42 },
-    ];
-
-    expect(buildProjectItems(projects)).toEqual([
-      { name: 'Puissance 4', url: '' },
-      { name: 'Calculatrice', url: '' },
-    ]);
-  });
-
-  it.each([undefined, null, 'Study SARL', {}])('lists no project for %j', projects => {
-    expect(buildProjectItems(projects)).toEqual([]);
-  });
-});
-
 describe('buildCvContent', () => {
   it('names the document after the CV, its author and the job title', () => {
     expect(buildCvContent(PARAMS).title).toBe(
@@ -459,7 +425,6 @@ describe('buildCvContent', () => {
     const content = buildCvContent(PARAMS);
 
     expect(content.experiences.title).toBe('Expériences');
-    expect(content.projects.title).toBe('Projets');
     expect(content.profile.title).toBe('Profil');
     expect(content.skills.title).toBe('Compétences');
     expect(content.education.title).toBe('Formation');
@@ -483,17 +448,8 @@ describe('buildCvContent', () => {
     });
   });
 
-  it('lists the freelance projects, then the personal ones', () => {
-    const { items } = buildCvContent(PARAMS).projects;
-
-    expect(items.map(({ title }) => title)).toEqual(['Projets freelance', 'Projets personnels']);
-    expect(items[1].items[0].name).toBe('Calculatrice');
-  });
-
-  it('leaves out a group of projects without project', () => {
-    const { items } = buildCvContent({ ...PARAMS, freelanceProjects: [] }).projects;
-
-    expect(items.map(({ title }) => title)).toEqual(['Projets personnels']);
+  it('leaves out the projects of the Projects page, older than the experiences', () => {
+    expect(buildCvContent(PARAMS)).not.toHaveProperty('projects');
   });
 
   it('keeps the skills and the degrees that are filled, a degree without its description', () => {

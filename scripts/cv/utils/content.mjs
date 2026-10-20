@@ -10,7 +10,6 @@ import { buildProfile, buildSkillGroups } from './profile.mjs';
 /** @typedef {import('./types.mjs').CvDegree} CvDegree */
 /** @typedef {import('./types.mjs').CvExperience} CvExperience */
 /** @typedef {import('./types.mjs').CvLink} CvLink */
-/** @typedef {import('./types.mjs').CvProjectItem} CvProjectItem */
 /** @typedef {import('./types.mjs').CvRole} CvRole */
 /** @typedef {import('./types.mjs').CvTextSegment} CvTextSegment */
 /** @typedef {import('./types.mjs').HomeTexts} HomeTexts */
@@ -144,17 +143,6 @@ export const buildExperiences = ({ translate, experiences }) =>
   }));
 
 /**
- * Turns the projects of the Projects page, already translated, into entries of the CV: their
- * names and their links.
- * @param {unknown} projects - Cards of `translateProjects` (`src/pages/Projects/utils.ts`).
- * @returns {CvProjectItem[]} The projects that have a name, none when `projects` is not a list.
- */
-export const buildProjectItems = projects =>
-  toEntries(projects)
-    .map(({ name, url }) => ({ name: toText(name), url: toLinkUrl(url) }))
-    .filter(({ name }) => isFilled(name));
-
-/**
  * Turns the degrees of the data of the CV into entries.
  * @param {unknown} education - Degrees of `scripts/cv/.data/cv.json` in one language.
  * @returns {CvDegree[]} The degrees that have a name, none when `education` is not a list.
@@ -229,8 +217,6 @@ const buildProfiles = ({ siteUrl, siteDomain, linkedInUrl }) => {
  * `getHomeTexts`.
  * @property {any} cvData - Data of the CV, `scripts/cv/.data/cv.json`.
  * @property {unknown} experiences - Companies of `src/pages/Experiences/.data/experiences.json`.
- * @property {unknown} personalProjects - Personal projects, translated by `translateProjects`.
- * @property {unknown} freelanceProjects - Freelance projects, translated by `translateProjects`.
  * @property {string} siteUrl - URL of the home page of the site in that language.
  * @property {unknown} linkedInUrl - LinkedIn profile of the site owner.
  */
@@ -238,9 +224,8 @@ const buildProfiles = ({ siteUrl, siteDomain, linkedInUrl }) => {
 /**
  * Gathers everything the CV of one language writes: the name and the job title of the home page,
  * the contact details and the links to the site and the profiles of its owner, the experiences
- * of the Experiences page, the projects of the Projects page, and the skills and the education
- * of the data of the CV, which the site does not show, with the subject and the keywords that its
- * document information gives.
+ * of the Experiences page, and the skills and the education of the data of the CV, which the
+ * site does not show, with the subject and the keywords that its document information gives.
  * @param {BuildCvContentParams} params
  * @returns {CvContent} The content, with empty texts where the data or a translation lacks one.
  * @example
@@ -253,8 +238,6 @@ export const buildCvContent = ({
   homeTexts,
   cvData,
   experiences,
-  personalProjects,
-  freelanceProjects,
   siteUrl,
   linkedInUrl,
 }) => {
@@ -280,13 +263,6 @@ export const buildCvContent = ({
     experiences: {
       title: translate('exp.pageTitle'),
       items: buildExperiences({ translate, experiences }),
-    },
-    projects: {
-      title: translate('projects.pageTitle'),
-      items: [
-        { title: translate('projects.freelance'), items: buildProjectItems(freelanceProjects) },
-        { title: translate('projects.personal'), items: buildProjectItems(personalProjects) },
-      ].filter(({ items }) => items.length > 0),
     },
     education: { title: toText(texts.educationTitle), items: buildDegrees(texts.education) },
   };

@@ -31,27 +31,25 @@ export const FINGERPRINT_ALGORITHM = 'sha256';
 /**
  * Modules of the site read by the script through Vite (`loadSiteModules`), with the translations
  * of `TRANSLATION_MODULES` (`scripts/utils/constants.mjs`): the design tokens, the origin and the
- * URLs of the site, the default language, the helpers that translate the JSON data, the URL of
- * the CV of each language and the LinkedIn profile. Paths are relative to the project root.
+ * URLs of the site, the default language, the helper that translates the keys of the JSON data,
+ * the URL of the CV of each language and the LinkedIn profile. Paths are relative to the project
+ * root.
  */
 export const SOURCE_MODULES = {
   theme: '/src/theme/theme.ts',
   pages: '/src/utils/pages.ts',
   i18nConstants: '/src/i18n/constants.ts',
   i18nUtils: '/src/i18n/utils.ts',
-  projectUtils: '/src/pages/Projects/utils.ts',
   cvLink: '/src/App/Header/NavMenu/CvLink/constants.ts',
   profiles: '/src/constants/profiles.ts',
 };
 
 /**
  * JSON data read through Vite like {@link SOURCE_MODULES}: the experiences of the Experiences
- * page, the projects of the Projects page, and the data of the CV ({@link CV_DATA_MODULE}).
+ * page and the data of the CV ({@link CV_DATA_MODULE}).
  */
 export const DATA_MODULES = {
   experiences: '/src/pages/Experiences/.data/experiences.json',
-  personalProjects: '/src/pages/Projects/.data/personal-projects.json',
-  freelanceProjects: '/src/pages/Projects/.data/freelance-projects.json',
   cv: CV_DATA_MODULE,
 };
 
@@ -165,7 +163,7 @@ export const CV_LAYOUT = {
   sectionTitleFontSize: '10.5pt',
   /** Font size of the name of a company. */
   companyFontSize: '11pt',
-  /** Font size of the title of a role, of a group of projects and of a degree. */
+  /** Font size of the title of a role, and of a degree. */
   roleFontSize: '10pt',
   /** Font size of the dates, the technologies and the details. */
   detailsFontSize: '8.5pt',
@@ -179,7 +177,7 @@ export const CV_LAYOUT = {
   ruleWidth: '0.6pt',
   /** Space between two companies. */
   companyGap: '3mm',
-  /** Space between two roles, two projects or two entries. */
+  /** Space between two roles, two projects or two degrees. */
   itemGap: '1.5mm',
   /** Space between the title of a block and its text. */
   blockGap: '0.6mm',
@@ -205,6 +203,4 @@ export const CV_LAYOUT = {
   contactIconSize: '1.1em',
   /** Space between the icon of a contact detail and its text. */
   contactIconGap: '1.2mm',
-  /** Space between two columns. */
-  columnGap: '6mm',
 };

@@ -39,10 +39,6 @@ describe('renderCvStyles', () => {
     );
   });
 
-  it('breaks a line of projects between two names, never inside one', () => {
-    expect(styles).toMatch(/\.entry \{[^}]*white-space: nowrap;/);
-  });
-
   it('prints on A4 paper', () => {
     expect(styles).toMatch(/@page \{\s*size: A4;/);
   });

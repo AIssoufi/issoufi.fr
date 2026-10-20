@@ -65,18 +65,6 @@ const CONTENT = {
       },
     ],
   },
-  projects: {
-    title: 'Projets',
-    items: [
-      {
-        title: 'Projets freelance',
-        items: [
-          { name: 'Study SARL', url: 'https://study.fr/' },
-          { name: 'Calculatrice', url: '' },
-        ],
-      },
-    ],
-  },
   education: {
     title: 'Formation',
     items: [{ degree: 'DUT', period: '2014 – 2016', school: 'IUT de Nice' }],
@@ -113,10 +101,6 @@ describe('listCvTexts', () => {
       'Décollage',
       'Vite',
       'React.js',
-      'Projets',
-      'Projets freelance',
-      'Study SARL',
-      'Calculatrice',
       'Formation',
       'DUT',
       '2014 – 2016',
@@ -139,12 +123,11 @@ describe('listCvTexts', () => {
 });
 
 describe('listCvLinks', () => {
-  it('lists the contact details, the profiles, the proof and the projects that are links', () => {
+  it('lists the contact details, the profiles and the proof that are links', () => {
     expect(listCvLinks(CONTENT)).toEqual([
       'mailto:adam@example.com',
       'https://github.com/AIssoufi',
       'https://github.com/AIssoufi/site',
-      'https://study.fr/',
     ]);
   });
 
@@ -156,11 +139,6 @@ describe('listCvLinks', () => {
       'https://www.linkedin.com/in/issoufiadam',
       'https://github.com/AIssoufi/issoufi.fr',
       'https://github.com/AIssoufi/issoufi.fr/tree/develop/docs/ai-workflow',
-      'https://kane.issoufi.fr/',
-      'https://chess.issoufi.fr/',
-      'https://pedalboards.issoufi.fr/',
-      'https://connect-four.issoufi.fr/',
-      'https://calculator.issoufi.fr/',
     ]);
   });
 });
@@ -184,7 +162,7 @@ describe('findMissingCvTexts', () => {
     expect(findMissingCvTexts({ ...CONTENT, name })).toEqual(['name']);
   });
 
-  it('reports the path of a missing role, project or group title', () => {
+  it('reports the path of a missing role or project title', () => {
     const [company] = CONTENT.experiences.items;
     const [role] = company.roles;
     const content = {
@@ -200,14 +178,12 @@ describe('findMissingCvTexts', () => {
           },
         ],
       },
-      projects: { ...CONTENT.projects, items: [{ title: '', items: [] }] },
     };
 
     expect(findMissingCvTexts(content)).toEqual([
       'experiences.items[1].company',
       'experiences.items[1].roles[1].end',
       'experiences.items[1].roles[1].projects[0].title',
-      'projects.items[0].title',
     ]);
   });
 
@@ -277,13 +253,13 @@ describe('findMissingCvTexts', () => {
 
 describe('findUnwrittenKeywords', () => {
   it('finds none when the CV writes each keyword, whatever its case', () => {
-    const keywords = ['react', 'TESTS UNITAIRES', 'Study SARL', 'IUT de Nice', 'revue de code'];
+    const keywords = ['react', 'TESTS UNITAIRES', 'Massy (91)', 'IUT de Nice', 'revue de code'];
 
     expect(findUnwrittenKeywords({ ...CONTENT, keywords })).toEqual([]);
   });
 
   it('finds a keyword in a text where punctuation or spaces surround it', () => {
-    const content = { ...CONTENT, keywords: ['React', 'js', 'Study'] };
+    const content = { ...CONTENT, keywords: ['React', 'js', 'Massy'] };
 
     expect(findUnwrittenKeywords(content)).toEqual([]);
   });

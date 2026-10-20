@@ -88,21 +88,6 @@
  */
 
 /**
- * A project of the Projects page, which the CV names only: its kind and its technologies, older
- * than the experiences, would take the space of the recent ones.
- * @typedef {object} CvProjectItem
- * @property {string} name - Name of the project, or of the client.
- * @property {string} url - URL of the project, `''` without one.
- */
-
-/**
- * A group of projects, personal or freelance.
- * @typedef {object} CvProjectGroup
- * @property {string} title - Title of the group, e.g. "Projets freelance".
- * @property {CvProjectItem[]} items - Projects of the group.
- */
-
-/**
  * A degree of the education.
  * @typedef {object} CvDegree
  * @property {string} degree - Name of the degree.
@@ -140,7 +125,6 @@
  * @property {CvProfile} profile - Profile that opens the CV, from the data of the CV.
  * @property {CvSection<CvSkillGroup>} skills - Skills by category, from the data of the CV.
  * @property {CvSection<CvExperience>} experiences - Experiences of the Experiences page.
- * @property {CvSection<CvProjectGroup>} projects - Freelance then personal projects.
  * @property {CvSection<CvDegree>} education - Degrees, from the data of the CV.
  */
 
