@@ -103,6 +103,25 @@ describe('renderCvHtml', () => {
     );
   });
 
+  it.each([
+    ['French', FRENCH_CV],
+    ['English', ENGLISH_CV],
+  ])(
+    'gives the job titles that every language writes in English their language in the %s CV',
+    (_language, content) => {
+      const document = renderDocument(content);
+      const titles = [...document.querySelectorAll('.role-title')];
+      const englishTitles = titles
+        .filter(title => title.lang === 'en')
+        .map(({ textContent }) => textContent);
+
+      expect(englishTitles).toEqual([
+        'Full-stack JavaScript Engineer (React.js, Redux.js, Node.js and AWS)',
+      ]);
+      expect(titles.filter(title => title.hasAttribute('lang'))).toHaveLength(1);
+    },
+  );
+
   it('links a project of the Projects page that has a URL', () => {
     const document = renderDocument(FRENCH_CV);
     const link = document.querySelector('.entries a');
@@ -140,6 +159,7 @@ describe('renderCvHtml', () => {
   it('leaves out the empty parts: a role without introduction, period or technologies', () => {
     const role = {
       title: 'Développeur',
+      titleLanguage: '',
       start: '',
       end: '',
       intro: [],
@@ -160,6 +180,7 @@ describe('renderCvHtml', () => {
 
     expect(document.querySelector('.tagline')).toBeNull();
     expect(document.querySelector('.company-name').textContent).toBe('Acme');
+    expect(document.querySelector('.role-title').hasAttribute('lang')).toBe(false);
     expect(document.querySelector('.role').querySelectorAll('p, ul')).toHaveLength(0);
   });
 

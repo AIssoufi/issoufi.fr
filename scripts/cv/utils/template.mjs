@@ -91,16 +91,26 @@ const renderProject = ({ title, state, description, bullets, technologies }) => 
 };
 
 /**
- * Writes a role, its period on the right of its title.
+ * Writes a role, its period on the right of its title, which gets the language of its data.
  * @param {CvRole} role - Role to write.
  * @returns {string} Its block.
  */
-const renderRole = ({ title, start, end, intro, bullets, projects, technologies }) => {
+const renderRole = ({
+  title,
+  titleLanguage,
+  start,
+  end,
+  intro,
+  bullets,
+  projects,
+  technologies,
+}) => {
   const period = [start, end].filter(Boolean).join(PERIOD_SEPARATOR);
+  const languageAttribute = titleLanguage ? ` lang="${escapeHtml(titleLanguage)}"` : '';
 
   return `<div class="role">
         <div class="role-header">
-          <h4 class="role-title">${escapeHtml(title)}</h4>
+          <h4 class="role-title"${languageAttribute}>${escapeHtml(title)}</h4>
           ${renderElement({ tag: 'p', className: 'period', html: escapeHtml(period) })}
         </div>
         ${renderElement({ tag: 'p', className: 'text', html: renderSegments(intro) })}

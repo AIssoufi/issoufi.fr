@@ -109,6 +109,7 @@ describe('buildExperiences', () => {
         roles: [
           {
             title: 'Développeur',
+            titleLanguage: '',
             start: 'juin 2021',
             end: 'Aujourd’hui',
             intro: [
@@ -158,9 +159,39 @@ describe('buildExperiences', () => {
     const [{ roles }] = buildExperiences({ translate, experiences: [{ roles: [{}] }] });
 
     expect(roles).toEqual([
-      { title: '', start: '', end: '', intro: [], bullets: [], projects: [], technologies: [] },
+      {
+        title: '',
+        titleLanguage: '',
+        start: '',
+        end: '',
+        intro: [],
+        bullets: [],
+        projects: [],
+        technologies: [],
+      },
     ]);
   });
+
+  it.each(['en', 'fr', 'pt-BR'])('keeps the language %j of a job title', titleLanguage => {
+    const [{ roles }] = buildExperiences({
+      translate,
+      experiences: [{ roles: [{ titleKey: 'exp.acme.title', titleLanguage }] }],
+    });
+
+    expect(roles[0].titleLanguage).toBe(titleLanguage);
+  });
+
+  it.each([undefined, null, '', '  ', 'english', 'EN', 'e', 'en_US', 42, ['en'], { en: true }])(
+    'gives no language to a job title whose language is %j, which is no language code',
+    titleLanguage => {
+      const [{ roles }] = buildExperiences({
+        translate,
+        experiences: [{ roles: [{ titleKey: 'exp.acme.title', titleLanguage }] }],
+      });
+
+      expect(roles[0].titleLanguage).toBe('');
+    },
+  );
 
   it.each([undefined, null, 'Acme', 42, {}])('lists no company for %j', experiences => {
     expect(buildExperiences({ translate, experiences })).toEqual([]);

@@ -1,6 +1,11 @@
 // @ts-check
 import { PAGE_TITLE_SEPARATOR } from '../../utils/constants.mjs';
-import { DETAILS_SEPARATOR, EMAIL_PATTERN, MAILTO_PREFIX } from '../constants.mjs';
+import {
+  DETAILS_SEPARATOR,
+  EMAIL_PATTERN,
+  LANGUAGE_CODE_PATTERN,
+  MAILTO_PREFIX,
+} from '../constants.mjs';
 import { toLinkText, toLinkUrl } from './links.mjs';
 
 /** @typedef {import('./types.mjs').CvContent} CvContent */
@@ -20,6 +25,16 @@ import { toLinkText, toLinkUrl } from './links.mjs';
  * @returns {string} The value, or `''` when it is not a string.
  */
 const toText = value => (typeof value === 'string' ? value : '');
+
+/**
+ * Reads a language code of the data, so that a misspelled one never gives a wrong `lang`.
+ * @param {unknown} value - Value to read, e.g. the `titleLanguage` of a role.
+ * @returns {string} The code, or `''` when it is not one, as `'english'` or `42`.
+ */
+const toLanguageCode = value => {
+  const code = toText(value);
+  return LANGUAGE_CODE_PATTERN.test(code) ? code : '';
+};
 
 /**
  * Tells whether a text holds more than spaces.
@@ -96,6 +111,7 @@ const translateTexts = ({ translate, keys }) =>
  */
 const buildRole = ({ translate, role }) => ({
   title: translate(role.titleKey),
+  titleLanguage: toLanguageCode(role.titleLanguage),
   start: translate(role.startKey),
   end: translate(role.endKey),
   intro: translateSegments({ translate, segments: role.intro }),
