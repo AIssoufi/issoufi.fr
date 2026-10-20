@@ -1,4 +1,4 @@
-# 0001. Start the daily deploy from a Cloudflare Worker
+# 0016. Start the daily deploy from a Cloudflare Worker
 
 - Date: 2026-10-20
 - Status: Accepted
