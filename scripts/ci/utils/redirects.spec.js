@@ -1,8 +1,15 @@
-import { MAX_REDIRECT_HOPS, REDIRECT_STATUSES } from '../constants.mjs';
+import { existsSync, readFileSync } from 'node:fs';
+import { join } from 'node:path';
+
+import { getPage, NOT_FOUND_PATH, SITE_URL } from '../../../src/utils/pages.ts';
+import cvData from '../../cv/.data/cv.json';
+import { MAX_REDIRECT_HOPS, PUBLIC_DIR, REDIRECT_STATUSES, REDIRECTS_FILE } from '../constants.mjs';
 import {
   checkRedirect,
   compareRedirect,
   compareRedirectChain,
+  getRedirectChecks,
+  parseRedirectRules,
   resolveRedirectUrl,
 } from './redirects.mjs';
 
@@ -425,6 +432,115 @@ describe('checkRedirect', () => {
         INVALID_ADDRESSES_PROBLEM,
       ]);
       expect(fetch).not.toHaveBeenCalled();
+    },
+  );
+});
+
+const REPOSITORY_URL = 'https://github.com/AIssoufi/issoufi.fr';
+const PREVIEW_URL = 'https://develop.issoufi-fr.pages.dev/';
+const CODE_RULE = { source: '/code', target: REPOSITORY_URL, status: 302 };
+
+describe('parseRedirectRules', () => {
+  it('reads the source, the target and the status of each line, in order', () => {
+    const text = `/code ${REPOSITORY_URL} 302\n/old /new 301\n`;
+
+    expect(parseRedirectRules(text)).toEqual([
+      CODE_RULE,
+      { source: '/old', target: '/new', status: 301 },
+    ]);
+  });
+
+  it('gives a line without status the 302 of Cloudflare Pages', () => {
+    expect(parseRedirectRules(`/code ${REPOSITORY_URL}`)).toEqual([CODE_RULE]);
+  });
+
+  it('leaves out the blank lines and the comments, and reads Windows line breaks', () => {
+    const text = `# Short links\r\n\r\n   \r\n  /code   ${REPOSITORY_URL}\t302  \r\n# /old /new 301`;
+
+    expect(parseRedirectRules(text)).toEqual([CODE_RULE]);
+  });
+
+  it.each([
+    ['a source without its target', '/code'],
+    ['a field too many', `/code ${REPOSITORY_URL} 302 force`],
+    ['a source that is not a path', `code ${REPOSITORY_URL} 302`],
+    ['the 200 of a rewrite', '/code /index.html 200'],
+    ['a status that is not a number', `/code ${REPOSITORY_URL} found`],
+    ['the 404 of a not found page', '/code /404.html 404'],
+  ])('leaves out %s, which is no redirect', (_case, line) => {
+    expect(parseRedirectRules(line)).toEqual([]);
+  });
+
+  it.each([undefined, null, 42, '', '\n\n'])('reads no redirect from %j', text => {
+    expect(parseRedirectRules(text)).toEqual([]);
+  });
+});
+
+describe('getRedirectChecks', () => {
+  it('requests each source on the deployed site, and expects its target', () => {
+    expect(getRedirectChecks({ rules: [CODE_RULE], siteUrl: PREVIEW_URL })).toEqual([
+      { url: `${PREVIEW_URL}code`, expectedUrl: REPOSITORY_URL },
+    ]);
+  });
+
+  it('resolves a target that is a path of the site against the deployed site', () => {
+    const rules = [{ source: '/old', target: '/new', status: 301 }];
+
+    expect(getRedirectChecks({ rules, siteUrl: PREVIEW_URL })).toEqual([
+      { url: `${PREVIEW_URL}old`, expectedUrl: `${PREVIEW_URL}new` },
+    ]);
+  });
+
+  it.each([undefined, '', 'issoufi.fr'])(
+    'checks no redirect against the site address %j, which no path resolves against',
+    siteUrl => {
+      expect(getRedirectChecks({ rules: [CODE_RULE], siteUrl })).toEqual([]);
+    },
+  );
+
+  it.each([
+    ['a missing list', undefined],
+    ['a rule that is not an object', [null, 42]],
+    ['a rule without target', [{ source: '/code', status: 302 }]],
+    ['a rule whose target is not a text', [{ source: '/code', target: 42, status: 302 }]],
+    ['a target that is no address', [{ source: '/code', target: 'https://', status: 302 }]],
+    [
+      'a splat, which matches many paths',
+      [{ source: '/blog/*', target: '/news/:splat', status: 301 }],
+    ],
+    ['a placeholder', [{ source: '/users/:id', target: '/people/:id', status: 301 }]],
+  ])('checks nothing for %s', (_case, rules) => {
+    expect(getRedirectChecks({ rules, siteUrl: PREVIEW_URL })).toEqual([]);
+  });
+});
+
+describe(`the ${REDIRECTS_FILE} of ${PUBLIC_DIR}/`, () => {
+  const rules = parseRedirectRules(readFileSync(join(PUBLIC_DIR, REDIRECTS_FILE), 'utf8'));
+  const sources = rules.map(({ source }) => source);
+
+  it('serves the short links of the CVs, with a 302 to an address of their own', () => {
+    expect(sources).toEqual(['/code', '/method']);
+    rules.forEach(({ target, status }) => {
+      expect(status).toBe(302);
+      expect(new URL(target).protocol).toBe('https:');
+    });
+  });
+
+  it.each(sources)('shadows no page nor file of the site with %s', source => {
+    expect(getPage(source)).toBeUndefined();
+    expect(source).not.toBe(NOT_FOUND_PATH);
+    expect(existsSync(join(PUBLIC_DIR, source))).toBe(false);
+  });
+
+  it.each(Object.entries(cvData.languages))(
+    'serves every link of the %s CV to the site, its short links',
+    (_language, { proofLinks }) => {
+      const siteLinks = proofLinks
+        .map(({ url }) => new URL(url))
+        .filter(({ origin }) => origin === SITE_URL);
+
+      expect(siteLinks).not.toHaveLength(0);
+      siteLinks.forEach(({ pathname }) => expect(sources).toContain(pathname));
     },
   );
 });
