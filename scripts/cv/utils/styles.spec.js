@@ -29,6 +29,17 @@ describe('renderCvStyles', () => {
     expect(styles).toMatch(/\.role \{[^}]*break-inside: avoid;/);
   });
 
+  it('spreads the contact details over the full width of the header', () => {
+    expect(styles).toMatch(/\.contacts \{[^}]*justify-content: space-between;/);
+  });
+
+  it('opens each company with a tinted band, which a page break never leaves alone', () => {
+    const [companyNameRule] = styles.match(/\.company-name \{[^}]*\}/);
+
+    expect(companyNameRule).toContain(`background-color: ${theme.colors['accent-a10']};`);
+    expect(styles).not.toMatch(/\.company \+ \.company \{[^}]*border/);
+  });
+
   it('keeps the last word of a paragraph off a line of its own', () => {
     expect(styles).toContain('text-wrap: pretty;');
   });
