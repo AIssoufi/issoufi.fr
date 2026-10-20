@@ -11,8 +11,18 @@
           "titleKey": "exp.sewanCore.title",
           "startKey": "exp.sewanCore.start",
           "endKey": "exp.sewanCore.end",
-          "intro": [{ "key": "exp.sewanCore.intro" }],
+          "intro": [
+            {
+              "key": "exp.sewanCore.intro"
+            }
+          ],
+          "cvIntro": [
+            {
+              "key": "exp.sewanCore.cvIntro"
+            }
+          ],
           "bulletKeys": ["exp.sewanCore.b1", "exp.sewanCore.b2", "exp.sewanCore.b3"],
+          "cvBulletKeys": ["exp.sewanCore.b3", "exp.sewanCore.cvB1", "exp.sewanCore.cvB2"],
           "technologies": [
             "React.js",
             "TypeScript",
@@ -27,9 +37,28 @@
           "startKey": "exp.sewanUiKit.start",
           "endKey": "exp.sewanUiKit.end",
           "intro": [
-            { "key": "exp.sewanUiKit.intro1" },
-            { "key": "exp.sewanUiKit.introStrong", "isStrong": true },
-            { "key": "exp.sewanUiKit.intro2" }
+            {
+              "key": "exp.sewanUiKit.intro1"
+            },
+            {
+              "key": "exp.sewanUiKit.introStrong",
+              "isStrong": true
+            },
+            {
+              "key": "exp.sewanUiKit.intro2"
+            }
+          ],
+          "cvIntro": [
+            {
+              "key": "exp.sewanUiKit.cvIntro1"
+            },
+            {
+              "key": "exp.sewanUiKit.introStrong",
+              "isStrong": true
+            },
+            {
+              "key": "exp.sewanUiKit.intro2"
+            }
           ],
           "bulletKeys": [
             "exp.sewanUiKit.b1",
@@ -38,7 +67,13 @@
             "exp.sewanUiKit.b4",
             "exp.sewanUiKit.b5"
           ],
-          "cvBulletKeys": ["exp.sewanUiKit.b1", "exp.sewanUiKit.b5"],
+          "cvBulletKeys": [
+            "exp.sewanUiKit.cvB1",
+            "exp.sewanUiKit.cvB2",
+            "exp.sewanUiKit.b5",
+            "exp.sewanUiKit.cvB3",
+            "exp.sewanUiKit.cvB4"
+          ],
           "projects": [
             {
               "titleKey": "exp.sewanUiKit.proj1Title",
@@ -48,15 +83,10 @@
                 "exp.sewanUiKit.proj1B3",
                 "exp.sewanUiKit.proj1B4",
                 "exp.sewanUiKit.proj1B5"
-              ],
-              "cvBulletKeys": [
-                "exp.sewanUiKit.proj1B1",
-                "exp.sewanUiKit.proj1B2",
-                "exp.sewanUiKit.proj1B4",
-                "exp.sewanUiKit.proj1B5"
               ]
             }
           ],
+          "cvProjects": [],
           "technologies": [
             "React.js",
             "TypeScript",
@@ -75,21 +105,49 @@
           "startKey": "exp.sewanFoundation.start",
           "endKey": "exp.sewanFoundation.end",
           "intro": [
-            { "key": "exp.sewanFoundation.intro1" },
-            { "key": "exp.sewanFoundation.introStrong", "isStrong": true },
-            { "key": "exp.sewanFoundation.intro2" }
+            {
+              "key": "exp.sewanFoundation.intro1"
+            },
+            {
+              "key": "exp.sewanFoundation.introStrong",
+              "isStrong": true
+            },
+            {
+              "key": "exp.sewanFoundation.intro2"
+            }
+          ],
+          "cvIntro": [
+            {
+              "key": "exp.sewanFoundation.intro1"
+            },
+            {
+              "key": "exp.sewanFoundation.introStrong",
+              "isStrong": true
+            },
+            {
+              "key": "exp.sewanFoundation.cvIntro2"
+            }
           ],
           "bulletKeys": [
             "exp.sewanFoundation.b1",
             "exp.sewanFoundation.b2",
             "exp.sewanFoundation.b3"
           ],
+          "cvBulletKeys": ["exp.sewanFoundation.cvB1", "exp.sewanFoundation.b2"],
           "technologies": [
             "React.js",
             "JavaScript",
             "styled-components",
             "Apollo GraphQL",
             "Pullstate",
+            "Keycloak",
+            "Optimizely"
+          ],
+          "cvTechnologies": [
+            "React.js",
+            "JavaScript",
+            "styled-components",
+            "Apollo GraphQL",
             "Keycloak",
             "Optimizely"
           ]
@@ -108,9 +166,20 @@
           "titleLanguage": "en",
           "startKey": "exp.wibilong.start",
           "endKey": "exp.wibilong.end",
-          "intro": [{ "key": "exp.wibilong.intro" }],
+          "intro": [
+            {
+              "key": "exp.wibilong.intro"
+            }
+          ],
+          "cvIntro": [
+            {
+              "key": "exp.wibilong.cvIntro"
+            }
+          ],
           "bulletKeys": ["exp.wibilong.b1", "exp.wibilong.b2", "exp.wibilong.b3"],
-          "technologies": ["React.js", "Redux.js", "Node.js", "AWS Lambda", "Swagger"]
+          "cvBulletKeys": [],
+          "technologies": ["React.js", "Redux.js", "Node.js", "AWS Lambda", "Swagger"],
+          "cvTechnologies": []
         }
       ]
     },
@@ -125,31 +194,63 @@
           "titleKey": "exp.supralogClaris.title",
           "startKey": "exp.supralogClaris.start",
           "endKey": "exp.supralogClaris.end",
+          "cvIntro": [
+            {
+              "key": "exp.supralogClaris.cvIntro"
+            }
+          ],
           "projects": [
             {
               "titleKey": "exp.supralogClaris.proj1Title",
               "stateKey": "exp.supralogClaris.proj1State",
               "description": [
-                { "key": "exp.supralogClaris.proj1Desc1" },
-                { "key": "exp.supralogClaris.proj1Strong", "isStrong": true },
-                { "key": "exp.supralogClaris.proj1Desc2" }
+                {
+                  "key": "exp.supralogClaris.proj1Desc1"
+                },
+                {
+                  "key": "exp.supralogClaris.proj1Strong",
+                  "isStrong": true
+                },
+                {
+                  "key": "exp.supralogClaris.proj1Desc2"
+                }
               ],
               "technologies": ["React.js", "Redux.js", "TypeScript", "ChartJS"]
             }
-          ]
+          ],
+          "cvProjects": []
         },
         {
           "titleKey": "exp.supralogFfbad.title",
           "startKey": "exp.supralogFfbad.start",
           "endKey": "exp.supralogFfbad.end",
+          "cvIntro": [
+            {
+              "key": "exp.supralogFfbad.cvIntro1"
+            },
+            {
+              "key": "exp.supralogFfbad.proj1Strong",
+              "isStrong": true
+            },
+            {
+              "key": "exp.supralogFfbad.cvIntro2"
+            }
+          ],
           "projects": [
             {
               "titleKey": "exp.supralogFfbad.proj1Title",
               "stateKey": "exp.supralogFfbad.proj1State",
               "description": [
-                { "key": "exp.supralogFfbad.proj1Desc1" },
-                { "key": "exp.supralogFfbad.proj1Strong", "isStrong": true },
-                { "key": "exp.supralogFfbad.proj1Desc2" }
+                {
+                  "key": "exp.supralogFfbad.proj1Desc1"
+                },
+                {
+                  "key": "exp.supralogFfbad.proj1Strong",
+                  "isStrong": true
+                },
+                {
+                  "key": "exp.supralogFfbad.proj1Desc2"
+                }
               ],
               "technologies": [
                 "React.js",
@@ -161,7 +262,8 @@
                 "Google Cloud Platform"
               ]
             }
-          ]
+          ],
+          "cvProjects": []
         }
       ]
     },
@@ -176,11 +278,20 @@
           "titleKey": "exp.beepeers.title",
           "startKey": "exp.beepeers.start",
           "endKey": "exp.beepeers.end",
+          "cvIntro": [
+            {
+              "key": "exp.beepeers.cvIntro"
+            }
+          ],
           "projects": [
             {
               "titleKey": "exp.beepeers.proj1Title",
               "stateKey": "exp.beepeers.proj1State",
-              "description": [{ "key": "exp.beepeers.proj1Desc" }],
+              "description": [
+                {
+                  "key": "exp.beepeers.proj1Desc"
+                }
+              ],
               "bulletKeys": [
                 "exp.beepeers.proj1B1",
                 "exp.beepeers.proj1B2",
@@ -188,7 +299,8 @@
               ],
               "technologies": ["React.js", "Redux.js", "AngularJS"]
             }
-          ]
+          ],
+          "cvProjects": []
         }
       ]
     }

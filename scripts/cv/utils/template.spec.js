@@ -182,19 +182,34 @@ describe('renderCvHtml', () => {
   });
 
   it('writes the status of a project after its title, and its technologies under it', () => {
-    const document = renderDocument(FRENCH_CV);
-    const [project] = document.querySelectorAll('.project');
+    const [company] = FRENCH_CV.experiences.items;
+    const project = { description: [], bullets: [], technologies: [] };
+    const role = {
+      ...company.roles[0],
+      projects: [
+        { ...project, title: 'Outillage', state: '' },
+        {
+          ...project,
+          title: 'CLARIS',
+          state: '3 sprints livrés',
+          technologies: ['React.js', 'Redux.js'],
+        },
+      ],
+    };
+    const document = renderDocument({
+      ...FRENCH_CV,
+      experiences: { ...FRENCH_CV.experiences, items: [{ ...company, roles: [role] }] },
+    });
+    const [firstProject] = document.querySelectorAll('.project');
 
-    expect(project.querySelector('.project-title').textContent).toBe(
-      'Refonte de l’outillage, sans rupture pour les équipes consommatrices',
-    );
-    expect(project.querySelector('.technologies')).toBeNull();
+    expect(firstProject.querySelector('.project-title').textContent).toBe('Outillage');
+    expect(firstProject.querySelector('.technologies')).toBeNull();
     expect(getTexts({ document, selector: '.project-title' })).toContain(
-      'CLARIS\u00a0: refonte du SI de certification\u00a0· 3 sprints livrés',
+      'CLARIS\u00a0· 3 sprints livrés',
     );
-    expect(getTexts({ document, selector: '.project .technologies' })).toContain(
-      'React.js\u00a0· Redux.js\u00a0· TypeScript\u00a0· ChartJS',
-    );
+    expect(getTexts({ document, selector: '.project .technologies' })).toEqual([
+      'React.js\u00a0· Redux.js',
+    ]);
   });
 
   it.each([
@@ -235,7 +250,6 @@ describe('renderCvHtml', () => {
     expect(getTexts({ document, selector: '.degree' })).toEqual([
       'Master 2 MIAGE, spécialité MBDS',
       'DUT Informatique',
-      'Classe préparatoire',
     ]);
     expect(getTexts({ document, selector: '.degree-entry .details' })[0]).toBe(
       '2016 – 2019\u00a0· Université de Nice',
