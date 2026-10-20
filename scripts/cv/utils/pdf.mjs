@@ -103,13 +103,52 @@ const quote = text =>
   text.length > QUOTED_TEXT_LENGTH ? `${text.slice(0, QUOTED_TEXT_LENGTH)}…` : text;
 
 /**
+ * Parameters of {@link findTextsOutOfOrder}.
+ * @typedef {object} FindTextsOutOfOrderParams
+ * @property {string} searchableText - Text of the PDF, from {@link toSearchableText}.
+ * @property {string[]} texts - Texts the PDF must hold, in the order of the page.
+ */
+
+/**
+ * Lists the texts that the PDF holds, but not after the text that precedes them on the page, as
+ * when Chromium paints a positioned element after the rest of its page: a reader, a screen reader
+ * or the parser of a recruiting tool then reads it out of its place. Each text is searched after
+ * the one before it. A missing one, which {@link findPdfProblems} reports apart, and a blank one,
+ * which every place holds, are skipped.
+ * @param {FindTextsOutOfOrderParams} params
+ * @returns {string[]} One sentence per text out of its place.
+ */
+const findTextsOutOfOrder = ({ searchableText, texts }) => {
+  const problems = [];
+  let position = 0;
+  let previousText = '';
+  for (const text of texts) {
+    const searchable = toSearchableText(text);
+    if (searchable === '') continue;
+
+    const index = searchableText.indexOf(searchable, position);
+    const isFoundAfterPrevious = index !== -1;
+    if (isFoundAfterPrevious) {
+      position = index + searchable.length;
+      previousText = text;
+    } else if (searchableText.includes(searchable)) {
+      problems.push(
+        `the text "${quote(text)}" comes before "${quote(previousText)}", not after it`,
+      );
+    }
+  }
+  return problems;
+};
+
+/**
  * Parameters of {@link findPdfProblems}.
  * @typedef {object} FindPdfProblemsParams
  * @property {PdfSummary} pdf - What the PDF holds, from {@link readPdf}.
  * @property {number} byteCount - Size of the PDF file, in bytes.
  * @property {number} maxBytes - Largest size allowed, in bytes.
  * @property {number} maxPages - Most pages allowed.
- * @property {string[]} texts - Texts the PDF must hold, from `listCvTexts`.
+ * @property {string[]} texts - Texts the PDF must hold, in the order of the page, from
+ * `listCvTexts`.
  * @property {string[]} links - URLs the PDF must link to, from `listCvLinks`.
  * @property {string} fontFamily - Family of every font of the PDF, e.g. `Montserrat`: another one
  * means that the browser drew some characters in a fallback font.
@@ -118,7 +157,8 @@ const quote = text =>
 /**
  * Lists what is wrong with a generated CV: too heavy or too long, a Type 3 font, whose text
  * Preview and Safari can neither select nor search, a font other than the one of the site, an em
- * dash in its text, or a text or a link of the site that the PDF lacks.
+ * dash in its text, a text or a link of the site that the PDF lacks, or a text that it reads out
+ * of the order of the page.
  * @param {FindPdfProblemsParams} params
  * @returns {string[]} One sentence per problem, none when the PDF is right.
  * @example
@@ -160,6 +200,7 @@ export const findPdfProblems = ({
       .map(({ name }) => `the font ${name} is not ${fontFamily}, the font of the site`),
     ...(hasEmDash ? ['its text holds an em dash, which the site keeps out of its texts'] : []),
     ...texts.filter(isMissingText).map(text => `the text "${quote(text)}" is missing`),
+    ...findTextsOutOfOrder({ searchableText, texts }),
     ...links.filter(isMissingLink).map(link => `the link ${link} is missing`),
   ];
 };

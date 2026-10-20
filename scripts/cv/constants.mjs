@@ -122,12 +122,6 @@ export const PERIOD_SEPARATOR = ' – ';
  */
 export const EM_DASH = '\u2014';
 
-/**
- * Mark before each bullet point, as on the Experiences page (`BulletItem`, in
- * `src/pages/Experiences/CompanyEntry/RoleDescription/BulletPoints/BulletPoints.styled.ts`).
- */
-export const BULLET_MARK = '›';
-
 /** Prefix of the URL of an email address. */
 export const MAILTO_PREFIX = 'mailto:';
 
@@ -199,6 +193,16 @@ export const CV_LAYOUT = {
   projectRuleWidth: '1.2pt',
   /** Indent of a bullet point, past its mark. */
   bulletIndent: '3mm',
+  /**
+   * Side of the square whose two borders draw the mark of a bullet point, a chevron like the "›"
+   * of the Experiences page (`BulletItem`, in
+   * `src/pages/Experiences/CompanyEntry/RoleDescription/BulletPoints/BulletPoints.styled.ts`).
+   */
+  bulletMarkSize: '1.2mm',
+  /** Thickness of the strokes of the mark of a bullet point. */
+  bulletMarkWidth: '0.9pt',
+  /** Height of the bottom of the mark of a bullet point above the baseline of its text. */
+  bulletMarkRaise: '0.12em',
   /** Space between two contact details. */
   contactGap: '3.5mm',
   /** Space between two columns. */

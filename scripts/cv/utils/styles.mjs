@@ -1,5 +1,5 @@
 // @ts-check
-import { BULLET_MARK, CV_LAYOUT, CV_PAPER_FORMAT } from '../constants.mjs';
+import { CV_LAYOUT, CV_PAPER_FORMAT } from '../constants.mjs';
 
 /**
  * Design tokens of `src/theme/theme.ts` read by the CV.
@@ -163,16 +163,23 @@ export const renderCvStyles = theme => {
       .bullets {
         list-style: none;
       }
+      /* No element that holds text is positioned: Chromium paints a positioned one after the rest
+         of its page, so the text of the PDF would read it there. The mark is drawn, so it adds no
+         character to that text either. */
       .bullets li {
-        position: relative;
         padding-left: ${CV_LAYOUT.bulletIndent};
+        text-indent: -${CV_LAYOUT.bulletIndent};
       }
       .bullets li::before {
-        content: '${BULLET_MARK}';
-        position: absolute;
-        left: 0;
-        color: ${colors.accent};
-        font-weight: ${fontWeights.bold};
+        content: '';
+        display: inline-block;
+        width: ${CV_LAYOUT.bulletMarkSize};
+        height: ${CV_LAYOUT.bulletMarkSize};
+        margin-right: calc(${CV_LAYOUT.bulletIndent} - ${CV_LAYOUT.bulletMarkSize});
+        border-top: ${CV_LAYOUT.bulletMarkWidth} solid ${colors.accent};
+        border-right: ${CV_LAYOUT.bulletMarkWidth} solid ${colors.accent};
+        vertical-align: ${CV_LAYOUT.bulletMarkRaise};
+        transform: translateX(-${CV_LAYOUT.bulletMarkWidth}) rotate(45deg);
       }
       .bullets li,
       .entries li {

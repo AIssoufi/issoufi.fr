@@ -218,6 +218,37 @@ describe('findPdfProblems', () => {
     ]);
   });
 
+  it('reports a text that the PDF reads before the one that precedes it on the page', () => {
+    const pdf = { ...PDF, text: 'ADAM Issoufi EXPÉRIENCES Développeur full-stack JavaScript' };
+
+    expect(findPdfProblems({ ...PARAMS, pdf })).toEqual([
+      'the text "Expériences" comes before "Développeur full-stack JavaScript", not after it',
+    ]);
+  });
+
+  it('reports a text that the PDF reads twice only once in its place', () => {
+    const texts = ['React.js', 'Sewan Groupe', 'React.js', 'Vite'];
+    const pdf = { ...PDF, text: 'React.js Sewan Groupe React.js · Vitest' };
+
+    expect(findPdfProblems({ ...PARAMS, pdf, texts })).toEqual([]);
+    expect(findPdfProblems({ ...PARAMS, pdf, texts: [...texts, 'React.js'] })).toEqual([
+      'the text "React.js" comes before "Vite", not after it',
+    ]);
+  });
+
+  it('reports a missing text as missing, not out of its place', () => {
+    const texts = ['ADAM Issoufi', 'Sewan Groupe', 'Expériences'];
+
+    expect(findPdfProblems({ ...PARAMS, texts })).toEqual(['the text "Sewan Groupe" is missing']);
+  });
+
+  it('skips a blank text, which every place of the PDF holds', () => {
+    expect(findPdfProblems({ ...PARAMS, texts: ['ADAM Issoufi', ' ', 'Expériences'] })).toEqual([]);
+    expect(findPdfProblems({ ...PARAMS, texts: ['Expériences', '', 'ADAM Issoufi'] })).toEqual([
+      'the text "ADAM Issoufi" comes before "Expériences", not after it',
+    ]);
+  });
+
   it('reports each missing link', () => {
     expect(findPdfProblems({ ...PARAMS, links: ['https://github.com/AIssoufi'] })).toEqual([
       'the link https://github.com/AIssoufi is missing',
