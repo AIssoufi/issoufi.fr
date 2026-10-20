@@ -209,8 +209,12 @@ export const NON_WORD_CHARACTERS_PATTERN = /[^\p{L}\p{N}]+/gu;
 /** Length of the start of a missing text quoted in a problem of the PDF. */
 export const QUOTED_TEXT_LENGTH = 60;
 
-/** Separator of the company details and of the technologies, as on the Experiences page. */
-export const DETAILS_SEPARATOR = ' · ';
+/**
+ * Separator of the company details, of the technologies and of the names of the projects, the dot
+ * of the Experiences page. Its no-break space keeps the dot at the end of a line, never at the
+ * start of the next.
+ */
+export const DETAILS_SEPARATOR = '\u00a0· ';
 
 /**
  * Separator of the skills of a category, a comma as a sentence lists terms, which a screening tool

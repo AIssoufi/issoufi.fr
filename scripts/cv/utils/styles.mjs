@@ -48,6 +48,8 @@ export const renderCvStyles = theme => {
         font-weight: ${fontWeights.regular};
         line-height: ${lineHeights[130]};
         font-variant-ligatures: none;
+        /* Keeps the last word of a paragraph off a line of its own. */
+        text-wrap: pretty;
         -webkit-print-color-adjust: exact;
         print-color-adjust: exact;
       }
@@ -164,8 +166,11 @@ export const renderCvStyles = theme => {
         font-size: ${CV_LAYOUT.detailsFontSize};
         font-weight: ${fontWeights.medium};
       }
+      /* A role that fits on a page stays on one, so that a parser that reads page by page never
+         parts its bullet points from its title. */
       .role {
         margin-top: ${CV_LAYOUT.itemGap};
+        break-inside: avoid;
       }
       .role-header {
         display: flex;
@@ -248,6 +253,10 @@ export const renderCvStyles = theme => {
       }
       .entries {
         margin-top: ${CV_LAYOUT.blockGap};
+      }
+      /* A line of projects breaks between two names, never inside one. */
+      .entry {
+        white-space: nowrap;
       }
       .degree-entry {
         break-inside: avoid;

@@ -228,12 +228,15 @@ const renderExperience = ({ company, details, roles }) => {
 };
 
 /**
- * Writes the name of a project of the Projects page, a link when it has a URL.
+ * Writes the name of a project of the Projects page, a link when it has a URL, in an entry that the
+ * styles keep on one line.
  * @param {CvProjectItem} project - Project to write.
  * @returns {string} Its name.
  */
-const renderProjectName = ({ name, url }) =>
-  url ? `<a href="${escapeHtml(url)}">${escapeHtml(name)}</a>` : escapeHtml(name);
+const renderProjectName = ({ name, url }) => {
+  const text = url ? `<a href="${escapeHtml(url)}">${escapeHtml(name)}</a>` : escapeHtml(name);
+  return `<span class="entry">${text}</span>`;
+};
 
 /**
  * Writes a group of projects, their names on one line.

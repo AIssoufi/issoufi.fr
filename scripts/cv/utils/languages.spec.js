@@ -15,7 +15,7 @@ describe('buildCvContents', () => {
     expect(english.jobTitle).toBe('Full-stack JavaScript Developer');
     expect(french.experiences.title).toBe('Expériences');
     expect(english.experiences.title).toBe('Experience');
-    expect(english.experiences.items[0].details).toBe('Permanent · Paris\u00a0(75)');
+    expect(english.experiences.items[0].details).toBe('Permanent\u00a0· Paris\u00a0(75)');
   });
 
   it('translates the projects of the Projects page in each language', async () => {

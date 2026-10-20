@@ -25,6 +25,18 @@ describe('renderCvStyles', () => {
     expect(styles).not.toMatch(/position:/);
   });
 
+  it('keeps a role on one page, so that its bullet points never leave its title', () => {
+    expect(styles).toMatch(/\.role \{[^}]*break-inside: avoid;/);
+  });
+
+  it('keeps the last word of a paragraph off a line of its own', () => {
+    expect(styles).toContain('text-wrap: pretty;');
+  });
+
+  it('breaks a line of projects between two names, never inside one', () => {
+    expect(styles).toMatch(/\.entry \{[^}]*white-space: nowrap;/);
+  });
+
   it('prints on A4 paper', () => {
     expect(styles).toMatch(/@page \{\s*size: A4;/);
   });

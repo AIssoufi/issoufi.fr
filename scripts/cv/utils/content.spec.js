@@ -121,7 +121,7 @@ describe('buildExperiences', () => {
     expect(buildExperiences({ translate, experiences: [ACME] })).toEqual([
       {
         company: 'Acme',
-        details: 'CDI · Paris (75)',
+        details: 'CDI\u00a0· Paris (75)',
         roles: [
           {
             title: 'Développeur',
