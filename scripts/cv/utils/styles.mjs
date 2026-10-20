@@ -178,6 +178,12 @@ export const renderCvStyles = theme => {
       .bullets {
         list-style: none;
       }
+      .summary,
+      .text,
+      .bullets li,
+      .skills li {
+        text-align: justify;
+      }
       /* No element that holds text is positioned: Chromium paints a positioned one after the rest
          of its page, so the text of the PDF would read it there. The mark is drawn, so it adds no
          character to that text either. */

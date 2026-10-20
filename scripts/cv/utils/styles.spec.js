@@ -33,6 +33,12 @@ describe('renderCvStyles', () => {
     expect(styles).toContain('text-wrap: pretty;');
   });
 
+  it('justifies the paragraphs, the bullet points and the skills', () => {
+    expect(styles).toMatch(
+      /\.summary,\s*\.text,\s*\.bullets li,\s*\.skills li \{[^}]*text-align: justify;/,
+    );
+  });
+
   it('breaks a line of projects between two names, never inside one', () => {
     expect(styles).toMatch(/\.entry \{[^}]*white-space: nowrap;/);
   });
