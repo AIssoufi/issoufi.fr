@@ -24,6 +24,10 @@ export const enExperiences = {
     b1: 'Development with AI agents (Claude Code, Codex, OpenCode), after GitHub Copilot then Cursor: MCP servers (Jira, Confluence, Chrome DevTools, Figma, GitLab), specialized subagents, in-house skills and rules, three or four topics in parallel with Git worktree',
     b2: 'E-invoicing (France, Belgium, Spain), catalog and pricing, stock and rental, dashboards, integration of the PHP legacy',
     b3: 'UI Kit filters, one of the most used components: from a monolithic architecture to 13 composable packages, then migration of every page, some twenty inconsistencies fixed',
+    cvIntro:
+      'One of the three front-end developers of the Core team. I remain the owner of the UI Kit.',
+    cvB1: 'Development with AI agents (Claude Code, Codex, OpenCode), after GitHub Copilot then Cursor: MCP servers, specialized subagents, in-house skills and rules, three or four topics in parallel with Git worktree',
+    cvB2: 'E-invoicing (France, Belgium, Spain), catalog and pricing, dashboards, integration of the PHP legacy',
   },
   sewanUiKit: {
     title: 'Senior Front-End Developer · UI Kit Owner',
@@ -47,6 +51,11 @@ export const enExperiences = {
       'Median merge request pipeline time cut from 17 min 24 s to 9 min (48% less, over 2,600 jobs)',
     proj1B5:
       '661 tests in 142 files, 93 of the 118 packages with at least one test, 33 seconds to run',
+    cvIntro1: 'Owner of the internal UI Kit: ',
+    cvB1: 'Composable architecture: legacy single package split into separately versioned packages (Changesets), Table v2 designed as 11 packages with 15 features, virtualization included',
+    cvB2: 'Customizable theme of the white-label offer; design tokens from the designers (Figma) ported into the theme (xstyled)',
+    cvB3: 'Tooling overhaul with no breaking change for the consuming teams: full TypeScript migration (771 files), npm to pnpm, Node 16 to 22, Jest to Vitest, Webpack to tsup and Vite',
+    cvB4: 'Median merge request pipeline time cut from 17 min 24 s to 9 min (48% less, over 2,600 jobs); 661 tests, 93 of the 118 packages with at least one test',
   },
   sewanFoundation: {
     title: 'Front-End Developer · Sophia GO application foundation',
@@ -58,6 +67,9 @@ export const enExperiences = {
     b1: 'Application shell of the 49 applications of the monorepo: responsive layout, contextual sidebar, top bar, three-level navigation (organizations, sites, accounts)',
     b2: 'Front-end permissions and feature flagging (Optimizely), still used by every team to ship continuously',
     b3: 'Three applications built from scratch, bridges with the legacy platform, internationalization (i18next, Lokalise), first GraphQL resolvers',
+    cvIntro2:
+      ', the new Sewan platform, from its start: 611 commits, 245 tickets delivered and three applications built from scratch.',
+    cvB1: 'Application shell of the 49 applications of the monorepo: responsive layout, three-level navigation (organizations, sites, accounts)',
   },
   wibilong: {
     title: 'Full-stack JavaScript Engineer (React.js, Redux.js, Node.js and AWS)',
@@ -71,6 +83,8 @@ export const enExperiences = {
     b1: 'Screens built from the product mockups, then the services they need (Node.js APIs and AWS serverless functions), documented with Swagger',
     b2: 'Production maintenance and bug fixing on the three products',
     b3: 'Took part in the technical choices of WiService V3',
+    cvIntro:
+      'Front-end and back-end features of three SaaS products, within a two-developer team: screens from the product mockups, Node.js APIs and AWS serverless functions.',
   },
   supralog: {
     name: 'Supralog',
@@ -87,6 +101,8 @@ export const enExperiences = {
       'Within a team of seven developers, took part in the front-end overhaul of the CLARIS information system, built for ',
     proj1Strong: 'Eurovent Certita Certification SAS',
     proj1Desc2: ', the European leader in certification.',
+    cvIntro:
+      'Took part in the front-end overhaul of a certification information system in TypeScript, within a team of seven developers.',
   },
   supralogFfbad: {
     title: 'Full-Stack JavaScript Apprentice Developer (React.js, Redux.js, Next.js, Docker, GCP)',
@@ -99,6 +115,8 @@ export const enExperiences = {
     proj1Strong: 'French Badminton Federation',
     proj1Desc2:
       ' (190,000 licensees) from the mockups and specifications, then implementation and deployment of 3 microservices.',
+    cvIntro1: 'In a pair, licensee portal of the ',
+    cvIntro2: ' (190,000 licensees): front-end pages and 3 microservices deployed.',
   },
   beepeers: {
     title: 'React.js Developer',
@@ -115,5 +133,7 @@ export const enExperiences = {
     proj1B2:
       'React development, partly from existing components; ticket and hotel booking (Fasticket) and card payment (Weezevent)',
     proj1B3: 'Maintenance of existing AngularJS websites',
+    cvIntro:
+      'Website of the Dream Nation Festival 2017, with booking (ticket and hotel) and online payment.',
   },
 } as const satisfies Translations['exp'];
