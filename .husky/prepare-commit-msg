@@ -1,0 +1,11 @@
+# On a ticket branch (ISF-322), appends the footer `Refs: ISF-322` to a message that has no
+# `Refs:` footer yet. Merge and squash messages stay as git writes them, and a detached HEAD, as
+# in a rebase, has no branch to read.
+case "$2" in
+  merge | squash) exit 0 ;;
+esac
+branch=$(git symbolic-ref --quiet --short HEAD) || exit 0
+printf '%s\n' "$branch" | grep -Eq '^ISF-[0-9]+$' || exit 0
+# A `Refs:` line of the body counts too, even out of the trailers, which commitlint accepts
+grep -q '^Refs:' "$1" && exit 0
+git interpret-trailers --in-place --if-exists doNothing --trailer "Refs: $branch" "$1"
