@@ -35,7 +35,7 @@ import {
   PAGE_META_PLUGIN_NAME,
   SECURITY_HEADERS,
 } from './vite/constants.ts';
-import { styledComponentIds } from './vite/prerender/plugins.ts';
+import { minifyStyledCss, styledComponentIds } from './vite/prerender/plugins.ts';
 import { prerenderPagesInWorker } from './vite/prerender/utils/render.ts';
 import type { PageMetaApi } from './vite/types.ts';
 import {
@@ -289,6 +289,7 @@ export default defineConfig(({ mode }) => {
       svgr(),
       // The build only: the dev server and the tests render in the browser alone
       { ...styledComponentIds(), apply: 'build' },
+      { ...minifyStyledCss(), apply: 'build' },
       fontFaces(),
       pageMeta(),
       sitemap(),

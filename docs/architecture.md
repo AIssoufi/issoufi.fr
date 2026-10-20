@@ -47,6 +47,7 @@ A new route needs its entry in `src/utils/pages.ts`: without its HTML file, a re
 - The home page ships in the main bundle; the other pages load on demand, each from its own chunk, with their texts in every language.
 - Each HTML file preloads the chunks of its page.
 - The libraries sit in a chunk of their own, which changes less often than the site, so browsers keep it longer.
+- The build drops the comments and the indentation of the CSS templates of the app, which styled-components reads in the scripts (`minifyStyledCss`). The render at build time runs it too, since the classes derive from the text of each template. A template with a `//` comment or an escape stays as it is.
 - The first paint of a page that the build rendered needs only its HTML, its font and its largest image: its scripts download at a low priority, since they only hydrate what already shows.
 - The HTML of a page that the build rendered preloads its background photo at a low priority, in a lighter portrait version on phones, with a media query that gives each screen one version; elsewhere, the main script of the app adds that preload.
 - On the projects page, the first thumbnail, at the top, downloads at a high priority, and the others at a low one; those of the cards hidden out of the first page of each row download nothing.
