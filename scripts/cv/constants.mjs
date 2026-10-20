@@ -216,37 +216,39 @@ export const TRAILING_SLASHES_PATTERN = /\/+$/;
  */
 export const CV_LAYOUT = {
   /** Margin of every page. */
-  pageMargin: '13mm',
+  pageMargin: '10mm',
   /** Font size of the texts. */
-  bodyFontSize: '8.6pt',
+  bodyFontSize: '9.5pt',
   /** Font size of the author's name. */
   nameFontSize: '22pt',
   /** Font size of the job title. */
-  jobTitleFontSize: '12.5pt',
+  jobTitleFontSize: '13pt',
   /** Font size of the line about design. */
-  taglineFontSize: '9.5pt',
+  taglineFontSize: '10pt',
   /** Font size of the contact details. */
-  contactFontSize: '8.4pt',
+  contactFontSize: '9pt',
   /** Font size of the title of each section. */
-  sectionTitleFontSize: '10pt',
-  /** Font size of the name of a company and of the title of a role. */
-  companyFontSize: '10pt',
+  sectionTitleFontSize: '10.5pt',
+  /** Font size of the name of a company. */
+  companyFontSize: '11pt',
+  /** Font size of the title of a role, of a group of projects and of a degree. */
+  roleFontSize: '10pt',
   /** Font size of the dates, the technologies and the details. */
-  detailsFontSize: '7.8pt',
+  detailsFontSize: '8.5pt',
   /** Space between the header and the first section. */
-  headerMarginBottom: '4.5mm',
+  headerMarginBottom: '3.5mm',
   /** Space above each section. */
-  sectionMarginTop: '4mm',
+  sectionMarginTop: '3.5mm',
   /** Space under the title of each section. */
-  sectionTitleMarginBottom: '2.2mm',
+  sectionTitleMarginBottom: '2mm',
   /** Thickness of the line under the header and under each section title. */
   ruleWidth: '0.6pt',
   /** Space between two companies. */
-  companyGap: '3.2mm',
+  companyGap: '3mm',
   /** Space between two roles, two projects or two entries. */
-  itemGap: '1.8mm',
+  itemGap: '1.5mm',
   /** Space between the title of a block and its text. */
-  blockGap: '0.8mm',
+  blockGap: '0.6mm',
   /** Indent of a project under its role, past its line. */
   projectIndent: '3mm',
   /** Thickness of the line on the left of a project. */

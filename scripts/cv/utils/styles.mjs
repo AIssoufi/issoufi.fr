@@ -46,7 +46,7 @@ export const renderCvStyles = theme => {
         font-family: ${fonts.body};
         font-size: ${CV_LAYOUT.bodyFontSize};
         font-weight: ${fontWeights.regular};
-        line-height: ${lineHeights[140]};
+        line-height: ${lineHeights[130]};
         font-variant-ligatures: none;
         -webkit-print-color-adjust: exact;
         print-color-adjust: exact;
@@ -128,16 +128,16 @@ export const renderCvStyles = theme => {
       .group-title,
       .degree {
         color: ${ink};
-        font-size: ${CV_LAYOUT.companyFontSize};
+        font-size: ${CV_LAYOUT.roleFontSize};
         font-weight: ${fontWeights.bold};
       }
-      .role-title {
-        font-weight: ${fontWeights.medium};
+      .company-name {
+        font-size: ${CV_LAYOUT.companyFontSize};
       }
       .details,
       .period,
       .technologies {
-        color: ${colors['shade-a55']};
+        color: ${colors['shade-a65']};
         font-size: ${CV_LAYOUT.detailsFontSize};
         font-weight: ${fontWeights.medium};
       }
