@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.4.1](https://github.com/AIssoufi/issoufi.fr/compare/v1.4.0...v1.4.1) (2026-10-20)
+
+
+### Documentation
+
+* record the decision to start the daily deploy from a Cloudflare Worker ([1806dbb](https://github.com/AIssoufi/issoufi.fr/commit/1806dbbaf30d3b3f7b92ffb05e0257b3e1cca981))
+* split the AI workflow documentation into one file per topic ([a7950ef](https://github.com/AIssoufi/issoufi.fr/commit/a7950efaf089070adf5b2b527f2a211c862e4943))
+
 ## [1.4.0](https://github.com/AIssoufi/issoufi.fr/compare/v1.3.0...v1.4.0) (2026-10-20)
 
 
