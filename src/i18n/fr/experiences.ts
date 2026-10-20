@@ -38,7 +38,7 @@ export const frExperiences = {
     b2: 'Thème personnalisable de l’offre en marque blanche, couleur du texte calculée selon le fond pour garder le contraste\u202f; design tokens des designers (Figma) portés dans le thème (xstyled), aucune valeur brute permise',
     b3: '2\u202f389 versions majeures sur les 293 packages de l’historique\u202f; correction du bug qui ne montait que le patch sur un BREAKING CHANGE, sans signal de rupture pour les 15 équipes',
     b4: 'Composants prêts pour les tests end-to-end de la QA\u00a0: chaque application passe ses test ids selon la page, props unifiées (anciennes dépréciées sans rupture), aucun test id par défaut',
-    b5: 'Référent technique de 15 équipes\u00a0: auteur de la documentation et des processus de contribution, 458 merge requests de 10 développeurs approuvées sur 11 dépôts, pilotage de 5 epics et de 5 études de cadrage',
+    b5: 'Référent technique de 15 équipes\u00a0: auteur de la documentation et des processus de contribution, 458 merge requests approuvées sur 11 dépôts, pilotage de 5 epics et de 5 études de cadrage',
     proj1Title: 'Refonte de l’outillage, sans rupture pour les équipes consommatrices',
     proj1B1: 'Migration TypeScript intégrale\u00a0: 771 fichiers, plus aucun JavaScript',
     proj1B2:

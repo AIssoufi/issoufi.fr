@@ -38,7 +38,7 @@ export const enExperiences = {
     b2: 'Customizable theme of the white-label offer, text color computed from the background to keep the contrast; design tokens from the designers (Figma) ported into the theme (xstyled), no raw value allowed',
     b3: '2,389 major versions over the 293 packages of its history; fixed a bug where a BREAKING CHANGE only bumped the patch, leaving the 15 teams without a breaking signal',
     b4: 'Components ready for the end-to-end tests of QA: each app passes its own test ids for the page, unified props (old ones deprecated without breaking change), no default test id',
-    b5: 'Technical point of contact for 15 teams: author of the documentation and of the contribution processes, 458 merge requests from 10 developers approved over 11 repositories, led 5 epics and 5 scoping studies',
+    b5: 'Technical point of contact for 15 teams: author of the documentation and of the contribution processes, 458 merge requests approved over 11 repositories, led 5 epics and 5 scoping studies',
     proj1Title: 'Tooling overhaul, with no breaking change for the consuming teams',
     proj1B1: 'Full TypeScript migration: 771 files, no JavaScript left',
     proj1B2: 'npm to pnpm, Node 16 to 22, Jest to Vitest, Webpack to tsup and Vite, Lerna 4 to 8',
