@@ -1,16 +1,16 @@
 // @ts-check
 // Generates the CV of each language, a PDF of public/ (`CV_URLS` of
 // src/App/Header/NavMenu/CvLink/constants.ts), from the content of the site in that language: the
-// name and the job title of the home page, the experiences of the Experiences page, and the contact
-// details, the skills and the education of scripts/cv/.data/cv.json, which the site does not
-// show. Run `pnpm cv` after changing one of them, then commit the PDFs and the fingerprints of
-// their content (scripts/cv/fingerprints.json): scripts/cv/cvs.spec.js fails while a CV no longer
-// says what the site says. Chromium, from Playwright, prints each CV, in the font and colors of
-// the site: the static font files of scripts/cv/fonts, so it needs no network. It prints each CV
-// twice, and stops unless both prints hold the same bytes but their dates, then keeps a PDF of
-// public/ that differs from the new one by its dates only, so a CV that did not change leaves git
-// clean. `pnpm cv:check` (`--check`) prints and checks the CVs without writing any file, as the
-// CI does.
+// name and the line about design of the home page, the experiences of the Experiences page, and
+// the job title, the contact details, the skills and the education of scripts/cv/.data/cv.json,
+// which the site does not show. Run `pnpm cv` after changing one of them, then commit the PDFs
+// and the fingerprints of their content (scripts/cv/fingerprints.json): scripts/cv/cvs.spec.js
+// fails while a CV no longer says what the site says. Chromium, from Playwright, prints each CV,
+// in the font and colors of the site: the static font files of scripts/cv/fonts, so it needs no
+// network. It prints each CV twice, and stops unless both prints hold the same bytes but their
+// dates, then keeps a PDF of public/ that differs from the new one by its dates only, so a CV that
+// did not change leaves git clean. `pnpm cv:check` (`--check`) prints and checks the CVs without
+// writing any file, as the CI does.
 import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 

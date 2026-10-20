@@ -35,7 +35,7 @@ import { buildCvContent } from './content.mjs';
  * @returns {Promise<CvContent[]>} The content of each CV, in the order of `languages`.
  * @example
  * const [french, english] = await buildCvContents({ languages: LANGUAGES, … });
- * english.jobTitle; // 'Full-stack JavaScript Developer'
+ * english.jobTitle; // 'Senior Front-End Developer'
  */
 export const buildCvContents = ({
   languages,

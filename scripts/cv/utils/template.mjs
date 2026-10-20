@@ -250,10 +250,10 @@ const renderDegree = ({ degree, period, school }) => {
  */
 
 /**
- * Builds the HTML page that Chromium prints to make the CV: the name, the job title and the
- * contact details, then the profile, the skills and the experiences, which a reader looks for
- * first, then the education, with the headings of a document, so that the
- * PDF, tagged, reads in that order. Every text is escaped.
+ * Builds the HTML page that Chromium prints to make the CV: the name, the job title followed by
+ * the line about design, on one line, and the contact details, then the profile, the skills and
+ * the experiences, which a reader looks for first, then the education, with the headings of a
+ * document, so that the PDF, tagged, reads in that order. Every text is escaped.
  * @param {RenderCvHtmlParams} params
  * @returns {string} A complete HTML document, in the language of the content.
  * @example
@@ -264,6 +264,11 @@ export const renderCvHtml = ({ content, styles, fontFaces, icons = {} }) => {
   const { profile, skills, experiences, education, labelSeparator } = content;
   /** @param {CvLink} contact */
   const renderHeaderContact = contact => renderContact({ contact, icons });
+  const tagline = renderElement({
+    tag: 'span',
+    className: 'tagline',
+    html: renderSegments(content.passion),
+  });
 
   return `<!doctype html>
 <html lang="${escapeHtml(content.language)}">
@@ -277,8 +282,7 @@ export const renderCvHtml = ({ content, styles, fontFaces, icons = {} }) => {
   <body>
     <header class="header">
       <h1 class="name">${escapeHtml(content.name)}</h1>
-      <p class="job-title">${escapeHtml(content.jobTitle)}</p>
-      ${renderElement({ tag: 'p', className: 'tagline', html: renderSegments(content.passion) })}
+      <p class="job-title">${[escapeHtml(content.jobTitle), tagline].filter(Boolean).join(' ')}</p>
       <ul class="contacts">${content.contacts.map(renderHeaderContact).join('')}</ul>
       <ul class="contacts">${content.profiles.map(renderHeaderContact).join('')}</ul>
     </header>

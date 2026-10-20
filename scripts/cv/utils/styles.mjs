@@ -94,9 +94,6 @@ export const renderCvStyles = theme => {
         font-size: ${CV_LAYOUT.jobTitleFontSize};
         font-weight: ${fontWeights.medium};
       }
-      .tagline {
-        font-size: ${CV_LAYOUT.taglineFontSize};
-      }
       .contacts {
         display: flex;
         flex-wrap: wrap;

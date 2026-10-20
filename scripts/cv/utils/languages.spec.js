@@ -11,8 +11,8 @@ describe('buildCvContents', () => {
   it('writes each CV with the texts of its language', async () => {
     const [french, english] = await buildCvContents(CV_SOURCES);
 
-    expect(french.jobTitle).toBe('Développeur full-stack JavaScript');
-    expect(english.jobTitle).toBe('Full-stack JavaScript Developer');
+    expect(french.jobTitle).toBe('Développeur Front-End Senior');
+    expect(english.jobTitle).toBe('Senior Front-End Developer');
     expect(french.experiences.title).toBe('Expériences');
     expect(english.experiences.title).toBe('Experience');
     expect(english.experiences.items[0].details).toBe('Permanent\u00a0· Paris\u00a0(75)');
