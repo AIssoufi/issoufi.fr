@@ -1,8 +1,8 @@
 import {
+  APP_TRANSLATIONS,
   DEFAULT_LANGUAGE,
   LANGUAGES,
   OPEN_GRAPH_LOCALES,
-  TRANSLATIONS,
 } from '../i18n/constants.ts';
 import type { Language, Translations } from '../i18n/types.ts';
 import {
@@ -59,7 +59,7 @@ interface FillPlaceholdersParams {
  * unknown placeholder is left as it is.
  */
 function fillPlaceholders({ template, meta, language, url, years }: FillPlaceholdersParams) {
-  const translations = TRANSLATIONS[language].meta;
+  const translations = APP_TRANSLATIONS[language].meta;
   const { title, description } = translations[meta];
   const values: Record<string, string> = {
     PAGE_LANGUAGE: language,

@@ -89,6 +89,24 @@ describe('Experiences', () => {
     expect(screen.getAllByRole('heading', { level: 1 })).toHaveLength(1);
   });
 
+  // The initial load leaves the texts of the page out: its chunk brings them, before it renders
+  it('adds its texts to every language when its chunk loads', async () => {
+    vi.resetModules();
+    vi.doMock('./Experiences.tsx', () => ({}));
+    // Unmocks even when an expectation fails, for the next tests of the file
+    try {
+      const { default: pageI18n } = await import('../../i18n/index.ts');
+
+      expect(pageI18n.getResource('fr', 'translation', 'exp')).toBeUndefined();
+      await import('./index.ts');
+
+      expect(pageI18n.getResource('fr', 'translation', 'exp')).toEqual(fr.exp);
+      expect(pageI18n.getResource('en', 'translation', 'exp')).toEqual(en.exp);
+    } finally {
+      vi.doUnmock('./Experiences.tsx');
+    }
+  });
+
   it('gives every list, bullet lists included, an explicit list role, which Safari drops from lists without bullets', () => {
     render(<Experiences />);
     // b3 has no non-breaking space, so its translated text matches the text of the page exactly

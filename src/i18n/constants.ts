@@ -1,19 +1,21 @@
-import { en } from './en.ts';
-import { fr } from './fr.ts';
-import type { Language, Translations } from './types.ts';
+import { enApp } from './en/app.ts';
+import { frApp } from './fr/app.ts';
+import type { AppTranslations, Language } from './types.ts';
 
 /**
- * Languages of the site, in the order the language toggle shows them. Each one needs its
- * translations in {@link TRANSLATIONS}.
+ * Languages of the site, in the order the language toggle shows them. Each one needs its texts in
+ * its folder of `src/i18n/`: those of the app, in {@link APP_TRANSLATIONS}, and those of each lazy
+ * page.
  */
 export const LANGUAGES = ['fr', 'en'] as const;
 
 /**
- * Translations of each language of {@link LANGUAGES}: the resources that i18next loads
- * (`index.ts`), and the texts of the files generated at build time, the HTML pages, their
- * structured data and the web app manifests.
+ * Texts of the app in each language of {@link LANGUAGES}, every text but those of the lazy pages:
+ * the resources that i18next starts with (`index.ts`), and the texts of the files generated at
+ * build time, the HTML pages, their structured data and the web app manifests. A lazy page adds
+ * its own texts when its chunk loads (`addTranslations`), so the initial load leaves them out.
  */
-export const TRANSLATIONS: Record<Language, Translations> = { fr, en };
+export const APP_TRANSLATIONS: Record<Language, AppTranslations> = { fr: frApp, en: enApp };
 
 /**
  * Language of the URLs without a language prefix, such as `/` and `/projects`, and fallback for a

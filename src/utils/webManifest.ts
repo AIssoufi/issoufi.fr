@@ -1,4 +1,9 @@
-import { DEFAULT_LANGUAGE, LANGUAGES, TEXT_DIRECTIONS, TRANSLATIONS } from '../i18n/constants.ts';
+import {
+  APP_TRANSLATIONS,
+  DEFAULT_LANGUAGE,
+  LANGUAGES,
+  TEXT_DIRECTIONS,
+} from '../i18n/constants.ts';
 import type { Language } from '../i18n/types.ts';
 import { isLanguage, localizePath } from '../i18n/utils.ts';
 import { theme } from '../theme/theme.ts';
@@ -145,7 +150,7 @@ interface RenderWebManifestParams {
  */
 export const renderWebManifest = ({ language, years }: RenderWebManifestParams): string => {
   const manifestLanguage = toLanguage(language);
-  const { name, shortName, description } = TRANSLATIONS[manifestLanguage].meta.webApp;
+  const { name, shortName, description } = APP_TRANSLATIONS[manifestLanguage].meta.webApp;
   const manifest = {
     id: WEB_APP_ID,
     lang: manifestLanguage,

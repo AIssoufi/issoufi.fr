@@ -1,5 +1,5 @@
 import { GITHUB_PROFILE_URL, LINKEDIN_PROFILE_URL } from '../constants/profiles.ts';
-import { DEFAULT_LANGUAGE, TRANSLATIONS } from '../i18n/constants.ts';
+import { APP_TRANSLATIONS, DEFAULT_LANGUAGE } from '../i18n/constants.ts';
 import type { Language } from '../i18n/types.ts';
 import { isLanguage } from '../i18n/utils.ts';
 import { getOgImageUrl, getPageUrl, HOME_PAGE, type Page, SITE_URL } from './pages.ts';
@@ -113,8 +113,8 @@ export interface StructuredData {
 const getPersonNode = (language: Language): PersonNode => ({
   '@type': 'Person',
   '@id': PERSON_ID,
-  name: TRANSLATIONS[language].meta.ownerName,
-  jobTitle: TRANSLATIONS[language].home.title1,
+  name: APP_TRANSLATIONS[language].meta.ownerName,
+  jobTitle: APP_TRANSLATIONS[language].home.title1,
   url: getPageUrl({ path: HOME_PAGE.path, language }),
   image: getOgImageUrl(language),
   sameAs: [GITHUB_PROFILE_URL, LINKEDIN_PROFILE_URL],
@@ -155,7 +155,7 @@ interface GetStructuredDataParams {
  */
 export function getStructuredData({ page, language }: GetStructuredDataParams): StructuredData {
   const pageLanguage = isLanguage(language) ? language : DEFAULT_LANGUAGE;
-  const { meta } = TRANSLATIONS[pageLanguage];
+  const { meta } = APP_TRANSLATIONS[pageLanguage];
   const homeUrl = getPageUrl({ path: HOME_PAGE.path, language: pageLanguage });
   const url = getPageUrl({ path: page.path, language: pageLanguage });
   const webSiteId = `${homeUrl}${WEB_SITE_ID_SUFFIX}`;

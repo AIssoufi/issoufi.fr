@@ -2,6 +2,8 @@ import { act, cleanup, configure, getConfig, render, screen } from '@testing-lib
 import userEvent from '@testing-library/user-event';
 
 import { LANGUAGE_STORAGE_KEY } from '../i18n/constants.ts';
+import { en } from '../i18n/en.ts';
+import { fr } from '../i18n/fr.ts';
 import { declaredStyle } from '../styleTestUtils.js';
 import { theme } from '../theme/index.ts';
 import App from './App.tsx';
@@ -9,10 +11,14 @@ import App from './App.tsx';
 /** Media query of the wide screens, from the `wide` breakpoint. */
 const WIDE_MEDIA = `(min-width: ${theme.screens.wide})`;
 
-/** Runs the i18n setup again, as on a new page load. */
+/**
+ * Runs the i18n setup again, as on a new page load, then adds the texts of the lazy pages: React
+ * loads each page once for the whole file, so a page loaded before adds them no more.
+ */
 const reloadI18n = async () => {
   vi.resetModules();
-  await import('../i18n/index.ts');
+  const { addTranslations } = await import('../i18n/index.ts');
+  addTranslations({ fr, en });
 };
 
 const description = () =>

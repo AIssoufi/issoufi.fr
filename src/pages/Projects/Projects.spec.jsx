@@ -118,6 +118,24 @@ describe('Projects', () => {
     expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('Projects');
   });
 
+  // The initial load leaves the texts of the page out: its chunk brings them, before it renders
+  it('adds its texts to every language when its chunk loads', async () => {
+    vi.resetModules();
+    vi.doMock('./Projects.tsx', () => ({}));
+    // Unmocks even when an expectation fails, for the next tests of the file
+    try {
+      const { default: pageI18n } = await import('../../i18n/index.ts');
+
+      expect(pageI18n.getResource('fr', 'translation', 'projects')).toBeUndefined();
+      await import('./index.ts');
+
+      expect(pageI18n.getResource('fr', 'translation', 'projects')).toEqual(fr.projects);
+      expect(pageI18n.getResource('en', 'translation', 'projects')).toEqual(en.projects);
+    } finally {
+      vi.doUnmock('./Projects.tsx');
+    }
+  });
+
   it('hides the page title from the screen, out of the flow of the sections', () => {
     render(<Projects />);
     const pageTitle = screen.getByRole('heading', { level: 1 });
