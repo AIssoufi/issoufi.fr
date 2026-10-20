@@ -73,10 +73,17 @@ describe('requestGitHub', () => {
       method: 'GET',
       headers: {
         Accept: 'application/vnd.github+json',
+        'User-Agent': 'issoufi.fr',
         'X-GitHub-Api-Version': '2022-11-28',
         Authorization: 'Bearer token',
       },
     });
+  });
+
+  it('names the app in a User-Agent, which the fetch of a Cloudflare Worker leaves out', async () => {
+    const fetch = stubFetch();
+    await requestGitHub({ url: URL_OF_PULLS, method: 'POST', body: {}, token: '' });
+    expect(fetch.mock.calls[0][1].headers['User-Agent']).toBe('issoufi.fr');
   });
 
   it('sends a body as JSON, with another method and token', async () => {

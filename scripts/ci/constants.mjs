@@ -303,6 +303,13 @@ export const GITHUB_API_VERSION = '2022-11-28';
 export const GITHUB_API_MEDIA_TYPE = 'application/vnd.github+json';
 
 /**
+ * `User-Agent` header of the requests to the GitHub REST API, which refuses a request without
+ * one: Node.js sends its own, but the `fetch` of a Cloudflare Worker sends none, as for the
+ * trigger of the daily deploy (`scripts/deploy-trigger/`). GitHub asks for the name of the app.
+ */
+export const GITHUB_API_USER_AGENT = 'issoufi.fr';
+
+/**
  * Number of runs that the deploy and the schedule-gap check of the CI ask the REST API for: the
  * latest only, since the API lists the runs of a workflow newest first.
  */
