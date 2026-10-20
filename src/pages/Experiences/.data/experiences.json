@@ -38,7 +38,7 @@
             "exp.sewanUiKit.b4",
             "exp.sewanUiKit.b5"
           ],
-          "cvBulletKeys": ["exp.sewanUiKit.b1", "exp.sewanUiKit.b2", "exp.sewanUiKit.b5"],
+          "cvBulletKeys": ["exp.sewanUiKit.b1", "exp.sewanUiKit.b5"],
           "projects": [
             {
               "titleKey": "exp.sewanUiKit.proj1Title",
