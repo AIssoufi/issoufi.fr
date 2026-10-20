@@ -68,7 +68,7 @@ describe('RoleDescription', () => {
   it('shows the title, the status, the description and the technologies of each project', () => {
     render(<RoleDescription role={ROLE} />);
 
-    expect(screen.getByText('CLARIS — Refonte SI de certification')).toBeInTheDocument();
+    expect(screen.getByText('CLARIS : refonte du SI de certification')).toBeInTheDocument();
     expect(screen.getByText('3 sprints livrés')).toBeInTheDocument();
     expect(screen.getByText(/^Au sein d’une équipe de sept développeurs/)).toBeInTheDocument();
     expect(screen.getByText('Vitest')).toBeInTheDocument();
@@ -102,6 +102,6 @@ describe('RoleDescription', () => {
     expect(
       screen.getByText('Refonte de l’outillage, sans rupture pour les équipes consommatrices'),
     ).toBeInTheDocument();
-    expect(screen.getByText('MyFFBaD — Espace licencié FFBaD')).toBeInTheDocument();
+    expect(screen.getByText('MyFFBaD : espace licencié de la FFBaD')).toBeInTheDocument();
   });
 });

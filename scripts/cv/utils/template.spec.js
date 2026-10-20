@@ -96,7 +96,7 @@ describe('renderCvHtml', () => {
     );
     expect(project.querySelector('.technologies')).toBeNull();
     expect(getTexts({ document, selector: '.project-title' })).toContain(
-      'CLARIS — Refonte SI de certification · 3 sprints livrés',
+      'CLARIS\u00a0: refonte du SI de certification · 3 sprints livrés',
     );
     expect(getTexts({ document, selector: '.project .technologies' })).toContain(
       'React.js · Redux.js · TypeScript · ChartJS',

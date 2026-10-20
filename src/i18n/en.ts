@@ -196,7 +196,7 @@ export const en = {
       title: 'JavaScript Apprentice Developer (React.js and Redux.js)',
       start: 'Jan. 2019',
       end: 'Sept. 2019',
-      proj1Title: 'CLARIS — Certification IS Overhaul',
+      proj1Title: 'CLARIS: Certification IS Overhaul',
       proj1State: '3 sprints delivered',
       proj1Desc1:
         'Within a team of seven developers, took part in the front-end overhaul of the CLARIS information system, built for ',
@@ -208,7 +208,7 @@ export const en = {
         'Full-Stack JavaScript Apprentice Developer (React.js, Redux.js, Next.js, Docker, GCP)',
       start: 'June 2018',
       end: 'Mar. 2019',
-      proj1Title: 'MyFFBaD — FFBaD Licensee Portal',
+      proj1Title: 'MyFFBaD: FFBaD Licensee Portal',
       proj1State: 'Delivered on time',
       proj1Desc1:
         'In a pair, from-scratch development of the front-end pages of the licensee portal of the ',
@@ -223,7 +223,7 @@ export const en = {
       city: 'Valbonne\u00a0(06)',
       start: 'May 2017',
       end: 'Aug. 2017',
-      proj1Title: 'Dream Nation Festival 2017 — Event Website',
+      proj1Title: 'Dream Nation Festival 2017: Event Website',
       proj1State: 'Delivered on time',
       proj1Desc:
         'Design and development of the festival website, with a booking (ticket and hotel) and online payment system.',
