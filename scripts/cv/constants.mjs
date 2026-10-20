@@ -132,6 +132,21 @@ export const UTF16_BYTE_ORDER_MARK = 'FEFF';
 /** Separator of the keywords in the document information of a PDF. */
 export const PDF_KEYWORDS_SEPARATOR = ', ';
 
+/**
+ * Entries of the document information of a CV that `pnpm cv:audit` writes, those that describe
+ * it: the others give the version of the PDF, the tools that wrote it and their dates.
+ */
+export const DESCRIPTIVE_INFO_KEYS = ['Title', 'Author', 'Subject', 'Keywords'];
+
+/**
+ * Scale of the images of the pages that `pnpm cv:audit` draws, to the size of the page in CSS
+ * pixels: an A4 page gives 1,191 by 1,684 pixels, sharp enough to read its smallest text.
+ */
+export const AUDIT_PAGE_SCALE = 2;
+
+/** Name of the file of the text of the CVs that `pnpm cv:audit` writes in its folder. */
+export const AUDIT_TEXT_FILE = 'cv-text.md';
+
 /** Argument of `pnpm cv` that prints and checks the CVs without writing any file. */
 export const CHECK_ONLY_FLAG = '--check';
 

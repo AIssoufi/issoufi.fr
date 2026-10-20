@@ -37,6 +37,7 @@ pnpm dev        # http://localhost:3000
 | `pnpm build:standalone`       | Build the site that opens from the disk                 |
 | `pnpm og-image`, `pnpm icons` | Regenerate the link previews, the icons and the logo    |
 | `pnpm cv`, `pnpm cv:check`    | Regenerate the CVs, or only check that they still match |
+| `pnpm cv:audit <folder>`      | Text and page images of the CVs to [audit](cv-audit.md) |
 
 The generators are described in [Assets](assets.md#generated-files).
 

@@ -29,6 +29,7 @@ describe('readPdf', () => {
     expect(pdf).toEqual({
       pageCount: 2,
       text: 'ADAM Issoufi Experiences',
+      pages: ['ADAM Issoufi', 'Experiences'],
       links: ['mailto:adam@example.com', 'https://issoufi.fr/'],
       fonts: [{ name: 'Helvetica', type: 'Type1' }],
       info: { PDFFormatVersion: '1.4', Title: 'CV - ADAM Issoufi', Subject: 'é' },
@@ -54,6 +55,21 @@ describe('readPdf', () => {
     await readPdf(data);
 
     expect(data).toEqual(copy);
+  });
+
+  it('reads the lines of each page, which the text of the PDF joins with a space', async () => {
+    const pdf = await readPdf(
+      buildPdf({ pages: [{ text: 'ADAM Issoufi\nDeveloper\nParis' }, { text: 'Experience' }] }),
+    );
+
+    expect(pdf.pages).toEqual(['ADAM Issoufi\nDeveloper\nParis', 'Experience']);
+    expect(pdf.text).toBe('ADAM Issoufi Developer Paris Experience');
+  });
+
+  it('reads no line on a page without text', async () => {
+    const pdf = await readPdf(buildPdf({ pages: [{ text: '' }] }));
+
+    expect(pdf.pages).toEqual(['']);
   });
 
   it('leaves out the marked-content items of the text, which hold none', async () => {

@@ -22,6 +22,7 @@ import {
  * @typedef {object} PdfSummary
  * @property {number} pageCount - Number of pages.
  * @property {string} text - Text of every page, as a reader extracts it to select or search it.
+ * @property {string[]} pages - Text of each page, line by line, as a reader copies it.
  * @property {string[]} links - URL of every link, in the order of the pages.
  * @property {PdfFont[]} fonts - Fonts that draw the text, each one once.
  * @property {Record<string, string>} info - Texts of the document information, by their key in
@@ -51,6 +52,8 @@ export const readPdf = async data => {
   try {
     const document = await loadingTask.promise;
     const texts = [];
+    /** @type {string[]} */
+    const pages = [];
     const links = [];
     /** @type {Map<string, PdfFont>} */
     const fonts = new Map();
@@ -61,6 +64,12 @@ export const readPdf = async data => {
       // holds no text: the filter keeps the text items alone, should pdf.js list one
       const textItems = items.filter(item => 'str' in item);
       texts.push(textItems.map(({ str }) => str).join(' '));
+      pages.push(
+        textItems
+          .map(({ str, hasEOL }) => (hasEOL ? `${str}\n` : str))
+          .join('')
+          .trimEnd(),
+      );
 
       const annotations = await page.getAnnotations();
       links.push(...annotations.map(({ url }) => url).filter(url => typeof url === 'string'));
@@ -78,6 +87,7 @@ export const readPdf = async data => {
     return {
       pageCount: document.numPages,
       text: texts.join(' '),
+      pages,
       links,
       fonts: [...fonts.values()],
       // pdf.js adds facts of its own to the entries of the file, such as flags: the texts alone
