@@ -1,13 +1,15 @@
 import { CV_SOURCES } from '../testUtils.js';
 import { buildCvContents } from './languages.mjs';
-import { findMissingCvTexts, listCvLinks, listCvTexts } from './texts.mjs';
+import { findMissingCvTexts, findUnwrittenKeywords, listCvLinks, listCvTexts } from './texts.mjs';
 
 const [FRENCH_CV, ENGLISH_CV] = await buildCvContents(CV_SOURCES);
 
 /** A small CV, with every kind of text. */
 const CONTENT = {
   language: 'fr',
-  title: 'CV - ADAM Issoufi',
+  title: 'CV - ADAM Issoufi - Développeur',
+  subject: 'Développeur front-end',
+  keywords: ['React', 'Tests unitaires'],
   name: 'ADAM Issoufi',
   jobTitle: 'Développeur',
   passion: [
@@ -213,6 +215,13 @@ describe('findMissingCvTexts', () => {
     expect(findMissingCvTexts({ ...CONTENT, passion })).toEqual(['passion']);
   });
 
+  it('reports a missing subject and an empty list of keywords', () => {
+    expect(findMissingCvTexts({ ...CONTENT, subject: ' ', keywords: [] })).toEqual([
+      'subject',
+      'keywords',
+    ]);
+  });
+
   it('reports the missing titles of the sections', () => {
     const content = {
       ...CONTENT,
@@ -221,5 +230,55 @@ describe('findMissingCvTexts', () => {
     };
 
     expect(findMissingCvTexts(content)).toEqual(['skills.title', 'education.title']);
+  });
+});
+
+describe('findUnwrittenKeywords', () => {
+  it('finds none when the CV writes each keyword, whatever its case', () => {
+    const keywords = ['react', 'TESTS UNITAIRES', 'Site web', 'IUT de Nice'];
+
+    expect(findUnwrittenKeywords({ ...CONTENT, keywords })).toEqual([]);
+  });
+
+  it('finds a keyword in a text where punctuation or spaces surround it', () => {
+    const content = { ...CONTENT, keywords: ['React', 'js', 'Study'] };
+
+    expect(findUnwrittenKeywords(content)).toEqual([]);
+  });
+
+  it('reports the keywords that the CV never writes, in their order', () => {
+    const keywords = ['Angular', 'React', 'Kubernetes'];
+
+    expect(findUnwrittenKeywords({ ...CONTENT, keywords })).toEqual(['Angular', 'Kubernetes']);
+  });
+
+  it.each([
+    ['the start of a word', 'Reac'],
+    ['the end of a word', 'eact'],
+    ['words of two texts', 'Développeur juin'],
+  ])('reports a keyword that the CV writes only as %s', (_case, keyword) => {
+    expect(findUnwrittenKeywords({ ...CONTENT, keywords: [keyword] })).toEqual([keyword]);
+  });
+
+  it('counts neither the title nor the subject, which the page does not write', () => {
+    const content = {
+      ...CONTENT,
+      title: 'CV Vue',
+      subject: 'Angular',
+      keywords: ['Vue', 'Angular'],
+    };
+
+    expect(findUnwrittenKeywords(content)).toEqual(['Vue', 'Angular']);
+  });
+
+  it('finds none in a CV without keyword', () => {
+    expect(findUnwrittenKeywords({ ...CONTENT, keywords: [] })).toEqual([]);
+  });
+
+  it.each([
+    ['French', FRENCH_CV],
+    ['English', ENGLISH_CV],
+  ])('finds none in the %s CV', (_language, content) => {
+    expect(findUnwrittenKeywords(content)).toEqual([]);
   });
 });

@@ -69,6 +69,8 @@ const CV_DATA = {
   },
   languages: {
     fr: {
+      subject: 'Développeur front-end senior',
+      keywords: ['React', '', '  ', 42, null, 'TypeScript'],
       phone: '06 00 00 00 00',
       location: 'Massy (91)',
       mobility: 'Véhiculé',
@@ -228,8 +230,37 @@ describe('buildProjectItems', () => {
 });
 
 describe('buildCvContent', () => {
-  it('names the document after the CV and its author', () => {
-    expect(buildCvContent(PARAMS).title).toBe('CV - ADAM Issoufi');
+  it('names the document after the CV, its author and the job title', () => {
+    expect(buildCvContent(PARAMS).title).toBe(
+      'CV - ADAM Issoufi - Développeur full-stack JavaScript',
+    );
+  });
+
+  it('leaves an empty job title out of the name of the document', () => {
+    const homeTexts = { ...HOME_TEXTS, jobTitle: '' };
+
+    expect(buildCvContent({ ...PARAMS, homeTexts }).title).toBe('CV - ADAM Issoufi');
+  });
+
+  it('gives the subject and the filled keywords of the data of the CV', () => {
+    const content = buildCvContent(PARAMS);
+
+    expect(content.subject).toBe('Développeur front-end senior');
+    expect(content.keywords).toEqual(['React', 'TypeScript']);
+  });
+
+  it.each([
+    ['missing', { subject: undefined, keywords: undefined }],
+    ['null', { subject: null, keywords: null }],
+    ['of the wrong type', { subject: 42, keywords: 'React, TypeScript' }],
+    ['empty', { subject: '', keywords: [] }],
+  ])('gives no subject nor keyword when they are %s', (_case, texts) => {
+    const cvData = { ...CV_DATA, languages: { fr: { ...CV_DATA.languages.fr, ...texts } } };
+
+    const content = buildCvContent({ ...PARAMS, cvData });
+
+    expect(content.subject).toBe('');
+    expect(content.keywords).toEqual([]);
   });
 
   it('writes the texts of the home page in the header', () => {
@@ -345,12 +376,12 @@ describe('buildCvContent', () => {
     });
   });
 
-  it('names the document after its author alone when the CV has no name', () => {
+  it('names the document after its author and the job title when the CV has no name', () => {
     const content = buildCvContent({
       ...PARAMS,
       translate: key => (key === 'cvLink.documentName' ? '' : translate(key)),
     });
 
-    expect(content.title).toBe('ADAM Issoufi');
+    expect(content.title).toBe('ADAM Issoufi - Développeur full-stack JavaScript');
   });
 });

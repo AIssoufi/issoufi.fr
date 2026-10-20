@@ -1,4 +1,5 @@
 // @ts-check
+import { NON_WORD_CHARACTERS_PATTERN } from '../constants.mjs';
 
 /** @typedef {import('./types.mjs').CvContent} CvContent */
 /** @typedef {import('./types.mjs').CvTextSegment} CvTextSegment */
@@ -93,6 +94,7 @@ const listRequiredTexts = content => {
   /** @type {[string, string][]} */
   const texts = [
     ['title', content.title],
+    ['subject', content.subject],
     ['name', content.name],
     ['jobTitle', content.jobTitle],
     ['subtitle', content.subtitle],
@@ -122,6 +124,33 @@ const listRequiredTexts = content => {
 };
 
 /**
+ * Writes a text as a search for whole words compares it: its words in lower case, with a space
+ * between them and around them, so that a word is found only where it stands whole.
+ * @param {string} text - Text to write.
+ * @returns {string} The text, e.g. ` node js ` for `Node.js`.
+ */
+const toSearchableWords = text =>
+  ` ${text.toLowerCase().replace(NON_WORD_CHARACTERS_PATTERN, ' ').trim()} `;
+
+/**
+ * Lists the keywords of the document information that no text of the CV holds as whole words,
+ * whatever their case and punctuation, so that its information only names what a reader of the CV
+ * finds in it: a recruiting tool flags a keyword written for machines alone. `React` is found in
+ * `React.js`, `Java` is not in `JavaScript`.
+ * @param {CvContent} content - Content of the CV, from `buildCvContent`.
+ * @returns {string[]} The keywords that the CV never writes, in their order. Empty when it writes
+ * each one.
+ * @example
+ * findUnwrittenKeywords({ ...content, keywords: ['React', 'Angular'] }); // ['Angular']
+ */
+export const findUnwrittenKeywords = content => {
+  const cvWords = listCvTexts(content).map(toSearchableWords).join('');
+  /** @param {string} keyword */
+  const isWritten = keyword => cvWords.includes(toSearchableWords(keyword));
+  return content.keywords.filter(keyword => !isWritten(keyword));
+};
+
+/**
  * Lists the texts that the CV cannot do without and that are empty, so the script stops instead
  * of writing a CV with a hole, as when a translation key is misspelled.
  * @param {CvContent} content - Content of the CV, from `buildCvContent`.
@@ -137,6 +166,7 @@ export const findMissingCvTexts = content => {
     .map(([path]) => path);
   /** @type {[string, unknown[]][]} */
   const requiredLists = [
+    ['keywords', content.keywords],
     ['contacts', content.contacts],
     ['profiles', content.profiles],
     ['experiences.items', content.experiences.items],

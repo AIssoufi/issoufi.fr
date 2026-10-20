@@ -5,6 +5,19 @@
   },
   "languages": {
     "fr": {
+      "subject": "Développeur Front-End Senior, responsable d’un UI Kit React et TypeScript, développement avec des agents IA",
+      "keywords": [
+        "React",
+        "TypeScript",
+        "UI Kit",
+        "Monorepo",
+        "Storybook",
+        "Node.js",
+        "GraphQL",
+        "GitLab CI/CD",
+        "Agents IA",
+        "Claude Code"
+      ],
       "phone": "06 95 75 86 32",
       "location": "Massy (91)",
       "mobility": "Véhiculé",
@@ -41,6 +54,19 @@
       ]
     },
     "en": {
+      "subject": "Senior Front-End Developer, owner of a React and TypeScript UI Kit, development with AI agents",
+      "keywords": [
+        "React",
+        "TypeScript",
+        "UI Kit",
+        "Monorepo",
+        "Storybook",
+        "Node.js",
+        "GraphQL",
+        "GitLab CI/CD",
+        "AI agents",
+        "Claude Code"
+      ],
       "phone": "+33 6 95 75 86 32",
       "location": "Massy, France",
       "mobility": "Own car",

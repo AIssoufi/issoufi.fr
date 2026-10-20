@@ -98,11 +98,51 @@ export const FONT_SUBSET_PREFIX_PATTERN = /^[A-Z]{6}\+/;
  */
 export const PDF_DATE_PATTERN = /(\/(?:CreationDate|ModDate)\s*)\((?:[^()\\]|\\.)*\)/g;
 
+/** Keyword that starts the trailer of a PDF, which names its root and its information. */
+export const PDF_TRAILER_KEYWORD = 'trailer';
+
+/**
+ * Last trailer of a PDF with a classic cross-reference table, up to the end of the file: its
+ * dictionary, then the offset of that table, e.g.
+ * `trailer\n<</Size 327\n/Root 314 0 R\n/Info 1 0 R>>\nstartxref\n75353\n%%EOF\n`.
+ */
+export const PDF_TRAILER_PATTERN = /^trailer\s*<<([\s\S]*)>>\s*startxref\s*(\d+)\s*%%EOF\s*$/;
+
+/** Number of objects of a PDF, in its trailer, e.g. `/Size 327`. */
+export const PDF_SIZE_PATTERN = /\/Size\s+(\d+)/;
+
+/** Reference to the root of a PDF, in its trailer, e.g. `/Root 314 0 R`. */
+export const PDF_ROOT_PATTERN = /\/Root\s+(\d+\s+\d+\s+R)/;
+
+/**
+ * Reference to the information dictionary of a PDF, in its trailer, e.g. `/Info 1 0 R`: its
+ * object number, then its generation number.
+ */
+export const PDF_INFO_REFERENCE_PATTERN = /\/Info\s+(\d+)\s+(\d+)\s+R/;
+
+/** Digits of the offset of an object in a cross-reference table of a PDF, padded with zeros. */
+export const XREF_OFFSET_DIGITS = 10;
+
+/** Digits of the generation number of an object in a cross-reference table of a PDF. */
+export const XREF_GENERATION_DIGITS = 5;
+
+/** Byte order mark that starts a text string of a PDF written in UTF-16BE, in hexadecimal. */
+export const UTF16_BYTE_ORDER_MARK = 'FEFF';
+
+/** Separator of the keywords in the document information of a PDF. */
+export const PDF_KEYWORDS_SEPARATOR = ', ';
+
 /** Argument of `pnpm cv` that prints and checks the CVs without writing any file. */
 export const CHECK_ONLY_FLAG = '--check';
 
 /** Spaces of any kind, which the text of a PDF breaks, joins or drops at the end of the lines. */
 export const WHITESPACE_PATTERN = /\s+/g;
+
+/**
+ * Characters other than letters and digits, which a search for a keyword reads as the spaces
+ * between words, e.g. the dot of `Node.js`.
+ */
+export const NON_WORD_CHARACTERS_PATTERN = /[^\p{L}\p{N}]+/gu;
 
 /** Length of the start of a missing text quoted in a problem of the PDF. */
 export const QUOTED_TEXT_LENGTH = 60;

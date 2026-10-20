@@ -68,5 +68,6 @@ Regenerate them after a change of their sources, look at them, and commit them w
 - All three run offline in Chromium. With the same Chromium, a run that changes nothing leaves `git status` clean.
 - A spec fails when a CV no longer says what the site says, or when the outline of the logo no longer matches its font.
 - A CV tags a job title with the `titleLanguage` of its role in `experiences.json`, as the Experiences page does, so that a screen reader reads an English title of the French PDF in English.
+- The document information of a CV, which PDF readers show and recruiting tools index, names its author, a title made of the name and the job title of the home page, and the `subject` and `keywords` of its language in `scripts/cv/.data/cv.json`. `pnpm cv` refuses a keyword that the CV does not write, so the information names only what a reader finds in the CV.
 - `pnpm cv` fails when the text of a PDF reads a text of the CV out of the order of the page, as applicant tracking systems would read it. Chromium paints a positioned element after the rest of its page, so no element of the CV is positioned.
 - A new language needs its link preview image, the URL of its CV and the texts of its CV. A new icon needs its entry in the icon list and a layout, which a spec matches.

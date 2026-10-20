@@ -24,7 +24,7 @@ describe('renderCvHtml', () => {
     const document = renderDocument(ENGLISH_CV);
 
     expect(document.documentElement.lang).toBe('en');
-    expect(document.title).toBe('CV - ADAM Issoufi');
+    expect(document.title).toBe('CV - ADAM Issoufi - Full-stack JavaScript Developer');
     expect(document.querySelector('meta[name="author"]').content).toBe('ADAM Issoufi');
   });
 

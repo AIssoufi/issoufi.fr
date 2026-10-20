@@ -24,11 +24,13 @@ import {
  * @property {string} text - Text of every page, as a reader extracts it to select or search it.
  * @property {string[]} links - URL of every link, in the order of the pages.
  * @property {PdfFont[]} fonts - Fonts that draw the text, each one once.
+ * @property {Record<string, string>} info - Texts of the document information, by their key in
+ * the PDF, e.g. `{ Title: 'CV - ADAM Issoufi', Subject: '…' }`.
  */
 
 /**
- * Reads the text, the links and the fonts of a PDF with pdf.js, as a PDF reader does to select,
- * search and open them.
+ * Reads the text, the links, the fonts and the document information of a PDF with pdf.js, as a
+ * PDF reader does to select, search, open and describe them.
  * @param {Uint8Array} data - Content of the PDF file.
  * @returns {Promise<PdfSummary>} What the PDF holds.
  * @throws {Error} When the data is not a PDF.
@@ -72,11 +74,17 @@ export const readPdf = async data => {
         fonts.set(fontId, { name, type });
       });
     }
+    const { info } = await document.getMetadata();
     return {
       pageCount: document.numPages,
       text: texts.join(' '),
       links,
       fonts: [...fonts.values()],
+      // pdf.js adds facts of its own to the entries of the file, such as flags: the texts alone
+      // stay, with the version of the PDF
+      info: Object.fromEntries(
+        Object.entries(info).filter(([, value]) => typeof value === 'string'),
+      ),
     };
   } finally {
     // Stops the worker of pdf.js, which would keep Node.js running
@@ -152,17 +160,20 @@ const findTextsOutOfOrder = ({ searchableText, texts }) => {
  * @property {string[]} links - URLs the PDF must link to, from `listCvLinks`.
  * @property {string} fontFamily - Family of every font of the PDF, e.g. `Montserrat`: another one
  * means that the browser drew some characters in a fallback font.
+ * @property {Record<string, string>} info - Texts the document information must hold, by their
+ * key in the PDF, e.g. `{ Title: 'CV - ADAM Issoufi', Subject: '…' }`.
  */
 
 /**
  * Lists what is wrong with a generated CV: too heavy or too long, a Type 3 font, whose text
  * Preview and Safari can neither select nor search, a font other than the one of the site, an em
- * dash in its text, a text or a link of the site that the PDF lacks, or a text that it reads out
- * of the order of the page.
+ * dash in its text, a text or a link of the site that the PDF lacks, a text that it reads out of
+ * the order of the page, or document information other than the CV says.
  * @param {FindPdfProblemsParams} params
  * @returns {string[]} One sentence per problem, none when the PDF is right.
  * @example
- * findPdfProblems({ pdf, byteCount, maxBytes: 500_000, maxPages: 2, texts, links, fontFamily });
+ * findPdfProblems({ pdf, byteCount, maxBytes: 500_000, maxPages: 2, texts, links, fontFamily,
+ *   info });
  * // ['the font AAAAAA+Montserrat-Regular is a Type 3 font, whose text Preview cannot select']
  */
 export const findPdfProblems = ({
@@ -173,6 +184,7 @@ export const findPdfProblems = ({
   texts,
   links,
   fontFamily,
+  info,
 }) => {
   const searchableText = toSearchableText(pdf.text);
   const family = toSearchableText(fontFamily);
@@ -187,6 +199,8 @@ export const findPdfProblems = ({
   const isMissingText = text => !searchableText.includes(toSearchableText(text));
   /** @param {string} link */
   const isMissingLink = link => !pdf.links.includes(link);
+  /** @param {[string, string]} entry */
+  const isOtherInfo = ([key, value]) => pdf.info[key] !== value;
 
   return [
     ...(isTooHeavy ? [`it weighs ${byteCount} bytes, over ${maxBytes}`] : []),
@@ -202,6 +216,9 @@ export const findPdfProblems = ({
     ...texts.filter(isMissingText).map(text => `the text "${quote(text)}" is missing`),
     ...findTextsOutOfOrder({ searchableText, texts }),
     ...links.filter(isMissingLink).map(link => `the link ${link} is missing`),
+    ...Object.entries(info)
+      .filter(isOtherInfo)
+      .map(([key, value]) => `its ${key} is "${pdf.info[key] ?? ''}", not "${value}"`),
   ];
 };
 

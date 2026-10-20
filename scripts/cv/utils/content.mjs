@@ -247,7 +247,8 @@ const buildProfiles = ({ siteUrl, siteDomain, linkedInUrl, gitHubUrl }) =>
  * Gathers everything the CV of one language writes: the name and the job title of the home page,
  * the contact details and the links to the site and the profiles of its owner, the experiences
  * of the Experiences page, the projects of the Projects page, and the skills and the education
- * of the data of the CV, which the site does not show.
+ * of the data of the CV, which the site does not show, with the subject and the keywords that its
+ * document information gives.
  * @param {BuildCvContentParams} params
  * @returns {CvContent} The content, with empty texts where the data or a translation lacks one.
  * @example
@@ -272,7 +273,11 @@ export const buildCvContent = ({
 
   return {
     language,
-    title: [documentName, homeTexts.name].filter(isFilled).join(PAGE_TITLE_SEPARATOR),
+    title: [documentName, homeTexts.name, homeTexts.jobTitle]
+      .filter(isFilled)
+      .join(PAGE_TITLE_SEPARATOR),
+    subject: toText(texts.subject),
+    keywords: toTexts(texts.keywords),
     name: homeTexts.name,
     jobTitle: homeTexts.jobTitle,
     passion: homeTexts.passion,

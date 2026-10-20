@@ -93,7 +93,12 @@
  * Everything the CV writes, in one language.
  * @typedef {object} CvContent
  * @property {string} language - Code of the language, e.g. `fr`.
- * @property {string} title - Title of the document, e.g. "CV - ADAM Issoufi".
+ * @property {string} title - Title of the document, e.g.
+ * "CV - ADAM Issoufi - Développeur full-stack JavaScript".
+ * @property {string} subject - Subject of the document, in its information: the role and what
+ * sets its author apart, which PDF readers show and recruiting tools index.
+ * @property {string[]} keywords - Keywords of the document, in its information: terms that the
+ * CV writes and that recruiting tools search, e.g. `React`.
  * @property {string} name - Name of the site's author.
  * @property {string} jobTitle - Job title.
  * @property {TextSegment[]} passion - Line about UX and UI design, as on the home page.
