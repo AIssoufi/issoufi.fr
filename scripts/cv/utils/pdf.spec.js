@@ -6,6 +6,7 @@ import { getDocument } from 'pdfjs-dist/legacy/build/pdf.mjs';
 
 import { CV_URLS } from '../../../src/App/Header/NavMenu/CvLink/constants.ts';
 import { PUBLIC_DIR } from '../../utils/constants.mjs';
+import { EM_DASH } from '../constants.mjs';
 import { findPdfProblems, isSamePdfApartFromDates, readPdf } from './pdf.mjs';
 
 /**
@@ -191,6 +192,20 @@ describe('findPdfProblems', () => {
     expect(findPdfProblems({ ...PARAMS, pdf: { ...PDF, fonts: [] } })).toContain(
       'it has no font, so no text',
     );
+  });
+
+  it('reports an em dash in the text', () => {
+    const pdf = { ...PDF, text: `${PDF.text} oct. 2025 ${EM_DASH} sept. 2026` };
+
+    expect(findPdfProblems({ ...PARAMS, pdf })).toEqual([
+      'its text holds an em dash, which the site keeps out of its texts',
+    ]);
+  });
+
+  it('accepts an en dash and a hyphen', () => {
+    const pdf = { ...PDF, text: `${PDF.text} oct. 2025 – sept. 2026 full-stack` };
+
+    expect(findPdfProblems({ ...PARAMS, pdf })).toEqual([]);
   });
 
   it('reports each missing text, quoting the start of a long one', () => {

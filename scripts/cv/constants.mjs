@@ -110,8 +110,17 @@ export const QUOTED_TEXT_LENGTH = 60;
 /** Separator of the company details and of the technologies, as on the Experiences page. */
 export const DETAILS_SEPARATOR = ' · ';
 
-/** Separator of the start and the end of a period, as on the Experiences page. */
-export const PERIOD_SEPARATOR = ' — ';
+/**
+ * Separator of the start and the end of a period, an en dash as on the Experiences page
+ * (`INLINE_PERIOD_MARK`) and in the years of the education.
+ */
+export const PERIOD_SEPARATOR = ' – ';
+
+/**
+ * The em dash, which no text of the CV may hold: the site owner keeps it out of every text that
+ * a visitor reads, since it makes a text look written by an AI.
+ */
+export const EM_DASH = '\u2014';
 
 /**
  * Mark before each bullet point, as on the Experiences page (`BulletItem`, in

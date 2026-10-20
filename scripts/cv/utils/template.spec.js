@@ -77,7 +77,7 @@ describe('renderCvHtml', () => {
       'Supralog · Alternance · Antibes\u00a0(06)',
       'Beepeers · Stage · Valbonne\u00a0(06)',
     ]);
-    expect(getTexts({ document, selector: '.period' })[0]).toBe('oct. 2025 — Aujourd’hui');
+    expect(getTexts({ document, selector: '.period' })[0]).toBe('oct. 2025 – Aujourd’hui');
     expect(document.querySelectorAll('.role')).toHaveLength(7);
   });
 

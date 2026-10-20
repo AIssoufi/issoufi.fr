@@ -16,6 +16,8 @@ The agents read these rules, one line each, in [`CLAUDE.md`](../CLAUDE.md).
 ## Code
 
 - Code, comments and docs are in English. Only the texts of the site are translated.
+- No text that a visitor reads, the CV included, holds an em dash (U+2014): a period takes an en dash, a pause a comma.
+  `src/visibleTexts.spec.ts` and `pnpm cv` fail on one.
 - Prettier wraps the code at 100 characters but never a comment: ESLint refuses a comment line wider than that.
 - One folder per component: `Name.tsx` with its JSDoc, `Name.spec.jsx`, `Name.styled.ts` and `index.ts`.
 - A sub-component nests in the folder of its parent. A component shared by pages goes in `src/components/`.

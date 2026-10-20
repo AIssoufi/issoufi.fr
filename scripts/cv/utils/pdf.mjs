@@ -2,6 +2,7 @@
 import { getDocument, OPS, VerbosityLevel } from 'pdfjs-dist/legacy/build/pdf.mjs';
 
 import {
+  EM_DASH,
   FONT_SUBSET_PREFIX_PATTERN,
   PDF_DATE_PATTERN,
   QUOTED_TEXT_LENGTH,
@@ -116,8 +117,8 @@ const quote = text =>
 
 /**
  * Lists what is wrong with a generated CV: too heavy or too long, a Type 3 font, whose text
- * Preview and Safari can neither select nor search, a font other than the one of the site, or a
- * text or a link of the site that the PDF lacks.
+ * Preview and Safari can neither select nor search, a font other than the one of the site, an em
+ * dash in its text, or a text or a link of the site that the PDF lacks.
  * @param {FindPdfProblemsParams} params
  * @returns {string[]} One sentence per problem, none when the PDF is right.
  * @example
@@ -138,6 +139,7 @@ export const findPdfProblems = ({
   const isTooHeavy = byteCount > maxBytes;
   const isPageCountWrong = pdf.pageCount < 1 || pdf.pageCount > maxPages;
   const hasNoFont = pdf.fonts.length === 0;
+  const hasEmDash = pdf.text.includes(EM_DASH);
   /** @param {PdfFont} font */
   const isOtherFamily = ({ name }) =>
     !toSearchableText(name.replace(FONT_SUBSET_PREFIX_PATTERN, '')).startsWith(family);
@@ -156,6 +158,7 @@ export const findPdfProblems = ({
     ...pdf.fonts
       .filter(isOtherFamily)
       .map(({ name }) => `the font ${name} is not ${fontFamily}, the font of the site`),
+    ...(hasEmDash ? ['its text holds an em dash, which the site keeps out of its texts'] : []),
     ...texts.filter(isMissingText).map(text => `the text "${quote(text)}" is missing`),
     ...links.filter(isMissingLink).map(link => `the link ${link} is missing`),
   ];
