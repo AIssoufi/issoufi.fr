@@ -8,7 +8,7 @@ The rules and pitfalls of this repository that the code does not show. How the s
 - **Tickets**: one Worktrunk worktree per ticket, on a branch named after its reference (`ISF-35`), started with the `ticket-worktree` skill (`ticket.mjs start ISF-35`) rather than a bare `wt switch --create`; its pull request says `Closes #35`. Bring `develop` in with a rebase and `git push --force-with-lease`, never a merge.
 - **Ports**: the `.env.local` of a worktree holds its `PORT`, which `pnpm dev`, `pnpm preview`, `pnpm test:browser` and `pnpm test:visual` use (3000 and 4173 without it); a taken port stops the server (`strictPort`).
 - **Commits**: Conventional Commits (commitlint). release-please writes `CHANGELOG.md` and the version from them: never edit the changelog, and use `feat` and `fix` only for what a visitor of the site notices.
-- **Documentation**: describe a change in the `docs/` file of its topic, and keep the README an overview for visitors of the repository; add a line here only for a rule or a pitfall that the code does not show.
+- **Documentation**: describe a change in the `docs/` file of its topic, and keep the README an overview for visitors of the repository; add a line here only for a rule or a pitfall that the code does not show. A change of how the agents work (roles, tickets, reviews, journals) updates [`docs/ai-workflow/`](docs/ai-workflow/README.md).
 
 ## Code
 
