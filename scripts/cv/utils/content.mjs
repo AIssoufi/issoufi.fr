@@ -6,6 +6,7 @@ import {
   LANGUAGE_CODE_PATTERN,
   MAILTO_PREFIX,
 } from '../constants.mjs';
+import { isEntry, isFilled, toEntries, toText, toTexts } from './data.mjs';
 import { toLinkText, toLinkUrl } from './links.mjs';
 
 /** @typedef {import('./types.mjs').CvContent} CvContent */
@@ -19,14 +20,6 @@ import { toLinkText, toLinkUrl } from './links.mjs';
 /** @typedef {import('./types.mjs').Translate} Translate */
 
 /**
- * Reads a text of the data, so a missing or misspelled field gives an empty text instead of a
- * crash.
- * @param {unknown} value - Value to read.
- * @returns {string} The value, or `''` when it is not a string.
- */
-const toText = value => (typeof value === 'string' ? value : '');
-
-/**
  * Reads a language code of the data, so that a misspelled one never gives a wrong `lang`.
  * @param {unknown} value - Value to read, e.g. the `titleLanguage` of a role.
  * @returns {string} The code, or `''` when it is not one, as `'english'` or `42`.
@@ -35,34 +28,6 @@ const toLanguageCode = value => {
   const code = toText(value);
   return LANGUAGE_CODE_PATTERN.test(code) ? code : '';
 };
-
-/**
- * Tells whether a text holds more than spaces.
- * @param {string} text - Text to check.
- * @returns {boolean} False for `''` and `'  '`.
- */
-const isFilled = text => text.trim() !== '';
-
-/**
- * Tells whether a value of the data is an object other than a list, as an entry is.
- * @param {unknown} value - Value to check.
- * @returns {value is Record<string, any>} True for an object that is not a list.
- */
-const isEntry = value => typeof value === 'object' && value !== null && !Array.isArray(value);
-
-/**
- * Keeps the entries of a list of the data.
- * @param {unknown} value - List to read.
- * @returns {Record<string, any>[]} Its objects, or none when it is not a list.
- */
-const toEntries = value => (Array.isArray(value) ? value.filter(isEntry) : []);
-
-/**
- * Keeps the filled texts of a list of the data, such as technologies.
- * @param {unknown} value - List to read.
- * @returns {string[]} Its texts that hold more than spaces, or none when it is not a list.
- */
-const toTexts = value => (Array.isArray(value) ? value.map(toText).filter(isFilled) : []);
 
 /**
  * Parameters of {@link translateSegments}.
