@@ -261,6 +261,4 @@ export const CV_LAYOUT = {
   contactGap: '3.5mm',
   /** Space between two columns. */
   columnGap: '6mm',
-  /** Space between two projects of the Projects page. */
-  entryGap: '0.6mm',
 };

@@ -58,8 +58,8 @@ const CONTENT = {
       {
         title: 'Projets freelance',
         items: [
-          { name: 'Study SARL', type: 'Site web', tools: ['PHP'], url: 'https://study.fr/' },
-          { name: 'Calculatrice', type: '', tools: [], url: '' },
+          { name: 'Study SARL', url: 'https://study.fr/' },
+          { name: 'Calculatrice', url: '' },
         ],
       },
     ],
@@ -67,7 +67,7 @@ const CONTENT = {
   skills: { title: 'Compétences', items: ['Tests unitaires'] },
   education: {
     title: 'Formation',
-    items: [{ degree: 'DUT', period: '2014 – 2016', school: 'IUT de Nice', description: '' }],
+    items: [{ degree: 'DUT', period: '2014 – 2016', school: 'IUT de Nice' }],
   },
 };
 
@@ -95,8 +95,6 @@ describe('listCvTexts', () => {
       'Projets',
       'Projets freelance',
       'Study SARL',
-      'Site web',
-      'PHP',
       'Calculatrice',
       'Compétences',
       'Tests unitaires',
@@ -232,7 +230,7 @@ describe('findMissingCvTexts', () => {
 
 describe('findUnwrittenKeywords', () => {
   it('finds none when the CV writes each keyword, whatever its case', () => {
-    const keywords = ['react', 'TESTS UNITAIRES', 'Site web', 'IUT de Nice'];
+    const keywords = ['react', 'TESTS UNITAIRES', 'Study SARL', 'IUT de Nice'];
 
     expect(findUnwrittenKeywords({ ...CONTENT, keywords })).toEqual([]);
   });

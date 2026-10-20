@@ -36,14 +36,12 @@
         {
           "degree": "Master 2 MIAGE, spécialité MBDS",
           "period": "2016 – 2019",
-          "school": "Université de Nice",
-          "description": "Big data, administration de bases de données, développement d’applications JEE, JavaScript (React.js, Angular, Vue.js et Node.js) et mobiles (Swift et Android)"
+          "school": "Université de Nice"
         },
         {
           "degree": "DUT Informatique",
           "period": "2014 – 2016",
-          "school": "IUT de Nice",
-          "description": "Conception, développement logiciel, administration système, etc."
+          "school": "IUT de Nice"
         },
         {
           "degree": "Classe préparatoire",
@@ -84,14 +82,12 @@
         {
           "degree": "Master's degree in Computer Science (MIAGE), MBDS track",
           "period": "2016 – 2019",
-          "school": "Université de Nice",
-          "description": "Big data, database administration, development of JEE, JavaScript (React.js, Angular, Vue.js and Node.js) and mobile (Swift and Android) applications"
+          "school": "Université de Nice"
         },
         {
           "degree": "Two-year technical degree in Computer Science (DUT)",
           "period": "2014 – 2016",
-          "school": "IUT de Nice",
-          "description": "Software design and development, system administration, etc."
+          "school": "IUT de Nice"
         },
         {
           "degree": "Preparatory class for engineering schools",

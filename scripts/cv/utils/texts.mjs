@@ -55,19 +55,11 @@ export const listCvTexts = content => {
       ]),
     ]),
     projects.title,
-    ...projects.items.flatMap(({ title, items }) => [
-      title,
-      ...items.flatMap(({ name, type, tools }) => [name, type, ...tools]),
-    ]),
+    ...projects.items.flatMap(({ title, items }) => [title, ...items.map(({ name }) => name)]),
     skills.title,
     ...skills.items,
     education.title,
-    ...education.items.flatMap(({ degree, period, school, description }) => [
-      degree,
-      period,
-      school,
-      description,
-    ]),
+    ...education.items.flatMap(({ degree, period, school }) => [degree, period, school]),
   ];
   return texts.filter(text => !isBlank(text));
 };

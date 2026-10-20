@@ -77,7 +77,12 @@ const CV_DATA = {
       skills: ['Tests unitaires', '', 42],
       educationTitle: 'Formation',
       education: [
-        { degree: 'DUT Informatique', period: '2014 – 2016', school: 'IUT de Nice' },
+        {
+          degree: 'DUT Informatique',
+          period: '2014 – 2016',
+          school: 'IUT de Nice',
+          description: 'Conception',
+        },
         { period: '2013 – 2014' },
         'Master',
       ],
@@ -205,20 +210,24 @@ describe('buildExperiences', () => {
 });
 
 describe('buildProjectItems', () => {
-  it('keeps the name, the kind, the technologies and the link of each project', () => {
+  it('keeps the name and the link of each project, without its kind or its technologies', () => {
     expect(buildProjectItems(PARAMS.freelanceProjects)).toEqual([
-      { name: 'Study SARL', type: 'Site web', tools: ['PHP'], url: 'https://study.fr/' },
+      { name: 'Study SARL', url: 'https://study.fr/' },
     ]);
   });
 
   it('leaves out a project without name, and a link that is not a web address', () => {
     const projects = [
-      { name: '', type: 'Site web' },
-      { name: 'Puissance 4', type: 42, tools: 'Express', url: 'javascript:alert(1)' },
+      { name: '', url: 'https://study.fr/' },
+      { name: '  ', url: 'https://study.fr/' },
+      { name: 42, url: 'https://study.fr/' },
+      { name: 'Puissance 4', url: 'javascript:alert(1)' },
+      { name: 'Calculatrice', url: 42 },
     ];
 
     expect(buildProjectItems(projects)).toEqual([
-      { name: 'Puissance 4', type: '', tools: [], url: '' },
+      { name: 'Puissance 4', url: '' },
+      { name: 'Calculatrice', url: '' },
     ]);
   });
 
@@ -313,12 +322,12 @@ describe('buildCvContent', () => {
     expect(items.map(({ title }) => title)).toEqual(['Projets personnels']);
   });
 
-  it('keeps the skills and the degrees that are filled', () => {
+  it('keeps the skills and the degrees that are filled, a degree without its description', () => {
     const content = buildCvContent(PARAMS);
 
     expect(content.skills.items).toEqual(['Tests unitaires']);
     expect(content.education.items).toEqual([
-      { degree: 'DUT Informatique', period: '2014 – 2016', school: 'IUT de Nice', description: '' },
+      { degree: 'DUT Informatique', period: '2014 – 2016', school: 'IUT de Nice' },
     ]);
   });
 

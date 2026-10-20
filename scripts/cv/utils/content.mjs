@@ -114,18 +114,14 @@ export const buildExperiences = ({ translate, experiences }) =>
   }));
 
 /**
- * Turns the projects of the Projects page, already translated, into entries of the CV.
+ * Turns the projects of the Projects page, already translated, into entries of the CV: their
+ * names and their links.
  * @param {unknown} projects - Cards of `translateProjects` (`src/pages/Projects/utils.ts`).
  * @returns {CvProjectItem[]} The projects that have a name, none when `projects` is not a list.
  */
 export const buildProjectItems = projects =>
   toEntries(projects)
-    .map(({ name, type, tools, url }) => ({
-      name: toText(name),
-      type: toText(type),
-      tools: toTexts(tools),
-      url: toLinkUrl(url),
-    }))
+    .map(({ name, url }) => ({ name: toText(name), url: toLinkUrl(url) }))
     .filter(({ name }) => isFilled(name));
 
 /**
@@ -135,11 +131,10 @@ export const buildProjectItems = projects =>
  */
 const buildDegrees = education =>
   toEntries(education)
-    .map(({ degree, period, school, description }) => ({
+    .map(({ degree, period, school }) => ({
       degree: toText(degree),
       period: toText(period),
       school: toText(school),
-      description: toText(description),
     }))
     .filter(({ degree }) => isFilled(degree));
 

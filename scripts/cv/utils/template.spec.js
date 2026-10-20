@@ -183,7 +183,7 @@ describe('renderCvHtml', () => {
     expect(document.querySelector('.role').querySelectorAll('p, ul')).toHaveLength(0);
   });
 
-  it('writes a project of the Projects page without kind or technologies by its name alone', () => {
+  it('writes the projects of a group on one line, a project without URL by its name alone', () => {
     const content = {
       ...FRENCH_CV,
       projects: {
@@ -191,13 +191,18 @@ describe('renderCvHtml', () => {
         items: [
           {
             title: 'Projets personnels',
-            items: [{ name: 'Calculatrice', type: '', tools: [], url: '' }],
+            items: [
+              { name: 'Calculatrice', url: '' },
+              { name: 'Jeu d’échecs', url: 'https://aissoufi.github.io/chess/' },
+            ],
           },
         ],
       },
     };
     const document = renderDocument(content);
 
-    expect(document.querySelector('.entries li').innerHTML).toBe('<strong>Calculatrice</strong>');
+    expect(document.querySelector('.entries').innerHTML).toBe(
+      'Calculatrice · <a href="https://aissoufi.github.io/chess/">Jeu d’échecs</a>',
+    );
   });
 });

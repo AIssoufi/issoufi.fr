@@ -57,11 +57,10 @@
  */
 
 /**
- * A project of the Projects page.
+ * A project of the Projects page, which the CV names only: its kind and its technologies, older
+ * than the experiences, would take the space of the recent ones.
  * @typedef {object} CvProjectItem
  * @property {string} name - Name of the project, or of the client.
- * @property {string} type - Kind of project, e.g. "Site vitrine".
- * @property {string[]} tools - Technologies of the project.
  * @property {string} url - URL of the project, `''` without one.
  */
 
@@ -78,7 +77,6 @@
  * @property {string} degree - Name of the degree.
  * @property {string} period - Years of study, e.g. "2016 – 2019".
  * @property {string} school - School or university.
- * @property {string} description - What it taught, `''` without one.
  */
 
 /**

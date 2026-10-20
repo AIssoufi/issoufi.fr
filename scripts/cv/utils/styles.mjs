@@ -136,8 +136,7 @@ export const renderCvStyles = theme => {
       }
       .details,
       .period,
-      .technologies,
-      .project-type {
+      .technologies {
         color: ${colors['shade-a55']};
         font-size: ${CV_LAYOUT.detailsFontSize};
         font-weight: ${fontWeights.medium};
@@ -181,12 +180,8 @@ export const renderCvStyles = theme => {
         vertical-align: ${CV_LAYOUT.bulletMarkRaise};
         transform: translateX(-${CV_LAYOUT.bulletMarkWidth}) rotate(45deg);
       }
-      .bullets li,
-      .entries li {
+      .bullets li {
         break-inside: avoid;
-      }
-      .entries li + li {
-        margin-top: ${CV_LAYOUT.entryGap};
       }
       .project {
         margin-top: ${CV_LAYOUT.itemGap};
@@ -214,7 +209,6 @@ export const renderCvStyles = theme => {
       }
       .entries {
         margin-top: ${CV_LAYOUT.blockGap};
-        list-style: none;
       }
       .degree-entry {
         break-inside: avoid;

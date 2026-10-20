@@ -7,6 +7,7 @@ import { DETAILS_SEPARATOR, PERIOD_SEPARATOR } from '../constants.mjs';
 /** @typedef {import('./types.mjs').CvLink} CvLink */
 /** @typedef {import('./types.mjs').CvProject} CvProject */
 /** @typedef {import('./types.mjs').CvProjectGroup} CvProjectGroup */
+/** @typedef {import('./types.mjs').CvProjectItem} CvProjectItem */
 /** @typedef {import('./types.mjs').CvRole} CvRole */
 /** @typedef {import('./types.mjs').CvDegree} CvDegree */
 
@@ -137,41 +138,34 @@ const renderExperience = ({ company, details, roles }) => {
 };
 
 /**
- * Writes a group of projects, each one with its kind and its technologies, its name a link when
- * it has a URL.
+ * Writes the name of a project of the Projects page, a link when it has a URL.
+ * @param {CvProjectItem} project - Project to write.
+ * @returns {string} Its name.
+ */
+const renderProjectName = ({ name, url }) =>
+  url ? `<a href="${escapeHtml(url)}">${escapeHtml(name)}</a>` : escapeHtml(name);
+
+/**
+ * Writes a group of projects, their names on one line.
  * @param {CvProjectGroup} group - Group to write.
  * @returns {string} Its block.
  */
-const renderProjectGroup = ({ title, items }) => {
-  const entries = items.map(({ name, type, tools, url }) => {
-    const nameHtml = url
-      ? `<a href="${escapeHtml(url)}"><strong>${escapeHtml(name)}</strong></a>`
-      : `<strong>${escapeHtml(name)}</strong>`;
-    const details = [type, tools.join(', ')].filter(Boolean).join(DETAILS_SEPARATOR);
-    const detailsHtml = details
-      ? `<span class="project-type">${escapeHtml(`${DETAILS_SEPARATOR}${details}`)}</span>`
-      : '';
-    return `<li>${nameHtml}${detailsHtml}</li>`;
-  });
-
-  return `<div class="group">
+const renderProjectGroup = ({ title, items }) => `<div class="group">
       <h3 class="group-title">${escapeHtml(title)}</h3>
-      <ul class="entries">${entries.join('')}</ul>
+      <p class="entries">${items.map(renderProjectName).join(escapeHtml(DETAILS_SEPARATOR))}</p>
     </div>`;
-};
 
 /**
- * Writes a degree of the education.
+ * Writes a degree of the education, with its years and its school.
  * @param {CvDegree} degree - Degree to write.
  * @returns {string} Its block.
  */
-const renderDegree = ({ degree, period, school, description }) => {
+const renderDegree = ({ degree, period, school }) => {
   const details = [period, school].filter(Boolean).join(DETAILS_SEPARATOR);
 
   return `<div class="degree-entry">
       <h3 class="degree">${escapeHtml(degree)}</h3>
       ${renderElement({ tag: 'p', className: 'details', html: escapeHtml(details) })}
-      ${renderElement({ tag: 'p', className: 'text', html: escapeHtml(description) })}
     </div>`;
 };
 
