@@ -18,13 +18,6 @@ describe('buildCvContents', () => {
     expect(english.experiences.items[0].details).toBe('Permanent\u00a0· Paris\u00a0(75)');
   });
 
-  it('translates the projects of the Projects page in each language', async () => {
-    const [french, english] = await buildCvContents(CV_SOURCES);
-
-    expect(french.projects.items[1].items[0].name).toBe('Jeu d’échecs');
-    expect(english.projects.items[1].items[0].name).toBe('Chess game');
-  });
-
   it('links each CV to the home page of its language', async () => {
     const [french, english] = await buildCvContents(CV_SOURCES);
 
@@ -61,14 +54,4 @@ describe('buildCvContents', () => {
       expect(french.experiences.items).toEqual([]);
     },
   );
-
-  it.each([undefined, null, {}])('lists no project for the data %j', async projectData => {
-    const [french] = await buildCvContents({
-      ...CV_SOURCES,
-      personalProjects: projectData,
-      freelanceProjects: projectData,
-    });
-
-    expect(french.projects.items).toEqual([]);
-  });
 });

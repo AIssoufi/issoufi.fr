@@ -42,7 +42,6 @@ describe('renderCvHtml', () => {
       'Profil',
       'Compétences',
       'Expériences',
-      'Projets',
       'Formation',
     ]);
   });
@@ -231,19 +230,6 @@ describe('renderCvHtml', () => {
     },
   );
 
-  it('links each project of the Projects page that has a URL to its demo', () => {
-    const document = renderDocument(FRENCH_CV);
-    const links = [...document.querySelectorAll('.entries a')];
-
-    expect(links.map(link => [link.textContent, link.getAttribute('href')])).toEqual([
-      ['Kane Riviera Transfert', 'https://kane.issoufi.fr/'],
-      ['Jeu d’échecs', 'https://chess.issoufi.fr/'],
-      ['Magasin de plugins audio', 'https://pedalboards.issoufi.fr/'],
-      ['Puissance 4', 'https://connect-four.issoufi.fr/'],
-      ['Calculatrice', 'https://calculator.issoufi.fr/'],
-    ]);
-  });
-
   it('writes each degree with its years and its school', () => {
     const document = renderDocument(FRENCH_CV);
 
@@ -297,28 +283,5 @@ describe('renderCvHtml', () => {
     expect(document.querySelector('.company-name').textContent).toBe('Acme');
     expect(document.querySelector('.role-title').hasAttribute('lang')).toBe(false);
     expect(document.querySelector('.role').querySelectorAll('p, ul')).toHaveLength(0);
-  });
-
-  it('writes each project of a group in its entry, one without URL by its name alone', () => {
-    const content = {
-      ...FRENCH_CV,
-      projects: {
-        title: 'Projets',
-        items: [
-          {
-            title: 'Projets personnels',
-            items: [
-              { name: 'Calculatrice', url: '' },
-              { name: 'Jeu d’échecs', url: 'https://chess.issoufi.fr/' },
-            ],
-          },
-        ],
-      },
-    };
-    const document = renderDocument(content);
-
-    expect(document.querySelector('.entries').innerHTML).toBe(
-      '<span class="entry">Calculatrice</span>&nbsp;· <span class="entry"><a href="https://chess.issoufi.fr/">Jeu d’échecs</a></span>',
-    );
   });
 });

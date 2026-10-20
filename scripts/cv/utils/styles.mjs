@@ -14,9 +14,9 @@ import { CV_LAYOUT, CV_PAPER_FORMAT } from '../constants.mjs';
 /**
  * Builds the style sheet of the CV from the design tokens of the site and the print sizes of
  * {@link CV_LAYOUT}: a sober A4 layout, dark text on white paper with the plum of the site for the
- * name, the section titles, the icons of the contact details and the links, in one column but for
- * the projects, next to the education. Ligatures are turned off, so a search for "fi" finds the
- * text in every PDF reader. A missing token shows as `undefined` in it.
+ * name, the section titles, the icons of the contact details and the links, in one column.
+ * Ligatures are turned off, so a search for "fi" finds the text in every PDF reader. A missing
+ * token shows as `undefined` in it.
  * @param {CvTheme} theme - Design tokens of the site.
  * @returns {string} The CSS of the page.
  * @example
@@ -138,7 +138,6 @@ export const renderCvStyles = theme => {
       }
       .company-name,
       .role-title,
-      .group-title,
       .degree {
         color: ${ink};
         font-size: ${CV_LAYOUT.roleFontSize};
@@ -233,24 +232,8 @@ export const renderCvStyles = theme => {
         column-gap: ${CV_LAYOUT.contactGap};
         margin-top: ${CV_LAYOUT.blockGap};
       }
-      .group + .group {
-        margin-top: ${CV_LAYOUT.itemGap};
-      }
-      .columns {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        column-gap: ${CV_LAYOUT.columnGap};
-        break-inside: avoid;
-      }
       .degree-entry + .degree-entry {
         margin-top: ${CV_LAYOUT.itemGap};
-      }
-      .entries {
-        margin-top: ${CV_LAYOUT.blockGap};
-      }
-      /* A line of projects breaks between two names, never inside one. */
-      .entry {
-        white-space: nowrap;
       }
       .degree-entry {
         break-inside: avoid;
