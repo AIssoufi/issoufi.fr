@@ -171,7 +171,7 @@ export const CV_LAYOUT = {
   sectionMarginTop: '3.5mm',
   /** Space under the title of each section. */
   sectionTitleMarginBottom: '2mm',
-  /** Thickness of the line under the header and under each section title. */
+  /** Thickness of the line under each section title. */
   ruleWidth: '0.6pt',
   /** Space between two companies. */
   companyGap: '5mm',
@@ -179,8 +179,21 @@ export const CV_LAYOUT = {
   companyBandPadding: '0.8mm 2mm',
   /** Thickness of the line on the left of the band of a company. */
   companyBandRuleWidth: '2pt',
-  /** Space between two roles, two projects or two degrees. */
+  /**
+   * Space between two projects or two degrees, above the first role of a company, and above the
+   * contact details.
+   */
   itemGap: '1.5mm',
+  /** Space between two roles of a company, along their timeline. */
+  roleGap: '3mm',
+  /** Indent of a role past the timeline of its company. */
+  roleIndent: '4mm',
+  /** Thickness of the timeline that links the roles of a company, like the one of the site. */
+  roleLineWidth: '1.2pt',
+  /** Diameter of the dot that marks a role on the timeline of its company. */
+  roleDotSize: '2.4mm',
+  /** Thickness of the paper ring that parts the dot of a role from the timeline it sits on. */
+  roleDotRingWidth: '0.8pt',
   /** Space between the title of a block and its text. */
   blockGap: '0.6mm',
   /** Indent of a project under its role, past its line. */

@@ -1,5 +1,6 @@
 import { theme } from '../../../src/theme/theme.ts';
 import { hasUnresolvedValue } from '../../utils/html.mjs';
+import { CV_LAYOUT } from '../constants.mjs';
 import { renderCvStyles } from './styles.mjs';
 
 const styles = renderCvStyles(theme);
@@ -31,6 +32,27 @@ describe('renderCvStyles', () => {
 
   it('spreads the contact details over the full width of the header', () => {
     expect(styles).toMatch(/\.contacts \{[^}]*justify-content: space-between;/);
+  });
+
+  it('draws no line under the header, since the title of the first section has its own', () => {
+    const [headerRule] = styles.match(/\.header \{[^}]*\}/);
+
+    expect(headerRule).not.toContain('border');
+  });
+
+  it('links the roles of a company on a timeline, with a drawn dot before each title', () => {
+    const [roleRule] = styles.match(/\.role \{[^}]*\}/);
+    const [nextRoleRule] = styles.match(/\.role \+ \.role \{[^}]*\}/);
+    const [dotRule] = styles.match(/\.role-title::before \{[^}]*\}/);
+
+    expect(roleRule).toContain(
+      `border-left: ${CV_LAYOUT.roleLineWidth} solid ${theme.colors['accent-a30']};`,
+    );
+    expect(nextRoleRule).toContain('margin-top: 0;');
+    expect(nextRoleRule).toContain(`padding-top: ${CV_LAYOUT.roleGap};`);
+    expect(dotRule).toContain("content: '';");
+    // Its size holds its ring, so that the title starts where the text of its role does
+    expect(dotRule).toContain('box-sizing: border-box;');
   });
 
   it('opens each company with a tinted band, which a page break never leaves alone', () => {
