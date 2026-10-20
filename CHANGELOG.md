@@ -1,5 +1,64 @@
 # Changelog
 
+## [1.4.0](https://github.com/AIssoufi/issoufi.fr/compare/v1.3.0...v1.4.0) (2026-10-20)
+
+
+### Features
+
+* **header:** open the mobile menu without JavaScript ([803f178](https://github.com/AIssoufi/issoufi.fr/commit/803f1783f4c41f5c5d144b3e824f462f492196b3))
+* **header:** switch the language with links that work without JavaScript ([ac4dc06](https://github.com/AIssoufi/issoufi.fr/commit/ac4dc0665eae1a192cffe78d816532549c9bf80d))
+* render each page at build time and hydrate it ([a6384df](https://github.com/AIssoufi/issoufi.fr/commit/a6384df414a6f22d0d95f24d72fce92d51362664))
+
+
+### Bug Fixes
+
+* draw the text of the buttons in the font of the site ([e2f79ff](https://github.com/AIssoufi/issoufi.fr/commit/e2f79ffc53f1c62cc482df30eb59fd7409e66a46))
+* **home:** tighten the line height of the big words of the title ([1c9a6c9](https://github.com/AIssoufi/issoufi.fr/commit/1c9a6c99e04a2caa162acd18f780477b9f94e32f))
+* keep the buttons and links still on hover with reduced motion ([18a583f](https://github.com/AIssoufi/issoufi.fr/commit/18a583fca6ddb50fa9a6c684b42872a541d27ff5))
+* keep the dot between the tools of a project at the end of a line ([722c233](https://github.com/AIssoufi/issoufi.fr/commit/722c23344a234963f8b6758e4f6db3d9f162ef24))
+* keep the job cards still on hover with reduced motion ([0e7be03](https://github.com/AIssoufi/issoufi.fr/commit/0e7be03d8a52add5c43e49bd65db8e50334e54de))
+* keep the state badge of a project inside its card on narrow phones ([cacb8d5](https://github.com/AIssoufi/issoufi.fr/commit/cacb8d59c73979dc130b23e76d1926ccdd3ec727))
+* **projects:** let a visitor without JavaScript reach every project ([fbb58e7](https://github.com/AIssoufi/issoufi.fr/commit/fbb58e7b4a52c955b3e5533091339bfabb18e1e2))
+* **projects:** replace the Trouillet Décors thumbnail with a sharp capture ([9ad488d](https://github.com/AIssoufi/issoufi.fr/commit/9ad488d8ade925ef62cd881d944f5cf1dd2d735c))
+* scale the logo of the header up again when a mouse hovers it ([a6d182e](https://github.com/AIssoufi/issoufi.fr/commit/a6d182e2361ab6b7520c9fed17a40467436186f3))
+* show the carousel arrows of the projects in forced colors mode ([5417ef7](https://github.com/AIssoufi/issoufi.fr/commit/5417ef750418e899f63d562b28631ac8b1b175c2))
+* show the download icon of the CV link in forced colors mode ([fc2cd0f](https://github.com/AIssoufi/issoufi.fr/commit/fc2cd0ff069f370a02398a1c123604bfda9ae0e9))
+* start the name of the language buttons with their visible text ([7270e36](https://github.com/AIssoufi/issoufi.fr/commit/7270e362438e28f20051c3bf733173724f8334e8))
+
+
+### Performance
+
+* download the project thumbnails below the first one at a low priority ([6fe830c](https://github.com/AIssoufi/issoufi.fr/commit/6fe830c53f83d298a89e8880690b45f9955a6f72))
+* download the scripts and the background photo of a rendered page at a low priority ([8ba522b](https://github.com/AIssoufi/issoufi.fr/commit/8ba522b359756d01b39fef0983ed8d26734c2c8d))
+* draw the logo of the header as its outline instead of loading its font ([00e43cb](https://github.com/AIssoufi/issoufi.fr/commit/00e43cbfb66de5bfdbcf1e879a1aef65b5510afe))
+* give the project thumbnails the width they are drawn at in sizes ([8387955](https://github.com/AIssoufi/issoufi.fr/commit/8387955b471c6b39602f798289bc1fa0ec3515bf))
+
+
+### Code Refactoring
+
+* count job durations up to a given date ([6c0ee91](https://github.com/AIssoufi/issoufi.fr/commit/6c0ee91751c9b45f86054175aeda5686a83c587b))
+* drop the font workaround of the status page button ([347ab5e](https://github.com/AIssoufi/issoufi.fr/commit/347ab5ed0ba8b622f49dd65dd5ce6e8f627dd606))
+* **header:** draw the bars of the burger in a BurgerIcon component ([a21a558](https://github.com/AIssoufi/issoufi.fr/commit/a21a558eb913ecf764123aa2d94e9724366c85c3))
+* name the extension of every relative import ([6dce7d0](https://github.com/AIssoufi/issoufi.fr/commit/6dce7d0b5964eba493fe70f79e5269a061c31200))
+* name the heights of the project thumbnails in the theme ([164c4e4](https://github.com/AIssoufi/issoufi.fr/commit/164c4e47756e7f51094585d0b550941b3d596643))
+* name the hover scale of the controls ([bb9e531](https://github.com/AIssoufi/issoufi.fr/commit/bb9e531250aae62c1abc25de4c7f1d0060b9723d))
+* name the media query of forced colors mode ([051b3d8](https://github.com/AIssoufi/issoufi.fr/commit/051b3d857f6f002a086498cada6060f844981595))
+* **projects:** count the whole cards of a row from its first card shown ([e60c307](https://github.com/AIssoufi/issoufi.fr/commit/e60c3078d4d8e357e4e86d267324ede2ef76f31d))
+* render what depends on the visitor once the page is hydrated ([8391df7](https://github.com/AIssoufi/issoufi.fr/commit/8391df749e12350e6bae96648053de6c07575270))
+* share the helper that shows every project in the browser tests ([502a3d2](https://github.com/AIssoufi/issoufi.fr/commit/502a3d27a458d75e5015fe2ef72b92f3d204635e))
+* start the cursor glow off the screen in its style ([8f10e81](https://github.com/AIssoufi/issoufi.fr/commit/8f10e81bb88ac795fc298aceffc97b4651bac7e0))
+
+
+### Documentation
+
+* describe the download priorities of the first paint ([d2112a8](https://github.com/AIssoufi/issoufi.fr/commit/d2112a885079f7a76df1ddfa5e390bdc71c549ca))
+* describe the projects page without JavaScript ([9425244](https://github.com/AIssoufi/issoufi.fr/commit/94252445df5114111c2651af4ffe0552f5e20b4e))
+* describe the redirects of the production site ([5691663](https://github.com/AIssoufi/issoufi.fr/commit/5691663c0682c80db0664192174cac0745b974a1))
+* note that an icon sets no stroke color of its own ([9ac5d7f](https://github.com/AIssoufi/issoufi.fr/commit/9ac5d7f9e7bf539e4a16a26f0b6f1c30a84d776e))
+* say how a change of size stays still with reduced motion ([cf84a39](https://github.com/AIssoufi/issoufi.fr/commit/cf84a394be62598041f4c26d150a8476f53d4d5b))
+* say that the header draws the logo as its outline ([acc513b](https://github.com/AIssoufi/issoufi.fr/commit/acc513bcd4d2ba8bb420574383df17e3aa4b8ce8))
+* say that what depends on the visitor waits for the hydration ([0f50bc1](https://github.com/AIssoufi/issoufi.fr/commit/0f50bc1da12b66a6205d3c669c9199587a804a61))
+
 ## [1.3.0](https://github.com/AIssoufi/issoufi.fr/compare/v1.2.0...v1.3.0) (2026-10-19)
 
 
