@@ -68,6 +68,9 @@ const getHeadingLevel = heading => Number(heading.tagName.slice(1));
 /** Characters that only decorate the page, which screen readers must not read. */
 const DECORATION_PATTERN = /[↓–›]/;
 
+/** Arrows, which screen readers read as "right arrow" in the middle of a sentence. */
+const ARROW_PATTERN = /[←→⇒⟶]/;
+
 describe('Experiences', () => {
   afterEach(async () => {
     await act(() => i18n.changeLanguage('fr'));
@@ -141,9 +144,7 @@ describe('Experiences', () => {
         .filter(heading => heading.getAttribute('lang') === 'en')
         .map(({ textContent }) => textContent);
       expect(englishTitles).toEqual([
-        'Lead Frontend Engineer — UI Kit Owner & Architect',
-        'Senior Full-Stack Engineer — Core Platform (React, Node.js, GraphQL)',
-        'Full-Stack JavaScript Engineer — React, Node.js, AWS',
+        'Full-stack JavaScript Engineer (React.js, Redux.js, Node.js and AWS)',
       ]);
     });
 
@@ -307,6 +308,20 @@ describe('Experiences', () => {
         );
 
         expect(unusedKeys).toEqual([]);
+      },
+    );
+
+    it.each([
+      ['French', fr],
+      ['English', en],
+    ])(
+      'writes a word between two versions in the %s texts, never an arrow that screen readers read',
+      (_language, translations) => {
+        const textsWithArrow = translationKeys.filter(key =>
+          ARROW_PATTERN.test(getText({ translations, key })),
+        );
+
+        expect(textsWithArrow).toEqual([]);
       },
     );
 

@@ -30,6 +30,9 @@
  * One job at a company.
  * @typedef {object} CvRole
  * @property {string} title - Job title.
+ * @property {string} titleLanguage - Language of the title when every translation writes it in
+ * one, e.g. `en` for a title that the French CV keeps in English, so that a screen reader reads it
+ * in that language; `''` otherwise.
  * @property {string} start - Start of the job, e.g. "juin 2021".
  * @property {string} end - End of the job, or "Aujourd’hui".
  * @property {CvTextSegment[]} intro - Introduction of the role, piece by piece.

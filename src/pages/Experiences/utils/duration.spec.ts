@@ -233,9 +233,8 @@ describe('parseMonthYear', () => {
       expect(parseMonthYear('Present')).toEqual(FAKE_NOW);
     });
 
-    it('recognizes the end date of the current jobs in the French copy', () => {
-      expect(parseMonthYear(fr.exp.sewanLead.end)).toEqual(FAKE_NOW);
-      expect(parseMonthYear(fr.exp.sewanSenior.end)).toEqual(FAKE_NOW);
+    it('recognizes the end date of the current job in the French copy', () => {
+      expect(parseMonthYear(fr.exp.sewanCore.end)).toEqual(FAKE_NOW);
     });
   });
 

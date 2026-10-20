@@ -67,4 +67,5 @@ Regenerate them after a change of their sources, look at them, and commit them w
 
 - All three run offline in Chromium. With the same Chromium, a run that changes nothing leaves `git status` clean.
 - A spec fails when a CV no longer says what the site says, or when the outline of the logo no longer matches its font.
+- A CV tags a job title with the `titleLanguage` of its role in `experiences.json`, as the Experiences page does, so that a screen reader reads an English title of the French PDF in English.
 - A new language needs its link preview image, the URL of its CV and the texts of its CV. A new icon needs its entry in the icon list and a layout, which a spec matches.

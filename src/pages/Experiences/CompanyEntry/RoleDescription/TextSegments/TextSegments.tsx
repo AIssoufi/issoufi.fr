@@ -20,9 +20,9 @@ const NO_SEGMENTS: TextSegmentData[] = [];
  * @example
  * <TextSegments
  *   segments={[
- *     { key: 'exp.sewanSenior.intro1' },
- *     { key: 'exp.sewanSenior.introStrong', isStrong: true },
- *     { key: 'exp.sewanSenior.intro2' },
+ *     { key: 'exp.sewanFoundation.intro1' },
+ *     { key: 'exp.sewanFoundation.introStrong', isStrong: true },
+ *     { key: 'exp.sewanFoundation.intro2' },
  *   ]}
  * />
  */

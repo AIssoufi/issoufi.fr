@@ -77,14 +77,14 @@ describe('renderCvHtml', () => {
       'Supralog · Alternance · Antibes\u00a0(06)',
       'Beepeers · Stage · Valbonne\u00a0(06)',
     ]);
-    expect(getTexts({ document, selector: '.period' })[0]).toBe('août 2021 — Aujourd’hui');
-    expect(document.querySelectorAll('.role')).toHaveLength(5);
+    expect(getTexts({ document, selector: '.period' })[0]).toBe('oct. 2025 — Aujourd’hui');
+    expect(document.querySelectorAll('.role')).toHaveLength(7);
   });
 
   it('writes the strong pieces of a paragraph in bold', () => {
     const document = renderDocument(FRENCH_CV);
 
-    expect(getTexts({ document, selector: '.role .text strong' })).toContain('Sophia Go');
+    expect(getTexts({ document, selector: '.role .text strong' })).toContain('Sophia GO');
   });
 
   it('writes the status of a project after its title, and its technologies under it', () => {
@@ -92,13 +92,35 @@ describe('renderCvHtml', () => {
     const [project] = document.querySelectorAll('.project');
 
     expect(project.querySelector('.project-title').textContent).toBe(
-      'Modernisation complète de la stack technique · En production',
+      'Refonte de l’outillage, sans rupture pour les équipes consommatrices',
     );
     expect(project.querySelector('.technologies')).toBeNull();
+    expect(getTexts({ document, selector: '.project-title' })).toContain(
+      'CLARIS\u00a0: refonte du SI de certification · 3 sprints livrés',
+    );
     expect(getTexts({ document, selector: '.project .technologies' })).toContain(
-      'Node.js · GraphQL',
+      'React.js · Redux.js · TypeScript · ChartJS',
     );
   });
+
+  it.each([
+    ['French', FRENCH_CV],
+    ['English', ENGLISH_CV],
+  ])(
+    'gives the job titles that every language writes in English their language in the %s CV',
+    (_language, content) => {
+      const document = renderDocument(content);
+      const titles = [...document.querySelectorAll('.role-title')];
+      const englishTitles = titles
+        .filter(title => title.lang === 'en')
+        .map(({ textContent }) => textContent);
+
+      expect(englishTitles).toEqual([
+        'Full-stack JavaScript Engineer (React.js, Redux.js, Node.js and AWS)',
+      ]);
+      expect(titles.filter(title => title.hasAttribute('lang'))).toHaveLength(1);
+    },
+  );
 
   it('links a project of the Projects page that has a URL', () => {
     const document = renderDocument(FRENCH_CV);
@@ -137,6 +159,7 @@ describe('renderCvHtml', () => {
   it('leaves out the empty parts: a role without introduction, period or technologies', () => {
     const role = {
       title: 'Développeur',
+      titleLanguage: '',
       start: '',
       end: '',
       intro: [],
@@ -157,6 +180,7 @@ describe('renderCvHtml', () => {
 
     expect(document.querySelector('.tagline')).toBeNull();
     expect(document.querySelector('.company-name').textContent).toBe('Acme');
+    expect(document.querySelector('.role-title').hasAttribute('lang')).toBe(false);
     expect(document.querySelector('.role').querySelectorAll('p, ul')).toHaveLength(0);
   });
 

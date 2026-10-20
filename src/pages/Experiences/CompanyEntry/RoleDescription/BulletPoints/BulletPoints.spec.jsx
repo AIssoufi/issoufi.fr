@@ -32,7 +32,7 @@ describe('BulletPoints', () => {
         .getAllByRole('listitem')
         .map(item => item.textContent),
     ).toEqual([
-      'Architecture et maquettes des écrans',
+      'Conception\u00a0: maquettes des écrans, architecture',
       'Maintenance des sites existants en AngularJS',
     ]);
   });
@@ -60,7 +60,9 @@ describe('BulletPoints', () => {
 
     await act(() => i18n.changeLanguage('en'));
 
-    expect(screen.getByRole('listitem')).toHaveTextContent(/^Screen architecture and mockups$/);
+    expect(screen.getByRole('listitem')).toHaveTextContent(
+      /^Design: screen mockups, architecture$/,
+    );
   });
 
   it('leaves out a key without translation, and keeps the other points', () => {
