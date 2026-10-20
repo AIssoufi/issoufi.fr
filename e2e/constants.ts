@@ -683,14 +683,12 @@ export const LIGHT_IMAGE_SCREEN_WIDTH_PX = 375;
 export const MAX_FILE_TO_SHOWN_WIDTH_RATIO = 2;
 
 /**
- * `nameKey` of the projects whose screenshot is smaller than their card needs on a 2x screen: their
- * site is offline, and its original the largest file there is, until the site owner replaces it
- * (issue #238). The browser test of the image sizes leaves their thumbnails out.
+ * `nameKey` of the projects whose screenshot is smaller than their card needs on a 2x screen, which
+ * the browser test of the image sizes leaves out. Y-YServicies: its site is offline, and no larger
+ * capture exists anywhere, neither from its client nor in the Internet Archive nor on LinkedIn, so
+ * its 200 px original stays (issue #238).
  */
-export const LOW_RESOLUTION_PROJECT_NAME_KEYS: readonly string[] = [
-  'trouilletDecors',
-  'yyServicies',
-];
+export const LOW_RESOLUTION_PROJECT_NAME_KEYS: readonly string[] = ['yyServicies'];
 
 /**
  * Screens on which the first thumbnail of the Projects page must download the narrowest of its

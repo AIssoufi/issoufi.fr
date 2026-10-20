@@ -64,17 +64,22 @@
         {
           "url": "/trouillet-decors-480.webp",
           "width": 480,
-          "height": 413
+          "height": 300
         },
         {
           "url": "/trouillet-decors-720.webp",
           "width": 720,
-          "height": 620
+          "height": 450
         },
         {
-          "url": "/trouillet-decors-800.webp",
-          "width": 800,
-          "height": 688
+          "url": "/trouillet-decors-960.webp",
+          "width": 960,
+          "height": 600
+        },
+        {
+          "url": "/trouillet-decors-1200.webp",
+          "width": 1200,
+          "height": 750
         }
       ],
       "tools": ["HTML 5", "CSS 3", "WordPress"]

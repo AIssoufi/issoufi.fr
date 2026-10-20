@@ -17,7 +17,7 @@ const TROUILLET_DECORS: ProjectData = {
   id: 7,
   nameKey: 'trouilletDecors',
   typeKey: 'showcaseWebsite',
-  thumbnails: [{ url: '/trouillet-decors-480.webp', width: 480, height: 413 }],
+  thumbnails: [{ url: '/trouillet-decors-480.webp', width: 480, height: 300 }],
   tools: ['WordPress'],
 };
 
@@ -72,7 +72,7 @@ describe('translateProjects', () => {
         id: 7,
         name: 'Trouillet Décors',
         type: 'Site vitrine',
-        thumbnails: [{ url: '/trouillet-decors-480.webp', width: 480, height: 413 }],
+        thumbnails: [{ url: '/trouillet-decors-480.webp', width: 480, height: 300 }],
         tools: ['WordPress'],
       },
     ]);
