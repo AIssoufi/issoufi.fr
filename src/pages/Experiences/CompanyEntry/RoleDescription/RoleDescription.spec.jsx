@@ -52,7 +52,7 @@ describe('RoleDescription', () => {
     const [roleBullets, projectBullets] = screen.getAllByRole('list');
     expect(within(roleBullets).getAllByRole('listitem')).toHaveLength(2);
     expect(within(projectBullets).getByRole('listitem')).toHaveTextContent(
-      'npm vers pnpm, Node 16 vers 22, Jest vers Vitest, Webpack vers tsup et Vite, Storybook 5.3 vers 9, Lerna 4 vers 8',
+      'npm vers pnpm, Node 16 vers 22, Jest vers Vitest, Webpack vers tsup et Vite, Lerna 4 vers 8',
     );
   });
 

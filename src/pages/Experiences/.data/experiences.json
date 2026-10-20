@@ -31,7 +31,14 @@
             { "key": "exp.sewanUiKit.introStrong", "isStrong": true },
             { "key": "exp.sewanUiKit.intro2" }
           ],
-          "bulletKeys": ["exp.sewanUiKit.b1", "exp.sewanUiKit.b2", "exp.sewanUiKit.b3"],
+          "bulletKeys": [
+            "exp.sewanUiKit.b1",
+            "exp.sewanUiKit.b2",
+            "exp.sewanUiKit.b3",
+            "exp.sewanUiKit.b4",
+            "exp.sewanUiKit.b5"
+          ],
+          "cvBulletKeys": ["exp.sewanUiKit.b1", "exp.sewanUiKit.b2", "exp.sewanUiKit.b5"],
           "projects": [
             {
               "titleKey": "exp.sewanUiKit.proj1Title",
@@ -39,7 +46,14 @@
                 "exp.sewanUiKit.proj1B1",
                 "exp.sewanUiKit.proj1B2",
                 "exp.sewanUiKit.proj1B3",
-                "exp.sewanUiKit.proj1B4"
+                "exp.sewanUiKit.proj1B4",
+                "exp.sewanUiKit.proj1B5"
+              ],
+              "cvBulletKeys": [
+                "exp.sewanUiKit.proj1B1",
+                "exp.sewanUiKit.proj1B2",
+                "exp.sewanUiKit.proj1B4",
+                "exp.sewanUiKit.proj1B5"
               ]
             }
           ],

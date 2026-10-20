@@ -22,7 +22,7 @@ export const frExperiences = {
     end: 'Aujourd’hui',
     intro:
       'L’un des trois développeurs front de l’équipe Core, née de la fusion du Core Front et du Core Back. Je reste responsable de l’UI Kit et j’interviens sur le transverse.',
-    b1: 'Développement avec des agents IA (Claude Code, Codex, OpenCode)\u00a0: sous-agents spécialisés, skills et rules maison, trois ou quatre sujets en parallèle avec Git worktree',
+    b1: 'Développement avec des agents IA (Claude Code, Codex, OpenCode), après GitHub Copilot puis Cursor\u00a0: serveurs MCP (Jira, Confluence, Chrome DevTools, Figma, GitLab), sous-agents spécialisés, skills et rules maison, trois ou quatre sujets en parallèle avec Git worktree',
     b2: 'Facturation électronique (France, Belgique, Espagne), catalogue et prix, stock et location, tableaux de bord, intégration du legacy PHP',
     b3: 'Filtres de l’UI Kit, l’un des composants les plus utilisés\u00a0: d’une architecture monolithique à 13 packages composables, puis migration de toutes les pages, une vingtaine d’incohérences corrigées',
   },
@@ -34,17 +34,21 @@ export const frExperiences = {
     introStrong: '118 packages React et TypeScript',
     intro2:
       ' publiés sur un registre NPM privé, consommés par 15 équipes produit et par 47 des 49 applications de la plateforme. Premier contributeur du dépôt (1\u202f040 commits sur 80 contributeurs), auteur de 67 packages.',
-    b1: 'Architecture composable\u00a0: monopackage historique éclaté en packages versionnés séparément (Form en 9 packages), Table v2 conçue en 11 packages et 15 fonctionnalités, dont la virtualisation',
-    b2: 'Thème personnalisable qui rend possible l’offre en marque blanche, contrastes calculés automatiquement',
-    b3: 'Point d’entrée technique de 15 équipes (revue, support, documentation), pilotage de 5 epics et de 5 études de cadrage',
+    b1: 'Architecture composable\u00a0: monopackage historique éclaté en packages versionnés séparément (Lerna 8, Changesets), Form en 9 packages, Table v2 conçue en 11 packages et 15 fonctionnalités, dont la virtualisation',
+    b2: 'Thème personnalisable de l’offre en marque blanche, couleur du texte calculée selon le fond pour garder le contraste\u202f; design tokens des designers (Figma) portés dans le thème (xstyled), aucune valeur brute permise',
+    b3: '2\u202f389 versions majeures sur les 293 packages de l’historique\u202f; correction du bug qui ne montait que le patch sur un BREAKING CHANGE, sans signal de rupture pour les 15 équipes',
+    b4: 'Composants prêts pour les tests end-to-end de la QA\u00a0: chaque application passe ses test ids selon la page, props unifiées (anciennes dépréciées sans rupture), aucun test id par défaut',
+    b5: 'Référent technique de 15 équipes\u00a0: auteur de la documentation et des processus de contribution, 458 merge requests de 10 développeurs approuvées sur 11 dépôts, pilotage de 5 epics et de 5 études de cadrage',
     proj1Title: 'Refonte de l’outillage, sans rupture pour les équipes consommatrices',
     proj1B1: 'Migration TypeScript intégrale\u00a0: 771 fichiers, plus aucun JavaScript',
     proj1B2:
-      'npm vers pnpm, Node 16 vers 22, Jest vers Vitest, Webpack vers tsup et Vite, Storybook 5.3 vers 9, Lerna 4 vers 8',
+      'npm vers pnpm, Node 16 vers 22, Jest vers Vitest, Webpack vers tsup et Vite, Lerna 4 vers 8',
     proj1B3:
-      'Temps médian du pipeline de merge request ramené de 17\u00a0min 24\u00a0s à 9\u00a0min, soit 48\u202f% de moins, mesuré sur 2\u202f600 jobs',
+      'Storybook 5.3 vers 9 (CSF 3, Chromatic, test-runner)\u00a0: 151 stories, changelog de chaque package, badges de dépréciation',
     proj1B4:
-      '661 tests sur 142 fichiers, 79\u202f% des packages couverts, 33\u00a0secondes d’exécution',
+      'Temps médian du pipeline de merge request ramené de 17\u00a0min 24\u00a0s à 9\u00a0min (48\u202f% de moins, sur 2\u202f600 jobs)',
+    proj1B5:
+      '661 tests sur 142 fichiers, 93 des 118 packages avec au moins un test, 33\u00a0secondes d’exécution',
   },
   sewanFoundation: {
     title: 'Développeur Front-End · Socle applicatif Sophia GO',
