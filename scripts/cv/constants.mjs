@@ -32,8 +32,7 @@ export const FINGERPRINT_ALGORITHM = 'sha256';
  * Modules of the site read by the script through Vite (`loadSiteModules`), with the translations
  * of `TRANSLATION_MODULES` (`scripts/utils/constants.mjs`): the design tokens, the origin and the
  * URLs of the site, the default language, the helpers that translate the JSON data, the URL of
- * the CV of each language and the GitHub and LinkedIn profiles. Paths are relative to the project
- * root.
+ * the CV of each language and the LinkedIn profile. Paths are relative to the project root.
  */
 export const SOURCE_MODULES = {
   theme: '/src/theme/theme.ts',

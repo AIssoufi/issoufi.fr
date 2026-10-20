@@ -103,9 +103,9 @@
  * @property {string} jobTitle - Job title.
  * @property {TextSegment[]} passion - Line about UX and UI design, as on the home page.
  * @property {string} subtitle - Line under it, as on the home page.
- * @property {CvLink[]} contacts - Contact details, links or not: email, phone, city, mobility.
- * @property {CvLink[]} profiles - Links to the site and the profiles of its owner, on the line
- * under the contact details.
+ * @property {CvLink[]} contacts - Contact details, links or not: email, phone and city.
+ * @property {CvLink[]} profiles - Links to the site and the LinkedIn profile of its owner, on
+ * the line under the contact details.
  * @property {CvSection<CvExperience>} experiences - Experiences of the Experiences page.
  * @property {CvSection<CvProjectGroup>} projects - Freelance then personal projects.
  * @property {CvSection<string>} skills - Skills, from the data of the CV.

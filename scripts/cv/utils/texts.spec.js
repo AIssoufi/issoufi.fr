@@ -134,11 +134,10 @@ describe('listCvLinks', () => {
 
   it('lists the links of the real French CV', () => {
     expect(listCvLinks(FRENCH_CV)).toEqual([
-      'mailto:issoufi.adam1@gmail.com',
+      'mailto:contact@issoufi.fr',
       'tel:+33695758632',
       'https://issoufi.fr/',
       'https://www.linkedin.com/in/issoufiadam',
-      'https://github.com/AIssoufi',
       'https://aissoufi.github.io/chess/',
     ]);
   });

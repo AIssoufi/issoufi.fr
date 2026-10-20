@@ -1,6 +1,6 @@
 {
   "contact": {
-    "email": "issoufi.adam1@gmail.com",
+    "email": "contact@issoufi.fr",
     "phoneUrl": "tel:+33695758632"
   },
   "languages": {
@@ -19,8 +19,7 @@
         "Claude Code"
       ],
       "phone": "06 95 75 86 32",
-      "location": "Massy (91)",
-      "mobility": "Véhiculé",
+      "location": "Paris",
       "skillsTitle": "Compétences",
       "skills": [
         "Technologies\u00a0: HTML 5, CSS 3, JavaScript, TypeScript, Node.js, Express.js, React.js, Redux.js, GraphQL, SQL, Docker, Java SE",
@@ -68,8 +67,7 @@
         "Claude Code"
       ],
       "phone": "+33 6 95 75 86 32",
-      "location": "Massy, France",
-      "mobility": "Own car",
+      "location": "Paris, France",
       "skillsTitle": "Skills",
       "skills": [
         "Technologies: HTML 5, CSS 3, JavaScript, TypeScript, Node.js, Express.js, React.js, Redux.js, GraphQL, SQL, Docker, Java SE",

@@ -187,7 +187,7 @@ const buildDegrees = education =>
  */
 
 /**
- * Lists the contact details of the header: email, phone, city and mobility.
+ * Lists the contact details of the header: email, phone and city.
  * @param {BuildContactsParams} params
  * @returns {CvLink[]} The details whose text is filled, in that order, the email address and the
  * phone number as links.
@@ -200,7 +200,6 @@ const buildContacts = ({ contact, texts }) => {
     { text: email, url: isEmailAddress ? `${MAILTO_PREFIX}${email}` : '' },
     { text: toText(texts.phone), url: toLinkUrl(contact.phoneUrl) },
     { text: toText(texts.location), url: '' },
-    { text: toText(texts.mobility), url: '' },
   ].filter(({ text }) => isFilled(text));
 };
 
@@ -210,20 +209,19 @@ const buildContacts = ({ contact, texts }) => {
  * @property {string} siteUrl - URL of the home page of the site in the language.
  * @property {string} siteDomain - Domain of the site, written for that link.
  * @property {unknown} linkedInUrl - LinkedIn profile of the site owner.
- * @property {unknown} gitHubUrl - GitHub profile of the site owner.
  */
 
 /**
- * Lists the links of the header to the site and the profiles of the site owner: the site,
- * LinkedIn and GitHub.
+ * Lists the links of the header to the site and the LinkedIn profile of its owner. The CV leaves
+ * out the GitHub profile: the repository of the site, which its proof of practice links to,
+ * shows the work better.
  * @param {BuildProfilesParams} params
  * @returns {CvLink[]} The links whose text is filled, in that order.
  */
-const buildProfiles = ({ siteUrl, siteDomain, linkedInUrl, gitHubUrl }) =>
+const buildProfiles = ({ siteUrl, siteDomain, linkedInUrl }) =>
   [
     { text: siteDomain, url: toLinkUrl(siteUrl) },
     { text: toLinkText(linkedInUrl), url: toLinkUrl(linkedInUrl) },
-    { text: toLinkText(gitHubUrl), url: toLinkUrl(gitHubUrl) },
   ].filter(({ text }) => isFilled(text));
 
 /**
@@ -240,7 +238,6 @@ const buildProfiles = ({ siteUrl, siteDomain, linkedInUrl, gitHubUrl }) =>
  * @property {unknown} freelanceProjects - Freelance projects, translated by `translateProjects`.
  * @property {string} siteUrl - URL of the home page of the site in that language.
  * @property {unknown} linkedInUrl - LinkedIn profile of the site owner.
- * @property {unknown} gitHubUrl - GitHub profile of the site owner.
  */
 
 /**
@@ -265,7 +262,6 @@ export const buildCvContent = ({
   freelanceProjects,
   siteUrl,
   linkedInUrl,
-  gitHubUrl,
 }) => {
   const texts = isEntry(cvData?.languages?.[language]) ? cvData.languages[language] : {};
   const contact = isEntry(cvData?.contact) ? cvData.contact : {};
@@ -283,12 +279,7 @@ export const buildCvContent = ({
     passion: homeTexts.passion,
     subtitle: homeTexts.subtitle,
     contacts: buildContacts({ contact, texts }),
-    profiles: buildProfiles({
-      siteUrl,
-      siteDomain: homeTexts.site,
-      linkedInUrl,
-      gitHubUrl,
-    }),
+    profiles: buildProfiles({ siteUrl, siteDomain: homeTexts.site, linkedInUrl }),
     experiences: {
       title: translate('exp.pageTitle'),
       items: buildExperiences({ translate, experiences }),

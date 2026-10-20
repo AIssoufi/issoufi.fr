@@ -72,8 +72,7 @@ const CV_DATA = {
       subject: 'Développeur front-end senior',
       keywords: ['React', '', '  ', 42, null, 'TypeScript'],
       phone: '06 00 00 00 00',
-      location: 'Massy (91)',
-      mobility: 'Véhiculé',
+      location: 'Paris',
       skillsTitle: 'Compétences',
       skills: ['Tests unitaires', '', 42],
       educationTitle: 'Formation',
@@ -99,7 +98,6 @@ const PARAMS = {
   ],
   siteUrl: 'https://issoufi.fr/',
   linkedInUrl: 'https://www.linkedin.com/in/adam/',
-  gitHubUrl: 'https://github.com/AIssoufi',
 };
 
 describe('buildExperiences', () => {
@@ -279,16 +277,14 @@ describe('buildCvContent', () => {
     expect(buildCvContent(PARAMS).contacts).toEqual([
       { text: 'adam@example.com', url: 'mailto:adam@example.com' },
       { text: '06 00 00 00 00', url: 'tel:+33600000000' },
-      { text: 'Massy (91)', url: '' },
-      { text: 'Véhiculé', url: '' },
+      { text: 'Paris', url: '' },
     ]);
   });
 
-  it('lists the links to the site, LinkedIn and GitHub', () => {
+  it('lists the links to the site and LinkedIn', () => {
     expect(buildCvContent(PARAMS).profiles).toEqual([
       { text: 'issoufi.fr', url: 'https://issoufi.fr/' },
       { text: 'linkedin.com/in/adam', url: 'https://www.linkedin.com/in/adam/' },
-      { text: 'github.com/AIssoufi', url: 'https://github.com/AIssoufi' },
     ]);
   });
 
@@ -324,7 +320,7 @@ describe('buildCvContent', () => {
   });
 
   it.each([undefined, null, {}, { languages: { en: {} } }, { contact: 'adam@example.com' }])(
-    'gives empty texts, but the links of the site, LinkedIn and GitHub, for the data %j',
+    'gives empty texts, but the links of the site and LinkedIn, for the data %j',
     cvData => {
       const content = buildCvContent({ ...PARAMS, cvData });
 
@@ -332,7 +328,6 @@ describe('buildCvContent', () => {
       expect(content.profiles).toEqual([
         { text: 'issoufi.fr', url: 'https://issoufi.fr/' },
         { text: 'linkedin.com/in/adam', url: 'https://www.linkedin.com/in/adam/' },
-        { text: 'github.com/AIssoufi', url: 'https://github.com/AIssoufi' },
       ]);
       expect(content.skills).toEqual({ title: '', items: [] });
       expect(content.education).toEqual({ title: '', items: [] });
@@ -349,21 +344,12 @@ describe('buildCvContent', () => {
     },
   );
 
-  it.each([undefined, null, 42, '', 'github.com/AIssoufi', 'javascript:alert(1)'])(
-    'leaves out the GitHub profile when its URL is %j',
-    gitHubUrl => {
-      const texts = buildCvContent({ ...PARAMS, gitHubUrl }).profiles.map(({ text }) => text);
-
-      expect(texts).toEqual(['issoufi.fr', 'linkedin.com/in/adam']);
-    },
-  );
-
   it.each([undefined, null, 42, '', 'linkedin.com/in/adam', 'javascript:alert(1)'])(
     'leaves out the LinkedIn profile when its URL is %j',
     linkedInUrl => {
       const texts = buildCvContent({ ...PARAMS, linkedInUrl }).profiles.map(({ text }) => text);
 
-      expect(texts).toEqual(['issoufi.fr', 'github.com/AIssoufi']);
+      expect(texts).toEqual(['issoufi.fr']);
     },
   );
 
