@@ -105,9 +105,9 @@ jobs:
     steps:
       - uses: actions/dependency-review-action@v5
 
-  # Warns when GitHub has stopped starting deploy-production.yml on its schedule, which the deploy
-  # cannot report while it does not run. It never fails the run: the deploy requires the CI of
-  # develop to pass
+  # Warns when neither the Cloudflare trigger nor the crons of GitHub start deploy-production.yml
+  # any more, which the deploy cannot report while it does not run. It never fails the run: the
+  # deploy requires the CI of develop to pass
   deploy-schedule:
     if: github.event_name == 'push' && github.ref == 'refs/heads/develop'
     runs-on: ubuntu-latest
