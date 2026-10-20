@@ -66,7 +66,7 @@ const querySelectorAll = async ({ session, selector }: ReadBrowserTreeParams) =>
  *
  * @example
  * await listBrowserTexts({ session, selector: 'li' });
- * // ['août 2021 à Aujourd’hui Lead Frontend Engineer…', …]
+ * // ['oct. 2025 à Aujourd’hui Développeur Front-End Senior…', …]
  */
 export const listBrowserTexts = async ({
   session,

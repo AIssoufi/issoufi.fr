@@ -3,7 +3,7 @@
  * which the page writes after the previous piece, in bold when `isStrong` is true.
  */
 export interface TextSegmentData {
-  /** Translation key of the text, e.g. `exp.sewanLead.intro1`. */
+  /** Translation key of the text, e.g. `exp.sewanUiKit.intro1`. */
   key?: string;
   /** Whether the text is in bold, as a company or a client name. @default false */
   isStrong?: boolean;

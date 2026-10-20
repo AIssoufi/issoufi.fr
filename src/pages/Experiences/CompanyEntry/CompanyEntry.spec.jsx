@@ -30,14 +30,14 @@ const SEWAN = {
   logoUrl: '/sewan.webp',
   roles: [
     {
-      titleKey: 'exp.sewanLead.title',
-      startKey: 'exp.sewanLead.start',
-      endKey: 'exp.sewanLead.end',
+      titleKey: 'exp.sewanCore.title',
+      startKey: 'exp.sewanCore.start',
+      endKey: 'exp.sewanCore.end',
     },
     {
-      titleKey: 'exp.sewanSenior.title',
-      startKey: 'exp.sewanSenior.start',
-      endKey: 'exp.sewanSenior.end',
+      titleKey: 'exp.sewanUiKit.title',
+      startKey: 'exp.sewanUiKit.start',
+      endKey: 'exp.sewanUiKit.end',
     },
   ],
 };
@@ -100,14 +100,12 @@ describe('CompanyEntry', () => {
       expect(
         screen.getByRole('heading', {
           level: 3,
-          name: 'Full-Stack JavaScript Engineer — React, Node.js, AWS',
+          name: 'Full-stack JavaScript Engineer (React.js, Redux.js, Node.js and AWS)',
         }),
       ).toBeVisible();
       expect(screen.getByText('Wibilong · CDI · Paris (75)')).toBeInTheDocument();
       expect(
-        screen.getByText(
-          'Maintien en condition opérationnelle (MCO) et résolution de bugs en production',
-        ),
+        screen.getByText('Participation aux choix techniques de la V3 de WiService'),
       ).toBeInTheDocument();
     });
 
@@ -188,10 +186,10 @@ describe('CompanyEntry', () => {
     it('shows each job, in order', () => {
       render(<CompanyEntry experience={SEWAN} />);
 
-      const jobs = screen.getAllByText(/Engineer/).map(node => node.textContent);
+      const jobs = screen.getAllByText(/^Développeur Front-End/).map(node => node.textContent);
       expect(jobs).toEqual([
-        'Lead Frontend Engineer — UI Kit Owner & Architect',
-        'Senior Full-Stack Engineer — Core Platform (React, Node.js, GraphQL)',
+        'Développeur Front-End Senior, équipe Core',
+        'Développeur Front-End Senior · Responsable de l’UI Kit',
       ]);
     });
 

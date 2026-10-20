@@ -8,65 +8,76 @@
       "logoUrl": "/sewan.webp",
       "roles": [
         {
-          "titleKey": "exp.sewanLead.title",
-          "titleLanguage": "en",
-          "startKey": "exp.sewanLead.start",
-          "endKey": "exp.sewanLead.end",
+          "titleKey": "exp.sewanCore.title",
+          "startKey": "exp.sewanCore.start",
+          "endKey": "exp.sewanCore.end",
+          "intro": [{ "key": "exp.sewanCore.intro" }],
+          "bulletKeys": ["exp.sewanCore.b1", "exp.sewanCore.b2", "exp.sewanCore.b3"],
+          "technologies": [
+            "React.js",
+            "TypeScript",
+            "GraphQL",
+            "Node.js",
+            "monorepo",
+            "GitLab CI/CD"
+          ]
+        },
+        {
+          "titleKey": "exp.sewanUiKit.title",
+          "startKey": "exp.sewanUiKit.start",
+          "endKey": "exp.sewanUiKit.end",
           "intro": [
-            { "key": "exp.sewanLead.intro1" },
-            { "key": "exp.sewanLead.introStrong", "isStrong": true },
-            { "key": "exp.sewanLead.intro2" }
+            { "key": "exp.sewanUiKit.intro1" },
+            { "key": "exp.sewanUiKit.introStrong", "isStrong": true },
+            { "key": "exp.sewanUiKit.intro2" }
           ],
-          "bulletKeys": ["exp.sewanLead.b1", "exp.sewanLead.b2", "exp.sewanLead.b3"],
+          "bulletKeys": ["exp.sewanUiKit.b1", "exp.sewanUiKit.b2", "exp.sewanUiKit.b3"],
           "projects": [
             {
-              "titleKey": "exp.sewanLead.proj1Title",
-              "stateKey": "exp.sewanLead.proj1State",
-              "description": [{ "key": "exp.sewanLead.proj1Intro" }],
+              "titleKey": "exp.sewanUiKit.proj1Title",
               "bulletKeys": [
-                "exp.sewanLead.proj1B1",
-                "exp.sewanLead.proj1B2",
-                "exp.sewanLead.proj1B3",
-                "exp.sewanLead.proj1B4"
+                "exp.sewanUiKit.proj1B1",
+                "exp.sewanUiKit.proj1B2",
+                "exp.sewanUiKit.proj1B3",
+                "exp.sewanUiKit.proj1B4"
               ]
             }
           ],
           "technologies": [
             "React.js",
             "TypeScript",
+            "styled-components",
             "Storybook",
+            "Vitest",
             "Vite",
             "tsup",
             "pnpm",
-            "TDD",
-            "Vitest",
-            "Node.js",
             "Lerna",
-            "CI GitLab"
+            "GitLab CI/CD"
           ]
         },
         {
-          "titleKey": "exp.sewanSenior.title",
-          "titleLanguage": "en",
-          "startKey": "exp.sewanSenior.start",
-          "endKey": "exp.sewanSenior.end",
+          "titleKey": "exp.sewanFoundation.title",
+          "startKey": "exp.sewanFoundation.start",
+          "endKey": "exp.sewanFoundation.end",
           "intro": [
-            { "key": "exp.sewanSenior.intro1" },
-            { "key": "exp.sewanSenior.introStrong", "isStrong": true },
-            { "key": "exp.sewanSenior.intro2" }
+            { "key": "exp.sewanFoundation.intro1" },
+            { "key": "exp.sewanFoundation.introStrong", "isStrong": true },
+            { "key": "exp.sewanFoundation.intro2" }
           ],
-          "bulletKeys": ["exp.sewanSenior.b1", "exp.sewanSenior.b2", "exp.sewanSenior.b3"],
-          "projects": [
-            {
-              "titleKey": "exp.sewanSenior.proj1Title",
-              "description": [{ "key": "exp.sewanSenior.proj1Desc" }],
-              "technologies": ["Node.js", "GraphQL"]
-            },
-            {
-              "titleKey": "exp.sewanSenior.proj2Title",
-              "description": [{ "key": "exp.sewanSenior.proj2Desc" }],
-              "technologies": ["React.js", "TypeScript", "Redux.js"]
-            }
+          "bulletKeys": [
+            "exp.sewanFoundation.b1",
+            "exp.sewanFoundation.b2",
+            "exp.sewanFoundation.b3"
+          ],
+          "technologies": [
+            "React.js",
+            "JavaScript",
+            "styled-components",
+            "Apollo GraphQL",
+            "Pullstate",
+            "Keycloak",
+            "Optimizely"
           ]
         }
       ]
@@ -85,17 +96,7 @@
           "endKey": "exp.wibilong.end",
           "intro": [{ "key": "exp.wibilong.intro" }],
           "bulletKeys": ["exp.wibilong.b1", "exp.wibilong.b2", "exp.wibilong.b3"],
-          "technologies": [
-            "React.js",
-            "Redux.js",
-            "Node.js",
-            "AWS Lambda",
-            "API Gateway",
-            "CloudFormation",
-            "Elasticsearch",
-            "SQL Server",
-            "Swagger"
-          ]
+          "technologies": ["React.js", "Redux.js", "Node.js", "AWS Lambda", "Swagger"]
         }
       ]
     },
@@ -107,17 +108,34 @@
       "logoUrl": "/supralog.webp",
       "roles": [
         {
-          "titleKey": "exp.supralog.title",
-          "startKey": "exp.supralog.start",
-          "endKey": "exp.supralog.end",
+          "titleKey": "exp.supralogClaris.title",
+          "startKey": "exp.supralogClaris.start",
+          "endKey": "exp.supralogClaris.end",
           "projects": [
             {
-              "titleKey": "exp.supralog.proj1Title",
-              "stateKey": "exp.supralog.proj1State",
+              "titleKey": "exp.supralogClaris.proj1Title",
+              "stateKey": "exp.supralogClaris.proj1State",
               "description": [
-                { "key": "exp.supralog.proj1Desc1" },
-                { "key": "exp.supralog.proj1Strong", "isStrong": true },
-                { "key": "exp.supralog.proj1Desc2" }
+                { "key": "exp.supralogClaris.proj1Desc1" },
+                { "key": "exp.supralogClaris.proj1Strong", "isStrong": true },
+                { "key": "exp.supralogClaris.proj1Desc2" }
+              ],
+              "technologies": ["React.js", "Redux.js", "TypeScript", "ChartJS"]
+            }
+          ]
+        },
+        {
+          "titleKey": "exp.supralogFfbad.title",
+          "startKey": "exp.supralogFfbad.start",
+          "endKey": "exp.supralogFfbad.end",
+          "projects": [
+            {
+              "titleKey": "exp.supralogFfbad.proj1Title",
+              "stateKey": "exp.supralogFfbad.proj1State",
+              "description": [
+                { "key": "exp.supralogFfbad.proj1Desc1" },
+                { "key": "exp.supralogFfbad.proj1Strong", "isStrong": true },
+                { "key": "exp.supralogFfbad.proj1Desc2" }
               ],
               "technologies": [
                 "React.js",
@@ -128,16 +146,6 @@
                 "Kubernetes",
                 "Google Cloud Platform"
               ]
-            },
-            {
-              "titleKey": "exp.supralog.proj2Title",
-              "stateKey": "exp.supralog.proj2State",
-              "description": [
-                { "key": "exp.supralog.proj2Desc1" },
-                { "key": "exp.supralog.proj2Strong", "isStrong": true },
-                { "key": "exp.supralog.proj2Desc2" }
-              ],
-              "technologies": ["React.js", "Redux.js", "TypeScript", "ChartJS"]
             }
           ]
         }

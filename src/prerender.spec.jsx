@@ -30,8 +30,8 @@ const VISITOR_DATE = new Date(
 const getCurrentJobDuration = today =>
   formatDuration({
     duration: computeDuration({
-      startDate: fr.exp.sewanLead.start,
-      endDate: fr.exp.sewanLead.end,
+      startDate: fr.exp.sewanCore.start,
+      endDate: fr.exp.sewanCore.end,
       today,
     }),
     t: i18n.getFixedT('fr'),

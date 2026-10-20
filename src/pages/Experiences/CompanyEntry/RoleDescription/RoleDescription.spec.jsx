@@ -2,21 +2,24 @@ import { render, screen, within } from '@testing-library/react';
 
 import RoleDescription from './RoleDescription.tsx';
 
-/** A role with every part: introduction, bullet points, a project and technologies. */
+/**
+ * A role with every part: introduction, bullet points, a project and technologies. It borrows
+ * texts from several roles of the data, since no single one has every part.
+ */
 const ROLE = {
-  titleKey: 'exp.sewanLead.title',
+  titleKey: 'exp.sewanUiKit.title',
   intro: [
-    { key: 'exp.sewanLead.intro1' },
-    { key: 'exp.sewanLead.introStrong', isStrong: true },
-    { key: 'exp.sewanLead.intro2' },
+    { key: 'exp.sewanUiKit.intro1' },
+    { key: 'exp.sewanUiKit.introStrong', isStrong: true },
+    { key: 'exp.sewanUiKit.intro2' },
   ],
-  bulletKeys: ['exp.sewanLead.b1', 'exp.sewanLead.b2'],
+  bulletKeys: ['exp.sewanUiKit.b1', 'exp.sewanUiKit.b2'],
   projects: [
     {
-      titleKey: 'exp.sewanLead.proj1Title',
-      stateKey: 'exp.sewanLead.proj1State',
-      description: [{ key: 'exp.sewanLead.proj1Intro' }],
-      bulletKeys: ['exp.sewanLead.proj1B4'],
+      titleKey: 'exp.supralogClaris.proj1Title',
+      stateKey: 'exp.supralogClaris.proj1State',
+      description: [{ key: 'exp.supralogClaris.proj1Desc1' }],
+      bulletKeys: ['exp.sewanUiKit.proj1B2'],
       technologies: ['Vitest'],
     },
   ],
@@ -37,8 +40,10 @@ describe('RoleDescription', () => {
   it('writes the introduction, with its strong piece in bold', () => {
     const { container } = render(<RoleDescription role={ROLE} />);
 
-    expect(container).toHaveTextContent(/^Owner et référent technique de l’UI Kit interne Sewan/);
-    expect(container.querySelector('strong')).toHaveTextContent(/^~15 équipes produit$/);
+    expect(container).toHaveTextContent(/^Responsable de l’UI Kit interne de l’équipe Core Front/);
+    expect(container.querySelector('strong')).toHaveTextContent(
+      /^118 packages React et TypeScript$/,
+    );
   });
 
   it('lists the bullet points of the role, then shows its project', () => {
@@ -47,7 +52,7 @@ describe('RoleDescription', () => {
     const [roleBullets, projectBullets] = screen.getAllByRole('list');
     expect(within(roleBullets).getAllByRole('listitem')).toHaveLength(2);
     expect(within(projectBullets).getByRole('listitem')).toHaveTextContent(
-      'Refonte intégrale du pipeline CI/CD GitLab',
+      'npm vers pnpm, Node 16 vers 22, Jest vers Vitest, Webpack vers tsup et Vite, Storybook 5.3 vers 9, Lerna 4 vers 8',
     );
   });
 
@@ -63,20 +68,22 @@ describe('RoleDescription', () => {
   it('shows the title, the status, the description and the technologies of each project', () => {
     render(<RoleDescription role={ROLE} />);
 
-    expect(screen.getByText('Modernisation complète de la stack technique')).toBeInTheDocument();
-    expect(screen.getByText('En production')).toBeInTheDocument();
-    expect(screen.getByText(/^Refonte technique de bout en bout/)).toBeInTheDocument();
+    expect(screen.getByText('CLARIS — Refonte SI de certification')).toBeInTheDocument();
+    expect(screen.getByText('3 sprints livrés')).toBeInTheDocument();
+    expect(screen.getByText(/^Au sein d’une équipe de sept développeurs/)).toBeInTheDocument();
     expect(screen.getByText('Vitest')).toBeInTheDocument();
   });
 
   it('shows a project without status badge when it has none', () => {
     render(
       <RoleDescription
-        role={{ projects: [{ titleKey: 'exp.sewanSenior.proj1Title', stateKey: 'exp.unknown' }] }}
+        role={{ projects: [{ titleKey: 'exp.sewanUiKit.proj1Title', stateKey: 'exp.unknown' }] }}
       />,
     );
 
-    expect(screen.getByText('friday — BFF GraphQL')).toBeInTheDocument();
+    expect(
+      screen.getByText('Refonte de l’outillage, sans rupture pour les équipes consommatrices'),
+    ).toBeInTheDocument();
     expect(screen.queryByText('exp.unknown')).not.toBeInTheDocument();
   });
 
@@ -85,14 +92,16 @@ describe('RoleDescription', () => {
       <RoleDescription
         role={{
           projects: [
-            { titleKey: 'exp.sewanSenior.proj1Title' },
-            { titleKey: 'exp.sewanSenior.proj2Title' },
+            { titleKey: 'exp.sewanUiKit.proj1Title' },
+            { titleKey: 'exp.supralogFfbad.proj1Title' },
           ],
         }}
       />,
     );
 
-    expect(screen.getByText('friday — BFF GraphQL')).toBeInTheDocument();
-    expect(screen.getByText('onboarding-app — Espace client React')).toBeInTheDocument();
+    expect(
+      screen.getByText('Refonte de l’outillage, sans rupture pour les équipes consommatrices'),
+    ).toBeInTheDocument();
+    expect(screen.getByText('MyFFBaD — Espace licencié FFBaD')).toBeInTheDocument();
   });
 });
