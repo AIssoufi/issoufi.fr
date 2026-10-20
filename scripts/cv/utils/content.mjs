@@ -222,10 +222,11 @@ const buildProfiles = ({ siteUrl, siteDomain, linkedInUrl }) => {
  */
 
 /**
- * Gathers everything the CV of one language writes: the name and the job title of the home page,
- * the contact details and the links to the site and the profiles of its owner, the experiences
- * of the Experiences page, and the skills and the education of the data of the CV, which the
- * site does not show, with the subject and the keywords that its document information gives.
+ * Gathers everything the CV of one language writes: the name and the line about design of the
+ * home page, the contact details and the links to the site and the profiles of its owner, the
+ * experiences of the Experiences page, and the job title, the skills and the education of the
+ * data of the CV, which the site does not show, with the subject and the keywords that its
+ * document information gives.
  * @param {BuildCvContentParams} params
  * @returns {CvContent} The content, with empty texts where the data or a translation lacks one.
  * @example
@@ -244,17 +245,17 @@ export const buildCvContent = ({
   const texts = isEntry(cvData?.languages?.[language]) ? cvData.languages[language] : {};
   const contact = isEntry(cvData?.contact) ? cvData.contact : {};
   const documentName = translate('cvLink.documentName');
+  // The CV gives its own job title, more senior and more front-end than the one of the home page
+  const jobTitle = toText(texts.jobTitle);
 
   return {
     language,
-    title: [documentName, homeTexts.name, homeTexts.jobTitle]
-      .filter(isFilled)
-      .join(PAGE_TITLE_SEPARATOR),
+    title: [documentName, homeTexts.name, jobTitle].filter(isFilled).join(PAGE_TITLE_SEPARATOR),
     subject: toText(texts.subject),
     keywords: toTexts(texts.keywords),
     labelSeparator: toText(texts.labelSeparator),
     name: homeTexts.name,
-    jobTitle: homeTexts.jobTitle,
+    jobTitle,
     passion: homeTexts.passion,
     contacts: buildContacts({ contact, texts }),
     profiles: buildProfiles({ siteUrl, siteDomain: homeTexts.site, linkedInUrl }),

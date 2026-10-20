@@ -24,7 +24,7 @@ describe('renderCvHtml', () => {
     const document = renderDocument(ENGLISH_CV);
 
     expect(document.documentElement.lang).toBe('en');
-    expect(document.title).toBe('CV - ADAM Issoufi - Full-stack JavaScript Developer');
+    expect(document.title).toBe('CV - ADAM Issoufi - Senior Front-End Developer');
     expect(document.querySelector('meta[name="author"]').content).toBe('ADAM Issoufi');
   });
 
@@ -111,13 +111,24 @@ describe('renderCvHtml', () => {
     );
   });
 
-  it('writes the design skills of the line under the job title in bold', () => {
+  it('writes the line about design after the job title, on its line, its skills in bold', () => {
     const document = renderDocument(FRENCH_CV);
 
+    expect(document.querySelector('.job-title').textContent).toBe(
+      'Développeur Front-End Senior passionné par l’UX et l’UI\u00a0Design',
+    );
     expect(document.querySelector('.tagline').textContent).toBe(
       'passionné par l’UX et l’UI\u00a0Design',
     );
     expect(getTexts({ document, selector: '.tagline strong' })).toEqual(['UX', 'UI']);
+  });
+
+  it('writes the line about design alone when the job title is empty', () => {
+    const document = renderDocument({ ...FRENCH_CV, jobTitle: '' });
+
+    expect(document.querySelector('.job-title').textContent).toBe(
+      document.querySelector('.tagline').textContent,
+    );
   });
 
   it('links the contact details that have a URL, and only them, then the profiles on their line', () => {
@@ -280,6 +291,7 @@ describe('renderCvHtml', () => {
     const document = renderDocument(content);
 
     expect(document.querySelector('.tagline')).toBeNull();
+    expect(document.querySelector('.job-title').textContent).toBe(FRENCH_CV.jobTitle);
     expect(document.querySelector('.company-name').textContent).toBe('Acme');
     expect(document.querySelector('.role-title').hasAttribute('lang')).toBe(false);
     expect(document.querySelector('.role').querySelectorAll('p, ul')).toHaveLength(0);

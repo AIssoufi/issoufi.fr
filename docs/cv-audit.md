@@ -87,7 +87,7 @@ A decision follows the rules below, whatever a reviewer asks.
 - **Readable by the parser**: a text that reads in the order of the page (two columns only when each one reads as a whole), standard section headings, one date format, contact details as text, a tagged PDF. `pnpm cv` checks the reading order, the fonts and the document information.
 - **Two pages at most** per CV, which `pnpm cv` checks.
 - **No em dash** in the CV, which a spec checks.
-- The job title of the home page is shared by the site, its link previews and the CV: a better one is a proposal in the pull request, not a change of the CV alone.
+- The CV gives its own job title, `jobTitle` of `scripts/cv/.data/cv.json`. The job title of the home page is shared by the site and its link previews: a better one is a proposal in the pull request.
 
 ## 6. Screen again and record
 

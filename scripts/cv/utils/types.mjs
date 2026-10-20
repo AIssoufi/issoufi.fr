@@ -108,7 +108,7 @@
  * @typedef {object} CvContent
  * @property {string} language - Code of the language, e.g. `fr`.
  * @property {string} title - Title of the document, e.g.
- * "CV - ADAM Issoufi - Développeur full-stack JavaScript".
+ * "CV - ADAM Issoufi - Développeur Front-End Senior".
  * @property {string} subject - Subject of the document, in its information: the role and what
  * sets its author apart, which PDF readers show and recruiting tools index.
  * @property {string[]} keywords - Keywords of the document, in its information: terms that the
@@ -116,9 +116,11 @@
  * @property {string} labelSeparator - What separates a label from the text it introduces, e.g.
  * the no-break space, the colon and the space of French.
  * @property {string} name - Name of the site's author.
- * @property {string} jobTitle - Job title.
- * @property {TextSegment[]} passion - Line about UX and UI design, as on the home page. The CV
- * leaves out the line under it, which offers the services of a freelancer to clients.
+ * @property {string} jobTitle - Job title, from the data of the CV: more senior and more
+ * front-end than the one of the home page.
+ * @property {TextSegment[]} passion - Line about UX and UI design, as on the home page, which
+ * follows the job title on its line. The CV leaves out the line under it, which offers the
+ * services of a freelancer to clients.
  * @property {CvLink[]} contacts - Contact details, links or not: email, phone and city.
  * @property {CvLink[]} profiles - Links to the site and the LinkedIn profile of its owner, on
  * the line under the contact details.

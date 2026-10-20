@@ -70,6 +70,7 @@ const CV_DATA = {
   },
   languages: {
     fr: {
+      jobTitle: 'Développeur Front-End Senior',
       subject: 'Développeur front-end senior',
       keywords: ['React', '', '  ', 42, null, 'TypeScript'],
       labelSeparator: ' : ',
@@ -353,15 +354,22 @@ describe('buildExperiences', () => {
 
 describe('buildCvContent', () => {
   it('names the document after the CV, its author and the job title', () => {
-    expect(buildCvContent(PARAMS).title).toBe(
-      'CV - ADAM Issoufi - Développeur full-stack JavaScript',
-    );
+    expect(buildCvContent(PARAMS).title).toBe('CV - ADAM Issoufi - Développeur Front-End Senior');
   });
 
-  it('leaves an empty job title out of the name of the document', () => {
-    const homeTexts = { ...HOME_TEXTS, jobTitle: '' };
+  it.each([undefined, null, 42, '', '  '])(
+    'leaves the job title %j out of the name of the document',
+    jobTitle => {
+      const cvData = { ...CV_DATA, languages: { fr: { ...CV_DATA.languages.fr, jobTitle } } };
 
-    expect(buildCvContent({ ...PARAMS, homeTexts }).title).toBe('CV - ADAM Issoufi');
+      expect(buildCvContent({ ...PARAMS, cvData }).title).toBe('CV - ADAM Issoufi');
+    },
+  );
+
+  it.each([undefined, null, 42])('gives no job title for %j', jobTitle => {
+    const cvData = { ...CV_DATA, languages: { fr: { ...CV_DATA.languages.fr, jobTitle } } };
+
+    expect(buildCvContent({ ...PARAMS, cvData }).jobTitle).toBe('');
   });
 
   it('gives the subject and the filled keywords of the data of the CV', () => {
@@ -385,15 +393,18 @@ describe('buildCvContent', () => {
     expect(content.keywords).toEqual([]);
   });
 
-  it('writes the texts of the home page in the header', () => {
+  it('writes the name and the line about design of the home page in the header', () => {
     const content = buildCvContent(PARAMS);
 
     expect(content).toMatchObject({
       language: 'fr',
       name: 'ADAM Issoufi',
-      jobTitle: 'Développeur full-stack JavaScript',
       passion: HOME_TEXTS.passion,
     });
+  });
+
+  it('writes the job title of the data of the CV, not the one of the home page', () => {
+    expect(buildCvContent(PARAMS).jobTitle).toBe('Développeur Front-End Senior');
   });
 
   it('leaves out the subtitle of the home page, which offers services to clients', () => {
@@ -511,6 +522,6 @@ describe('buildCvContent', () => {
       translate: key => (key === 'cvLink.documentName' ? '' : translate(key)),
     });
 
-    expect(content.title).toBe('ADAM Issoufi - Développeur full-stack JavaScript');
+    expect(content.title).toBe('ADAM Issoufi - Développeur Front-End Senior');
   });
 });

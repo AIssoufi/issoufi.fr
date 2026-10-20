@@ -5,6 +5,7 @@
   },
   "languages": {
     "fr": {
+      "jobTitle": "Développeur Front-End Senior",
       "subject": "Développeur Front-End Senior, responsable d’un UI Kit React et TypeScript, développement avec des agents IA",
       "keywords": [
         "React",
@@ -103,6 +104,7 @@
       ]
     },
     "en": {
+      "jobTitle": "Senior Front-End Developer",
       "subject": "Senior Front-End Developer, owner of a React and TypeScript UI Kit, development with AI agents",
       "keywords": [
         "React",
