@@ -1,4 +1,4 @@
-import { isPublicFile, readPublicWebpSize, readWebpSize } from './publicFileTestUtils';
+import { isPublicFile, readPublicWebpSize, readWebpSize } from './publicFileTestUtils.ts';
 
 /** Bytes of a text of single-byte characters, such as a RIFF signature. */
 const textBytes = (text: string) => [...text].map(character => character.charCodeAt(0));

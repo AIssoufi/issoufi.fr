@@ -1,1 +1,1 @@
-export * from './usePreloadThumbnails';
+export * from './usePreloadThumbnails.ts';

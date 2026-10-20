@@ -1,11 +1,11 @@
 import { render, screen } from '@testing-library/react';
 import styled from '@xstyled/styled-components';
 
-import { MAIN_CONTENT_ID } from '../../constants/landmarks';
-import { declaredStyle } from '../../styleTestUtils';
-import { theme } from '../../theme';
-import { PORTRAIT_PHOTO_MEDIA_QUERY } from '../../utils/pages';
-import Page from './Page';
+import { MAIN_CONTENT_ID } from '../../constants/landmarks.ts';
+import { declaredStyle } from '../../styleTestUtils.js';
+import { theme } from '../../theme/index.ts';
+import { PORTRAIT_PHOTO_MEDIA_QUERY } from '../../utils/pages.ts';
+import Page from './Page.tsx';
 
 /** Media query of the desktop layout, from the tablet breakpoint. */
 const TABLET_MEDIA = `(min-width: ${theme.screens.tablet})`;

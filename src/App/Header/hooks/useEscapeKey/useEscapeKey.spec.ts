@@ -1,6 +1,6 @@
 import { fireEvent, renderHook } from '@testing-library/react';
 
-import { useEscapeKey } from './useEscapeKey';
+import { useEscapeKey } from './useEscapeKey.ts';
 
 /** Presses a key on the focused element, or on the body without one, as a user would. */
 const pressKey = (key: string) =>

@@ -3,13 +3,13 @@ import userEvent from '@testing-library/user-event';
 import { BrowserRouter as Router } from 'react-router';
 
 import packageJson from '../../../package.json';
-import i18n from '../../i18n';
-import { LANGUAGE_STORAGE_KEY } from '../../i18n/constants';
-import { en } from '../../i18n/en';
-import { declaredStyle } from '../../styleTestUtils';
-import { theme } from '../../theme';
-import { DESKTOP_MEDIA_QUERY } from './constants';
-import Header from './Header';
+import i18n from '../../i18n/index.ts';
+import { LANGUAGE_STORAGE_KEY } from '../../i18n/constants.ts';
+import { en } from '../../i18n/en.ts';
+import { declaredStyle } from '../../styleTestUtils.js';
+import { theme } from '../../theme/index.ts';
+import { DESKTOP_MEDIA_QUERY } from './constants.ts';
+import Header from './Header.tsx';
 
 /** Renders the header above a page holding a link, which the open mobile menu covers. */
 const renderHeader = (props = {}) => {
@@ -63,7 +63,7 @@ const getMenu = () => getBurgerButton().parentElement;
  */
 const getHeaderControls = () => getMenu().parentElement;
 
-/** The language toggle, whose buttons are named after their language. */
+/** The language toggle, whose links are named after their language. */
 const getLanguageToggle = () => screen.getByRole('group', { name: 'Langue' });
 
 /**
@@ -229,9 +229,9 @@ describe('Header', () => {
         await userEvent.tab();
         expect(screen.getByRole('link', { name })).toHaveFocus();
       }
-      for (const name of ['Français', 'English']) {
+      for (const name of ['FR – Français', 'EN – English']) {
         await userEvent.tab();
-        expect(within(getLanguageToggle()).getByRole('button', { name })).toHaveFocus();
+        expect(within(getLanguageToggle()).getByRole('link', { name })).toHaveFocus();
       }
       await userEvent.tab();
       expect(getPageLink()).toHaveFocus();
@@ -247,12 +247,14 @@ describe('Header', () => {
       expect(declaredStyle({ element: getFloatingControls(), property: 'order' })).toBe('-1');
     });
 
-    it('floats no link: the navigation holds the profile icons and the CV link', () => {
+    it('floats no link but the languages: the navigation holds the profile icons and the CV link', () => {
       renderHeader();
 
-      expect(within(getFloatingControls()).queryAllByRole('link', { hidden: true })).toHaveLength(
-        0,
-      );
+      expect(
+        within(getFloatingControls())
+          .queryAllByRole('link', { hidden: true })
+          .map(link => link.closest('[role="group"]')),
+      ).toEqual([getLanguageToggle(), getLanguageToggle()]);
       for (const name of [GITHUB_LINK_NAME, LINKEDIN_LINK_NAME, CV_LINK_NAME]) {
         expect(screen.getAllByRole('link', { name, hidden: true })).toHaveLength(1);
         expect(getNavigation()).toContainElement(screen.getByRole('link', { name, hidden: true }));
@@ -431,12 +433,14 @@ describe('Header', () => {
         renderHeader();
         await userEvent.click(getBurgerButton());
 
-        await userEvent.click(within(getLanguageToggle()).getByRole('button', { name: 'English' }));
+        await userEvent.click(
+          within(getLanguageToggle()).getByRole('link', { name: 'EN – English' }),
+        );
 
         expect(window.location.pathname).toBe('/en/');
         expect(
-          within(getLanguageToggle()).getByRole('button', { name: 'English' }),
-        ).toHaveAttribute('aria-pressed', 'true');
+          within(getLanguageToggle()).getByRole('link', { name: 'EN – English' }),
+        ).toHaveAttribute('aria-current', 'true');
         expect(getBurgerButton()).toHaveAttribute('aria-expanded', 'true');
         expect(getRootOverflow()).toBe('hidden');
       });
@@ -520,6 +524,15 @@ describe('Header', () => {
       expect(getBurgerButton()).toHaveAttribute('aria-controls', getNavigation().id);
     });
 
+    it('leads the link that opens the menu without JavaScript to the fragment of the navigation', () => {
+      renderHeader();
+      // Hidden while scripts run, so the queries by role and name skip it
+      const openLink = getMenu().querySelector('a[aria-label="Ouvrir le menu"]');
+
+      expect(openLink).toHaveAttribute('href', `#${getNavigation().id}`);
+      expect(openLink).toHaveAttribute('aria-controls', getNavigation().id);
+    });
+
     it('opens with Enter, goes on to its links with Tab, and closes with Space', async () => {
       renderHeader();
       act(() => getBurgerButton().focus());
@@ -597,10 +610,12 @@ describe('Header', () => {
       act(() => getCvLink().focus());
 
       await userEvent.tab();
-      expect(within(getLanguageToggle()).getByRole('button', { name: 'Français' })).toHaveFocus();
+      expect(
+        within(getLanguageToggle()).getByRole('link', { name: 'FR – Français' }),
+      ).toHaveFocus();
 
       await userEvent.tab();
-      expect(within(getLanguageToggle()).getByRole('button', { name: 'English' })).toHaveFocus();
+      expect(within(getLanguageToggle()).getByRole('link', { name: 'EN – English' })).toHaveFocus();
     });
 
     it('gives the focus back to the burger when a link is chosen with Enter', async () => {

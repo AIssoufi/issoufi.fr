@@ -1,10 +1,11 @@
 // @ts-check
 // Regenerates the icons of the site in public/ (`APP_ICONS` of src/utils/icons.ts): the SVG and
 // ICO favicons, the Apple touch icon and the icons of the installed app, maskable one included,
-// from the "AI" logo of the header, in its font (the display font of the theme, read from
-// public/fonts/), its letter spacing and the colors of the theme: run `pnpm icons` after changing
-// one of them. The logo is drawn from the outlines of its glyphs, so the SVG needs no font, and
-// Chromium, from Playwright, saves each other icon as a PNG.
+// and the logo of the header (`HEADER_LOGO_FILE`), from the "AI" logo, in its font (the display
+// font of the theme, read from public/fonts/), its letter spacing and the colors of the theme:
+// run `pnpm icons` after changing one of them. The logo is drawn from the outlines of its glyphs,
+// so the SVG favicon and the header need no font, and Chromium, from Playwright, saves each other
+// icon as a PNG.
 import { readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 
@@ -16,6 +17,7 @@ import { toDataUrl } from '../utils/html.mjs';
 import { loadSiteModules } from '../utils/site-modules.mjs';
 import {
   FAVICON_SIZE,
+  HEADER_LOGO_FILE,
   ICO_SIZES_PX,
   ICON_LAYOUTS,
   INK_ALPHA_THRESHOLD,
@@ -28,6 +30,7 @@ import {
   TILE_CORNER_RADIUS_RATIO,
 } from './constants.mjs';
 import {
+  getHeaderLogo,
   getMismatchRatio,
   layoutLogo,
   parseEmLength,
@@ -111,10 +114,11 @@ const { theme } = sources.theme;
 
 const family = getFirstFontFamily(theme.fonts[LOGO_FONT]);
 /** @type {{ family: string, url: string } | undefined} */
-const fontFace = sources.fontFaces.FONT_FACES.find(
-  (/** @type {{ family: string }} */ face) => face.family === family,
-);
-if (!fontFace) throw new Error(`No web font of src/theme/constants.ts draws ${family}`);
+const fontFace = sources.fontFaces.LOGO_FONT_FACE;
+const drawsLogoFamily = fontFace?.family === family;
+if (!drawsLogoFamily) {
+  throw new Error(`The web font of the logo, in src/theme/constants.ts, does not draw ${family}`);
+}
 
 const letterSpacingEm = parseEmLength(theme.letterSpacings[LOGO_LETTER_SPACING]);
 if (!Number.isFinite(letterSpacingEm)) throw new Error('The letter spacing of the logo is missing');
@@ -144,6 +148,7 @@ const files = [];
 try {
   // The outline of the logo, drawn over its text in its font: a glyph read wrong shows
   const fontFaceStyles = sources.fontUtils.renderFontFaces({
+    fontFaces: [fontFace],
     getUrl: (/** @type {string} */ url) =>
       toDataUrl({ content: readFileSync(join(PUBLIC_DIR, url)), fileName: url }),
   });
@@ -214,11 +219,20 @@ try {
       files.push({ fileName, file: await renderPng({ role, size: sizePx }), dimensions });
     }
   }
+
+  // The same outline, in font units, which the header draws at the size of its text
+  const headerLogo = getHeaderLogo({ outlines, logo });
+  files.push({
+    fileName: HEADER_LOGO_FILE,
+    file: `${JSON.stringify(headerLogo, null, 2)}\n`,
+    dimensions: `${headerLogo.widthEm} × ${headerLogo.heightEm} em`,
+  });
 } finally {
   await browser.close();
 }
 
-// Written once every icon is drawn, so a failure leaves none of them changed
+// Written once every icon and the logo of the header are drawn, so a failure leaves none of them
+// changed
 files.forEach(({ fileName, file, dimensions }) => {
   writeFileSync(fileName, file);
   console.log(`Wrote ${fileName}: ${dimensions}, ${Buffer.byteLength(file)} bytes`);

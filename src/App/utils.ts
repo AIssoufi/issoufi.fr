@@ -2,7 +2,7 @@ import {
   PAGE_HEADING_SELECTOR,
   SCRIPT_ONLY_TAB_INDEX,
   STALE_CHUNK_RELOAD_COOLDOWN_MS,
-} from './constants';
+} from './constants.ts';
 
 /** Parameters of {@link isStaleChunkReloadAllowed}. */
 interface IsStaleChunkReloadAllowedParams {
@@ -59,7 +59,9 @@ export function isStaleChunkReloadAllowed({
  * @returns The module itself, or a promise that never settles when it is `undefined` or `null`.
  *
  * @example
- * const Projects = lazy(() => import('../pages/Projects').then(keepPendingWhileReloading));
+ * const Projects = lazy(() =>
+ *   import('../pages/Projects/index.ts').then(keepPendingWhileReloading),
+ * );
  */
 export function keepPendingWhileReloading<Module>(
   module: Module | null | undefined,

@@ -1,4 +1,4 @@
-import { getPathLanguage, removeLanguagePrefix } from '../../i18n/utils';
+import { getPathLanguage, removeLanguagePrefix } from '../../i18n/utils.ts';
 
 /** Parameters of {@link isLanguageSwitch}. */
 interface IsLanguageSwitchParams {

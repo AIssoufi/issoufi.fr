@@ -1,6 +1,6 @@
 import styled, { th } from '@xstyled/styled-components';
 
-import { PORTRAIT_PHOTO_MEDIA_QUERY } from '../../utils/pages';
+import { PORTRAIT_PHOTO_MEDIA_QUERY } from '../../utils/pages.ts';
 
 export const Main = styled.main<{ $backgroundImage: string; $portraitBackgroundImage: string }>`
   padding: ${th.space('page-top')} ${th.space('page')} 0;
@@ -21,7 +21,7 @@ export const Main = styled.main<{ $backgroundImage: string; $portraitBackgroundI
     background-position: center;
     background-size: cover;
 
-    /* The same media query as the preload of the app, so no screen downloads both versions */
+    /* The same media query as the preloads of the photo, so no screen downloads both versions */
     @media ${PORTRAIT_PHOTO_MEDIA_QUERY} {
       background-image: ${props => props.$portraitBackgroundImage};
     }

@@ -1,5 +1,5 @@
-import { fr } from './fr';
-import { getEntries } from './testUtils';
+import { fr } from './fr.ts';
+import { getEntries } from './testUtils.ts';
 
 /**
  * A colon, semicolon, question or exclamation mark with neither a no-break space nor another mark
@@ -35,15 +35,13 @@ describe('fr', () => {
 
   it('puts a full no-break space before a colon', () => {
     expect(getKeysMatching(NARROW_SPACE_BEFORE_COLON)).toEqual([]);
-    expect(fr.exp.sewanLead.b3).toBe(
-      'Accompagnement transverse\u00a0: onboarding, code review, debug et formation des équipes consommatrices',
-    );
+    expect(fr.exp.beepeers.proj1B1).toBe('Conception\u00a0: maquettes des écrans, architecture');
   });
 
   it('puts a narrow no-break space before a semicolon, a question or an exclamation mark', () => {
     expect(getKeysMatching(FULL_SPACE_BEFORE_SHORT_PUNCTUATION)).toEqual([]);
-    expect(fr.exp.sewanLead.proj1B3).toBe(
-      'npm + Lerna v4 → pnpm + Lerna v8\u202f; passage à TypeScript strict',
+    expect(fr.exp.beepeers.proj1B2).toBe(
+      'Réalisation en React, en partie à partir de composants existants\u202f; réservation de billet et d’hôtel (Fasticket) et paiement par carte bancaire (Weezevent)',
     );
   });
 });

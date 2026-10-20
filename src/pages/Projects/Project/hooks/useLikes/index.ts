@@ -1,1 +1,1 @@
-export * from './useLikes';
+export * from './useLikes.ts';

@@ -1,6 +1,6 @@
-import { DEFAULT_LANGUAGE } from '../../../../i18n/constants';
-import { isLanguage } from '../../../../i18n/utils';
-import { CV_URLS } from './constants';
+import { DEFAULT_LANGUAGE } from '../../../../i18n/constants.ts';
+import { isLanguage } from '../../../../i18n/utils.ts';
+import { CV_URLS } from './constants.ts';
 
 /**
  * Picks the URL of the CV in a language, so that each language's CV link downloads the CV written

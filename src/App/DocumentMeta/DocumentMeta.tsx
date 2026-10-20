@@ -2,9 +2,9 @@ import { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useLocation } from 'react-router';
 
-import { getYearsOfExperience } from '../../utils/career';
-import { getPage } from '../../utils/pages';
-import { getWebManifestUrl } from '../../utils/webManifest';
+import { getYearsOfExperience } from '../../utils/career.ts';
+import { getPage } from '../../utils/pages.ts';
+import { getWebManifestUrl } from '../../utils/webManifest.ts';
 
 /**
  * Keeps `<html lang>`, the document title, the meta description and the link to the web app

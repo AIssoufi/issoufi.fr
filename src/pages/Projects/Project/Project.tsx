@@ -5,12 +5,12 @@ import LikeIcon from './icons/heart.svg?react';
 import NextIcon from './icons/next.svg?react';
 import PreviousIcon from './icons/previous.svg?react';
 
-import { isNonBlankString, listUniqueNonBlankStrings } from '../../../utils/strings';
-import { ROW_CARD_COUNT, THUMBNAIL_SIZES } from './constants';
-import { useCardTilt } from './hooks/useCardTilt';
-import { useLikes } from './hooks/useLikes';
-import { usePreloadThumbnails } from './hooks/usePreloadThumbnails';
-import { useWholeCardCount } from './hooks/useWholeCardCount';
+import { isNonBlankString, listUniqueNonBlankStrings } from '../../../utils/strings.ts';
+import { ROW_CARD_COUNT, THUMBNAIL_SIZES } from './constants.ts';
+import { useCardTilt } from './hooks/useCardTilt/index.ts';
+import { useLikes } from './hooks/useLikes/index.ts';
+import { usePreloadThumbnails } from './hooks/usePreloadThumbnails/index.ts';
+import { useWholeCardCount } from './hooks/useWholeCardCount/index.ts';
 import {
   CtrlItem,
   IconBtn,
@@ -29,8 +29,8 @@ import {
   SectionHeader,
   SectionTitle,
   Thumbnail,
-} from './Project.styled';
-import type { ProjectItemData } from './types';
+} from './Project.styled.ts';
+import type { ProjectItemData } from './types.ts';
 import {
   getLastPageStart,
   getNextPageStart,
@@ -38,7 +38,7 @@ import {
   getPreviousPageStart,
   getProjectLinkUrl,
   getThumbnailSources,
-} from './utils';
+} from './utils.ts';
 
 /** Props of {@link Project}. */
 interface ProjectProps {
@@ -49,13 +49,14 @@ interface ProjectProps {
   title?: string;
   /**
    * Cards to show, three at a time in a row that the arrows move, or all at once after "Show
-   * all". @default []
+   * all" and without JavaScript. @default []
    */
   projects?: ProjectItemData[];
   /**
    * Whether the section is the first of the page, whose first thumbnail is the largest image that
-   * the page paints first: it is downloaded at once, before the other images. Every other
-   * thumbnail is downloaded once the screen nears it.
+   * the page paints first: it is downloaded at once, at a high priority, before the other images.
+   * Every other thumbnail is downloaded once the screen nears it, at a low priority, so that it
+   * never shares the bandwidth with that one, even when it shows at the same time.
    * @default false
    */
   priority?: boolean;
@@ -69,7 +70,9 @@ const NO_PROJECTS: ProjectItemData[] = [];
  * phone, where the next card starts at the right edge and the row scrolls to it, up to three on a
  * wide screen. At the first and the last page, the button that would go past them is
  * `aria-disabled` and dimmed, and keeps its focus. "Show all" shows every card instead, at the
- * size of the row, on as many rows as they need. The cards form a list. The controls form a
+ * size of the row, on as many rows as they need. Every card is rendered, those out of the page
+ * hidden, so that the HTML of the build holds every project: without JavaScript, the section shows
+ * them all, as "Show all" does, without its controls. The cards form a list. The controls form a
  * group labelled by the title, rather than a navigation landmark, with its buttons in the order
  * that the screen shows them. Cards tilt toward the mouse, and have a like button, named after the
  * project, whose pressed state is the visitor's own like, without a count, kept in their browser
@@ -82,7 +85,8 @@ const NO_PROJECTS: ProjectItemData[] = [];
  * without a title, the section has no heading and its controls have no name. The thumbnail is
  * decorative, with an empty alt text, since the name follows it, and a card without a valid file
  * shows none. Each thumbnail downloads the file of its `srcset` that its width needs on the
- * screen, once the screen nears it, but the first one of a `priority` section, at once; hovering
+ * screen, once the screen nears it and at a low priority, but the first one of a `priority`
+ * section, at once and at a high priority, the only one of the page; hovering
  * or focusing an arrow downloads the thumbnails of the page it would show, so that they never
  * show empty.
  */
@@ -116,7 +120,9 @@ const Project = ({ title, projects = NO_PROJECTS, priority = false }: ProjectPro
   // Its thumbnail is the largest image that the page paints first, which nothing should delay
   const priorityProject = priority ? projects[0] : undefined;
 
-  const visibleProjects = isShowingAll ? projects : getPageProjects({ projects, pageStart });
+  // Every card is rendered, so that the HTML of the build holds every project: those out of the
+  // page are hidden, except where no script runs
+  const shownProjects = new Set(isShowingAll ? projects : getPageProjects({ projects, pageStart }));
 
   const preloadThumbnails = usePreloadThumbnails();
   const preloadNextPage = () =>
@@ -183,8 +189,9 @@ const Project = ({ title, projects = NO_PROJECTS, priority = false }: ProjectPro
         ref={listRef}
         $displayAll={isShowingAll}
       >
-        {visibleProjects.map(project => {
+        {projects.map(project => {
           const { id, name, type, thumbnails, url, tools } = project;
+          const isOffPage = !shownProjects.has(project);
           const isLiked = likedIds.has(id);
           const isAnimating = animatingIds.has(id);
           const linkUrl = getProjectLinkUrl({ url, name });
@@ -197,6 +204,7 @@ const Project = ({ title, projects = NO_PROJECTS, priority = false }: ProjectPro
           return (
             <ProjectItem
               key={id}
+              $offPage={isOffPage}
               {...cardTilt}
             >
               <ImageContainer>
@@ -205,7 +213,7 @@ const Project = ({ title, projects = NO_PROJECTS, priority = false }: ProjectPro
                   <Thumbnail
                     alt=""
                     loading={isPriorityThumbnail ? 'eager' : 'lazy'}
-                    fetchPriority={isPriorityThumbnail ? 'high' : undefined}
+                    fetchPriority={isPriorityThumbnail ? 'high' : 'low'}
                     decoding="async"
                     sizes={THUMBNAIL_SIZES}
                     srcSet={thumbnail.srcSet}

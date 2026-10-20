@@ -1,16 +1,17 @@
 import type { ReactNode } from 'react';
 
-import { MAIN_CONTENT_ID } from '../../constants/landmarks';
-import type { BackgroundPhoto } from '../../utils/pages';
-import { Main } from './Page.styled';
-import { getBackgroundImages } from './utils';
+import { MAIN_CONTENT_ID } from '../../constants/landmarks.ts';
+import type { BackgroundPhoto } from '../../utils/pages.ts';
+import { Main } from './Page.styled.ts';
+import { getBackgroundImages } from './utils.ts';
 
 /** Props of {@link Page}. Every prop is optional. */
 interface PageProps {
   /**
    * Photo covering the screen behind the page, under a dark overlay: the `backgroundPhoto` of the
-   * entry of the page in `PAGES` (`src/utils/pages.ts`), which the app preloads as soon as it
-   * starts (`src/preloadBackgroundPhoto.ts`). Narrow portrait screens show its portrait version,
+   * entry of the page in `PAGES` (`src/utils/pages.ts`), which the HTML of the page that the build
+   * rendered preloads at a low priority, or else the app when it starts
+   * (`src/preloadBackgroundPhoto.ts`). Narrow portrait screens show its portrait version,
    * the others the whole photo, each over its placeholder until it is downloaded; a version without
    * a URL shows the other one. Only the overlay is drawn when it is missing.
    */

@@ -1,10 +1,19 @@
+import { readdirSync, readFileSync } from 'node:fs';
+import { join } from 'node:path';
+
 import { screen } from '@testing-library/react';
 import styled, { ThemeProvider } from '@xstyled/styled-components';
 
-import { listStyleRules, serializeCssValue } from '../styleTestUtils';
-import { HOVER_POINTER_QUERY, REDUCED_MOTION_QUERY } from './constants';
-import { GlobalStyle } from './GlobalStyle';
-import { theme } from './theme';
+import { listStyleRules, serializeCssValue } from '../styleTestUtils.js';
+import {
+  CONTROL_HOVER_SCALE,
+  FORCED_COLORS_QUERY,
+  FULL_MOTION_QUERY,
+  HOVER_POINTER_QUERY,
+  REDUCED_MOTION_QUERY,
+} from './constants.ts';
+import { GlobalStyle } from './GlobalStyle.ts';
+import { theme } from './theme.ts';
 
 // The render of src/setupTests.ts adds the global styles already, and in styled-components 6.5 each
 // mounted copy of a global style adds its own rules: Testing Library's own render keeps the global
@@ -23,6 +32,22 @@ const REDUCED_MOTION_VALUES = {
   'transition-duration': theme.durations.instant,
   'transition-delay': '0s',
 };
+
+/** Folder of the sources of the app, whose icons the global style colors. */
+const SOURCE_DIR = 'src';
+
+/**
+ * Stroke color written in an SVG file: a `stroke` attribute, such as `stroke="white"` or
+ * `stroke='white'`, or a `stroke` declaration of a style, such as `style="stroke: white"` or
+ * `<style>path { stroke: white }</style>`.
+ */
+const STROKE_COLOR = /\sstroke=["'][^"']*["']|[\s;{"']stroke\s*:[^;}"']*/g;
+
+/** Every SVG file of the app, by its path from the root of the repository. */
+const iconFiles = readdirSync(SOURCE_DIR, { recursive: true })
+  .map(String)
+  .filter(file => file.endsWith('.svg'))
+  .map(file => join(SOURCE_DIR, file));
 
 const ContentBox = styled.div`
   box-sizing: content-box;
@@ -121,25 +146,79 @@ describe('GlobalStyle', () => {
     expect(paragraphRule.style.getPropertyValue('text-wrap')).toBe('pretty');
   });
 
+  it('draws the text of a button in the font of its parent, rather than the font of the browser', () => {
+    renderWithGlobalStyle();
+
+    const buttonRules = findRulesSelecting({ selectors: ['button'] });
+    expect(buttonRules).toHaveLength(1);
+    // jsdom has no style of its own for the controls: only the rule tells what a browser draws
+    expect(buttonRules[0].style.getPropertyValue('font-family')).toBe('inherit');
+  });
+
   it('grows a hovered button, and turns a hovered link to the accent from tablet up, under a pointer that hovers only', () => {
     renderWithGlobalStyle();
     const tabletHoverQuery = `(min-width: ${theme.screens.tablet}) and ${HOVER_POINTER_QUERY}`;
 
     const [buttonRule] = findRulesSelecting({
       selectors: ['button:hover'],
-      media: HOVER_POINTER_QUERY,
+      media: `${HOVER_POINTER_QUERY} and ${FULL_MOTION_QUERY}`,
     });
     const [linkRule] = findRulesSelecting({ selectors: ['a:hover'], media: tabletHoverQuery });
-    expect(buttonRule.style.getPropertyValue('transform')).toBe('scale(1.06)');
+    expect(buttonRule.style.getPropertyValue('transform')).toBe(`scale(${CONTROL_HOVER_SCALE})`);
     expect(linkRule.style.getPropertyValue('color')).toBe(
       serializeCssValue({ property: 'color', value: theme.colors['accent-foreground'] }),
     );
     // A touch screen keeps the hover style of the last control tapped
     const isHoverRuleOfEveryPointer = ({ media, rule }) => {
-      const isForHoverPointers = media.endsWith(HOVER_POINTER_QUERY);
+      const isForHoverPointers = media.includes(HOVER_POINTER_QUERY);
       return !isForHoverPointers && Boolean(rule.selectorText?.includes(':hover'));
     };
     expect(listStyleRules().filter(isHoverRuleOfEveryPointer)).toEqual([]);
+  });
+
+  // The reduced motion rule makes the transition instant: the button would jump
+  it('grows a hovered button only without reduced motion, while its pointer cursor stays', () => {
+    renderWithGlobalStyle();
+    const ruleDeclares = property => entry =>
+      entry.rule.selectorText === 'button:hover' &&
+      entry.rule.style.getPropertyValue(property) !== '';
+
+    expect(
+      listStyleRules()
+        .filter(ruleDeclares('transform'))
+        .map(({ media }) => media),
+    ).toEqual([`${HOVER_POINTER_QUERY} and ${FULL_MOTION_QUERY}`]);
+    expect(
+      listStyleRules()
+        .filter(ruleDeclares('cursor'))
+        .map(({ media }) => media),
+    ).toEqual([HOVER_POINTER_QUERY]);
+  });
+
+  it('draws the icons in the foreground color, and in the text color in forced colors mode', () => {
+    renderWithGlobalStyle();
+
+    const iconRules = findRulesSelecting({ selectors: ['svg'] });
+    const forcedIconRules = findRulesSelecting({ selectors: ['svg'], media: FORCED_COLORS_QUERY });
+    expect(iconRules).toHaveLength(1);
+    expect(forcedIconRules).toHaveLength(1);
+    const [iconRule] = iconRules;
+    const [forcedIconRule] = forcedIconRules;
+    expect(iconRule.style.getPropertyValue('stroke')).toBe(
+      serializeCssValue({ property: 'stroke', value: theme.colors.foreground }),
+    );
+    // Forced colors mode keeps the white of an SVG, which a light contrast theme would hide
+    expect(forcedIconRule.style.getPropertyValue('stroke')).toBe(
+      serializeCssValue({ property: 'stroke', value: 'currentColor' }),
+    );
+  });
+
+  it('leaves the stroke color of every icon of the app to the global style', () => {
+    expect(iconFiles).not.toHaveLength(0);
+    // A stroke on a path would win over the text color that the icons need in forced colors mode
+    for (const file of iconFiles) {
+      expect(readFileSync(file, 'utf8').match(STROKE_COLOR), file).toBeNull();
+    }
   });
 
   describe('with reduced motion', () => {

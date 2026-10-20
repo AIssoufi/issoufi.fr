@@ -1,7 +1,7 @@
 import styled, { css, th } from '@xstyled/styled-components';
 
-import LocalizedLink from '../../LocalizedLink';
-import { HOVER_POINTER_QUERY } from '../../../theme/constants';
+import LocalizedLink from '../../LocalizedLink/index.ts';
+import { HOVER_POINTER_QUERY } from '../../../theme/constants.ts';
 
 export const Container = styled.section`
   display: flex;
@@ -70,7 +70,6 @@ export const HomeLink = styled(LocalizedLink)`
 export const ActionButton = styled.button`
   ${pillAction}
   background-color: transparent;
-  font-family: inherit;
 
   @media ${HOVER_POINTER_QUERY} {
     &:hover {

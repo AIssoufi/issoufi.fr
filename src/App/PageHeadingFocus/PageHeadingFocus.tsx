@@ -1,8 +1,8 @@
 import { useEffect, useRef } from 'react';
 import { NavigationType, useLocation, useNavigationType } from 'react-router';
 
-import { focusPageHeading } from '../utils';
-import { isLanguageSwitch } from './utils';
+import { focusPageHeading } from '../utils.ts';
+import { isLanguageSwitch } from './utils.ts';
 
 /**
  * Moves the keyboard focus to the heading of the new page after each navigation by link (see

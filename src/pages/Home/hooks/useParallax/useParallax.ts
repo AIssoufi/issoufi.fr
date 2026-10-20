@@ -1,13 +1,13 @@
 import { type RefObject, useEffect } from 'react';
 
-import { usePrefersReducedMotion } from '../../../../hooks/usePrefersReducedMotion';
-import { isFingerPointer } from '../../../../utils/pointer';
+import { usePrefersReducedMotion } from '../../../../hooks/usePrefersReducedMotion/index.ts';
+import { isFingerPointer } from '../../../../utils/pointer.ts';
 import {
   PARALLAX_MAX_OFFSET_PX,
   PARALLAX_RESET_DURATION_MS,
   RELEASE_EASING,
-} from '../../constants';
-import { getParallaxOffset } from '../../utils';
+} from '../../constants.ts';
+import { getParallaxOffset } from '../../utils.ts';
 
 /**
  * Shifts an element slightly away from a mouse or a pen, for a depth effect, and eases it back to

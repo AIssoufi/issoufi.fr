@@ -86,6 +86,15 @@ export const NULL_GLYF_TRANSFORM_VERSION = 3;
 /** Offset of the `unitsPerEm` field in the head table, in bytes. */
 export const HEAD_UNITS_PER_EM_OFFSET = 18;
 
+/** Offset of the `ascender` field in the hhea table, in bytes. */
+export const HHEA_ASCENDER_OFFSET = 4;
+
+/** Offset of the `descender` field in the hhea table, in bytes. */
+export const HHEA_DESCENDER_OFFSET = 6;
+
+/** Offset of the `lineGap` field in the hhea table, in bytes. */
+export const HHEA_LINE_GAP_OFFSET = 8;
+
 /** Offset of the `numberOfHMetrics` field in the hhea table, in bytes. */
 export const HHEA_METRIC_COUNT_OFFSET = 34;
 

@@ -8,6 +8,12 @@
 /** Decimals of the coordinates of the paths: a hundredth of a unit of the icon. */
 const PATH_DECIMALS = 2;
 
+/** Decimals of the sizes of the logo of the header, in ems: a thousandth of a pixel at 100 px. */
+const EM_DECIMALS = 5;
+
+/** Transform that leaves the logo in font units, its baseline at y = 0. */
+const FONT_UNITS_TRANSFORM = { scale: 1, translateX: 0, translateY: 0 };
+
 /** Namespace of the SVG elements. */
 const SVG_NAMESPACE = 'http://www.w3.org/2000/svg';
 
@@ -64,6 +70,8 @@ export const getMismatchRatio = ({ inkedCount, mismatchCount }) => {
  * @property {OutlinePoint[][]} contours - Contours of all its glyphs, each glyph after the
  * previous one.
  * @property {Box} box - Box around their points, all zeros for a logo without contours.
+ * @property {number} advance - Width of its text, from its origin to the origin of a glyph that
+ * would follow it, the letter spacing after each glyph included, as a browser lays out the text.
  */
 
 /**
@@ -97,16 +105,19 @@ const getBox = points => {
  * each glyph starts at the advance of the previous one, plus the letter spacing. The y axis is
  * flipped, from the font, where it points up, to SVG, where it points down.
  * @param {LayoutLogoParams} params
- * @returns {LogoOutline} The contours of the logo and their box, in font units.
+ * @returns {LogoOutline} The contours of the logo, their box and its advance, in font units.
  * @example
  * layoutLogo({ outlines: readGlyphOutlines({ file, text: 'AI' }), letterSpacingEm: 0.02 });
  */
 export const layoutLogo = ({ outlines, letterSpacingEm }) => {
   const spacing = letterSpacingEm * outlines.unitsPerEm;
-  const origins = outlines.glyphs.map((_, index) =>
-    outlines.glyphs
-      .slice(0, index)
-      .reduce((originX, { advanceWidth }) => originX + advanceWidth + spacing, 0),
+  // The origin of each glyph, then the one of a glyph that would follow the last one
+  const origins = outlines.glyphs.reduce(
+    (originXs, { advanceWidth }) => [
+      ...originXs,
+      originXs[originXs.length - 1] + advanceWidth + spacing,
+    ],
+    [0],
   );
   const contours = outlines.glyphs.flatMap(({ contours: glyphContours }, index) =>
     glyphContours.map(contour =>
@@ -114,7 +125,7 @@ export const layoutLogo = ({ outlines, letterSpacingEm }) => {
       contour.map(({ x, y, onCurve }) => ({ x: x + origins[index], y: 0 - y, onCurve })),
     ),
   );
-  return { contours, box: getBox(contours.flat()) };
+  return { contours, box: getBox(contours.flat()), advance: origins[origins.length - 1] };
 };
 
 /**
@@ -260,6 +271,65 @@ export const toLogoPathData = ({ contours, transform: { scale, translateX, trans
       ),
     )
     .join('');
+
+/**
+ * Logo of the header, drawn as an inline SVG of its outline in the place of its text, so that no
+ * page loads its font for two letters: the JSON file that `pnpm icons` writes for the `Logo` of
+ * the header (`src/App/Header/Logo/`). The SVG covers the line of text it replaces, from the top
+ * to the bottom of the line, as wide as the text, and its sizes are in ems of the font size, so
+ * that it takes the size of the text at any font size.
+ * @typedef {object} HeaderLogo
+ * @property {string} viewBox - View box of the SVG, in font units, its baseline at y = 0: from
+ * the origin of the text and the top of the line, over the advance of the text and the height
+ * of the line.
+ * @property {number} widthEm - Width of the SVG, the advance of the text, in ems.
+ * @property {number} heightEm - Height of the SVG, the height of a line of text in the font,
+ * line gap included, in ems.
+ * @property {number} descentEm - Distance from the baseline down to the bottom of the SVG, in
+ * ems, by which the SVG goes below the baseline of the line, as the text did.
+ * @property {string} pathData - Outline of the logo, in font units.
+ */
+
+/**
+ * Parameters of {@link getHeaderLogo}.
+ * @typedef {object} GetHeaderLogoParams
+ * @property {FontOutlines} outlines - Glyphs of the logo and vertical metrics of its font, from
+ * `readGlyphOutlines`.
+ * @property {LogoOutline} logo - Logo laid out by {@link layoutLogo} from these glyphs.
+ */
+
+/**
+ * Gives the logo of the header, the outline of its text in the box of its line, as a browser
+ * lays out a line of text in the font: from the ascender to the descender of the font, plus half
+ * the line gap at the top and half at the bottom, its baseline in between.
+ * @param {GetHeaderLogoParams} params
+ * @returns {HeaderLogo} The logo of the header.
+ * @throws {Error} When the font has no units per em, which no em could measure.
+ * @example
+ * const outlines = readGlyphOutlines({ file, text: 'AI' });
+ * getHeaderLogo({ outlines, logo: layoutLogo({ outlines, letterSpacingEm: 0.02 }) });
+ * // { viewBox: '0 -1135 1057 1574', widthEm: 1.057, heightEm: 1.574, descentEm: 0.439, … }
+ */
+export const getHeaderLogo = ({ outlines, logo }) => {
+  const { unitsPerEm, ascender, descender, lineGap } = outlines;
+  const hasEmSize = unitsPerEm > 0;
+  if (!hasEmSize) throw new Error('The font of the logo has no units per em');
+
+  /**
+   * Converts a length from font units to ems.
+   * @param {number} units - Length in font units.
+   */
+  const toEm = units => Number((units / unitsPerEm).toFixed(EM_DECIMALS));
+  const top = ascender + lineGap / 2;
+  const bottom = -descender + lineGap / 2;
+  return {
+    viewBox: [0, -top, logo.advance, top + bottom].map(formatCoordinate).join(' '),
+    widthEm: toEm(logo.advance),
+    heightEm: toEm(top + bottom),
+    descentEm: toEm(bottom),
+    pathData: toLogoPathData({ contours: logo.contours, transform: FONT_UNITS_TRANSFORM }),
+  };
+};
 
 /**
  * Colors of an icon, from the theme of the site.

@@ -1,7 +1,7 @@
 import { render, screen, within } from '@testing-library/react';
 
-import { MIN_FONT_SIZE_PX } from '../../../theme/constants';
-import Project from './Project';
+import { MIN_FONT_SIZE_PX } from '../../../theme/constants.ts';
+import Project from './Project.tsx';
 
 describe('Project', () => {
   it('renders without any props', () => {

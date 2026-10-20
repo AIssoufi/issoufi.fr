@@ -1,8 +1,8 @@
 import { fireEvent, render, screen } from '@testing-library/react';
 
-import { stubMatchMedia } from '../../../mediaQueryTestUtils';
-import { RETURN_DELAY_MS } from './constants';
-import { SplitWords } from './SplitWords';
+import { stubMatchMedia } from '../../../mediaQueryTestUtils.ts';
+import { RETURN_DELAY_MS } from './constants.ts';
+import { SplitWords } from './SplitWords.tsx';
 
 const FRAME_MS = 16;
 /** Pointer distance from a word close enough to push it, since jsdom puts every word at 0,0. */

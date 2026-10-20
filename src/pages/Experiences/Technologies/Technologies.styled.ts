@@ -1,6 +1,6 @@
 import styled, { th } from '@xstyled/styled-components';
 
-import List from '../../../components/List';
+import List from '../../../components/List/index.ts';
 
 export const TechList = styled(List)`
   display: flex;

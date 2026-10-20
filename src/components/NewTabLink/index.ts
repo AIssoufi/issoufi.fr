@@ -1,1 +1,1 @@
-export { default } from './NewTabLink';
+export { default } from './NewTabLink.tsx';

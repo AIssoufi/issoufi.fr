@@ -125,6 +125,12 @@ export const MAILTO_PREFIX = 'mailto:';
 /** Prefix of the URL of a phone number. */
 export const TEL_PREFIX = 'tel:';
 
+/**
+ * A language code that the `lang` attribute accepts, such as `en` or `pt-BR`: a language of two or
+ * three letters, then optional subtags.
+ */
+export const LANGUAGE_CODE_PATTERN = /^[a-z]{2,3}(-[A-Za-z0-9]{2,8})*$/;
+
 /** An email address: a name and a domain around a single `@`, without spaces. */
 export const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+$/;
 

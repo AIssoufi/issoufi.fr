@@ -1,7 +1,7 @@
 import { useTranslation } from 'react-i18next';
 
-import { Icon, Link } from './CvLink.styled';
-import { getCvUrl } from './utils';
+import { Icon, Link } from './CvLink.styled.ts';
+import { getCvUrl } from './utils.ts';
 
 /** Props of {@link CvLink}. Every prop is optional. */
 interface CvLinkProps {

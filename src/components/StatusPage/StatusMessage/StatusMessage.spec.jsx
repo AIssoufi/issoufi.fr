@@ -2,8 +2,8 @@ import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router';
 
-import { declaredStyle } from '../../../styleTestUtils';
-import StatusMessage from './StatusMessage';
+import { declaredStyle } from '../../../styleTestUtils.js';
+import StatusMessage from './StatusMessage.tsx';
 
 describe('StatusMessage', () => {
   it('renders the code, title, message and home link', () => {

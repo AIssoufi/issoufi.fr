@@ -1,6 +1,6 @@
 import { renderHook, waitFor } from '@testing-library/react';
 
-import { useInertOutside } from './useInertOutside';
+import { useInertOutside } from './useInertOutside.ts';
 
 /**
  * Builds a header holding a menu, between a logo and a page, and returns its elements by id:

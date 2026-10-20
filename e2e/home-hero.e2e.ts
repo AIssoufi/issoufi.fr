@@ -1,18 +1,23 @@
 import { expect, type Page, test } from '@playwright/test';
 
-import { LANGUAGES } from '../src/i18n/constants';
-import { localizePath } from '../src/i18n/utils';
-import { HOME_PAGE } from '../src/utils/pages';
-import { recordLargestShift, waitForEndingAnimations } from './animations';
+import { LANGUAGES } from '../src/i18n/constants.ts';
+import { localizePath } from '../src/i18n/utils.ts';
+import { HOME_PAGE } from '../src/utils/pages.ts';
+import { recordLargestShift, waitForEndingAnimations } from './animations.ts';
 import {
+  HERO_JOB_TITLE_SELECTOR,
+  HERO_PASSION_SELECTOR,
   HERO_POINTER_SCREENS,
   HERO_SCREENS,
   HERO_WORD_SELECTOR,
+  MAX_JOB_TITLE_LINE_HEIGHT_RATIO,
+  MAX_PASSION_LINE_HEIGHT_RATIO,
   MAX_WORD_SHIFT_PX,
   PAGE_SELECTOR,
   POINTER_REST_FRAME_COUNT,
-} from './constants';
-import { getButtonAimPoints, getScreenBox, isBoxInside } from './utils';
+} from './constants.ts';
+import { measureWordBlock, measureWordLineHeights } from './text.ts';
+import { getButtonAimPoints, getScreenBox, isBoxInside } from './utils.ts';
 
 /** Number of buttons of the home page, the links under its title. */
 const HERO_BUTTON_COUNT = 2;
@@ -72,6 +77,37 @@ for (const language of LANGUAGES) {
             isBoxInside({ box: await button.boundingBox(), container: screenBox }),
             `"${await button.textContent()}" inside the ${viewport.width} × ${viewport.height} px screen`,
           ).toBe(true);
+        }
+      });
+
+      test(`the lines of the big words of the title of ${route} stand as close as those of a heading`, async ({
+        page,
+      }) => {
+        await openHomePage({ page, route });
+        const options = { wordSelector: HERO_WORD_SELECTOR };
+        const jobTitle = await page
+          .locator(HERO_JOB_TITLE_SELECTOR)
+          .evaluate(measureWordBlock, options);
+        const passion = await page
+          .locator(HERO_PASSION_SELECTOR)
+          .evaluate(measureWordBlock, options);
+        const jobTitleRatios = measureWordLineHeights(jobTitle);
+        const passionRatios = measureWordLineHeights(passion);
+
+        // Without any word, no line would be too tall, and the checks would pass
+        expect(jobTitleRatios.length, 'lines of the job title').toBeGreaterThan(0);
+        expect(passionRatios.length, 'lines of "UX" and "UI"').toBeGreaterThan(0);
+        for (const ratio of jobTitleRatios) {
+          expect(
+            ratio,
+            'height of a line of the job title, as a share of its font size',
+          ).toBeLessThanOrEqual(MAX_JOB_TITLE_LINE_HEIGHT_RATIO);
+        }
+        for (const ratio of passionRatios) {
+          expect(
+            ratio,
+            'height of the line of "UX" and "UI", as a share of their font size',
+          ).toBeLessThanOrEqual(MAX_PASSION_LINE_HEIGHT_RATIO);
         }
       });
     });

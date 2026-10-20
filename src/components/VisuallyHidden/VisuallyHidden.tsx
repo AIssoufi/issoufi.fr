@@ -1,7 +1,7 @@
-import { DEFAULT_VISUALLY_HIDDEN_ELEMENT } from './constants';
-import type { VisuallyHiddenElement } from './types';
-import { isVisuallyHiddenElement } from './utils';
-import { Hidden } from './VisuallyHidden.styled';
+import { DEFAULT_VISUALLY_HIDDEN_ELEMENT } from './constants.ts';
+import type { VisuallyHiddenElement } from './types.ts';
+import { isVisuallyHiddenElement } from './utils.ts';
+import { Hidden } from './VisuallyHidden.styled.ts';
 
 /** Props of {@link VisuallyHidden}. */
 interface VisuallyHiddenProps {

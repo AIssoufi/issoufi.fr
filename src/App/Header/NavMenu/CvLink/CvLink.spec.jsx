@@ -1,10 +1,10 @@
 import { act, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
-import i18n from '../../../../i18n';
-import { isPublicFile } from '../../../../publicFileTestUtils';
-import { CV_URLS } from './constants';
-import CvLink from './CvLink';
+import i18n from '../../../../i18n/index.ts';
+import { isPublicFile } from '../../../../publicFileTestUtils.ts';
+import { CV_URLS } from './constants.ts';
+import CvLink from './CvLink.tsx';
 
 /** CV written in French, the default language. */
 const CV_URL = '/CV - Adam Issoufi.pdf';

@@ -1,13 +1,13 @@
 import styled, { th } from '@xstyled/styled-components';
 
-import List from '../../../components/List';
+import List from '../../../components/List/index.ts';
 import {
   card,
   companyBlock,
   mobileContentIndent,
   mobileLineCenter,
   timelineRow,
-} from '../timeline.styled';
+} from '../timeline.styled.ts';
 
 /* ── Group item — an item of the Timeline list ─────────────── */
 

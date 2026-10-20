@@ -1,6 +1,6 @@
 import styled, { th } from '@xstyled/styled-components';
 
-import { timelineDot } from '../timeline.styled';
+import { timelineDot } from '../timeline.styled.ts';
 
 export const Column = styled.div`
   /* hidden on mobile — card takes full width */

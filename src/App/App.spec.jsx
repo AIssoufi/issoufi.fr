@@ -1,10 +1,10 @@
 import { act, cleanup, configure, getConfig, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
-import { LANGUAGE_STORAGE_KEY } from '../i18n/constants';
-import { declaredStyle } from '../styleTestUtils';
-import { theme } from '../theme';
-import App from './App';
+import { LANGUAGE_STORAGE_KEY } from '../i18n/constants.ts';
+import { declaredStyle } from '../styleTestUtils.js';
+import { theme } from '../theme/index.ts';
+import App from './App.tsx';
 
 /** Media query of the wide screens, from the `wide` breakpoint. */
 const WIDE_MEDIA = `(min-width: ${theme.screens.wide})`;
@@ -12,7 +12,7 @@ const WIDE_MEDIA = `(min-width: ${theme.screens.wide})`;
 /** Runs the i18n setup again, as on a new page load. */
 const reloadI18n = async () => {
   vi.resetModules();
-  await import('../i18n');
+  await import('../i18n/index.ts');
 };
 
 const description = () =>
@@ -38,9 +38,9 @@ describe('App', () => {
     // Vite transforms a lazily loaded page on its first import: import them once before the
     // tests, which still load them through React.lazy
     return Promise.all([
-      import('../pages/Projects'),
-      import('../pages/Experiences'),
-      import('../pages/NotFound'),
+      import('../pages/Projects/index.ts'),
+      import('../pages/Experiences/index.ts'),
+      import('../pages/NotFound/index.ts'),
     ]);
   });
 
@@ -251,7 +251,7 @@ describe('App', () => {
     const importAppWith = async ({ page, factory }) => {
       vi.resetModules();
       vi.doMock(page, factory);
-      const { default: AppWithFailingPage } = await import('./App');
+      const { default: AppWithFailingPage } = await import('./App.tsx');
       return AppWithFailingPage;
     };
 
@@ -263,8 +263,8 @@ describe('App', () => {
     afterEach(async () => {
       // Unmounts first, so that the language reset below updates no mounted page
       cleanup();
-      vi.doUnmock('../pages/Experiences');
-      vi.doUnmock('../pages/Projects');
+      vi.doUnmock('../pages/Experiences/index.ts');
+      vi.doUnmock('../pages/Projects/index.ts');
       vi.restoreAllMocks();
       localStorage.clear();
       await reloadI18n();
@@ -273,7 +273,7 @@ describe('App', () => {
     it('shows the error below a header that still works when a page throws', async () => {
       const user = userEvent.setup();
       const AppWithFailingPage = await importAppWith({
-        page: '../pages/Experiences',
+        page: '../pages/Experiences/index.ts',
         factory: () => ({
           default: () => {
             throw new Error('Broken page');
@@ -302,7 +302,7 @@ describe('App', () => {
     it('shows the error when a page fails to load, in English after the toggle', async () => {
       const user = userEvent.setup();
       const AppWithFailingPage = await importAppWith({
-        page: '../pages/Projects',
+        page: '../pages/Projects/index.ts',
         factory: () => {
           throw CHUNK_ERROR;
         },
@@ -314,7 +314,7 @@ describe('App', () => {
         await screen.findByRole('heading', { name: 'Une erreur est survenue' }),
       ).toBeInTheDocument();
 
-      await user.click(screen.getByRole('button', { name: 'English' }));
+      await user.click(screen.getByRole('link', { name: 'EN – English' }));
 
       expect(screen.getByRole('heading', { name: 'Something went wrong' })).toBeInTheDocument();
       expect(screen.getByRole('button', { name: 'Reload the page' })).toBeInTheDocument();
@@ -357,8 +357,8 @@ describe('App', () => {
       render(<App />);
 
       expect(await screen.findByRole('heading', { name: 'Personal projects' })).toBeInTheDocument();
-      expect(screen.getByRole('button', { name: 'English' })).toHaveAttribute(
-        'aria-pressed',
+      expect(screen.getByRole('link', { name: 'EN – English' })).toHaveAttribute(
+        'aria-current',
         'true',
       );
       expect(document.documentElement.lang).toBe('en');
@@ -430,13 +430,13 @@ describe('App', () => {
       render(<App />);
       await screen.findByRole('heading', { name: 'Projets personnels' });
 
-      await user.click(screen.getByRole('button', { name: 'English' }));
+      await user.click(screen.getByRole('link', { name: 'EN – English' }));
 
       expect(window.location.pathname).toBe('/en/projects');
       expect(await screen.findByRole('heading', { name: 'Personal projects' })).toBeInTheDocument();
       expect(document.title).toBe('Projects - ADAM Issoufi');
       // Only the language changed: the focus stays on the toggle
-      expect(screen.getByRole('button', { name: 'English' })).toHaveFocus();
+      expect(screen.getByRole('link', { name: 'EN – English' })).toHaveFocus();
 
       await act(async () => window.history.back());
 

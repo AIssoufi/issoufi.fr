@@ -1,9 +1,9 @@
 import { type PointerEvent, useCallback } from 'react';
 
-import { usePrefersReducedMotion } from '../../../../../hooks/usePrefersReducedMotion';
-import { isFingerPointer } from '../../../../../utils/pointer';
-import { CARD_HOVER_LIFT_PX, CARD_MAX_TILT_DEG, CARD_PERSPECTIVE_PX } from '../../constants';
-import { getCardTilt } from '../../utils';
+import { usePrefersReducedMotion } from '../../../../../hooks/usePrefersReducedMotion/index.ts';
+import { isFingerPointer } from '../../../../../utils/pointer.ts';
+import { CARD_HOVER_LIFT_PX, CARD_MAX_TILT_DEG, CARD_PERSPECTIVE_PX } from '../../constants.ts';
+import { getCardTilt } from '../../utils.ts';
 
 /** Pointer handlers returned by {@link useCardTilt}, to spread on the card. */
 interface CardTiltHandlers {

@@ -1,12 +1,17 @@
 import {
   describeSmallTexts,
   type DrawnCharacter,
+  type DrawnItemEnd,
   findDetachedDepartmentLines,
   findSingleWordLines,
+  findWrappedSeparatorItems,
   groupLines,
   listDrawnCharacters,
+  listDrawnItemEnds,
   listDrawnTexts,
-} from './text';
+  measureWordBlock,
+  measureWordLineHeights,
+} from './text.ts';
 
 /** Box of a character drawn on the first line of its block. */
 const FIRST_LINE_BOX = { top: 10, height: 20, width: 8 };
@@ -380,5 +385,291 @@ describe('findDetachedDepartmentLines', () => {
     ['a string', '(06)'],
   ])('finds no line in %s', (_case, lines) => {
     expect(findDetachedDepartmentLines(lines as never)).toEqual([]);
+  });
+});
+
+describe('listDrawnItemEnds', () => {
+  /** Boxes of the content of each item, as a range around it gives them. */
+  let textBoxes: Map<Node, (typeof FIRST_LINE_BOX)[]>;
+  /** Boxes that each item draws, its `::after` included. */
+  let itemBoxes: Map<Element, (typeof FIRST_LINE_BOX)[]>;
+
+  // jsdom lays nothing out and gives ranges no getClientRects: each test draws its items
+  beforeEach(() => {
+    textBoxes = new Map();
+    itemBoxes = new Map();
+    Object.defineProperty(Range.prototype, 'getClientRects', {
+      configurable: true,
+      value(this: Range) {
+        return textBoxes.get(this.startContainer) ?? [];
+      },
+    });
+    vi.spyOn(Element.prototype, 'getClientRects').mockImplementation(function (this: Element) {
+      return (itemBoxes.get(this) ?? []) as unknown as DOMRectList;
+    });
+  });
+
+  afterEach(() => {
+    delete (Range.prototype as Partial<Range>).getClientRects;
+    vi.restoreAllMocks();
+    document.body.innerHTML = '';
+  });
+
+  /** Items of the lists of the document, in its order. */
+  const getItems = () => [...document.querySelectorAll('li')];
+
+  /** Lists of the document, in its order. */
+  const getLists = () => [...document.querySelectorAll('ul')];
+
+  it('measures the last line of the text and the last box of each item, list after list', () => {
+    document.body.innerHTML =
+      '<ul><li>Gulp</li><li> Mocha </li></ul><ul><li>Babel</li></ul><ul></ul>';
+    const [gulp, mocha, babel] = getItems();
+    textBoxes.set(gulp, [FIRST_LINE_BOX]);
+    itemBoxes.set(gulp, [FIRST_LINE_BOX, FIRST_LINE_BOX]);
+    // A tool that wraps, then its dot alone on the next line
+    textBoxes.set(mocha, [FIRST_LINE_BOX, SECOND_LINE_BOX]);
+    itemBoxes.set(mocha, [FIRST_LINE_BOX, SECOND_LINE_BOX, { ...SECOND_LINE_BOX, top: 54 }]);
+    textBoxes.set(babel, [SECOND_LINE_BOX]);
+    itemBoxes.set(babel, [SECOND_LINE_BOX]);
+
+    expect(listDrawnItemEnds(getLists())).toEqual([
+      { text: 'Gulp', textTop: 10, textHeight: 20, endTop: 10 },
+      { text: 'Mocha', textTop: 32, textHeight: 20, endTop: 54 },
+      { text: 'Babel', textTop: 32, textHeight: 20, endTop: 32 },
+    ]);
+  });
+
+  it.each([
+    ['no text box', { text: [], item: [FIRST_LINE_BOX] }],
+    ['no box of its own', { text: [FIRST_LINE_BOX], item: [] }],
+    ['no box at all', { text: [], item: [] }],
+  ])('leaves out an item that draws %s, as when hidden', (_case, boxes) => {
+    document.body.innerHTML = '<ul><li>Gulp</li><li>Babel</li></ul>';
+    const [gulp, babel] = getItems();
+    textBoxes.set(gulp, boxes.text);
+    itemBoxes.set(gulp, boxes.item);
+    textBoxes.set(babel, [FIRST_LINE_BOX]);
+    itemBoxes.set(babel, [FIRST_LINE_BOX]);
+
+    expect(listDrawnItemEnds(getLists()).map(({ text }) => text)).toEqual(['Babel']);
+  });
+
+  it('measures nothing without lists', () => {
+    expect(listDrawnItemEnds([])).toEqual([]);
+  });
+});
+
+describe('findWrappedSeparatorItems', () => {
+  /** End of an item whose last line of text stands on the first line. */
+  const itemEnd = ({ text = 'Mocha', endTop = FIRST_LINE_BOX.top }: Partial<DrawnItemEnd>) => ({
+    text,
+    textTop: FIRST_LINE_BOX.top,
+    textHeight: FIRST_LINE_BOX.height,
+    endTop,
+  });
+
+  it('lists the items whose separator stands on a line below their text, in their order', () => {
+    const itemEnds = [
+      itemEnd({ text: 'Gulp' }),
+      itemEnd({ text: 'Mocha', endTop: SECOND_LINE_BOX.top }),
+      itemEnd({ text: 'Babel', endTop: SECOND_LINE_BOX.top }),
+    ];
+
+    expect(findWrappedSeparatorItems(itemEnds)).toEqual(['Mocha', 'Babel']);
+  });
+
+  it.each([
+    ['on the line of the text', FIRST_LINE_BOX.top],
+    ['a pixel lower, from rounding', FIRST_LINE_BOX.top + 1],
+    ['just under half a line lower', FIRST_LINE_BOX.top + FIRST_LINE_BOX.height / 2 - 0.1],
+    ['above the text', FIRST_LINE_BOX.top - FIRST_LINE_BOX.height],
+  ])('keeps a separator %s', (_case, endTop) => {
+    expect(findWrappedSeparatorItems([itemEnd({ endTop })])).toEqual([]);
+  });
+
+  it('counts a separator half a line lower as wrapped', () => {
+    const endTop = FIRST_LINE_BOX.top + FIRST_LINE_BOX.height / 2;
+
+    expect(findWrappedSeparatorItems([itemEnd({ endTop })])).toEqual(['Mocha']);
+  });
+
+  it('skips the entries that are not the end of an item with finite boxes', () => {
+    const wrapped = itemEnd({ endTop: SECOND_LINE_BOX.top });
+    const itemEnds = [
+      null,
+      undefined,
+      42,
+      { ...wrapped, text: 7 },
+      { ...wrapped, textTop: Number.NaN },
+      { ...wrapped, textHeight: undefined },
+      { ...wrapped, endTop: Number.POSITIVE_INFINITY },
+      { ...wrapped, endTop: '32' },
+      wrapped,
+    ];
+
+    expect(findWrappedSeparatorItems(itemEnds as never)).toEqual(['Mocha']);
+  });
+
+  it.each([
+    ['no items', []],
+    ['nothing', undefined],
+    ['null', null],
+    ['a string', 'Mocha'],
+  ])('finds no item in %s', (_case, itemEnds) => {
+    expect(findWrappedSeparatorItems(itemEnds as never)).toEqual([]);
+  });
+});
+
+describe('measureWordBlock', () => {
+  /** Box of each element of the document, by its id. */
+  let boxes: Map<string, { top: number; height: number; bottom: number }>;
+
+  // jsdom lays nothing out, and gives every element an empty box: each test places its elements
+  beforeEach(() => {
+    boxes = new Map();
+    vi.spyOn(Element.prototype, 'getBoundingClientRect').mockImplementation(function (
+      this: Element,
+    ) {
+      return (boxes.get(this.id) ?? { top: 0, height: 0, bottom: 0 }) as DOMRect;
+    });
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+    document.body.innerHTML = '';
+  });
+
+  it('measures the bottom of the block and the box and font size of each word, in order', () => {
+    document.body.innerHTML = `
+      <span id="block">
+        <span id="first" style="font-size: 48px">Full-stack</span>
+        <em>and</em>
+        <span id="second" style="font-size: 24px">Developer</span>
+      </span>
+    `;
+    boxes.set('block', { top: 10, height: 122, bottom: 132 });
+    boxes.set('first', { top: 10, height: 58, bottom: 68 });
+    boxes.set('second', { top: 70, height: 29, bottom: 99 });
+
+    const block = measureWordBlock(document.getElementById('block') as Element, {
+      wordSelector: 'span',
+    });
+
+    expect(block).toEqual({
+      bottom: 132,
+      words: [
+        { top: 10, height: 58, fontSizePx: 48 },
+        { top: 70, height: 29, fontSizePx: 24 },
+      ],
+    });
+  });
+
+  it('measures no word when none matches the selector', () => {
+    document.body.innerHTML = '<p id="block">Design</p>';
+    boxes.set('block', { top: 10, height: 30, bottom: 40 });
+
+    const block = measureWordBlock(document.getElementById('block') as Element, {
+      wordSelector: 'span',
+    });
+
+    expect(block).toEqual({ bottom: 40, words: [] });
+  });
+});
+
+describe('measureWordLineHeights', () => {
+  /** Font size of the words of the tests, in CSS pixels. */
+  const FONT_SIZE_PX = 40;
+
+  /** Height of the box of a word of the tests, 1.2 times its font size. */
+  const WORD_HEIGHT_PX = 48;
+
+  /** A word of {@link FONT_SIZE_PX}, as `measureWordBlock` measures it. */
+  const drawnWord = ({ top, fontSizePx = FONT_SIZE_PX }: { top: number; fontSizePx?: number }) => ({
+    top,
+    height: WORD_HEIGHT_PX,
+    fontSizePx,
+  });
+
+  it('measures each line to the top of the next one, and the last one to the bottom of the block', () => {
+    const block = {
+      bottom: 150,
+      words: [drawnWord({ top: 10 }), drawnWord({ top: 10 }), drawnWord({ top: 70 })],
+    };
+
+    // 60 px to the next line, then 80 px to the bottom of the block
+    expect(measureWordLineHeights(block)).toEqual([1.5, 2]);
+  });
+
+  it('measures a single line to the bottom of the block', () => {
+    const block = { bottom: 58, words: [drawnWord({ top: 10 }), drawnWord({ top: 10 })] };
+
+    expect(measureWordLineHeights(block)).toEqual([1.2]);
+  });
+
+  it('keeps on one line the words less than half a line apart, as a word pushed a little', () => {
+    const block = { bottom: 82, words: [drawnWord({ top: 10 }), drawnWord({ top: 33.9 })] };
+
+    expect(measureWordLineHeights(block)).toEqual([1.8]);
+  });
+
+  it('starts a new line half a line lower', () => {
+    const block = { bottom: 82, words: [drawnWord({ top: 10 }), drawnWord({ top: 34 })] };
+
+    expect(measureWordLineHeights(block)).toEqual([0.6, 1.2]);
+  });
+
+  it('divides the height of each line by the font size of its first word', () => {
+    const block = {
+      bottom: 110,
+      words: [
+        drawnWord({ top: 10, fontSizePx: 20 }),
+        drawnWord({ top: 10 }),
+        drawnWord({ top: 70 }),
+      ],
+    };
+
+    expect(measureWordLineHeights(block)).toEqual([3, 1]);
+  });
+
+  it.each([
+    ['zero', 0],
+    ['negative', -40],
+  ])(
+    'gives a line whose font size is %s a ratio of NaN, so a broken measure fails',
+    (_case, fontSizePx) => {
+      const block = { bottom: 58, words: [drawnWord({ top: 10, fontSizePx })] };
+
+      expect(measureWordLineHeights(block)).toEqual([Number.NaN]);
+    },
+  );
+
+  it('skips the entries that are not words with a finite box and font size', () => {
+    const block = {
+      bottom: 58,
+      words: [
+        { ...drawnWord({ top: 0 }), top: Number.NaN },
+        { ...drawnWord({ top: 0 }), height: Number.POSITIVE_INFINITY },
+        { top: 0, height: WORD_HEIGHT_PX },
+        { ...drawnWord({ top: 0 }), fontSizePx: '40px' },
+        null,
+        'UX',
+        drawnWord({ top: 10 }),
+      ],
+    };
+
+    expect(measureWordLineHeights(block as never)).toEqual([1.2]);
+  });
+
+  it.each([
+    ['nothing', undefined],
+    ['null', null],
+    ['a block without words', { bottom: 58, words: [] }],
+    ['words that are not a list', { bottom: 58, words: drawnWord({ top: 10 }) }],
+    ['a block without a bottom', { words: [drawnWord({ top: 10 })] }],
+    ['a bottom of NaN', { bottom: Number.NaN, words: [drawnWord({ top: 10 })] }],
+    ['a bottom that is a string', { bottom: '58', words: [drawnWord({ top: 10 })] }],
+  ])('measures no line from %s', (_case, block) => {
+    expect(measureWordLineHeights(block as never)).toEqual([]);
   });
 });

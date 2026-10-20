@@ -1,11 +1,11 @@
-import type { BackgroundPhoto } from '../../utils/pages';
-import { isNonBlankString } from '../../utils/strings';
+import type { BackgroundPhoto } from '../../utils/pages.ts';
+import { isNonBlankString } from '../../utils/strings.ts';
 import {
   CSS_ESCAPE_RADIX,
   CSS_STRING_LINE_BREAKS,
   CSS_STRING_SPECIAL_CHARACTERS,
   NO_BACKGROUND_IMAGE,
-} from './constants';
+} from './constants.ts';
 
 /** Writes the escape of a character in a CSS string: its code point in hexadecimal and a space. */
 const escapeCssCodePoint = (character: string) =>

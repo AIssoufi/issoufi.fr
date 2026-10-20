@@ -1,5 +1,5 @@
-import { VISUALLY_HIDDEN_ELEMENTS } from './constants';
-import type { VisuallyHiddenElement } from './types';
+import { VISUALLY_HIDDEN_ELEMENTS } from './constants.ts';
+import type { VisuallyHiddenElement } from './types.ts';
 
 /**
  * Tells whether a value is one of the {@link VISUALLY_HIDDEN_ELEMENTS}, written exactly, such as

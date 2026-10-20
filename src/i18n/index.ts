@@ -1,8 +1,8 @@
 import i18n from 'i18next';
 import { initReactI18next } from 'react-i18next';
 
-import { DEFAULT_LANGUAGE, LANGUAGES, TRANSLATIONS } from './constants';
-import { resolveInitialLanguage } from './storage';
+import { DEFAULT_LANGUAGE, LANGUAGES, TRANSLATIONS } from './constants.ts';
+import { resolveInitialLanguage } from './storage.ts';
 
 i18n.use(initReactI18next).init({
   resources: Object.fromEntries(

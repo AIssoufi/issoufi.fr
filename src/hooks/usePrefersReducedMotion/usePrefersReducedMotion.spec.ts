@@ -1,8 +1,8 @@
 import { renderHook } from '@testing-library/react';
 
-import { stubMatchMedia } from '../../mediaQueryTestUtils';
-import { REDUCED_MOTION_QUERY } from '../../theme/constants';
-import { usePrefersReducedMotion } from './usePrefersReducedMotion';
+import { stubMatchMedia } from '../../mediaQueryTestUtils.ts';
+import { REDUCED_MOTION_QUERY } from '../../theme/constants.ts';
+import { usePrefersReducedMotion } from './usePrefersReducedMotion.ts';
 
 describe('usePrefersReducedMotion', () => {
   afterEach(() => {

@@ -1,8 +1,8 @@
 import { expect, type Locator, test } from '@playwright/test';
 
-import { LANGUAGES, ROOT_PATH } from '../src/i18n/constants';
-import { localizePath } from '../src/i18n/utils';
-import { waitForEndingAnimations } from './animations';
+import { LANGUAGES, ROOT_PATH } from '../src/i18n/constants.ts';
+import { localizePath } from '../src/i18n/utils.ts';
+import { waitForEndingAnimations } from './animations.ts';
 import {
   LONG_PAGE_ROUTE,
   MAX_BAND_OFFSET_PX,
@@ -10,12 +10,12 @@ import {
   PAGE_SELECTOR,
   PROJECTS_ROUTE,
   SHORT_SCREENS,
-  SHOW_ALL_BUTTON_NAME,
   STICKY_HEADER_SCREEN_HEIGHT_PX,
   STICKY_HEADER_SCREEN_WIDTHS_PX,
-} from './constants';
-import { scrollToEnd } from './scroll';
-import { isBoxInside } from './utils';
+} from './constants.ts';
+import { showAllProjects } from './projects.ts';
+import { scrollToEnd } from './scroll.ts';
+import { isBoxInside } from './utils.ts';
 
 /** The long pages, scrolled to their end: the Experiences page and the Projects page. */
 const LONG_PAGE_PATHS = [LONG_PAGE_ROUTE, PROJECTS_ROUTE] as const;
@@ -88,10 +88,8 @@ for (const language of LANGUAGES) {
           await page.goto(route);
           await expect(page.locator(PAGE_SELECTOR)).toBeVisible();
           // "Show all" wraps the cards of each row of the Projects page onto as many rows as they
-          // need, which makes it as long as it gets. A clicked button becomes "Show less", so the
-          // first one left is clicked until none is
-          const showAllButtons = page.getByRole('button', { name: SHOW_ALL_BUTTON_NAME });
-          while ((await showAllButtons.count()) > 0) await showAllButtons.first().click();
+          // need, which makes it as long as it gets
+          if (path === PROJECTS_ROUTE) await showAllProjects(page);
           await page.locator(PAGE_SELECTOR).evaluate(waitForEndingAnimations);
 
           // The header used to leave the screen after one screen of scrolling

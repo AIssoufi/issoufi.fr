@@ -1,6 +1,6 @@
 import styled, { th } from '@xstyled/styled-components';
 
-import { card } from '../timeline.styled';
+import { card } from '../timeline.styled.ts';
 
 export const Article = styled.article`
   ${card}

@@ -1,5 +1,5 @@
-import { listUniqueNonBlankStrings } from '../../../utils/strings';
-import { TechChip, TechList } from './Technologies.styled';
+import { listUniqueNonBlankStrings } from '../../../utils/strings.ts';
+import { TechChip, TechList } from './Technologies.styled.ts';
 
 /** Props of {@link Technologies}. */
 interface TechnologiesProps {

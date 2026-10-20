@@ -1,4 +1,4 @@
-import type { ScreenPoint } from './utils';
+import type { ScreenPoint } from './utils.ts';
 
 /** Size of the area that catches the taps of a control, as {@link measureHitAreas} measures it. */
 export interface HitArea {
@@ -61,7 +61,7 @@ export interface MeasureHitAreasOptions {
  *   overlaySelector: 'body > header',
  *   maxReachPx: 44,
  * });
- * // [{ name: 'AI', width: 44, height: 54 }, { name: 'Français', width: 44, height: 44 }, …]
+ * // [{ name: 'AI', width: 44, height: 54 }, { name: 'FR – Français', width: 44, height: 44 }, …]
  */
 export const measureHitAreas = ({
   controlSelector,

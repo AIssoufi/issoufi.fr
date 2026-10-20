@@ -1,8 +1,8 @@
 import { act, render, screen, within } from '@testing-library/react';
 
-import i18n from '../../../../../i18n';
-import { declaredStyle } from '../../../../../styleTestUtils';
-import BulletPoints from './BulletPoints';
+import i18n from '../../../../../i18n/index.ts';
+import { declaredStyle } from '../../../../../styleTestUtils.js';
+import BulletPoints from './BulletPoints.tsx';
 
 /** A `›` followed by its empty alternative text, the value of `content` after a slash. */
 const ALTERNATIVE_TEXT_CONTENT = /^(['"])›\1\s*\/\s*(['"])\2$/;
@@ -32,7 +32,7 @@ describe('BulletPoints', () => {
         .getAllByRole('listitem')
         .map(item => item.textContent),
     ).toEqual([
-      'Architecture et maquettes des écrans',
+      'Conception\u00a0: maquettes des écrans, architecture',
       'Maintenance des sites existants en AngularJS',
     ]);
   });
@@ -60,7 +60,9 @@ describe('BulletPoints', () => {
 
     await act(() => i18n.changeLanguage('en'));
 
-    expect(screen.getByRole('listitem')).toHaveTextContent(/^Screen architecture and mockups$/);
+    expect(screen.getByRole('listitem')).toHaveTextContent(
+      /^Design: screen mockups, architecture$/,
+    );
   });
 
   it('leaves out a key without translation, and keeps the other points', () => {

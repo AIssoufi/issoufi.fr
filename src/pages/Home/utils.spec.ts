@@ -1,11 +1,12 @@
-import { OFFSCREEN_POINTER } from './constants';
+import { CURSOR_GLOW_START, OFFSCREEN_POINTER } from './constants.ts';
 import {
   easeTowards,
+  getCursorGlowTransform,
   getMagneticOffset,
   getParallaxOffset,
   isPointerOnScreen,
   splitLastWord,
-} from './utils';
+} from './utils.ts';
 
 describe('easeTowards', () => {
   it('covers the given fraction of the distance', () => {
@@ -22,6 +23,21 @@ describe('easeTowards', () => {
     expect(easeTowards({ from: { x: 10, y: 20 }, to: { x: 30, y: -40 }, factor })).toEqual(
       expected,
     );
+  });
+});
+
+describe('getCursorGlowTransform', () => {
+  it.each([
+    ['a point of the viewport', { x: 100, y: 50 }, 'translate(80px, 30px)'],
+    ['the top-left corner', { x: 0, y: 0 }, 'translate(-20px, -20px)'],
+    [
+      'a point off the viewport, where the glow starts',
+      CURSOR_GLOW_START,
+      'translate(-120px, -120px)',
+    ],
+    ['a point between two pixels', { x: 10.5, y: 20.25 }, 'translate(-9.5px, 0.25px)'],
+  ])('centers the glow on %s', (_, point, expected) => {
+    expect(getCursorGlowTransform(point)).toBe(expected);
   });
 });
 

@@ -1,7 +1,7 @@
 import type { Page } from '@playwright/test';
 import axe from 'axe-core';
 
-import { describeAxeViolations, runAxeRules } from './axe';
+import { describeAxeViolations, runAxeRules } from './axe.ts';
 
 /** A failure of the contrast rule, as axe-core describes it, on several lines. */
 const CONTRAST_SUMMARY =

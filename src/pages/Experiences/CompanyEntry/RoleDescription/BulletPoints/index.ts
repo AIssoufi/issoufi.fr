@@ -1,1 +1,1 @@
-export { default } from './BulletPoints';
+export { default } from './BulletPoints.tsx';

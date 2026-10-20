@@ -1,6 +1,12 @@
 import type { TFunction } from 'i18next';
 
-import { MONTH_NAMES, MONTHS_PER_YEAR, TODAY_KEYWORDS, YEAR_PATTERN } from '../constants';
+import { MONTH_NAMES, MONTHS_PER_YEAR, TODAY_KEYWORDS, YEAR_PATTERN } from '../constants.ts';
+
+/**
+ * Tells whether a date of the experience data is a word for "until now", such as "Aujourd'hui" or
+ * "Present", ignoring case and extra spaces.
+ */
+const isTodayKeyword = (value: string) => TODAY_KEYWORDS.has(value.trim().toLowerCase());
 
 /**
  * Parses a month-year date such as "juin 2021", "Sept. 2019" or "June 2021", ignoring case and
@@ -17,9 +23,9 @@ import { MONTH_NAMES, MONTHS_PER_YEAR, TODAY_KEYWORDS, YEAR_PATTERN } from '../c
 export function parseMonthYear(value: string | undefined): Date | null {
   if (typeof value !== 'string') return null;
 
-  const normalized = value.trim().toLowerCase();
-  if (TODAY_KEYWORDS.has(normalized)) return new Date();
+  if (isTodayKeyword(value)) return new Date();
 
+  const normalized = value.trim().toLowerCase();
   const [rawMonth = '', rawYear = '', ...extraWords] = normalized.split(/\s+/);
   const month = MONTH_NAMES[rawMonth.replace('.', '')];
   const isKnownMonth = month !== undefined;
@@ -44,22 +50,43 @@ interface ComputeDurationParams {
   startDate?: string;
   /** End in the same format, or a "today" keyword such as "Aujourd'hui" or "Present". */
   endDate?: string;
+  /**
+   * Date that a "today" keyword stands for, such as the month of the build in the page that it
+   * renders (see `useToday`).
+   * @default new Date()
+   */
+  today?: Date;
 }
 
 /**
  * Computes the time between two month-year dates in whole years and remaining months.
  * Days are ignored, so two dates in the same month give `{ years: 0, months: 0 }`.
  *
- * @returns The duration, or `null` when a date is missing or invalid, or when the end is before
- * the start, so that callers can simply render nothing.
+ * @returns The duration, or `null` when a date is missing or invalid, a "today" keyword included
+ * when `today` is an invalid date, or when the end is before the start, so that callers can simply
+ * render nothing.
  *
  * @example
  * computeDuration({ startDate: 'juin 2021', endDate: 'mars 2023' }); // { years: 1, months: 9 }
  * computeDuration({ startDate: 'foo 2021', endDate: 'mars 2023' }); // null
+ * computeDuration({ startDate: 'juin 2021', endDate: 'Present', today: new Date(2023, 2, 1) });
+ * // { years: 1, months: 9 }
  */
-export function computeDuration({ startDate, endDate }: ComputeDurationParams): Duration | null {
-  const start = parseMonthYear(startDate);
-  const end = parseMonthYear(endDate);
+export function computeDuration({
+  startDate,
+  endDate,
+  today = new Date(),
+}: ComputeDurationParams): Duration | null {
+  // An invalid date of today would give a duration of `NaN` years
+  const isValidToday = today instanceof Date && !Number.isNaN(today.getTime());
+  /** Parses a date, a "today" keyword standing for `today`, and for no date when it is invalid. */
+  const toDate = (value?: string) => {
+    const isToday = typeof value === 'string' && isTodayKeyword(value);
+    if (!isToday) return parseMonthYear(value);
+    return isValidToday ? today : null;
+  };
+  const start = toDate(startDate);
+  const end = toDate(endDate);
   if (start === null || end === null) return null;
 
   const isEndBeforeStart = end < start;

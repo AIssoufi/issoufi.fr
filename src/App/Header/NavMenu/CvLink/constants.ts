@@ -1,4 +1,4 @@
-import type { Language } from '../../../../i18n/types';
+import type { Language } from '../../../../i18n/types.ts';
 
 /**
  * URL of the CV of the site owner in each language, a PDF of `public/` that `pnpm cv`

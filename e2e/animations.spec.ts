@@ -1,4 +1,8 @@
-import { listLastingAnimations, recordLargestShift, waitForEndingAnimations } from './animations';
+import {
+  listLastingAnimations,
+  recordLargestShift,
+  waitForEndingAnimations,
+} from './animations.ts';
 
 /** Parameters of {@link fakeAnimation}. */
 interface FakeAnimationParams {

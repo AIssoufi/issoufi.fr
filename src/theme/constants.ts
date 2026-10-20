@@ -27,14 +27,14 @@ export const FONT_MEDIA_TYPE = 'font/woff2';
 export const FONT_DISPLAY = 'swap';
 
 /**
- * Web fonts of the site, which it serves itself from `public/fonts/`, next to their licenses
- * (`*-OFL.txt`), so that no page requests Google. The files are the `latin` subsets that Google
- * Fonts served to Windows and Linux, byte for byte, with their hinting: macOS, iOS and Android
- * ignore it, so every system draws the text as before. The `font-faces` plugin of
- * `vite.config.ts` declares them in the head of every page, and preloads both files, since every
- * page shows text in both fonts. `pnpm og-image` reads the files as data URLs, and the standalone
- * build embeds them the same way: keep their names and their folder, which other scripts read.
- * The weights and styles describe the files, as Google Fonts declared them, not a design choice.
+ * Web fonts of the pages, which the site serves itself from `public/fonts/`, next to their
+ * licenses (`*-OFL.txt`), so that no page requests Google. The files are the `latin` subsets that
+ * Google Fonts served to Windows and Linux, byte for byte, with their hinting: macOS, iOS and
+ * Android ignore it, so every system draws the text as before. The `font-faces` plugin of
+ * `vite.config.ts` declares them in the head of every page, and preloads their files, since every
+ * page shows text in them. `pnpm og-image` reads the files as data URLs, and the standalone build
+ * embeds them the same way: keep their names and their folder, which other scripts read. The
+ * weights and styles describe the files, as Google Fonts declared them, not a design choice.
  */
 export const FONT_FACES: readonly FontFaceDeclaration[] = [
   {
@@ -45,14 +45,21 @@ export const FONT_FACES: readonly FontFaceDeclaration[] = [
     style: 'normal',
     unicodeRange: LATIN_UNICODE_RANGE,
   },
-  {
-    family: 'Saira Stencil One',
-    url: '/fonts/saira-stencil-one-latin.woff2',
-    weight: '400',
-    style: 'normal',
-    unicodeRange: LATIN_UNICODE_RANGE,
-  },
 ];
+
+/**
+ * Web font of the logo, the display font of the theme, which no page loads for its two letters:
+ * the header draws the logo as their outline, which `pnpm icons` writes from this file with the
+ * icons, and `pnpm og-image` draws the logo in it. Its file sits with the other fonts in
+ * `public/fonts/`, next to its license, as Google Fonts served it.
+ */
+export const LOGO_FONT_FACE: FontFaceDeclaration = {
+  family: 'Saira Stencil One',
+  url: '/fonts/saira-stencil-one-latin.woff2',
+  weight: '400',
+  style: 'normal',
+  unicodeRange: LATIN_UNICODE_RANGE,
+};
 
 /**
  * Media query of the visitors who asked their system to reduce motion, for instance because of a
@@ -63,13 +70,44 @@ export const FONT_FACES: readonly FontFaceDeclaration[] = [
 export const REDUCED_MOTION_QUERY = '(prefers-reduced-motion: reduce)';
 
 /**
+ * Media query of the visitors who did not ask to reduce motion, the opposite of
+ * {@link REDUCED_MOTION_QUERY}: an effect that would still move them, made instant, such as a
+ * control that grows under the pointer, sits in a block of it, so that the others never see it.
+ */
+export const FULL_MOTION_QUERY = '(prefers-reduced-motion: no-preference)';
+
+/**
+ * Scale of a control under a pointer that hovers it, unless the visitor asked to reduce motion: a
+ * growth of 6% shows which control the pointer is on, without pushing its neighbours or blurring
+ * its text. The buttons (`GlobalStyle`), the links of the header bar (`NavMenu`), the language
+ * links (`LangToggle`) and the like button of a project card read it.
+ */
+export const CONTROL_HOVER_SCALE = 1.06;
+
+/**
  * Media query of the screens whose main pointer hovers, precisely, such as a mouse or a trackpad.
- * Every `:hover` of the styles sits in a block of it, alone or after other conditions
+ * Every `:hover` of the styles sits in a block of it, alone or joined to other conditions by `and`
  * (`@media (min-width: …) and ${HOVER_POINTER_QUERY}`), which `theme.spec.jsx` checks: a touch
  * screen keeps the hover style of the last control tapped until the next tap elsewhere, so it
  * gets none, and keeps the `:active` and `:focus-visible` styles.
  */
 export const HOVER_POINTER_QUERY = '(hover: hover) and (pointer: fine)';
+
+/**
+ * Media query of forced colors mode, such as a contrast theme of Windows, which draws the texts and
+ * the borders in the colors of its palette and removes the backgrounds and the shadows: a state
+ * that only they show gets a system color in a block of it (`forced-active`, `forced-icon`).
+ */
+export const FORCED_COLORS_QUERY = '(forced-colors: active)';
+
+/**
+ * Media query of the browsers that run no script, as when the visitor turned JavaScript off: the
+ * page that the build rendered stays as it is, and CSS stands in for the controls that need a
+ * script, such as the burger button of the mobile menu. It decides before the first paint, so a
+ * page that runs scripts never shows these styles. Browsers that do not know it never match it,
+ * as Safari before 17 and Chrome before 120.
+ */
+export const NO_SCRIPT_QUERY = '(scripting: none)';
 
 /**
  * Smallest font size of the site, in pixels: the size of its metadata (dates, badges, tags, the

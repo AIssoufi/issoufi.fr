@@ -1,7 +1,7 @@
-import i18n from '../../i18n';
-import { en } from '../../i18n/en';
-import { fr } from '../../i18n/fr';
-import { ELLIPSIS, MAX_DISPLAYED_PATH_LENGTH_CHARS, PATH_PLACEHOLDER } from './constants';
+import i18n from '../../i18n/index.ts';
+import { en } from '../../i18n/en.ts';
+import { fr } from '../../i18n/fr.ts';
+import { ELLIPSIS, MAX_DISPLAYED_PATH_LENGTH_CHARS, PATH_PLACEHOLDER } from './constants.ts';
 import {
   decodePath,
   encodeInvisibleCharacters,
@@ -9,7 +9,7 @@ import {
   getNotFoundMessage,
   replacePlaceholder,
   truncateText,
-} from './utils';
+} from './utils.ts';
 
 /** Texts that `String.prototype.replace` reads as patterns in a replacement text. */
 const REPLACEMENT_PATTERNS = ['$&', "$'", '$`', '$$', '$1', '$<name>'];

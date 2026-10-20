@@ -1,8 +1,8 @@
 import type { ComponentPropsWithRef } from 'react';
 import { Link } from 'react-router';
 
-import { localizePath } from '../../i18n/utils';
-import { useUrlLanguage } from '../../hooks/useUrlLanguage';
+import { localizePath } from '../../i18n/utils.ts';
+import { useUrlLanguage } from '../../hooks/useUrlLanguage/index.ts';
 
 /** Props of {@link LocalizedLink}: those of the router `Link`, with a path as `to`. */
 type LocalizedLinkProps = Omit<ComponentPropsWithRef<typeof Link>, 'to'> & {

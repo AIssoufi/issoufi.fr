@@ -1,1 +1,1 @@
-export { default } from './TextSegments';
+export { default } from './TextSegments.tsx';

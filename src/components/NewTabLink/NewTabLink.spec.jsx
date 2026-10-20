@@ -1,9 +1,9 @@
 import { act, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
-import i18n from '../../i18n';
-import VisuallyHidden from '../VisuallyHidden';
-import NewTabLink from './NewTabLink';
+import i18n from '../../i18n/index.ts';
+import VisuallyHidden from '../VisuallyHidden/index.ts';
+import NewTabLink from './NewTabLink.tsx';
 
 const URL = 'https://github.com/AIssoufi';
 

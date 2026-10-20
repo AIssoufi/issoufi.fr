@@ -1,8 +1,8 @@
 import { Fragment } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { translateKey } from '../../../../../i18n/utils';
-import type { TextSegmentData } from '../../../types';
+import { translateKey } from '../../../../../i18n/utils.ts';
+import type { TextSegmentData } from '../../../types.ts';
 
 /** Props of {@link TextSegments}. */
 interface TextSegmentsProps {
@@ -20,9 +20,9 @@ const NO_SEGMENTS: TextSegmentData[] = [];
  * @example
  * <TextSegments
  *   segments={[
- *     { key: 'exp.sewanSenior.intro1' },
- *     { key: 'exp.sewanSenior.introStrong', isStrong: true },
- *     { key: 'exp.sewanSenior.intro2' },
+ *     { key: 'exp.sewanFoundation.intro1' },
+ *     { key: 'exp.sewanFoundation.introStrong', isStrong: true },
+ *     { key: 'exp.sewanFoundation.intro2' },
  *   ]}
  * />
  */

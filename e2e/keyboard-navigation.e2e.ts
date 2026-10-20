@@ -1,20 +1,20 @@
 import { expect, type Locator, type Page, test } from '@playwright/test';
 
-import { LANGUAGE_NAMES } from '../src/App/Header/LangToggle/constants';
-import { LANGUAGES } from '../src/i18n/constants';
-import { en } from '../src/i18n/en';
-import { fr } from '../src/i18n/fr';
-import type { Language, Translations } from '../src/i18n/types';
-import { localizePath } from '../src/i18n/utils';
-import { PAGES } from '../src/utils/pages';
+import { LANGUAGE_NAMES } from '../src/App/Header/LangToggle/constants.ts';
+import { LANGUAGES } from '../src/i18n/constants.ts';
+import { en } from '../src/i18n/en.ts';
+import { fr } from '../src/i18n/fr.ts';
+import type { Language, Translations } from '../src/i18n/types.ts';
+import { localizePath } from '../src/i18n/utils.ts';
+import { PAGES } from '../src/utils/pages.ts';
 import {
   DESKTOP_SCREEN_WIDTHS_PX,
   PAGE_SELECTOR,
   PROJECTS_ROUTE,
   SCREEN_HEIGHT_PX,
   SCREEN_WIDTHS_PX,
-} from './constants';
-import { getBoxBottom, getBoxRight, getCheckedRoutes } from './utils';
+} from './constants.ts';
+import { getBoxBottom, getBoxRight, getCheckedRoutes } from './utils.ts';
 
 /** Translations of each language, to find the skip link and the links of the header by name. */
 const TRANSLATIONS = { fr, en } satisfies Record<Language, Translations>;
@@ -106,8 +106,8 @@ for (const language of LANGUAGES) {
           translations.cvLink.text,
         ];
         const languageToggle = header.getByRole('group', { name: translations.langToggle.label });
-        const languageButtons = LANGUAGES.map(buttonLanguage =>
-          languageToggle.getByRole('button', { name: LANGUAGE_NAMES[buttonLanguage] }),
+        const languageLinks = LANGUAGES.map(linkLanguage =>
+          languageToggle.getByRole('link', { name: LANGUAGE_NAMES[linkLanguage] }),
         );
 
         await expectTabToFocus({
@@ -122,7 +122,7 @@ for (const language of LANGUAGES) {
           });
         }
         // Then the language toggle, which floats under the bar on the right edge of the screen
-        for (const element of languageButtons) {
+        for (const element of languageLinks) {
           await expectTabToFocus({ page, element });
         }
         const cvLinkBox = await header

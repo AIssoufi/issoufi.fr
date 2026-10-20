@@ -1,4 +1,4 @@
-import { isPeriodVariant } from './utils';
+import { isPeriodVariant } from './utils.ts';
 
 describe('isPeriodVariant', () => {
   it.each(['job', 'role', 'inline'])('accepts the look %j', variant => {

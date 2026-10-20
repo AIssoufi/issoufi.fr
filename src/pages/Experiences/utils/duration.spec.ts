@@ -1,6 +1,6 @@
-import i18n from '../../../i18n';
-import { fr } from '../../../i18n/fr';
-import { computeDuration, formatDuration, parseMonthYear } from './duration';
+import i18n from '../../../i18n/index.ts';
+import { fr } from '../../../i18n/fr.ts';
+import { computeDuration, formatDuration, parseMonthYear } from './duration.ts';
 
 /** The current date the today keywords are tested against: 17 October 2026. */
 const FAKE_NOW = new Date(2026, 9, 17);
@@ -83,6 +83,54 @@ describe('computeDuration', () => {
         years: 1,
         months: 4,
       });
+    });
+
+    it('counts up to the given date of today rather than now', () => {
+      const today = new Date(2023, 2, 1);
+
+      expect(computeDuration({ startDate: 'juin 2021', endDate: 'Present', today })).toEqual({
+        years: 1,
+        months: 9,
+      });
+    });
+
+    it('counts from the given date of today when the start is a today keyword', () => {
+      const today = new Date(2023, 2, 1);
+
+      expect(computeDuration({ startDate: 'Present', endDate: 'mars 2023', today })).toEqual({
+        years: 0,
+        months: 0,
+      });
+    });
+
+    it('ignores the date of today for a month and a year', () => {
+      const today = new Date(2000, 0, 1);
+
+      expect(computeDuration({ startDate: 'juin 2021', endDate: 'juin 2023', today })).toEqual({
+        years: 2,
+        months: 0,
+      });
+    });
+
+    it('counts up to the first day of a month as up to any other day of it', () => {
+      const [firstDay, lastDay] = [new Date(2026, 9, 1), new Date(2026, 9, 31)];
+
+      expect(
+        computeDuration({ startDate: 'juin 2025', endDate: 'Present', today: firstDay }),
+      ).toEqual(computeDuration({ startDate: 'juin 2025', endDate: 'Present', today: lastDay }));
+    });
+
+    it.each([
+      ['an invalid date', new Date(Number.NaN)],
+      ['null, from JavaScript', null],
+      ['a string, from JavaScript', '2026-10-01'],
+    ])('returns null when the date of today is %s', (_, today) => {
+      // Values that the types refuse, as an untyped caller could pass them
+      const params = { startDate: 'juin 2025', endDate: 'Present', today } as unknown as Parameters<
+        typeof computeDuration
+      >[0];
+
+      expect(computeDuration(params)).toBeNull();
     });
   });
 });
@@ -185,9 +233,8 @@ describe('parseMonthYear', () => {
       expect(parseMonthYear('Present')).toEqual(FAKE_NOW);
     });
 
-    it('recognizes the end date of the current jobs in the French copy', () => {
-      expect(parseMonthYear(fr.exp.sewanLead.end)).toEqual(FAKE_NOW);
-      expect(parseMonthYear(fr.exp.sewanSenior.end)).toEqual(FAKE_NOW);
+    it('recognizes the end date of the current job in the French copy', () => {
+      expect(parseMonthYear(fr.exp.sewanCore.end)).toEqual(FAKE_NOW);
     });
   });
 

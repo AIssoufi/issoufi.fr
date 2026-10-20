@@ -1,8 +1,8 @@
 import { type RefCallback, useCallback, useState, useSyncExternalStore } from 'react';
 
-import { ROW_CARD_COUNT } from '../../constants';
-import type { RowMeasures } from '../../types';
-import { countWholeCards } from '../../utils';
+import { ROW_CARD_COUNT } from '../../constants.ts';
+import type { RowMeasures } from '../../types.ts';
+import { countWholeCards } from '../../utils.ts';
 
 /** Parameters of {@link useWholeCardCount}. */
 interface UseWholeCardCountParams {
@@ -29,13 +29,16 @@ const MIN_WHOLE_CARD_COUNT = 1;
 /** Reads a length in pixels from a computed style: `NaN` when it is none, such as `normal`. */
 const readPx = (value: string) => Number.parseFloat(value);
 
+/** Whether a card of the list shows, unlike a card out of the page of the row, which has no box. */
+const isShownCard = (card: Element) => getComputedStyle(card).display !== 'none';
+
 /**
- * Measures the row from the computed styles of the list and of its first card, which the tilt of
- * a hovered card leaves unchanged, unlike its box on the screen. Assumes cards of the same width,
- * without padding or border, set apart by their margins and the gap of the list.
+ * Measures the row from the computed styles of the list and of its first card shown, which the
+ * tilt of a hovered card leaves unchanged, unlike its box on the screen. Assumes cards of the same
+ * width, without padding or border, set apart by their margins and the gap of the list.
  */
 const measureRow = (list: HTMLElement): Partial<RowMeasures> => {
-  const firstCard = list.firstElementChild;
+  const firstCard = [...list.children].find(isShownCard);
   if (!firstCard) return {};
 
   const listStyle = getComputedStyle(list);
@@ -56,7 +59,8 @@ const measureRow = (list: HTMLElement): Partial<RowMeasures> => {
 /**
  * Counts the cards that the row of a section shows whole, without scrolling it, from the width of
  * the list and of its cards: one on a phone, up to `maxCount` on a wide screen. It counts the
- * cards that fit, not those rendered, so a last page of fewer cards keeps the count of the first.
+ * cards that fit, not those rendered, so a last page of fewer cards keeps the count of the first,
+ * and measures the first card shown, past those hidden with `display: none`.
  * The count follows the list as it is resized, with a `ResizeObserver` removed on unmount.
  *
  * @returns `maxCount` until the list is rendered, and where nothing is laid out or observed, as in

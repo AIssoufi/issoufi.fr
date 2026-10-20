@@ -1,5 +1,5 @@
-import { stubMatchMedia } from './mediaQueryTestUtils';
-import { PORTRAIT_PHOTO_MEDIA_QUERY } from './utils/pages';
+import { stubMatchMedia } from './mediaQueryTestUtils.ts';
+import { PORTRAIT_PHOTO_MEDIA_QUERY } from './utils/pages.ts';
 
 /** Links of the head that preload an image. */
 const getImagePreloads = () => [
@@ -9,7 +9,7 @@ const getImagePreloads = () => [
 /** Imports the module again, so that its first preload runs as when the app starts. */
 const importModule = async () => {
   vi.resetModules();
-  return import('./preloadBackgroundPhoto');
+  return import('./preloadBackgroundPhoto.ts');
 };
 
 describe('preloadBackgroundPhoto', () => {
@@ -53,6 +53,39 @@ describe('preloadBackgroundPhoto', () => {
 
     expect(link?.parentElement).toBe(document.head);
     expect(getImagePreloads()).toEqual([link]);
+  });
+
+  describe('in a page that the build rendered', () => {
+    /** Adds to the head the link that preloads an image, as the build writes it. */
+    const addBuildPreload = (href: string) => {
+      const link = document.createElement('link');
+      link.setAttribute('rel', 'preload');
+      link.setAttribute('as', 'image');
+      link.setAttribute('href', href);
+      link.setAttribute('fetchpriority', 'low');
+      document.head.append(link);
+      return link;
+    };
+
+    it('adds nothing where the head already preloads the photo of the screen', async () => {
+      window.history.replaceState(null, '', '/en/projects');
+      const buildPreload = addBuildPreload('/projects.webp');
+      const { preloadBackgroundPhoto } = await importModule();
+
+      expect(preloadBackgroundPhoto()).toBeNull();
+      expect(getImagePreloads()).toEqual([buildPreload]);
+    });
+
+    it('preloads the photo of the screen where the head preloads another file', async () => {
+      window.history.replaceState(null, '', '/projects');
+      addBuildPreload('/projects-portrait.webp');
+      await importModule();
+
+      expect(getImagePreloads().map(link => link.getAttribute('href'))).toEqual([
+        '/projects-portrait.webp',
+        '/projects.webp',
+      ]);
+    });
   });
 
   describe('edge cases', () => {

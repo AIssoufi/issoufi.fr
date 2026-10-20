@@ -1,7 +1,7 @@
 import { act, render, renderHook, screen } from '@testing-library/react';
 import { createMemoryRouter, MemoryRouter, RouterProvider } from 'react-router';
 
-import { useUrlLanguage } from './useUrlLanguage';
+import { useUrlLanguage } from './useUrlLanguage.ts';
 
 /** Renders the hook in a router opened at a path. */
 const renderAt = path =>

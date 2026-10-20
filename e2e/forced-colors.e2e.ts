@@ -1,10 +1,16 @@
-import { expect, test } from '@playwright/test';
+import { expect, type Locator, test } from '@playwright/test';
 
-import { LANGUAGE_NAMES } from '../src/App/Header/LangToggle/constants';
-import { DEFAULT_LANGUAGE, LANGUAGES } from '../src/i18n/constants';
-import { fr } from '../src/i18n/fr';
-import type { Language } from '../src/i18n/types';
-import { FORCED_COLORS_SCREEN_WIDTHS_PX, PROJECTS_ROUTE, SCREEN_HEIGHT_PX } from './constants';
+import { LANGUAGE_NAMES } from '../src/App/Header/LangToggle/constants.ts';
+import { DEFAULT_LANGUAGE, LANGUAGES } from '../src/i18n/constants.ts';
+import { fr } from '../src/i18n/fr.ts';
+import type { Language } from '../src/i18n/types.ts';
+import {
+  FORCED_COLORS_SCHEMES,
+  FORCED_COLORS_SCREEN_WIDTHS_PX,
+  MOBILE_SCREEN_WIDTHS_PX,
+  PROJECTS_ROUTE,
+  SCREEN_HEIGHT_PX,
+} from './constants.ts';
 
 /** A language of the site other than the default one, whose button the toggle test presses. */
 const OTHER_LANGUAGE: Language =
@@ -16,9 +22,28 @@ const LIKE_NAME_START = fr.projects.like.split('{{name}}')[0];
 /** Name of the like buttons of the Projects page in French, whatever their project. */
 const LIKE_BUTTON_NAME = new RegExp(`^${LIKE_NAME_START}`);
 
+/**
+ * Reads, in the page, the color of the text of a button in the palette of forced colors mode: the
+ * computed `ButtonText` of an element that keeps the colors it is given.
+ */
+const readButtonTextColor = () => {
+  const probe = document.createElement('span');
+  probe.style.forcedColorAdjust = 'none';
+  probe.style.color = 'ButtonText';
+  document.body.append(probe);
+  const { color } = getComputedStyle(probe);
+  probe.remove();
+  return color;
+};
+
+/** Reads the computed opacity of a button. */
+const opacityOf = (button: Locator) =>
+  button.evaluate(element => Number(getComputedStyle(element).opacity));
+
 // Forced colors mode, such as a contrast theme of Windows, removes the backgrounds and the shadows
-// and draws the texts in the colors of its palette: a state that only a background shows vanishes.
-// Each test takes the same element at the same place in both states, which must look different.
+// and draws the texts in the colors of its palette: a state that only a background shows vanishes,
+// and so does an icon drawn in a color of its own, which that mode keeps. Each test of a state
+// takes the same element at the same place in both states, which must look different.
 // With reduced motion, a state shows at once in its final look
 test.use({ forcedColors: 'active', reducedMotion: 'reduce' });
 
@@ -28,22 +53,22 @@ for (const width of FORCED_COLORS_SCREEN_WIDTHS_PX) {
 
     test('the active language looks different from the other one', async ({ page }) => {
       await page.goto(PROJECTS_ROUTE);
-      const defaultLanguageButton = page.getByRole('button', {
+      const defaultLanguageLink = page.getByRole('link', {
         name: LANGUAGE_NAMES[DEFAULT_LANGUAGE],
       });
-      await expect(defaultLanguageButton).toHaveAttribute('aria-pressed', 'true');
-      const activeImage = await defaultLanguageButton.screenshot();
+      await expect(defaultLanguageLink).toHaveAttribute('aria-current', 'true');
+      const activeImage = await defaultLanguageLink.screenshot();
 
-      await page.getByRole('button', { name: LANGUAGE_NAMES[OTHER_LANGUAGE] }).click();
+      await page.getByRole('link', { name: LANGUAGE_NAMES[OTHER_LANGUAGE] }).click();
       await expect(page.locator('html')).toHaveAttribute('lang', OTHER_LANGUAGE);
-      await expect(defaultLanguageButton).toHaveAttribute('aria-pressed', 'false');
+      await expect(defaultLanguageLink).not.toHaveAttribute('aria-current');
       // Away from the toggle, whose hover would change its look too
       await page.mouse.move(0, 0);
-      const inactiveImage = await defaultLanguageButton.screenshot();
+      const inactiveImage = await defaultLanguageLink.screenshot();
 
       expect(
         activeImage.equals(inactiveImage),
-        'the default language button, active then inactive',
+        'the default language link, active then inactive',
       ).toBe(false);
     });
 
@@ -63,5 +88,55 @@ for (const width of FORCED_COLORS_SCREEN_WIDTHS_PX) {
 
       expect(restImage.equals(likedImage), 'the like button, at rest then liked').toBe(false);
     });
+
+    const hasMobileMenu = (MOBILE_SCREEN_WIDTHS_PX as readonly number[]).includes(width);
+
+    // A light contrast theme gives the page and the buttons a light background, on which an icon
+    // drawn in the white of the site vanishes
+    for (const colorScheme of FORCED_COLORS_SCHEMES) {
+      test.describe(`with a ${colorScheme} contrast theme`, () => {
+        test.use({ colorScheme });
+
+        test('the arrows of the projects take the color of the text of the buttons', async ({
+          page,
+        }) => {
+          await page.goto(PROJECTS_ROUTE);
+          const buttonTextColor = await page.evaluate(readButtonTextColor);
+          const previousButton = page
+            .getByRole('button', { name: fr.projects.previousPage })
+            .first();
+          const nextButton = page.getByRole('button', { name: fr.projects.nextPage }).first();
+
+          // At the first page, "Previous" can go nowhere
+          await expect(previousButton).toHaveAttribute('aria-disabled', 'true');
+          await expect(nextButton).toHaveAttribute('aria-disabled', 'false');
+          for (const button of [previousButton, nextButton]) {
+            await expect(button.locator('path')).toHaveCSS('stroke', buttonTextColor);
+          }
+          expect(await opacityOf(previousButton), 'opacity of the disabled arrow').toBeLessThan(
+            await opacityOf(nextButton),
+          );
+        });
+
+        // The CV link shows its download icon in the mobile menu only
+        if (hasMobileMenu) {
+          test('the icon of the CV link takes the color of the text of the link', async ({
+            page,
+          }) => {
+            await page.goto(PROJECTS_ROUTE);
+            await page.getByRole('button', { name: fr.burgerMenu.open }).click();
+            const cvLink = page.getByRole('navigation').getByRole('link', { name: fr.cvLink.text });
+            await expect(cvLink.locator('svg')).toBeVisible();
+            const linkColor = await cvLink.evaluate(element => getComputedStyle(element).color);
+
+            const iconPaths = await cvLink.locator('path').all();
+            expect(iconPaths).not.toHaveLength(0);
+            for (const iconPath of iconPaths) {
+              await expect(iconPath).toHaveCSS('stroke', linkColor);
+            }
+          });
+        }
+      });
+    }
   });
 }

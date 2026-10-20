@@ -1,7 +1,7 @@
-import { LANGUAGES } from '../../src/i18n/constants';
-import { en } from '../../src/i18n/en';
-import { fr } from '../../src/i18n/fr';
-import { SITE_URL } from '../../src/utils/pages';
+import { LANGUAGES } from '../../src/i18n/constants.ts';
+import { en } from '../../src/i18n/en.ts';
+import { fr } from '../../src/i18n/fr.ts';
+import { SITE_URL } from '../../src/utils/pages.ts';
 import { TRANSLATION_MODULES } from './constants.mjs';
 import { findMissingTexts, getAuthorName, getHomeTexts } from './home-texts.mjs';
 

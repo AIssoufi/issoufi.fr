@@ -1,1 +1,1 @@
-export { default } from './DocumentMeta';
+export { default } from './DocumentMeta.tsx';

@@ -2,10 +2,18 @@
 import { readFileSync, statSync } from 'node:fs';
 import { join } from 'node:path';
 
-import { APP_ICONS } from '../../src/utils/icons';
-import { PUBLIC_DIR } from '../utils/constants.mjs';
-import { ICO_SIZES_PX } from './constants.mjs';
+import {
+  LOGO_OUTLINE,
+  LOGO_TEXT as HEADER_LOGO_TEXT,
+} from '../../src/App/Header/Logo/constants.ts';
+import { LOGO_FONT_FACE } from '../../src/theme/constants.ts';
+import { theme } from '../../src/theme/theme.ts';
+import { APP_ICONS } from '../../src/utils/icons.ts';
+import { LOGO_TEXT, PUBLIC_DIR } from '../utils/constants.mjs';
+import { HEADER_LOGO_FILE, ICO_SIZES_PX, LOGO_LETTER_SPACING } from './constants.mjs';
 import { readIcoImages } from './utils/ico.mjs';
+import { getHeaderLogo, layoutLogo, parseEmLength } from './utils/logo.mjs';
+import { readGlyphOutlines } from './utils/woff2.mjs';
 
 /** First bytes of every PNG file: its signature. */
 const PNG_SIGNATURE = Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]);
@@ -84,5 +92,27 @@ describe('the icons of public/', () => {
     Object.values(APP_ICONS).forEach(({ url }) => {
       expect(statSync(join(PUBLIC_DIR, url)).size, url).toBeLessThan(MAX_ICON_FILE_BYTES);
     });
+  });
+});
+
+// Like the icons, the logo of the header is drawn by `pnpm icons`: a change of its font or of its
+// letter spacing without a new run fails here
+describe('the logo of the header', () => {
+  it('draws the outline of the logo in its font, with its letter spacing', () => {
+    const outlines = readGlyphOutlines({
+      file: readPublicFile(LOGO_FONT_FACE.url),
+      text: LOGO_TEXT,
+    });
+    const logo = layoutLogo({
+      outlines,
+      letterSpacingEm: parseEmLength(theme.letterSpacings[LOGO_LETTER_SPACING]),
+    });
+
+    expect(LOGO_OUTLINE).toEqual(getHeaderLogo({ outlines, logo }));
+  });
+
+  it('is the file that the script writes, named after the text that it draws', () => {
+    expect(JSON.parse(readFileSync(HEADER_LOGO_FILE, 'utf-8'))).toEqual(LOGO_OUTLINE);
+    expect(HEADER_LOGO_TEXT).toBe(LOGO_TEXT);
   });
 });

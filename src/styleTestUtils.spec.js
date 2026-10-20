@@ -3,9 +3,10 @@ import {
   declaredStyle,
   getContrastRatio,
   listStyleRules,
+  mediaDeclaringStyle,
   parseColor,
   serializeCssValue,
-} from './styleTestUtils';
+} from './styleTestUtils.js';
 
 describe('declaredStyle', () => {
   const TABLET_MEDIA = '(min-width: 50em)';
@@ -123,6 +124,58 @@ describe('declaredStyle', () => {
     expect(declaredStyle({ element: {}, property: 'margin' })).toBe('');
     expect(declaredStyle({ element: document.querySelector('.card') })).toBe('');
     expect(declaredStyle({ element: document.querySelector('.card'), property: 42 })).toBe('');
+  });
+});
+
+describe('mediaDeclaringStyle', () => {
+  const HOVER_MEDIA = '(hover: hover)';
+  const TABLET_MEDIA = '(min-width: 50em)';
+
+  /** Adds a stylesheet to the document and returns an element holding the class `card`. */
+  const setUp = css => {
+    const style = document.createElement('style');
+    style.textContent = css;
+    document.head.append(style);
+    const element = document.createElement('div');
+    element.className = 'card';
+    document.body.append(element);
+    return element;
+  };
+
+  afterEach(() => {
+    document.head.innerHTML = '';
+    document.body.innerHTML = '';
+  });
+
+  it('lists each condition whose rules declare the property once, in the order of the document', () => {
+    const element = setUp(`.card:hover { transform: scale(1.1); }
+      @media ${TABLET_MEDIA} { .card:hover { transform: scale(1.2); } }
+      @media ${HOVER_MEDIA} { .card:hover { color: red; } }
+      @media ${TABLET_MEDIA} { .card:hover { transform: none; } }`);
+
+    expect(mediaDeclaringStyle({ element, property: 'transform', pseudo: ':hover' })).toEqual([
+      '',
+      TABLET_MEDIA,
+    ]);
+  });
+
+  it('reads the rules of the element itself without a pseudo', () => {
+    const element =
+      setUp(`@media ${HOVER_MEDIA} { .card { color: red; } .card:hover { color: blue; } }
+      .card:hover { color: green; }`);
+
+    expect(mediaDeclaringStyle({ element, property: 'color' })).toEqual([HOVER_MEDIA]);
+  });
+
+  it('lists nothing when no rule declares the property, or for a missing or wrong element, property or pseudo', () => {
+    const element = setUp('.card { margin: 5px; }');
+
+    expect(mediaDeclaringStyle({ element, property: 'padding' })).toEqual([]);
+    expect(mediaDeclaringStyle()).toEqual([]);
+    expect(mediaDeclaringStyle({ element: null, property: 'margin' })).toEqual([]);
+    expect(mediaDeclaringStyle({ element })).toEqual([]);
+    expect(mediaDeclaringStyle({ element, property: 42 })).toEqual([]);
+    expect(mediaDeclaringStyle({ element, property: 'margin', pseudo: null })).toEqual([]);
   });
 });
 

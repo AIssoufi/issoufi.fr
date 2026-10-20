@@ -1,8 +1,8 @@
 import { fireEvent, renderHook } from '@testing-library/react';
 
-import { stubMatchMedia } from '../../../../mediaQueryTestUtils';
-import { PARALLAX_RESET_DURATION_MS } from '../../constants';
-import { useParallax } from './useParallax';
+import { stubMatchMedia } from '../../../../mediaQueryTestUtils.ts';
+import { PARALLAX_RESET_DURATION_MS } from '../../constants.ts';
+import { useParallax } from './useParallax.ts';
 
 describe('useParallax', () => {
   beforeEach(() => {

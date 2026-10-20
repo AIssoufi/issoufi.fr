@@ -1,7 +1,7 @@
-import { MAIN_CONTENT_ID } from '../src/constants/landmarks';
-import type { Language } from '../src/i18n/types';
-import { theme } from '../src/theme/theme';
-import type { BackgroundPhoto, Page } from '../src/utils/pages';
+import { MAIN_CONTENT_ID } from '../src/constants/landmarks.ts';
+import type { Language, Translations } from '../src/i18n/types.ts';
+import { theme } from '../src/theme/theme.ts';
+import { type BackgroundPhoto, NOT_FOUND_FOLDER, type Page } from '../src/utils/pages.ts';
 
 /**
  * Screen widths, in pixels, at which the browser tests open the pages, and every page must fit
@@ -147,6 +147,20 @@ export const JOB_CARD_SELECTOR = `${PAGE_SELECTOR} article`;
 export const MAX_CARD_PART_WIDTH_OFFSET_PX = 0.5;
 
 /**
+ * Header of each project of a job card of the Experiences page: the `header` that holds the title
+ * of the project, its `h4`, and its state badge, the `span` after it.
+ */
+export const PROJECT_HEADER_SELECTOR = 'header:has(> h4)';
+
+/**
+ * Screen widths, in pixels, at which the state badge of each project of the Experiences page must
+ * stay inside its job card and leave its title a readable width: the narrowest phones still in use
+ * (320), where the badges once crossed the edge of their card, then a common phone width (360),
+ * where they once squeezed their titles onto 3 or 4 lines.
+ */
+export const PROJECT_HEADER_SCREEN_WIDTHS_PX = [320, 360] as const;
+
+/**
  * Row of each job of the timeline of the Experiences page, a job alone at its company or one of
  * the roles of a company: the list item that holds its period column, the only element whose
  * `::after` draws a dot ({@link TIMELINE_DOT_ATTRIBUTE}).
@@ -189,10 +203,45 @@ export const PHOTO_SCREENS: readonly PhotoScreen[] = [
 ];
 
 /**
- * `initiatorType` of the resource timing of a file that a `<link>` loaded, such as a background
- * photo preloaded by the app when it starts, rather than by the style that shows it (`css`).
+ * Screens at which the browser test of the download priorities opens every page, with the version
+ * of the background photo that each one downloads: the phone that Lighthouse emulates (412 × 823),
+ * which shows the portrait version and one project card of each row, and a laptop, which shows the
+ * whole photo and three cards of each row.
  */
-export const LINK_INITIATOR_TYPE = 'link';
+export const PRIORITY_SCREENS = [
+  { width: 412, height: 823, version: 'portraitUrl' },
+  { width: 1440, height: 800, version: 'url' },
+] as const satisfies readonly PhotoScreen[];
+
+/** Round trip time of the slow 4G network of Lighthouse for a phone, in milliseconds. */
+const SLOW_4G_LATENCY_MS = 150;
+
+/** Download throughput of the slow 4G network of Lighthouse, in bytes per second (1.6 Mbit/s). */
+const SLOW_4G_DOWNLOAD_BYTES_PER_SECOND = 204_800;
+
+/** Upload throughput of the slow 4G network of Lighthouse, in bytes per second (750 kbit/s). */
+const SLOW_4G_UPLOAD_BYTES_PER_SECOND = 96_000;
+
+/**
+ * Parameters of `Network.emulateNetworkConditions` that give a page the slow 4G network of the
+ * phone that Lighthouse emulates. Chromium raises the priority of an image that shows on the screen
+ * while it still downloads, which a local server answers before the first layout: the browser test
+ * of the download priorities needs the delays of a real network to see it.
+ */
+export const SLOW_4G_NETWORK = {
+  offline: false,
+  latency: SLOW_4G_LATENCY_MS,
+  downloadThroughput: SLOW_4G_DOWNLOAD_BYTES_PER_SECOND,
+  uploadThroughput: SLOW_4G_UPLOAD_BYTES_PER_SECOND,
+} as const;
+
+/**
+ * `initiatorType` of the resource timing of a background photo requested before the app draws the
+ * page: by the `<link rel="preload">` that the build writes in the HTML of the page (see
+ * `addPrerenderedPage`), which the style of the page reuses. A photo that the style requested
+ * itself (`css`) would download at a high priority, next to what the first paint needs.
+ */
+export const PHOTO_PRELOAD_INITIATOR_TYPE = 'link';
 
 /**
  * Route of the Projects page, whose sections show the project cards. Typed by `PAGES`
@@ -223,12 +272,13 @@ export const PROJECT_READING_SCREEN_WIDTHS_PX = [375, 1440] as const;
 
 /**
  * Screen widths, in pixels, at which the browser test of the project cards compares the row of
- * each section with its "Show all" rows, and moves the row with its arrows: the narrowest phones
- * still in use (320), two common phone widths (375 and 414), with one column of cards, a tablet in
- * portrait (768), with two, the tablet breakpoint, where the desktop layout starts with two
- * columns still (800), two laptop widths (1280 and 1440), with three, then the `wide` breakpoint
- * (1600), where the cards grow with the app container, and two desktop screens wider than it
- * (1920 and 2560).
+ * each section with its "Show all" rows, and moves the row with its arrows, and the test of the
+ * line breaks checks where the tools of each card wrap, in every layout of the cards: the
+ * narrowest phones still in use (320), two common phone widths (375 and 414), with one column of
+ * cards, a tablet in portrait (768), with two, the tablet breakpoint, where the desktop layout
+ * starts with two columns still (800), two laptop widths (1280 and 1440), with three, then the
+ * `wide` breakpoint (1600), where the cards grow with the app container, and two desktop screens
+ * wider than it (1920 and 2560).
  */
 export const PROJECT_CARD_SCREEN_WIDTHS_PX = [
   320, 375, 414, 768, 800, 1280, 1440, 1600, 1920, 2560,
@@ -390,6 +440,17 @@ export const MOBILE_LAYOUT_SCREENS = [
 export const MENU_OPENING_SCROLL_Y_PX = 300;
 
 /**
+ * Screens at which the browser tests follow the links of the header with JavaScript off: a phone,
+ * whose navigation sits in the menu that the links of the burger open, and a laptop, whose
+ * navigation is a bar of the header. The test of the Projects page looks there for every project,
+ * in one column on the phone and in three on the laptop.
+ */
+export const NO_SCRIPT_SCREENS = [
+  { width: 390, height: SCREEN_HEIGHT_PX, isMobileLayout: true },
+  { width: 1280, height: SCREEN_HEIGHT_PX, isMobileLayout: false },
+] as const;
+
+/**
  * Distance, in pixels, of each wheel scroll or swipe of the browser tests: more than half a phone
  * screen, so that a page left free to scroll visibly moves.
  */
@@ -534,20 +595,46 @@ export const HERO_WORD_SELECTOR = 'span:not(:has(span))';
 export const POINTER_REST_FRAME_COUNT = 4;
 
 /**
- * Screen widths, in pixels, at which axe-core checks the contrast of the texts of every page: a
+ * Largest height of a line of the job title of the home page, as a share of the font size of its
+ * words: the 1.2 of a heading, with room for the rounding of the boxes. The 1.7 of the running text
+ * of the title, which its words once took, left a third of a line empty between its two lines.
+ */
+export const MAX_JOB_TITLE_LINE_HEIGHT_RATIO = 1.25;
+
+/**
+ * Largest height of the line of the big "UX" and "UI" of the home title, as a share of their font
+ * size: the 1.2 of a heading, plus the room that the running text around them keeps under its
+ * baseline on a phone, where it is almost as large as they are (1.31 at 320 px). They once took
+ * the 1.7 of that running text, and made the line far taller than they need.
+ */
+export const MAX_PASSION_LINE_HEIGHT_RATIO = 1.35;
+
+/**
+ * Screen widths, in pixels, at which axe-core checks every page with {@link PAGE_AXE_RULES}: a
  * phone (375) and a tablet held upright (768), with the mobile menu closed then open, a tablet
  * held sideways (1024), a laptop (1280) and a common desktop width (1440).
  */
-export const CONTRAST_SCREEN_WIDTHS_PX = [375, 768, 1024, 1280, 1440] as const;
+export const AXE_SCREEN_WIDTHS_PX = [375, 768, 1024, 1280, 1440] as const;
 
-/** Screen widths, in pixels, among {@link CONTRAST_SCREEN_WIDTHS_PX}, that show the mobile menu. */
-export const MENU_CONTRAST_SCREEN_WIDTHS_PX = [375, 768] as const;
+/** Screen widths, in pixels, among {@link AXE_SCREEN_WIDTHS_PX}, that show the mobile menu. */
+export const MENU_AXE_SCREEN_WIDTHS_PX = [375, 768] as const;
 
 /**
  * Rule of axe-core that checks the contrast of each text against its background: 4.5:1, or 3:1 for
  * a large text, the level AA of the Web Content Accessibility Guidelines (success criterion 1.4.3).
  */
 export const COLOR_CONTRAST_RULE = 'color-contrast';
+
+/**
+ * Rule of axe-core that checks that the accessible name of a control given by `aria-label` or
+ * `aria-labelledby` holds its visible text, so that a voice control user who says what they see
+ * finds it (success criterion 2.5.3, Label in Name, level A). Experimental, so axe-core runs it
+ * only when it is named.
+ */
+export const LABEL_IN_NAME_RULE = 'label-content-name-mismatch';
+
+/** Rules of axe-core that every page passes, at each of {@link AXE_SCREEN_WIDTHS_PX}. */
+export const PAGE_AXE_RULES = [COLOR_CONTRAST_RULE, LABEL_IN_NAME_RULE] as const;
 
 /**
  * Screen widths, in pixels, at which no page may show a text under the smallest font size of the
@@ -563,6 +650,12 @@ export const TEXT_SIZE_SCREEN_WIDTHS_PX = [320, 375, 768, 1024, 1280, 1440, 1920
  * (1440).
  */
 export const FORCED_COLORS_SCREEN_WIDTHS_PX = [375, 1440] as const;
+
+/**
+ * Color schemes of the contrast themes in which forced colors mode must still show the icons: a
+ * light one, such as "Desert" on Windows, where a white icon vanishes, and a dark one.
+ */
+export const FORCED_COLORS_SCHEMES = ['light', 'dark'] as const;
 
 /**
  * Screen widths, in pixels, at which no thumbnail or logo may be enlarged on a 2x screen: a phone,
@@ -590,14 +683,64 @@ export const LIGHT_IMAGE_SCREEN_WIDTH_PX = 375;
 export const MAX_FILE_TO_SHOWN_WIDTH_RATIO = 2;
 
 /**
- * `nameKey` of the projects whose screenshot is smaller than their card needs on a 2x screen: their
- * site is offline, and its original the largest file there is, until the site owner replaces it
- * (issue #238). The browser test of the image sizes leaves their thumbnails out.
+ * `nameKey` of the projects whose screenshot is smaller than their card needs on a 2x screen, which
+ * the browser test of the image sizes leaves out. Y-YServicies: its site is offline, and no larger
+ * capture exists anywhere, neither from its client nor in the Internet Archive nor on LinkedIn, so
+ * its 200 px original stays (issue #238).
  */
-export const LOW_RESOLUTION_PROJECT_NAME_KEYS: readonly string[] = [
-  'trouilletDecors',
-  'yyServicies',
-];
+export const LOW_RESOLUTION_PROJECT_NAME_KEYS: readonly string[] = ['yyServicies'];
+
+/**
+ * Screens on which the first thumbnail of the Projects page must download the narrowest of its
+ * files that covers the width it draws its 16:10 screenshot at, times the device pixels per CSS
+ * pixel: the width of its card, or 352 px where the card is narrower, the width of the screenshot
+ * cropped to cover the thumbnail. The phone that Lighthouse emulates (412 × 823 at 1.75), whose
+ * card, 364 px wide, needs 637 px, where the width of the whole screen once made it download the
+ * 960 px file; a Pixel 7 (412 × 915 at 2.625), which needs 956 px; an iPhone 12 to 15 (390 × 844
+ * at 3), whose card, 342 px wide, needs 1056 px; a phone 360 px wide at 3, whose card, 312 px
+ * wide, needs 1056 px too, where the width of the card alone made it download the 960 px file;
+ * and a laptop at 150 % (1024 × 768 at 1.5), whose cards, three of 315 px, need 528 px, where the
+ * width of the card alone made it download the 480 px file.
+ */
+export const THUMBNAIL_FILE_SCREENS = [
+  { width: 412, height: 823, deviceScaleFactor: 1.75, fileWidth: 720 },
+  { width: 412, height: 915, deviceScaleFactor: 2.625, fileWidth: 960 },
+  { width: 390, height: 844, deviceScaleFactor: 3, fileWidth: 1200 },
+  { width: 360, height: 780, deviceScaleFactor: 3, fileWidth: 1200 },
+  { width: 1024, height: 768, deviceScaleFactor: 1.5, fileWidth: 720 },
+] as const;
+
+/**
+ * Screen widths, in pixels, at which the `sizes` of the thumbnails must give the width that they
+ * draw their screenshot at: the narrowest phones still in use (320), a common phone (375), then
+ * each width where the layout of the cards changes, and the pixel before it: two columns (600),
+ * the tablet breakpoint (800), three columns (858), a tablet held sideways (1024), whose three
+ * cards are narrower than a screenshot that covers them, the widest app container below the
+ * `wide` breakpoint (1440) and the `wide` breakpoint (1600), then a desktop screen wider than its
+ * container (2560).
+ */
+export const THUMBNAIL_SIZES_SCREEN_WIDTHS_PX = [
+  320, 375, 599, 600, 799, 800, 857, 858, 1024, 1439, 1440, 1599, 1600, 2560,
+] as const;
+
+/**
+ * Largest difference, in pixels, allowed between the width that the `sizes` of a thumbnail gives
+ * and the width it should give: the browser tells the first as the natural width of the `img`, a
+ * whole number, while a card can take a fraction of a pixel.
+ */
+export const MAX_THUMBNAIL_SIZES_OFFSET_PX = 1;
+
+/**
+ * Start of the `max()` function in the `sizes` of the thumbnails, which a browser test replaces
+ * with {@link UNKNOWN_SIZES_FUNCTION} to see what a browser that refuses `max()` there gets.
+ */
+export const SIZES_MAX_FUNCTION = 'max(';
+
+/**
+ * Start of a function that no browser knows, which makes a browser skip each entry of `sizes`
+ * that uses it, as Safari before 26.4 skips an entry that uses `max()`.
+ */
+export const UNKNOWN_SIZES_FUNCTION = 'unknown-function(';
 
 /**
  * Screen widths, in pixels, at which no line of the passion or the subtitle of the home page may
@@ -612,6 +755,9 @@ export const DEPARTMENT_LINE_START_PATTERN = /^\(\d{2}\)/u;
 
 /** Title of the home page: the job title, then the passion for UX and UI design. */
 export const HERO_TITLE_SELECTOR = `${PAGE_SELECTOR} h1`;
+
+/** First line of the home title, the job title, "Développeur full-stack JavaScript". */
+export const HERO_JOB_TITLE_SELECTOR = `${HERO_TITLE_SELECTOR} > :first-child`;
 
 /**
  * Second line of the home title, "passionné par l’UX et l’UI Design", a block of its own after the
@@ -673,3 +819,38 @@ export const VISUAL_CLOCK_TIME = '2026-10-15T12:00:00Z';
  * the dots of the particle field of the home page stand at the same places on every load.
  */
 export const VISUAL_RANDOM_SEED = 1;
+
+/**
+ * Reads the text of the `h1` of each page of the site in a language, by the folder of the page,
+ * the not found page included: the build renders it in each page, and the browser shows it.
+ */
+export const PAGE_HEADINGS: Record<string, (translations: Translations) => string> = {
+  Home: ({ home }) => home.title1,
+  Projects: ({ projects }) => projects.pageTitle,
+  Experiences: ({ exp }) => exp.pageTitle,
+  [NOT_FOUND_FOLDER]: ({ errors }) => errors.notFound.title,
+};
+
+/**
+ * Property of `window` where the hydration test keeps the elements that the build rendered in the
+ * page, read before any script of the page runs, to check that React kept them.
+ */
+export const PRERENDERED_ELEMENTS_PROPERTY = '__prerenderedElements';
+
+/**
+ * Start of the name of the property that React gives each element that it renders or hydrates,
+ * which tells a test that React has taken over the page.
+ */
+export const REACT_FIBER_KEY_PREFIX = '__reactFiber$';
+
+/**
+ * Types of the console messages that fail the hydration test: React reports a mismatch between the
+ * page of the build and its own render as an error, and logs other problems as warnings.
+ */
+export const REPORTED_CONSOLE_TYPES: ReadonlySet<string> = new Set(['error', 'warning']);
+
+/**
+ * Months from the build to the clock of the visitor in the hydration test: over a year, so the
+ * durations of the jobs, which the build counts up to its own month, read otherwise in the browser.
+ */
+export const VISITOR_MONTHS_AFTER_BUILD = 14;

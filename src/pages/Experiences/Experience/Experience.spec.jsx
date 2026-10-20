@@ -1,7 +1,9 @@
 import { act, render, screen, within } from '@testing-library/react';
 
-import i18n from '../../../i18n';
-import Experience from './Experience';
+import i18n from '../../../i18n/index.ts';
+import { mediaDeclaringStyle } from '../../../styleTestUtils.js';
+import { FULL_MOTION_QUERY, HOVER_POINTER_QUERY } from '../../../theme/constants.ts';
+import Experience from './Experience.tsx';
 
 /** Any duration text, in French or in English. */
 const DURATION_TEXT = /\d+ (an|ans|mois|years?|months?)|< 1 (mois|month)/;
@@ -78,6 +80,16 @@ describe('Experience', () => {
     );
 
     expect(screen.getByRole('heading', { level: 3 })).toHaveAttribute('lang', 'en');
+  });
+
+  // GlobalStyle makes the transition instant with reduced motion: the card would jump
+  it('rises on hover only without reduced motion, while its shadow grows for every visitor', () => {
+    render(<Experience jobName="Full-Stack Engineer" />);
+    const hoverMedia = property =>
+      mediaDeclaringStyle({ element: screen.getByRole('article'), property, pseudo: ':hover' });
+
+    expect(hoverMedia('transform')).toEqual([`${HOVER_POINTER_QUERY} and ${FULL_MOTION_QUERY}`]);
+    expect(hoverMedia('box-shadow')).toEqual([HOVER_POINTER_QUERY]);
   });
 
   it('is an article holding the level 3 heading of the job', () => {

@@ -3,7 +3,7 @@ import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { Link, MemoryRouter, Route, Routes, useNavigate } from 'react-router';
 
-import PageHeadingFocus from './PageHeadingFocus';
+import PageHeadingFocus from './PageHeadingFocus.tsx';
 
 /** A page with its heading and a link to the other page. */
 const Page = ({ title, linkTo }) => (
@@ -132,21 +132,17 @@ describe('PageHeadingFocus', () => {
   });
 
   it('leaves the focus on the language toggle when only the language of the page changes', async () => {
-    const LanguageButton = () => {
-      const navigate = useNavigate();
-      return <button onClick={() => navigate('/en/projects')}>English</button>;
-    };
     render(
       <MemoryRouter initialEntries={['/projects']}>
-        <LanguageButton />
+        <Link to="/en/projects">English</Link>
         <h1>Projects</h1>
         <PageHeadingFocus />
       </MemoryRouter>,
     );
 
-    await userEvent.click(screen.getByRole('button', { name: 'English' }));
+    await userEvent.click(screen.getByRole('link', { name: 'English' }));
 
-    expect(screen.getByRole('button', { name: 'English' })).toHaveFocus();
+    expect(screen.getByRole('link', { name: 'English' })).toHaveFocus();
     expect(screen.getByRole('heading', { name: 'Projects' })).not.toHaveFocus();
   });
 

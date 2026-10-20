@@ -1,1 +1,1 @@
-export * from './useReloadOnStaleChunk';
+export * from './useReloadOnStaleChunk.ts';

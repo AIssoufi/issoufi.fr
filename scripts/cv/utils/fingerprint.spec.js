@@ -1,5 +1,5 @@
 // @vitest-environment node
-import { CV_SOURCES } from '../testUtils';
+import { CV_SOURCES } from '../testUtils.js';
 import { getCvFingerprint } from './fingerprint.mjs';
 import { buildCvContents } from './languages.mjs';
 

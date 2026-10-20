@@ -1,8 +1,8 @@
 // @vitest-environment node
-import { SITEMAP_FILE_NAME } from '../../../src/utils/sitemap';
-import { HEADERS_FILE_NAME } from '../../constants';
-import { STANDALONE_PAGE_FILE_NAME } from '../constants';
-import { inlineScript, isEntryChunk, isServerOnlyFile, removePreloadMarkers } from './bundle';
+import { SITEMAP_FILE_NAME } from '../../../src/utils/sitemap.ts';
+import { HEADERS_FILE_NAME } from '../../constants.ts';
+import { STANDALONE_PAGE_FILE_NAME } from '../constants.ts';
+import { inlineScript, isEntryChunk, isServerOnlyFile, removePreloadMarkers } from './bundle.ts';
 
 describe('isServerOnlyFile', () => {
   it.each(['projects.html', 'experiences.html', '404.html', 'nested/index.html'])(

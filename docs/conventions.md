@@ -14,9 +14,11 @@ The agents read these rules, one line each, in [`CLAUDE.md`](../CLAUDE.md).
 ## Code
 
 - Code, comments and docs are in English. Only the texts of the site are translated.
+- Prettier wraps the code at 100 characters but never a comment: ESLint refuses a comment line wider than that.
 - One folder per component: `Name.tsx` with its JSDoc, `Name.spec.jsx`, `Name.styled.ts` and `index.ts`.
 - A sub-component nests in the folder of its parent. A component shared by pages goes in `src/components/`.
 - A style file is imported by its own component only.
+- A relative import names its file with its extension (`./utils.ts`, `./List/index.ts`): Node.js loads the Vite configs as they are, and resolves no other path. ESLint refuses one without it.
 - Props are optional, and a missing one never crashes.
 - A meaningful number is a named constant with its unit. A computation is a pure helper, an effect a hook, each with its tests.
 
@@ -38,4 +40,4 @@ The agents read these rules, one line each, in [`CLAUDE.md`](../CLAUDE.md).
 - A text for screen readers only uses `VisuallyHidden`; a decoration drawn with a character is hidden from them.
 - A text in another language than the page gets its `lang`.
 - Texts reach the WCAG AA contrast. An accent text uses the light pink, never the plum.
-- With reduced motion, nothing moves. In forced colors mode, active states stay visible.
+- With reduced motion, nothing moves: `GlobalStyle` makes every transition instant, and a change of size or place that would still jump, such as a button, a link of the header or the logo growing under the pointer, or a job card rising, sits in a block of `FULL_MOTION_QUERY`. In forced colors mode, active states stay visible, and so do the icons: that mode keeps the colors of an SVG, so an icon sets no stroke color of its own, and `GlobalStyle` draws its strokes in the text color of the palette of that mode.

@@ -1,17 +1,17 @@
 import { expect, test } from '@playwright/test';
 
-import { LANGUAGES } from '../src/i18n/constants';
-import { en } from '../src/i18n/en';
-import { fr } from '../src/i18n/fr';
-import { getEntries } from '../src/i18n/testUtils';
-import type { Language, Translations } from '../src/i18n/types';
-import { localizePath } from '../src/i18n/utils';
+import { LANGUAGES } from '../src/i18n/constants.ts';
+import { en } from '../src/i18n/en.ts';
+import { fr } from '../src/i18n/fr.ts';
+import { getEntries } from '../src/i18n/testUtils.ts';
+import type { Language, Translations } from '../src/i18n/types.ts';
+import { localizePath } from '../src/i18n/utils.ts';
 import freelanceProjectsData from '../src/pages/Projects/.data/freelance-projects.json' with { type: 'json' };
 import personalProjectsData from '../src/pages/Projects/.data/personal-projects.json' with { type: 'json' };
-import { getProjectLinkUrl } from '../src/pages/Projects/Project/utils';
-import type { ProjectData } from '../src/pages/Projects/types';
-import { listUniqueNonBlankStrings } from '../src/utils/strings';
-import { countBrowserNodes, listBrowserHeadingLevels, listBrowserTexts } from './accessibility';
+import { getProjectLinkUrl } from '../src/pages/Projects/Project/utils.ts';
+import type { ProjectData } from '../src/pages/Projects/types.ts';
+import { listUniqueNonBlankStrings } from '../src/utils/strings.ts';
+import { countBrowserNodes, listBrowserHeadingLevels, listBrowserTexts } from './accessibility.ts';
 import {
   PAGE_SELECTOR,
   PROJECT_CARD_SELECTOR,
@@ -19,10 +19,10 @@ import {
   PROJECT_TOOLS_SELECTOR,
   PROJECTS_ROUTE,
   SCREEN_HEIGHT_PX,
-  SHOW_ALL_BUTTON_NAME,
   TOOL_SEPARATOR,
-} from './constants';
-import { countOccurrences, findSkippedHeadingLevels } from './utils';
+} from './constants.ts';
+import { showAllProjects } from './projects.ts';
+import { countOccurrences, findSkippedHeadingLevels } from './utils.ts';
 
 /** Translations of each language, to name the cards as the page does. */
 const TRANSLATIONS = { fr, en } satisfies Record<Language, Translations>;
@@ -54,10 +54,7 @@ for (const language of LANGUAGES) {
         await page.goto(localizePath({ path: PROJECTS_ROUTE, language }));
         // A route that lost its language would test the default language twice
         await expect(page.locator('html')).toHaveAttribute('lang', language);
-        // Every card, once its chunk is loaded: a clicked "Show all" becomes "Show less"
-        const showAllButtons = page.getByRole('button', { name: SHOW_ALL_BUTTON_NAME });
-        await expect(showAllButtons.first()).toBeVisible();
-        while ((await showAllButtons.count()) > 0) await showAllButtons.first().click();
+        await showAllProjects(page);
         await expect(page.locator(PROJECT_CARD_SELECTOR)).toHaveCount(cards.length);
       });
 

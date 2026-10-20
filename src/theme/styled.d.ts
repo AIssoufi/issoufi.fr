@@ -1,7 +1,7 @@
 import '@xstyled/system';
 import 'styled-components';
 
-import type { theme } from './theme';
+import type { theme } from './theme.ts';
 
 type AppTheme = typeof theme;
 

@@ -1,10 +1,10 @@
 import type { MouseEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { MAIN_CONTENT_ID } from '../../constants/landmarks';
-import { focusPageHeading } from '../utils';
+import { MAIN_CONTENT_ID } from '../../constants/landmarks.ts';
+import { focusPageHeading } from '../utils.ts';
 
-import { Link } from './SkipLink.styled';
+import { Link } from './SkipLink.styled.ts';
 
 /**
  * Link to the content of the page, "Aller au contenu" ("Skip to content" in English), the first

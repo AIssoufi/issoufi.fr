@@ -1,4 +1,4 @@
-import type { ProjectItemData } from './Project/types';
+import type { ProjectItemData } from './Project/types.ts';
 
 /**
  * One project, as stored in `.data/*-projects.json`: a card whose texts are keys of the

@@ -1,10 +1,16 @@
 import styled, { css, keyframes, th } from '@xstyled/styled-components';
 
-import List from '../../../components/List';
-import NewTabLink from '../../../components/NewTabLink';
-import { HOVER_POINTER_QUERY } from '../../../theme/constants';
-import { fingerTarget } from '../../../theme/targets.styled';
-import { CARD_PERSPECTIVE_PX, LIKE_ANIMATION_MS } from './constants';
+import List from '../../../components/List/index.ts';
+import NewTabLink from '../../../components/NewTabLink/index.ts';
+import {
+  CONTROL_HOVER_SCALE,
+  FORCED_COLORS_QUERY,
+  FULL_MOTION_QUERY,
+  HOVER_POINTER_QUERY,
+  NO_SCRIPT_QUERY,
+} from '../../../theme/constants.ts';
+import { fingerTarget } from '../../../theme/targets.styled.ts';
+import { CARD_PERSPECTIVE_PX, LIKE_ANIMATION_MS } from './constants.ts';
 
 const heartPop = keyframes`
   0%   { transform: scale(1); }
@@ -65,6 +71,11 @@ export const SectionControls = styled.div`
   flex-direction: row;
   align-items: center;
   gap: ${th.space(8)};
+
+  /* Its buttons do nothing without JavaScript, where the list shows every card */
+  @media ${NO_SCRIPT_QUERY} {
+    display: none;
+  }
 `;
 
 /* Lower than a finger target */
@@ -140,6 +151,12 @@ export const IconBtn = styled.button`
   }
 `;
 
+// Cards of a list wrapped onto as many rows as they need, rather than in a row that scrolls
+const wrappedRows = css`
+  flex-wrap: wrap;
+  row-gap: ${th.space(5)};
+`;
+
 export const ProjectGrid = styled(List)<{ $displayAll: boolean }>`
   display: flex;
   flex-direction: row;
@@ -160,20 +177,21 @@ export const ProjectGrid = styled(List)<{ $displayAll: boolean }>`
   }
 
   /* "Show all" keeps the cards of the row and wraps them onto as many rows as they need */
-  ${props =>
-    props.$displayAll &&
-    css`
-      flex-wrap: wrap;
-      row-gap: ${th.space(5)};
-    `}
+  ${props => props.$displayAll && wrappedRows}
+
+  /* Without JavaScript, the list shows every card as "Show all" does, since its buttons need it */
+  @media ${NO_SCRIPT_QUERY} {
+    ${wrappedRows}
+  }
 `;
 
-export const ProjectItem = styled.li`
+export const ProjectItem = styled.li<{ $offPage: boolean }>`
   /* Box covered by the stretched link of the title */
   position: relative;
   display: flex;
   flex-direction: column;
   margin: ${cardMargin};
+  /* The sizes of the thumbnails (THUMBNAIL_SIZES) repeat the widths of the cards: change both */
   /* One column on a phone: the card fills the width between the page gutters, and the next card of
      the row starts in the right one, which shows that the row scrolls */
   flex: 0 0 calc(100% - 2 * ${cardMargin});
@@ -200,10 +218,24 @@ export const ProjectItem = styled.li`
   @media (min-width: ${th('screens.three-project-columns')}) {
     flex: 0 0 calc(33.333% - 2 * ${cardMargin});
   }
+
+  /* A card out of the page of the row stays in the HTML of the build, for the visitors and the
+     crawlers without JavaScript, but shows only there: hidden from the first paint, its lazy
+     thumbnail downloads nothing */
+  ${props =>
+    props.$offPage &&
+    css`
+      display: none;
+
+      @media ${NO_SCRIPT_QUERY} {
+        display: flex;
+      }
+    `}
 `;
 
 export const ImageContainer = styled.header`
-  height: ${th.size(222)};
+  /* The sizes of the thumbnails (THUMBNAIL_SIZES) read its height and its border: change both */
+  height: ${th.size('project-thumbnail')};
   border-radius: ${th.radius('md')};
   overflow: hidden;
   position: relative;
@@ -211,7 +243,7 @@ export const ImageContainer = styled.header`
 
   /* As much higher as the cards get wider with the app container, so they keep their shape */
   @media (min-width: ${th('screens.wide')}) {
-    height: ${th.size(248)};
+    height: ${th.size('project-thumbnail-wide')};
   }
 
   &::before {
@@ -322,7 +354,6 @@ export const LikeButton = styled.button<{ $liked: boolean; $animating: boolean }
     &:hover {
       border-color: ${th.color('accent-a70')};
       background: ${th.color('accent-backdrop')};
-      transform: scale(1.06);
 
       > svg {
         stroke: ${th.color('accent-foreground')};
@@ -330,20 +361,30 @@ export const LikeButton = styled.button<{ $liked: boolean; $animating: boolean }
     }
   }
 
-  &:active {
-    transform: scale(0.93);
+  /* Not with reduced motion, where the instant transition would make it jump. A pressed button is
+     hovered too: the rule of :active comes last to win */
+  @media ${HOVER_POINTER_QUERY} and ${FULL_MOTION_QUERY} {
+    &:hover {
+      transform: scale(${CONTROL_HOVER_SCALE});
+    }
+  }
+
+  @media ${FULL_MOTION_QUERY} {
+    &:active {
+      transform: scale(0.93);
+    }
   }
 
   /* Forced colors mode turns the background of the button into the color of the page, and keeps
      the colors of the heart, which could then vanish: it draws the heart in the colors of its
      palette, filled in the color of a selection once liked, hovered or not */
-  @media (forced-colors: active) {
+  @media ${FORCED_COLORS_QUERY} {
     > svg {
       ${forcedColorsHeart}
     }
   }
 
-  @media (forced-colors: active) and ${HOVER_POINTER_QUERY} {
+  @media ${FORCED_COLORS_QUERY} and ${HOVER_POINTER_QUERY} {
     &:hover > svg {
       ${forcedColorsHeart}
     }
@@ -403,6 +444,10 @@ export const ProjectType = styled.div`
   ${projectMetadata}
 `;
 
+// Dot between two tools, as a CSS string: the no-break space before it keeps it at the end of the
+// line of its tool, so that a line breaks after the dot only, never before it
+const toolSeparator = `'\\00a0· '`;
+
 // A list that wraps as one line of text, its tools separated by dots
 export const ProjectTools = styled(List)`
   ${projectMetadata}
@@ -411,11 +456,10 @@ export const ProjectTools = styled(List)`
 export const ProjectTool = styled.li`
   display: inline;
 
-  /* A decoration between two tools, whose spaces wrap as those of a text: its empty alternative
-     text keeps screen readers from reading the dot. A browser without the alternative text drops
-     the second content and keeps the first */
+  /* A decoration between two tools, whose empty alternative text keeps screen readers from reading
+     the dot. A browser without the alternative text drops the second content and keeps the first */
   &:not(:last-child)::after {
-    content: ' · ';
-    content: ' · ' / '';
+    content: ${toolSeparator};
+    content: ${toolSeparator} / '';
   }
 `;

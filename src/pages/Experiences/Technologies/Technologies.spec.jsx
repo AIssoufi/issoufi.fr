@@ -1,7 +1,7 @@
 import { render, screen, within } from '@testing-library/react';
 
-import { theme } from '../../../theme';
-import Technologies from './Technologies';
+import { theme } from '../../../theme/index.ts';
+import Technologies from './Technologies.tsx';
 
 describe('Technologies', () => {
   it('renders nothing without any props', () => {

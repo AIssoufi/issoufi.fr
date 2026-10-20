@@ -15,7 +15,7 @@
   - `https://fonts.gstatic.com/s/montserrat/v31/JTUHjIg1_i6t8kCHKm4532VJOt5-QNFgpCtr6Ew-.ttf` (400)
   - `https://fonts.gstatic.com/s/montserrat/v31/JTUHjIg1_i6t8kCHKm4532VJOt5-QNFgpCtZ6Ew-.ttf` (500)
   - `https://fonts.gstatic.com/s/montserrat/v31/JTUHjIg1_i6t8kCHKm4532VJOt5-QNFgpCuM70w-.ttf` (700)
-- They hold every character of the font, the arrow "→" of the experiences included, which the `latin` subsets of Google Fonts lack.
+- They hold every character of the font, such as the arrows, which the `latin` subsets of Google Fonts lack.
 
 ## License
 

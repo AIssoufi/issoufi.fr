@@ -1,21 +1,27 @@
 import { act, fireEvent, render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
-import i18n from '../../../i18n';
-import { theme } from '../../../theme';
-import { HOVER_POINTER_QUERY } from '../../../theme/constants';
-import { holdsFunctionSource } from '../../../cssRuleGuard';
-import { stubMatchMedia } from '../../../mediaQueryTestUtils';
+import i18n from '../../../i18n/index.ts';
+import { theme } from '../../../theme/index.ts';
+import {
+  CONTROL_HOVER_SCALE,
+  FORCED_COLORS_QUERY,
+  FULL_MOTION_QUERY,
+  HOVER_POINTER_QUERY,
+  NO_SCRIPT_QUERY,
+} from '../../../theme/constants.ts';
+import { holdsFunctionSource } from '../../../cssRuleGuard.ts';
+import { stubMatchMedia } from '../../../mediaQueryTestUtils.ts';
 import {
   blendColors,
   declaredStyle,
-  FORCED_COLORS_MEDIA,
   getContrastRatio,
   listStyleRules,
+  mediaDeclaringStyle,
   MIN_ICON_CONTRAST_RATIO,
   serializeCssValue,
-} from '../../../styleTestUtils';
-import { INTERACTIVE_SELECTOR } from '../../testUtils';
+} from '../../../styleTestUtils.js';
+import { INTERACTIVE_SELECTOR } from '../../testUtils.js';
 
 import {
   CARD_HOVER_LIFT_PX,
@@ -25,13 +31,13 @@ import {
   LIKED_PROJECTS_STORAGE_KEY,
   ROW_CARD_COUNT,
   THUMBNAIL_SIZES,
-} from './constants';
-import { useWholeCardCount } from './hooks/useWholeCardCount';
-import Project from './Project';
+} from './constants.ts';
+import { useWholeCardCount } from './hooks/useWholeCardCount/index.ts';
+import Project from './Project.tsx';
 
 // jsdom lays nothing out, so the row counts as many cards shown whole as it holds: the tests of a
 // narrower screen give the count that it would measure
-vi.mock('./hooks/useWholeCardCount', async importOriginal => {
+vi.mock('./hooks/useWholeCardCount/index.ts', async importOriginal => {
   const hook = await importOriginal();
   return { ...hook, useWholeCardCount: vi.fn(hook.useWholeCardCount) };
 });
@@ -81,6 +87,9 @@ const CARD_BOX = { left: 100, top: 100, width: 200, height: 100 };
  * the vertical axis and half of it around the horizontal one, so the two cannot be mixed up.
  */
 const CARD_POINTER = { x: CARD_BOX.width, y: CARD_BOX.height / 4 };
+
+/** Media query of a pointer that hovers, for a visitor who did not ask to reduce motion. */
+const FULL_MOTION_HOVER_QUERY = `${HOVER_POINTER_QUERY} and ${FULL_MOTION_QUERY}`;
 
 /** Like button of a card, found by its French accessible name, which holds the project name. */
 const likeButtonOf = name => screen.getByRole('button', { name: `Aimer ${name}` });
@@ -139,8 +148,14 @@ const linkOf = name => screen.getByRole('link', { name: `${name} ${NEW_TAB_NOTIC
 /** List of the cards of the section, the first list, which holds the list of tools of each card. */
 const cardList = () => screen.getAllByRole('list')[0];
 
-/** Cards shown, in their order: the items of the list of cards, without the tools in them. */
-const shownCards = () => [...cardList().children];
+/** Every card, in their order: the items of the list of cards, without the tools in them. */
+const allCards = () => [...cardList().children];
+
+/**
+ * Cards shown, in their order: every card but those out of the page of the row, which stay in the
+ * document, hidden.
+ */
+const shownCards = () => allCards().filter(card => getComputedStyle(card).display !== 'none');
 
 /** Name of a card, the text of its heading without the notice that only screen readers read. */
 const cardNameOf = card => card.querySelector('h3')?.textContent.replace(NEW_TAB_NOTICE, '').trim();
@@ -348,13 +363,29 @@ describe('Project', () => {
     );
 
     expect(screen.getByText('Projets personnels')).toBeInTheDocument();
-    expect(screen.getByText('Chess')).toBeInTheDocument();
-    expect(screen.queryByText('Connect Four')).not.toBeInTheDocument();
+    expect(cardOf('Chess')).toBeVisible();
+    expect(cardOf('Connect Four')).not.toBeVisible();
 
     await userEvent.click(screen.getByText('Tout afficher (4)'));
 
-    expect(screen.getByText('Connect Four')).toBeInTheDocument();
+    expect(cardOf('Connect Four')).toBeVisible();
     expect(screen.getByText('Afficher moins')).toBeInTheDocument();
+  });
+
+  it('renders every card, those out of the page hidden, so the build writes every project', async () => {
+    showWholeCards(1);
+    render(<Project projects={projects} />);
+
+    expect(allCards().map(cardNameOf)).toEqual(projects.map(({ name }) => name));
+    expect(shownCardNames()).toEqual(['Chess', 'Calculator', 'Plugin store']);
+    expect(screen.queryByRole('heading', { level: 3, name: 'Connect Four' })).toBeNull();
+    expect(screen.queryByRole('button', { name: 'Aimer Connect Four' })).toBeNull();
+
+    await userEvent.click(pageButtons().nextButton);
+
+    expect(allCards().map(cardNameOf)).toEqual(projects.map(({ name }) => name));
+    expect(shownCardNames()).toEqual(['Calculator', 'Plugin store', 'Connect Four']);
+    expect(screen.getByRole('heading', { level: 3, name: 'Connect Four' })).toBeVisible();
   });
 
   it('links the title of a project to its url, in a new tab, when it has one', () => {
@@ -424,7 +455,7 @@ describe('Project', () => {
     ).toEqual(LONG_TECH_LINE_PROJECT.tools);
   });
 
-  it('separates the tools with a dot that screen readers skip, after every tool but the last', () => {
+  it('separates the tools with a dot that screen readers skip, kept on the line of its tool', () => {
     render(<Project projects={[LONG_TECH_LINE_PROJECT]} />);
 
     const [firstTool] = within(cardOf(LONG_TECH_LINE_PROJECT.name)).getAllByRole('listitem');
@@ -434,8 +465,9 @@ describe('Project', () => {
       pseudo: ':not(:last-child)::after',
     });
 
-    // Stylis drops the optional spaces around the slash
-    expect(separator).toMatch(/^(['"]) · \1\s*\/\s*(['"])\2$/);
+    // A no-break space before the dot, which the CSSOM keeps as its escape; Stylis drops the
+    // optional spaces around the slash
+    expect(separator).toMatch(/^(['"])\\00a0· \1\s*\/\s*(['"])\2$/);
     expect(firstTool.textContent).toBe('HTML 5');
     expect(declaredStyle({ element: firstTool, property: 'display' })).toBe('inline');
   });
@@ -662,14 +694,14 @@ describe('Project', () => {
       },
     );
 
-    it('downloads every thumbnail once the screen nears it, by default', () => {
+    it('downloads every thumbnail once the screen nears it, at a low priority, by default', () => {
       render(<Project projects={projects} />);
 
       cardList()
         .querySelectorAll('img')
         .forEach(thumbnail => {
           expect(thumbnail).toHaveAttribute('loading', 'lazy');
-          expect(thumbnail).not.toHaveAttribute('fetchpriority');
+          expect(thumbnail).toHaveAttribute('fetchpriority', 'low');
         });
     });
 
@@ -687,7 +719,7 @@ describe('Project', () => {
       expect(first).toHaveAttribute('fetchpriority', 'high');
       others.forEach(thumbnail => {
         expect(thumbnail).toHaveAttribute('loading', 'lazy');
-        expect(thumbnail).not.toHaveAttribute('fetchpriority');
+        expect(thumbnail).toHaveAttribute('fetchpriority', 'low');
       });
     });
 
@@ -702,7 +734,7 @@ describe('Project', () => {
 
       await userEvent.click(pageButtons().nextButton);
       expect(thumbnailOf('Calculator')).toHaveAttribute('loading', 'lazy');
-      expect(thumbnailOf('Calculator')).not.toHaveAttribute('fetchpriority');
+      expect(thumbnailOf('Calculator')).toHaveAttribute('fetchpriority', 'low');
 
       await userEvent.click(screen.getByRole('button', { name: 'Tout afficher (4)' }));
       expect(thumbnailOf('Chess')).toHaveAttribute('fetchpriority', 'high');
@@ -776,18 +808,18 @@ describe('Project', () => {
     const { previousButton, nextButton } = pageButtons();
 
     await userEvent.click(previousButton);
-    expect(screen.getByText('Chess')).toBeInTheDocument();
+    expect(cardOf('Chess')).toBeVisible();
 
     await userEvent.click(nextButton);
-    expect(screen.getByText('Connect Four')).toBeInTheDocument();
-    expect(screen.queryByText('Chess')).not.toBeInTheDocument();
+    expect(cardOf('Connect Four')).toBeVisible();
+    expect(cardOf('Chess')).not.toBeVisible();
 
     await userEvent.click(nextButton);
-    expect(screen.getByText('Connect Four')).toBeInTheDocument();
+    expect(cardOf('Connect Four')).toBeVisible();
 
     await userEvent.click(previousButton);
-    expect(screen.getByText('Chess')).toBeInTheDocument();
-    expect(screen.queryByText('Connect Four')).not.toBeInTheDocument();
+    expect(cardOf('Chess')).toBeVisible();
+    expect(cardOf('Connect Four')).not.toBeVisible();
   });
 
   it.each([
@@ -1013,8 +1045,8 @@ describe('Project', () => {
       });
 
       expect(sizesOf({ element: thumbnailOf('Chess').parentElement, property: 'height' })).toEqual({
-        belowWide: theme.sizes[222],
-        wide: theme.sizes[248],
+        belowWide: theme.sizes['project-thumbnail'],
+        wide: theme.sizes['project-thumbnail-wide'],
       });
       expect(
         sizesOf({ element: card.getByRole('heading', { level: 3 }), property: 'font-size' }),
@@ -1089,7 +1121,7 @@ describe('Project', () => {
       };
       const hoverRuleIndex = lastTransformRuleIndex({
         state: ':hover',
-        media: HOVER_POINTER_QUERY,
+        media: FULL_MOTION_HOVER_QUERY,
       });
 
       expect(
@@ -1097,15 +1129,41 @@ describe('Project', () => {
           element: likeButton,
           property: 'transform',
           pseudo: ':hover',
-          media: HOVER_POINTER_QUERY,
+          media: FULL_MOTION_HOVER_QUERY,
         }),
-      ).toBe('scale(1.06)');
-      expect(declaredStyle({ element: likeButton, property: 'transform', pseudo: ':active' })).toBe(
-        'scale(0.93)',
-      );
+      ).toBe(`scale(${CONTROL_HOVER_SCALE})`);
+      expect(
+        declaredStyle({
+          element: likeButton,
+          property: 'transform',
+          pseudo: ':active',
+          media: FULL_MOTION_QUERY,
+        }),
+      ).toBe('scale(0.93)');
       // A pressed button is hovered too: the rule of :active must come last to win
       expect(hoverRuleIndex).toBeGreaterThan(-1);
-      expect(lastTransformRuleIndex({ state: ':active' })).toBeGreaterThan(hoverRuleIndex);
+      expect(
+        lastTransformRuleIndex({ state: ':active', media: FULL_MOTION_QUERY }),
+      ).toBeGreaterThan(hoverRuleIndex);
+    });
+
+    // GlobalStyle makes the transition instant with reduced motion: the button would jump
+    it('keeps the like button still on hover and press with reduced motion, while its colors change', () => {
+      render(<Project projects={projects} />);
+      const likeButton = likeButtonOf('Chess');
+      const transformMedia = pseudo =>
+        mediaDeclaringStyle({ element: likeButton, property: 'transform', pseudo });
+
+      expect(transformMedia(':hover')).toEqual([FULL_MOTION_HOVER_QUERY]);
+      expect(transformMedia(':active')).toEqual([FULL_MOTION_QUERY]);
+      expect(
+        declaredStyle({
+          element: likeButton,
+          property: 'border-color',
+          pseudo: ':hover',
+          media: HOVER_POINTER_QUERY,
+        }),
+      ).toBe(serializeCssValue({ property: 'border-color', value: theme.colors['accent-a70'] }));
     });
 
     it('plays the pop animation of the heart for exactly as long as its button stays animated', () => {
@@ -1186,7 +1244,7 @@ describe('Project', () => {
         button,
         property,
         pseudo = '>svg',
-        media = FORCED_COLORS_MEDIA,
+        media = FORCED_COLORS_QUERY,
       }) => declaredStyle({ element: button, property, media, pseudo });
 
       // Forced colors mode keeps the colors of an SVG but empties the background of its button
@@ -1208,7 +1266,7 @@ describe('Project', () => {
           button: likeButtonOf('Calculator'),
           property: 'stroke',
           pseudo: ':hover > svg',
-          media: `${FORCED_COLORS_MEDIA} and ${HOVER_POINTER_QUERY}`,
+          media: `${FORCED_COLORS_QUERY} and ${HOVER_POINTER_QUERY}`,
         }),
       ).toBe('buttontext');
     });
@@ -1316,6 +1374,50 @@ describe('Project', () => {
           expect(declaredStyle({ element: button, property: 'order', media })).toBe(UNDECLARED);
         }
       }
+    });
+
+    it('shows the cards out of the page where no script runs only, which the arrows need', () => {
+      render(<Project projects={projects} />);
+      const display = ({ name, media = '' }) =>
+        declaredStyle({ element: cardOf(name), property: 'display', media });
+
+      expect(display({ name: 'Connect Four' })).toBe('none');
+      expect(display({ name: 'Connect Four', media: NO_SCRIPT_QUERY })).toBe('flex');
+      expect(mediaDeclaringStyle({ element: cardOf('Connect Four'), property: 'display' })).toEqual(
+        ['', NO_SCRIPT_QUERY],
+      );
+      expect(display({ name: 'Chess' })).toBe('flex');
+      expect(mediaDeclaringStyle({ element: cardOf('Chess'), property: 'display' })).toEqual(['']);
+    });
+
+    it('wraps every card onto as many rows as needed without JavaScript, as "Show all" does', () => {
+      render(<Project projects={projects} />);
+      const grid = gridOf('Chess');
+      const gridStyle = ({ property, media = '' }) =>
+        declaredStyle({ element: grid, property, media });
+
+      expect(gridStyle({ property: 'flex-wrap' })).toBe(UNDECLARED);
+      expect(gridStyle({ property: 'flex-wrap', media: NO_SCRIPT_QUERY })).toBe('wrap');
+      expect(gridStyle({ property: 'row-gap', media: NO_SCRIPT_QUERY })).toBe(theme.space[5]);
+    });
+
+    it('hides the section buttons without JavaScript, where they would do nothing', () => {
+      render(
+        <Project
+          title="Projets personnels"
+          projects={projects}
+        />,
+      );
+      const controls = screen.getByRole('group', { name: 'Projets personnels' });
+
+      expect(declaredStyle({ element: controls, property: 'display' })).toBe('flex');
+      expect(
+        declaredStyle({ element: controls, property: 'display', media: NO_SCRIPT_QUERY }),
+      ).toBe('none');
+      expect(mediaDeclaringStyle({ element: controls, property: 'display' })).toEqual([
+        '',
+        NO_SCRIPT_QUERY,
+      ]);
     });
 
     it('generates no function source text in the CSS of the "Show all" rows', async () => {

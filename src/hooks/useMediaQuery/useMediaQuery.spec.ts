@@ -2,8 +2,8 @@ import { act, renderHook } from '@testing-library/react';
 import { createElement } from 'react';
 import { renderToString } from 'react-dom/server';
 
-import { stubMatchMedia } from '../../mediaQueryTestUtils';
-import { useMediaQuery } from './useMediaQuery';
+import { stubMatchMedia } from '../../mediaQueryTestUtils.ts';
+import { useMediaQuery } from './useMediaQuery.ts';
 
 const DESKTOP_QUERY = '(min-width: 50em)';
 const WIDE_QUERY = '(min-width: 100em)';

@@ -5,6 +5,30 @@ import { defineConfig, globalIgnores } from 'eslint/config';
 import globals from 'globals';
 import tseslint from 'typescript-eslint';
 
+/**
+ * A relative module specifier that names no extension of a module or an asset, such as `./utils`
+ * or `./Name.styled`. Add an extension to the list before importing a new kind of file. The `/`
+ * is written `\x2F`, since a `/` ends the regular expression of a selector.
+ */
+const SPECIFIER_WITHOUT_EXTENSION = String.raw`/^\.{1,2}(\x2F[^?]*)?(?<!\.([cm]?[jt]sx?|json|svg|webp|png|jpe?g|avif|css|woff2))(\?.*)?$/`;
+
+/**
+ * Relative imports, exports and module mocks name the file that they load: Node.js loads the Vite
+ * configs and the modules that they import as they are (`--configLoader native`), and resolves no
+ * `./utils` to `./utils.ts` or `./utils/index.ts`.
+ */
+const EXTENSION_RESTRICTIONS = [
+  `:matches(ImportDeclaration, ExportNamedDeclaration, ExportAllDeclaration, ImportExpression)[source.value=${SPECIFIER_WITHOUT_EXTENSION}]`,
+  `CallExpression[callee.object.name='vi'][callee.property.name=/^(mock|doMock|unmock|doUnmock|importActual|importMock)$/][arguments.0.value=${SPECIFIER_WITHOUT_EXTENSION}]`,
+].map(selector => ({
+  selector,
+  message:
+    'Name the file of a relative import, with its extension (./utils.ts, ./List/index.ts): Node.js loads the Vite configs as they are, and resolves no other path.',
+}));
+
+/** The widest comment line, in characters: the `printWidth` of `.prettierrc`. */
+const COMMENT_MAX_LENGTH = 100;
+
 export default defineConfig([
   globalIgnores([
     'dist',
@@ -49,9 +73,9 @@ export default defineConfig([
           ],
           patterns: [
             {
-              // A component's style file (Name.styled), anywhere but in the importing folder.
+              // A component's style file (Name.styled.ts), anywhere but in the importing folder.
               // Shared style modules (timeline.styled) at the root of a parent stay allowed.
-              regex: String.raw`^(?!\./[^/]*$)(.*/)?[A-Z][^/]*\.styled$`,
+              regex: String.raw`^(?!\./[^/]*$)(.*/)?[A-Z][^/]*\.styled\.ts$`,
               caseSensitive: true,
               message:
                 'Only a component imports its own styles: move what several components share to the root of their parent, or to src/components/ when pages share it.',
@@ -59,17 +83,26 @@ export default defineConfig([
           ],
         },
       ],
+      'no-restricted-syntax': ['error', ...EXTENSION_RESTRICTIONS],
+      // Prettier wraps the code at its printWidth, but never a comment. The core rule, deprecated
+      // for ESLint Stylistic, still works until ESLint 11; `code` leaves the code to Prettier.
+      'max-len': [
+        'error',
+        { code: Number.MAX_SAFE_INTEGER, comments: COMMENT_MAX_LENGTH, ignoreUrls: true },
+      ],
     },
   },
   {
     // The global style removes the bullets of every ul, and Safari then exposes it as a list only
     // with role="list", which List sets. A link that opens a new tab says so to screen readers
-    // only as a NewTabLink, which sets the one target="_blank" of the site
+    // only as a NewTabLink, which sets the one target="_blank" of the site. This block replaces
+    // the restrictions above, so it repeats them
     files: ['src/**/*.{ts,tsx}'],
     ignores: ['src/components/List/List.tsx'],
     rules: {
       'no-restricted-syntax': [
         'error',
+        ...EXTENSION_RESTRICTIONS,
         ...[
           "MemberExpression[object.name='styled'][property.name='ul']",
           "CallExpression[callee.name='styled'][arguments.0.value='ul']",

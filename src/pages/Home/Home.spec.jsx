@@ -1,13 +1,13 @@
 import { act, render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router';
 
-import i18n from '../../i18n';
-import { theme } from '../../theme';
-import { HOVER_POINTER_QUERY, REDUCED_MOTION_QUERY } from '../../theme/constants';
-import { declaredStyle, serializeCssValue } from '../../styleTestUtils';
-import { getPage } from '../../utils/pages';
-import { readBackgroundImages } from '../testUtils';
-import { Home } from './Home';
+import i18n from '../../i18n/index.ts';
+import { theme } from '../../theme/index.ts';
+import { HOVER_POINTER_QUERY, REDUCED_MOTION_QUERY } from '../../theme/constants.ts';
+import { declaredStyle, serializeCssValue } from '../../styleTestUtils.js';
+import { getPage } from '../../utils/pages.ts';
+import { readBackgroundImages } from '../testUtils.js';
+import { Home } from './Home.tsx';
 
 /** Media query of the short screens, such as a phone held sideways. */
 const SHORT_SCREEN_MEDIA_QUERY = `(max-height: ${theme.screenHeights.short})`;
@@ -214,6 +214,20 @@ describe('Home', () => {
     expect(glowStyle.position).toBe('fixed');
     expect(glowStyle.pointerEvents).toBe('none');
     expect(glowStyle.display).not.toBe('none');
+  });
+
+  it('places the cursor glow off the screen in its style, as in the page that the build renders', () => {
+    const { container } = renderHome();
+
+    const [glow] = [...container.querySelectorAll('*')].filter(
+      element =>
+        declaredStyle({ element, property: 'display', media: REDUCED_MOTION_QUERY }) === 'none',
+    );
+
+    // Where the cursor follower starts it, its corner at -100 px minus its radius
+    expect(declaredStyle({ element: glow, property: 'transform' })).toBe(
+      'translate(-120px, -120px)',
+    );
   });
 
   it('shows the background photo of its entry in PAGES, over its placeholder', () => {

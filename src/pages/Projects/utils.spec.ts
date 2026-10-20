@@ -1,6 +1,6 @@
-import i18n from '../../i18n';
-import type { ProjectData } from './types';
-import { translateProjects } from './utils';
+import i18n from '../../i18n/index.ts';
+import type { ProjectData } from './types.ts';
+import { translateProjects } from './utils.ts';
 
 /** A project of the JSON data, with the keys of its texts. */
 const CHESS: ProjectData = {
@@ -17,7 +17,7 @@ const TROUILLET_DECORS: ProjectData = {
   id: 7,
   nameKey: 'trouilletDecors',
   typeKey: 'showcaseWebsite',
-  thumbnails: [{ url: '/trouillet-decors-480.webp', width: 480, height: 413 }],
+  thumbnails: [{ url: '/trouillet-decors-480.webp', width: 480, height: 300 }],
   tools: ['WordPress'],
 };
 
@@ -72,7 +72,7 @@ describe('translateProjects', () => {
         id: 7,
         name: 'Trouillet Décors',
         type: 'Site vitrine',
-        thumbnails: [{ url: '/trouillet-decors-480.webp', width: 480, height: 413 }],
+        thumbnails: [{ url: '/trouillet-decors-480.webp', width: 480, height: 300 }],
         tools: ['WordPress'],
       },
     ]);

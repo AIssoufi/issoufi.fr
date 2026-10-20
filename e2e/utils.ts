@@ -1,4 +1,4 @@
-import { localizePath } from '../src/i18n/utils';
+import { localizePath } from '../src/i18n/utils.ts';
 import {
   GOOGLE_COUNTRY_HOST_PATTERN,
   GOOGLE_DOMAINS,
@@ -8,7 +8,7 @@ import {
   QUAD_COORDINATE_COUNT,
   SECURITY_POLICY_MESSAGE_PATTERN,
   TRAILING_DOT_PATTERN,
-} from './constants';
+} from './constants.ts';
 
 /** A page of the site, of which only the route matters here, such as an entry of `PAGES`. */
 interface RoutedPage {

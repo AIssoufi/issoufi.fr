@@ -35,7 +35,7 @@ pnpm dev        # http://localhost:3000
 | `pnpm size`                   | Check the size of the scripts, after a build            |
 | `pnpm smoke-test [url]`       | Check that a deployed site serves the files of `dist/`  |
 | `pnpm build:standalone`       | Build the site that opens from the disk                 |
-| `pnpm og-image`, `pnpm icons` | Regenerate the link preview images and the icons        |
+| `pnpm og-image`, `pnpm icons` | Regenerate the link previews, the icons and the logo    |
 | `pnpm cv`, `pnpm cv:check`    | Regenerate the CVs, or only check that they still match |
 
 The generators are described in [Assets](assets.md#generated-files).

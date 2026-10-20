@@ -1,9 +1,11 @@
 import { render, screen } from '@testing-library/react';
+import { renderToString } from 'react-dom/server';
 import { MemoryRouter } from 'react-router';
 
-import { declaredStyle } from '../../styleTestUtils';
-import { ELLIPSIS, MAX_DISPLAYED_PATH_LENGTH_CHARS } from './constants';
-import { NotFound } from './NotFound';
+import { renderHydrated } from '../../hydrationTestUtils.tsx';
+import { declaredStyle } from '../../styleTestUtils.js';
+import { ELLIPSIS, MAX_DISPLAYED_PATH_LENGTH_CHARS } from './constants.ts';
+import { NotFound } from './NotFound.tsx';
 
 const renderAt = ({ path, props }) =>
   render(
@@ -90,6 +92,28 @@ describe('NotFound', () => {
 
     expect(screen.getAllByRole('main')).toHaveLength(1);
     expect(screen.getAllByRole('heading', { level: 1 })).toHaveLength(1);
+  });
+
+  it('names no path in the page rendered at build time, at a path of its own', () => {
+    const html = renderToString(
+      <MemoryRouter initialEntries={['/404']}>
+        <NotFound />
+      </MemoryRouter>,
+    );
+
+    expect(html).toContain('Cette page n’existe pas.');
+    expect(html).not.toContain('/404');
+  });
+
+  it('names the path once the browser renders the page, after the hydration', () => {
+    renderHydrated(
+      <MemoryRouter initialEntries={['/skills']}>
+        <NotFound />
+      </MemoryRouter>,
+    );
+
+    expect(screen.getByText('La page /skills n’existe pas.')).toBeInTheDocument();
+    expect(screen.queryByText('Cette page n’existe pas.')).not.toBeInTheDocument();
   });
 
   it('accepts a custom title and message', () => {

@@ -1,1 +1,1 @@
-export { default } from './CompanyEntry';
+export { default } from './CompanyEntry.tsx';

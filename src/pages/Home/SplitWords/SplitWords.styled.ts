@@ -10,6 +10,9 @@ export const StrongWord = styled.span<{ $delay: string; $reverse: boolean }>`
   will-change: transform;
   font-size: ${th.fontSize('hero-title')};
   font-weight: ${th.fontWeight('bold')};
+  /* The line height of a heading, rather than the one of the running text around the word, which
+     would open a wide gap between two lines of big words */
+  line-height: ${th.lineHeight(120)};
   letter-spacing: ${th.letterSpacing('tight')};
   background: linear-gradient(
     90deg,

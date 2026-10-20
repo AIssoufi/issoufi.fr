@@ -85,8 +85,10 @@ images.forEach(({ language, texts }) => {
   }
 });
 
-// The web fonts of the site, whose files the page reads as data URLs, like the photo
+// The web fonts of the pages and the one of the logo, which the image draws as text, whose files
+// the page reads as data URLs, like the photo
 const fontFaceStyles = sources.fonts.renderFontFaces({
+  fontFaces: [...sources.fontFaces.FONT_FACES, sources.fontFaces.LOGO_FONT_FACE],
   getUrl: (/** @type {string} */ url) =>
     toDataUrl({ content: readFileSync(join(PUBLIC_DIR, url)), fileName: url }),
 });

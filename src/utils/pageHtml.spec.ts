@@ -1,12 +1,26 @@
 import { readFileSync, statSync } from 'node:fs';
 
-import { LANGUAGES } from '../i18n/constants';
-import { en } from '../i18n/en';
-import { fr } from '../i18n/fr';
-import { addModulePreload, renderNotFoundHtml, renderPageHtml } from './pageHtml';
-import { OG_IMAGE_PATHS, PAGES, SITE_URL, getNotFoundFiles, getPageFiles } from './pages';
-import { getStructuredData } from './structuredData';
-import { getWebManifestUrl } from './webManifest';
+import { LANGUAGES } from '../i18n/constants.ts';
+import { en } from '../i18n/en.ts';
+import { fr } from '../i18n/fr.ts';
+import {
+  addModulePreload,
+  addPrerenderedPage,
+  renderNotFoundHtml,
+  renderPageHtml,
+} from './pageHtml.ts';
+import {
+  LANDSCAPE_PHOTO_MEDIA_QUERY,
+  OG_IMAGE_PATHS,
+  PAGES,
+  PORTRAIT_PHOTO_MEDIA_QUERY,
+  SITE_URL,
+  getNotFoundFiles,
+  getPageFiles,
+} from './pages.ts';
+import { getStructuredData } from './structuredData.ts';
+import { APP_CONTAINER_ID, PRERENDERED_PATH_ATTRIBUTE } from './prerender.ts';
+import { getWebManifestUrl } from './webManifest.ts';
 
 const [home, projects, experiences] = PAGES;
 
@@ -93,7 +107,6 @@ describe('renderPageHtml', () => {
     expect(html.match(/%PAGE_URL%/g)).toHaveLength(2);
     expect(html.match(/%PAGE_IMAGE_URL%/g)).toHaveLength(1);
     expect(html.match(/%PAGE_IMAGE_ALT%/g)).toHaveLength(1);
-    expect(html.match(/%PAGE_NOSCRIPT%/g)).toHaveLength(1);
     getPageFiles().forEach(({ page, language }) =>
       expect(renderPageHtml({ template: html, page, language, years: 8 })).not.toMatch(
         /%PAGE_\w+%/,
@@ -109,24 +122,8 @@ describe('renderPageHtml', () => {
 });
 
 describe('message shown without JavaScript', () => {
-  const html = readFileSync('index.html', 'utf-8');
-
-  it('is in French on the French pages', () => {
-    const page = renderPageHtml({ template: html, page: projects, years: 8 });
-
-    expect(page).toContain('<noscript>Activez JavaScript pour afficher ce site.</noscript>');
-  });
-
-  it('is in English on the English pages', () => {
-    const page = renderPageHtml({ template: html, page: projects, language: 'en', years: 8 });
-
-    expect(page).toContain('<noscript>Enable JavaScript to view this site.</noscript>');
-  });
-
-  it.each(['fr', 'en'] as const)('is in the language of the %s not found page', language => {
-    const page = renderNotFoundHtml({ template: html, language, years: 8 });
-
-    expect(page).toContain(`<noscript>${{ fr, en }[language].meta.noScript}</noscript>`);
+  it('is not in index.html, since every page holds its content (see addPrerenderedPage)', () => {
+    expect(readFileSync('index.html', 'utf-8')).not.toContain('<noscript>');
   });
 });
 
@@ -466,7 +463,7 @@ describe('background photo', () => {
       fileName,
       render: () => renderNotFoundHtml({ template: html, language, years: 8 }),
     })),
-  ])('is not preloaded by $fileName, so that it never delays the text', ({ render }) => {
+  ])('is left by the metadata of $fileName to the page rendered at build time', ({ render }) => {
     expect(render()).not.toMatch(/<link[^>]*\sas="image"/);
   });
 });
@@ -516,6 +513,199 @@ describe('addModulePreload', () => {
       ['HTML that is not a string', { html: null as never, href }],
     ])('returns an empty string for %s', (_, params) => {
       expect(addModulePreload(params)).toBe('');
+    });
+  });
+});
+
+describe('addPrerenderedPage', () => {
+  const html = '<head>\n  </head>\n<body>\n  <div id="welcome"></div>\n</body>';
+  const page = {
+    html: '<main><h1>Projets</h1></main>',
+    styleTags: '<style data-styled="true">.a{color:red;}</style>',
+  };
+
+  it('puts the page in the container, which names the path to hydrate', () => {
+    expect(addPrerenderedPage({ html, page, hydrationPath: '/en/projects' })).toContain(
+      `<div id="welcome" ${PRERENDERED_PATH_ATTRIBUTE}="/en/projects"><main><h1>Projets</h1></main></div>`,
+    );
+  });
+
+  it('adds the styles of the page at the end of the head', () => {
+    expect(addPrerenderedPage({ html, page, hydrationPath: '/' })).toMatch(
+      /^<head>\n {4}<style data-styled="true">\.a\{color:red;\}<\/style>\n {2}<\/head>/,
+    );
+  });
+
+  it('fills the container of index.html, the one that the app renders in', () => {
+    const template = readFileSync('index.html', 'utf-8');
+
+    expect(template).toContain(`<div id="${APP_CONTAINER_ID}"></div>`);
+    expect(addPrerenderedPage({ html: template, page, hydrationPath: '/' })).toContain(
+      '<main><h1>Projets</h1></main>',
+    );
+  });
+
+  it.each([
+    ['no path', undefined],
+    ['an empty path', ''],
+    ['a blank path', ' \t'],
+  ])('names no path to hydrate with %s, as for a not found page', (_, hydrationPath) => {
+    expect(addPrerenderedPage({ html, page, hydrationPath })).toContain(
+      '<div id="welcome"><main><h1>Projets</h1></main></div>',
+    );
+  });
+
+  it('escapes the path for the attribute', () => {
+    expect(addPrerenderedPage({ html, page, hydrationPath: '/a"b&c' })).toContain(
+      `${PRERENDERED_PATH_ATTRIBUTE}="/a&quot;b&amp;c"`,
+    );
+  });
+
+  it.each(['$&', "$'", '$`', '$$', '$1'])(
+    'inserts the page and its styles as they are, even with %s, a pattern of replace',
+    pattern => {
+      const result = addPrerenderedPage({
+        html,
+        page: { html: `<p>${pattern}</p>`, styleTags: `<style>/*${pattern}*/</style>` },
+      });
+
+      expect(result).toContain(`<div id="welcome"><p>${pattern}</p></div>`);
+      expect(result).toContain(`<style>/*${pattern}*/</style>\n  </head>`);
+    },
+  );
+
+  it.each([
+    ['no styles', ''],
+    ['blank styles', ' '],
+  ])('adds nothing to the head with %s', (_, styleTags) => {
+    expect(addPrerenderedPage({ html, page: { html: '<main></main>', styleTags } })).toBe(
+      '<head>\n  </head>\n<body>\n  <div id="welcome"><main></main></div>\n</body>',
+    );
+  });
+
+  describe('downloads of the first paint', () => {
+    const scriptTags = [
+      '<script type="module" crossorigin src="/assets/index-1a2b.js"></script>',
+      '<link rel="modulepreload" crossorigin href="/assets/vendor-1a2b.js">',
+      '<link rel="modulepreload" crossorigin href="/assets/Projects-1a2b.js" />',
+    ];
+    const lowScriptTags = [
+      '<script type="module" fetchpriority="low" crossorigin src="/assets/index-1a2b.js"></script>',
+      '<link rel="modulepreload" fetchpriority="low" crossorigin href="/assets/vendor-1a2b.js">',
+      '<link rel="modulepreload" fetchpriority="low" crossorigin href="/assets/Projects-1a2b.js" />',
+    ];
+    const otherTags = [
+      '<script type="application/ld+json">{"@context":"https://schema.org"}</script>',
+      '<link rel="preload" href="/fonts/a.woff2" as="font" type="font/woff2" crossorigin>',
+      '<link rel="manifest" href="/manifest.webmanifest" />',
+    ];
+    const photo = {
+      url: '/projects.webp',
+      portraitUrl: '/projects-portrait.webp',
+      placeholderUrl: 'data:image/webp;base64,UklGR',
+    };
+    const portraitPreload = `<link rel="preload" as="image" href="/projects-portrait.webp" media="${PORTRAIT_PHOTO_MEDIA_QUERY.replaceAll('<', '&lt;')}" fetchpriority="low" />`;
+    const landscapePreload = `<link rel="preload" as="image" href="/projects.webp" media="${LANDSCAPE_PHOTO_MEDIA_QUERY.replaceAll('<', '&lt;')}" fetchpriority="low" />`;
+
+    /** Lists the links of a page that preload an image. */
+    const getImagePreloads = (result: string) =>
+      result.match(/<link rel="preload" as="image"[^>]*>/g) ?? [];
+
+    it('downloads the scripts of the app at a low priority, since they only hydrate the page', () => {
+      const result = addPrerenderedPage({
+        html: `<head>\n${[...scriptTags, ...otherTags].join('\n')}\n  </head>\n<body>\n  <div id="welcome"></div>\n</body>`,
+        page,
+      });
+
+      [...lowScriptTags, ...otherTags].forEach(tag => expect(result).toContain(tag));
+      scriptTags.forEach(tag => expect(result).not.toContain(tag));
+    });
+
+    it('preloads each version of the photo at a low priority, for the screens that show it', () => {
+      expect(getImagePreloads(addPrerenderedPage({ html, page, backgroundPhoto: photo }))).toEqual([
+        portraitPreload,
+        landscapePreload,
+      ]);
+    });
+
+    it('preloads the photo at the end of the head, before the styles that request it', () => {
+      expect(addPrerenderedPage({ html, page, backgroundPhoto: photo })).toMatch(
+        /^<head>\n {4}<link rel="preload" as="image" href="\/projects-portrait\.webp"[^\n]*\n {4}<link rel="preload" as="image" href="\/projects\.webp"[^\n]*\n {4}<style data-styled="true">/,
+      );
+    });
+
+    it('preloads the photo of a page without styles', () => {
+      const result = addPrerenderedPage({
+        html,
+        page: { html: '<main></main>', styleTags: '' },
+        backgroundPhoto: photo,
+      });
+
+      expect(getImagePreloads(result)).toEqual([portraitPreload, landscapePreload]);
+    });
+
+    it('escapes the URLs of the photo for the attribute', () => {
+      const result = addPrerenderedPage({
+        html,
+        page,
+        backgroundPhoto: { url: '/a"b&c.webp', portraitUrl: '/d.webp' },
+      });
+
+      expect(result).toContain('href="/a&quot;b&amp;c.webp"');
+    });
+
+    describe('edge cases', () => {
+      it.each([
+        ['no URL of its portrait version', { url: '/projects.webp' }, '/projects.webp'],
+        ['a blank URL of its portrait version', { url: '/a.webp', portraitUrl: ' ' }, '/a.webp'],
+        ['no URL of its whole version', { portraitUrl: '/a-portrait.webp' }, '/a-portrait.webp'],
+        ['the same file twice', { url: '/a.webp', portraitUrl: '/a.webp' }, '/a.webp'],
+        ['URLs around white space', { url: ' /a.webp ', portraitUrl: '/a.webp\n' }, '/a.webp'],
+      ])(
+        'preloads a single file on every screen, for a photo with %s',
+        (_, backgroundPhoto, href) => {
+          expect(getImagePreloads(addPrerenderedPage({ html, page, backgroundPhoto }))).toEqual([
+            `<link rel="preload" as="image" href="${href}" fetchpriority="low" />`,
+          ]);
+        },
+      );
+
+      it.each([
+        ['no photo', undefined],
+        ['a photo without URLs', {}],
+        ['a photo of blank URLs', { url: '', portraitUrl: ' \t' }],
+        ['a photo of URLs that are not strings', { url: 42, portraitUrl: null } as never],
+        ['a photo that is null', null as never],
+      ])('preloads no image for %s', (_, backgroundPhoto) => {
+        expect(getImagePreloads(addPrerenderedPage({ html, page, backgroundPhoto }))).toEqual([]);
+      });
+
+      it('changes no script and preloads no photo without a page, as in the standalone build', () => {
+        const template = `<head>\n${scriptTags.join('\n')}\n  </head>\n<body>\n  <div id="welcome"></div>\n</body>`;
+
+        expect(addPrerenderedPage({ html: template, backgroundPhoto: photo })).toBe(template);
+      });
+    });
+  });
+
+  describe('edge cases', () => {
+    it('leaves the HTML unchanged without a page, as in the standalone build', () => {
+      expect(addPrerenderedPage({ html, hydrationPath: '/' })).toBe(html);
+    });
+
+    it('leaves the HTML unchanged without an empty container, as when it is already filled', () => {
+      const filled = addPrerenderedPage({ html, page });
+
+      expect(addPrerenderedPage({ html: filled, page })).toBe(filled);
+      expect(addPrerenderedPage({ html: '<head></head>', page })).toBe('<head></head>');
+    });
+
+    it.each([
+      ['no parameters', undefined],
+      ['no HTML', { page }],
+      ['HTML that is not a string', { html: 42 as never, page }],
+    ])('returns an empty string for %s', (_, params) => {
+      expect(addPrerenderedPage(params)).toBe('');
     });
   });
 });

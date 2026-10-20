@@ -1,4 +1,4 @@
-import { formatVersion, getAncestorsInBody, getElementsOutside } from './utils';
+import { formatVersion, getAncestorsInBody, getElementsOutside } from './utils.ts';
 
 /**
  * Builds this page in the document body, and returns its elements by id:

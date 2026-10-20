@@ -1,4 +1,4 @@
-import type { WordState } from './types';
+import type { WordState } from './types.ts';
 
 /** State of a word at rest, before any interaction. */
 export const RESTING_WORD: WordState = {

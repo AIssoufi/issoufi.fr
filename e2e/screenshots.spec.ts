@@ -1,4 +1,4 @@
-import { loadAllImages, seedRandom } from './screenshots';
+import { loadAllImages, seedRandom } from './screenshots.ts';
 
 /** `Math.random` of the test environment, put back after each test. */
 const nativeRandom = Math.random;

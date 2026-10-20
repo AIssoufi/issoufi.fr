@@ -2,6 +2,7 @@
 import {
   DEFAULT_GITHUB_API_URL,
   GITHUB_API_MEDIA_TYPE,
+  GITHUB_API_USER_AGENT,
   GITHUB_API_VERSION,
   REPOSITORY_PATTERN,
   TRAILING_SLASH_PATTERN,
@@ -93,6 +94,7 @@ export const requestGitHub = async ({
   /** @type {Record<string, string>} */
   const headers = {
     Accept: GITHUB_API_MEDIA_TYPE,
+    'User-Agent': GITHUB_API_USER_AGENT,
     'X-GitHub-Api-Version': GITHUB_API_VERSION,
   };
   if (token) headers.Authorization = `Bearer ${token}`;

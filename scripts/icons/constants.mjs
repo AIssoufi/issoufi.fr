@@ -3,7 +3,7 @@
 /**
  * Modules of the site read by the script through Vite (`loadSiteModules`), which compiles their
  * TypeScript: the design tokens, for the colors, the font and the letter spacing of the logo, the
- * web fonts of the site and their `@font-face` rules, and the icons to draw, with their files and
+ * web font of the logo and its `@font-face` rule, and the icons to draw, with their files and
  * sizes. Paths are relative to the project root.
  */
 export const SOURCE_MODULES = {
@@ -13,11 +13,17 @@ export const SOURCE_MODULES = {
   icons: '/src/utils/icons.ts',
 };
 
-/** Font stack of the theme that draws the logo in the header. */
+/** Font stack of the theme whose glyphs draw the logo. */
 export const LOGO_FONT = 'display';
 
-/** Key of the letter spacing of the logo in the header, in the `letterSpacings` of the theme. */
+/** Key of the letter spacing of the logo, in the `letterSpacings` of the theme. */
 export const LOGO_LETTER_SPACING = 2;
+
+/**
+ * File of the logo of the header, relative to the project root: the outline of its letters,
+ * which its `Logo` component draws as an inline SVG, so that no page loads the font of the logo.
+ */
+export const HEADER_LOGO_FILE = 'src/App/Header/Logo/.data/outline.json';
 
 /**
  * Width and height of the SVG favicon, in the units of its view box: vector, it is sharp at any

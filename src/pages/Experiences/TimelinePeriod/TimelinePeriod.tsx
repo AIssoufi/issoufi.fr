@@ -1,6 +1,6 @@
-import Period from '../Period';
-import { DEFAULT_PERIOD_VARIANT } from '../Period/constants';
-import { Column, RoleColumn } from './TimelinePeriod.styled';
+import Period from '../Period/index.ts';
+import { DEFAULT_PERIOD_VARIANT } from '../Period/constants.ts';
+import { Column, RoleColumn } from './TimelinePeriod.styled.ts';
 
 /** Props of {@link TimelinePeriod}. Every part is optional and is not rendered when missing. */
 interface TimelinePeriodProps {

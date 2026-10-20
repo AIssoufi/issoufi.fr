@@ -1,7 +1,7 @@
-import { OFFSCREEN_POINTER } from '../constants';
-import { MAX_GLOW_PX, REPEL_RADIUS_PX, RESTING_WORD, RETURN_DELAY_MS } from './constants';
-import type { WordState } from './types';
-import { getGlowRadius, getTextShadow, isOnControl, stepWord } from './utils';
+import { OFFSCREEN_POINTER } from '../constants.ts';
+import { MAX_GLOW_PX, REPEL_RADIUS_PX, RESTING_WORD, RETURN_DELAY_MS } from './constants.ts';
+import type { WordState } from './types.ts';
+import { getGlowRadius, getTextShadow, isOnControl, stepWord } from './utils.ts';
 
 const center = { x: 500, y: 300 };
 

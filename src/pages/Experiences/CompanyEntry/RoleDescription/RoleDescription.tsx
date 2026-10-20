@@ -1,10 +1,10 @@
 import { useTranslation } from 'react-i18next';
 
-import { translateKey } from '../../../../i18n/utils';
-import Project from '../../Project';
-import type { ProjectData, RoleData } from '../../types';
-import BulletPoints from './BulletPoints';
-import TextSegments from './TextSegments';
+import { translateKey } from '../../../../i18n/utils.ts';
+import Project from '../../Project/index.ts';
+import type { ProjectData, RoleData } from '../../types.ts';
+import BulletPoints from './BulletPoints/index.ts';
+import TextSegments from './TextSegments/index.ts';
 
 /** Props of {@link RoleDescription}. */
 interface RoleDescriptionProps {

@@ -1,8 +1,8 @@
 import type { ReactNode } from 'react';
 import { useLocation } from 'react-router';
 
-import ErrorBoundary from './ErrorBoundary';
-import UnexpectedError from './UnexpectedError';
+import ErrorBoundary from './ErrorBoundary/index.ts';
+import UnexpectedError from './UnexpectedError/index.ts';
 
 /** Props of {@link RouteErrorBoundary}. */
 interface RouteErrorBoundaryProps {

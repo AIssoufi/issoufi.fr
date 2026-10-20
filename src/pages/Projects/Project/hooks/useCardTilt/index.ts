@@ -1,1 +1,1 @@
-export * from './useCardTilt';
+export * from './useCardTilt.ts';

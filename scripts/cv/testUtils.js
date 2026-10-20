@@ -1,13 +1,13 @@
-import { GITHUB_PROFILE_URL, LINKEDIN_PROFILE_URL } from '../../src/constants/profiles';
-import { DEFAULT_LANGUAGE, LANGUAGES } from '../../src/i18n/constants';
-import { en } from '../../src/i18n/en';
-import { fr } from '../../src/i18n/fr';
-import { translateKey } from '../../src/i18n/utils';
+import { GITHUB_PROFILE_URL, LINKEDIN_PROFILE_URL } from '../../src/constants/profiles.ts';
+import { DEFAULT_LANGUAGE, LANGUAGES } from '../../src/i18n/constants.ts';
+import { en } from '../../src/i18n/en.ts';
+import { fr } from '../../src/i18n/fr.ts';
+import { translateKey } from '../../src/i18n/utils.ts';
 import experiences from '../../src/pages/Experiences/.data/experiences.json';
 import freelanceProjects from '../../src/pages/Projects/.data/freelance-projects.json';
 import personalProjects from '../../src/pages/Projects/.data/personal-projects.json';
-import { translateProjects } from '../../src/pages/Projects/utils';
-import { getPageUrl, HOME_PAGE, SITE_URL } from '../../src/utils/pages';
+import { translateProjects } from '../../src/pages/Projects/utils.ts';
+import { getPageUrl, HOME_PAGE, SITE_URL } from '../../src/utils/pages.ts';
 import cvData from './.data/cv.json';
 
 /**

@@ -1,4 +1,4 @@
-import { isVisuallyHiddenElement } from './utils';
+import { isVisuallyHiddenElement } from './utils.ts';
 
 describe('isVisuallyHiddenElement', () => {
   it.each(['span', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6'])('accepts the element %j', element => {

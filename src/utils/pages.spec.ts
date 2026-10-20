@@ -1,12 +1,13 @@
 import { statSync } from 'node:fs';
 
-import { LANGUAGES } from '../i18n/constants';
-import { readPublicWebpSize, readWebpSize } from '../publicFileTestUtils';
-import { theme } from '../theme/theme';
+import { LANGUAGES } from '../i18n/constants.ts';
+import { readPublicWebpSize, readWebpSize } from '../publicFileTestUtils.ts';
+import { theme } from '../theme/theme.ts';
 import {
   EXPERIENCES_PAGE,
   getBackgroundPhotoUrl,
   HOME_PAGE,
+  LANDSCAPE_PHOTO_MEDIA_QUERY,
   NOT_FOUND_FOLDER,
   OG_IMAGE_PATHS,
   PAGES,
@@ -21,7 +22,7 @@ import {
   getPageFiles,
   getPageUrl,
   isTemplatePageFile,
-} from './pages';
+} from './pages.ts';
 
 const [home, projects, experiences] = PAGES;
 
@@ -120,13 +121,24 @@ describe('getPageFiles', () => {
   it('gives each file the page it shows', () => {
     expect(getPageFiles().map(({ page }) => page)).toEqual([...PAGES, ...PAGES]);
   });
+
+  it('gives each file the path of its page in its language', () => {
+    expect(getPageFiles().map(({ path }) => path)).toEqual([
+      '/',
+      '/projects',
+      '/experiences',
+      '/en/',
+      '/en/projects',
+      '/en/experiences',
+    ]);
+  });
 });
 
 describe('getNotFoundFiles', () => {
   it('lists a not found page per language, in the folder of its prefix', () => {
     expect(getNotFoundFiles()).toEqual([
-      { language: 'fr', fileName: '404.html' },
-      { language: 'en', fileName: 'en/404.html' },
+      { language: 'fr', fileName: '404.html', path: '/404' },
+      { language: 'en', fileName: 'en/404.html', path: '/en/404' },
     ]);
   });
 });
@@ -322,6 +334,10 @@ describe('background photos', () => {
       `(orientation: portrait) and (width < ${theme.screens.tablet})`,
     );
   });
+
+  it('shows the whole photos on every other screen', () => {
+    expect(LANDSCAPE_PHOTO_MEDIA_QUERY).toBe(`not all and ${PORTRAIT_PHOTO_MEDIA_QUERY}`);
+  });
 });
 
 describe('page folders', () => {
@@ -336,19 +352,24 @@ describe('page folders', () => {
 describe('isTemplatePageFile', () => {
   it('sees index.html, the home page of the default language, as the template file', () => {
     expect(getPageFiles().filter(isTemplatePageFile)).toEqual([
-      { page: home, language: 'fr', fileName: 'index.html' },
+      { page: home, language: 'fr', fileName: 'index.html', path: '/' },
     ]);
   });
 
   it('sees the English home page as a file to emit', () => {
-    expect(isTemplatePageFile({ page: home, language: 'en', fileName: 'en/index.html' })).toBe(
-      false,
-    );
+    expect(
+      isTemplatePageFile({ page: home, language: 'en', fileName: 'en/index.html', path: '/en/' }),
+    ).toBe(false);
   });
 
   it('sees the other French pages as files to emit', () => {
-    expect(isTemplatePageFile({ page: projects, language: 'fr', fileName: 'projects.html' })).toBe(
-      false,
-    );
+    expect(
+      isTemplatePageFile({
+        page: projects,
+        language: 'fr',
+        fileName: 'projects.html',
+        path: '/projects',
+      }),
+    ).toBe(false);
   });
 });

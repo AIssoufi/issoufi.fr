@@ -1,6 +1,6 @@
 import { fireEvent, render } from '@testing-library/react';
 
-import { stubMatchMedia } from '../../../mediaQueryTestUtils';
+import { stubMatchMedia } from '../../../mediaQueryTestUtils.ts';
 import {
   CURSOR_LINK_DISTANCE_PX,
   CURSOR_LINK_MAX_OPACITY,
@@ -8,8 +8,8 @@ import {
   LINK_RGB,
   PARTICLE_AREA_PX2,
   REPEL_DISTANCE_PX,
-} from './constants';
-import { ParticleField } from './ParticleField';
+} from './constants.ts';
+import { ParticleField } from './ParticleField.tsx';
 
 const FRAME_MS = 16;
 

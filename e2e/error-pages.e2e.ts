@@ -1,12 +1,12 @@
 import { expect, type Page, test } from '@playwright/test';
 
-import { STALE_CHUNK_RELOAD_STORAGE_KEY } from '../src/App/constants';
-import { LANGUAGES } from '../src/i18n/constants';
-import { en } from '../src/i18n/en';
-import { fr } from '../src/i18n/fr';
-import type { Language, Translations } from '../src/i18n/types';
-import { localizePath } from '../src/i18n/utils';
-import { PORTRAIT_PHOTO_MEDIA_QUERY, STATUS_PAGE_BACKGROUND_PHOTO } from '../src/utils/pages';
+import { STALE_CHUNK_RELOAD_STORAGE_KEY } from '../src/App/constants.ts';
+import { LANGUAGES } from '../src/i18n/constants.ts';
+import { en } from '../src/i18n/en.ts';
+import { fr } from '../src/i18n/fr.ts';
+import type { Language, Translations } from '../src/i18n/types.ts';
+import { localizePath } from '../src/i18n/utils.ts';
+import { PORTRAIT_PHOTO_MEDIA_QUERY, STATUS_PAGE_BACKGROUND_PHOTO } from '../src/utils/pages.ts';
 import {
   ERROR_MESSAGE_SELECTOR,
   ERROR_PAGE_SCREENS,
@@ -15,8 +15,8 @@ import {
   PAGE_SELECTOR,
   PROJECTS_CHUNK_PATTERN,
   PROJECTS_ROUTE,
-} from './constants';
-import { getBoxCenterDistanceY } from './utils';
+} from './constants.ts';
+import { getBoxCenterDistanceY } from './utils.ts';
 
 /** Translations of each language, to find each error page by its title. */
 const TRANSLATIONS = { fr, en };

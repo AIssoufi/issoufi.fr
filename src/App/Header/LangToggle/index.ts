@@ -1,1 +1,1 @@
-export { default } from './LangToggle';
+export { default } from './LangToggle.tsx';

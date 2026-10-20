@@ -1,13 +1,13 @@
 import { useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import LocalizedLink from '../../components/LocalizedLink';
-import { HOME_PAGE } from '../../utils/pages';
-import { ParticleField } from './ParticleField';
-import { SplitWords } from './SplitWords';
-import { useCursorFollower } from './hooks/useCursorFollower';
-import { useMagneticHover } from './hooks/useMagneticHover';
-import { useParallax } from './hooks/useParallax';
+import LocalizedLink from '../../components/LocalizedLink/index.ts';
+import { HOME_PAGE } from '../../utils/pages.ts';
+import { ParticleField } from './ParticleField/index.ts';
+import { SplitWords } from './SplitWords/index.ts';
+import { useCursorFollower } from './hooks/useCursorFollower/index.ts';
+import { useMagneticHover } from './hooks/useMagneticHover/index.ts';
+import { useParallax } from './hooks/useParallax/index.ts';
 import {
   Btn,
   ButtonContainer,
@@ -21,8 +21,8 @@ import {
   Subtitle,
   Title,
   TitleLine,
-} from './Home.styled';
-import { splitLastWord } from './utils';
+} from './Home.styled.ts';
+import { splitLastWord } from './utils.ts';
 
 /**
  * Home page: the animated job title and subtitle, with links to the projects and experiences

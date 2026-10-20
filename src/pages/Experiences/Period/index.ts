@@ -1,1 +1,1 @@
-export { default } from './Period';
+export { default } from './Period.tsx';

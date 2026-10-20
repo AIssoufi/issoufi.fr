@@ -24,7 +24,7 @@ cwebp -q 50 -m 6 -resize 32 0 original.webp -o - | base64
 ## Project screenshots
 
 - Each card shows a screenshot in up to four widths: 480, 720, 960 and 1200 px.
-- The browser downloads the narrowest one that the card needs on its screen.
+- The browser downloads the narrowest one that the card needs on its screen: as wide as the card, or as a 16:10 screenshot cropped to cover it where the card is narrower (352 px).
 - Crop the original to 16:10 at most, then write its files, leaving out the widths above the original (W px):
 
 ```bash
@@ -48,21 +48,24 @@ cwebp -q 90 -m 6 -sharp_yuv -resize 108 108 original.png -o public/sewan.webp
 ## Fonts
 
 - Montserrat for the texts, Saira Stencil One for the logo.
+- A button takes the font of its parent (`GlobalStyle`), where a browser gives it the system font of its controls.
 - The site serves them itself, with their licenses, and requests nothing from Google.
+- No page loads Saira Stencil One, 20 kB for two letters: the header draws the logo as an inline SVG of their outline, which `pnpm icons` writes from the font. The scripts still read its file.
 - The CV prints in static Montserrat files of its own: a variable font would make its text impossible to select in some PDF readers.
-- A new font needs its `woff2` file and its license in `public/fonts/`, and an entry in the font list of `src/theme/constants.ts`: a spec checks both.
+- A new font needs its `woff2` file and its license in `public/fonts/`, and an entry in the font list of the pages in `src/theme/constants.ts`: a spec checks both.
 
 ## Generated files
 
 These files are committed, and never built by the CI.
 Regenerate them after a change of their sources, look at them, and commit them with the change:
 
-| Command         | Writes                                    | Run it after a change of               |
-| --------------- | ----------------------------------------- | -------------------------------------- |
-| `pnpm og-image` | The link preview image of each language   | the home texts, photo, colors or fonts |
-| `pnpm icons`    | The favicons and app icons, from the logo | the logo, its font or the colors       |
-| `pnpm cv`       | The CV of each language, as a PDF         | a text or a data file that it reads    |
+| Command         | Writes                                                  | Run it after a change of                      |
+| --------------- | ------------------------------------------------------- | --------------------------------------------- |
+| `pnpm og-image` | The link preview image of each language                 | the home texts, photo, colors or fonts        |
+| `pnpm icons`    | The favicons, the app icons and the outline of the logo | the logo, its font, its spacing or the colors |
+| `pnpm cv`       | The CV of each language, as a PDF                       | a text or a data file that it reads           |
 
 - All three run offline in Chromium. With the same Chromium, a run that changes nothing leaves `git status` clean.
-- A spec fails when a CV no longer says what the site says.
+- A spec fails when a CV no longer says what the site says, or when the outline of the logo no longer matches its font.
+- A CV tags a job title with the `titleLanguage` of its role in `experiences.json`, as the Experiences page does, so that a screen reader reads an English title of the French PDF in English.
 - A new language needs its link preview image, the URL of its CV and the texts of its CV. A new icon needs its entry in the icon list and a layout, which a spec matches.

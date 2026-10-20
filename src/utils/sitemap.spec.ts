@@ -1,12 +1,12 @@
-import { LANGUAGES } from '../i18n/constants';
-import { getPageAlternates, getPageFiles, getPageUrl, PAGES, SITE_URL } from './pages';
+import { LANGUAGES } from '../i18n/constants.ts';
+import { getPageAlternates, getPageFiles, getPageUrl, PAGES, SITE_URL } from './pages.ts';
 import {
   escapeXml,
   renderSitemap,
   SITEMAP_NAMESPACE,
   SITEMAP_URL,
   XHTML_NAMESPACE,
-} from './sitemap';
+} from './sitemap.ts';
 
 /** Longest URL that the sitemap protocol accepts, in characters. */
 const MAX_URL_LENGTH = 2048;

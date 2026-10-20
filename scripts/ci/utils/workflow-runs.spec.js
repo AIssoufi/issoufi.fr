@@ -15,6 +15,7 @@ import {
   readRuns,
   shortenSha,
   waitForLatestRun,
+  waitForLatestRunToFinish,
   waitForRun,
 } from './workflow-runs.mjs';
 
@@ -146,6 +147,16 @@ describe('readRun', () => {
     expect(readRun(apiRun({ status: 'queued', conclusion: null }))).toEqual(
       run({ status: 'queued', conclusion: null }),
     );
+  });
+
+  it.each(['Scheduled deploy to production', ''])('reads the title %o of the run', title => {
+    expect(readRun(apiRun({ display_title: title }))).toEqual(run({ title }));
+  });
+
+  it.each([undefined, null, 42, { text: 'Deploy' }])('leaves out the title %o', title => {
+    const result = readRun(apiRun({ display_title: title }));
+    expect(result).toEqual(run());
+    expect(result).not.toHaveProperty('title');
   });
 
   it.each([
@@ -315,9 +326,13 @@ describe('readRuns', () => {
 });
 
 describe('getCiVerdict', () => {
+  /** Start of the message of a deploy that stops. */
+  const STOPPED = 'Nothing deployed: a later scheduled run tries again, since';
+
   it('lets a commit whose run passed through', () => {
     expect(getCiVerdict({ run: run(), sha: SHA, branch: 'develop' })).toEqual({
       isTested: true,
+      level: 'notice',
       message: `The CI of develop passed on 58ff9ea: ${RUN_URL}`,
     });
   });
@@ -328,55 +343,80 @@ describe('getCiVerdict', () => {
     );
   });
 
-  it.each(['queued', 'in_progress', 'waiting'])('stops while the run is %s', status => {
-    expect(getCiVerdict({ run: run({ status, conclusion: null }), sha: SHA })).toEqual({
-      isTested: false,
-      message: `Nothing deployed: the CI of develop is still running on 58ff9ea (${status}): ${RUN_URL}`,
-    });
+  it('names another branch', () => {
+    expect(getCiVerdict({ run: run({ conclusion: 'failure' }), sha: SHA, branch: 'main' })).toEqual(
+      {
+        isTested: false,
+        level: 'warning',
+        message: `${STOPPED} the CI of main did not pass on 58ff9ea (failure): ${RUN_URL}`,
+      },
+    );
   });
 
-  it.each(['failure', 'cancelled', 'timed_out', 'skipped'])(
-    'stops when the run ended with %s',
-    conclusion => {
-      expect(getCiVerdict({ run: run({ conclusion }), sha: SHA })).toEqual({
+  it.each(['queued', 'in_progress', 'waiting', 'pending', 'requested'])(
+    'stops with a notice while the run is %s',
+    status => {
+      expect(getCiVerdict({ run: run({ status, conclusion: null }), sha: SHA })).toEqual({
         isTested: false,
-        message: `Nothing deployed: the CI of develop did not pass on 58ff9ea (${conclusion}): ${RUN_URL}`,
+        level: 'notice',
+        message: `${STOPPED} the CI of develop is still running on 58ff9ea (${status}): ${RUN_URL}`,
       });
     },
   );
 
-  it('stops while the run waits for approval', () => {
-    expect(getCiVerdict({ run: run({ conclusion: 'action_required' }), sha: SHA }).message).toBe(
-      `Nothing deployed: the CI of develop is waiting for someone to approve it on 58ff9ea: ${RUN_URL}`,
-    );
-  });
+  it.each(['failure', 'cancelled', 'timed_out', 'skipped', 'startup_failure', 'neutral'])(
+    'stops with a warning when the run ended with %s',
+    conclusion => {
+      expect(getCiVerdict({ run: run({ conclusion }), sha: SHA })).toEqual({
+        isTested: false,
+        level: 'warning',
+        message: `${STOPPED} the CI of develop did not pass on 58ff9ea (${conclusion}): ${RUN_URL}`,
+      });
+    },
+  );
 
-  it('stops when a completed run has no conclusion', () => {
-    expect(getCiVerdict({ run: run({ conclusion: null }), sha: SHA }).message).toBe(
-      `Nothing deployed: the CI of develop did not pass on 58ff9ea (no conclusion): ${RUN_URL}`,
-    );
-  });
-
-  it.each([undefined, null])('stops when the commit has no run (%o)', missingRun => {
-    expect(getCiVerdict({ run: missingRun, sha: SHA })).toEqual({
+  it('stops with a warning while the run waits for approval', () => {
+    expect(getCiVerdict({ run: run({ conclusion: 'action_required' }), sha: SHA })).toEqual({
       isTested: false,
-      message: 'Nothing deployed: the CI has not run on develop for 58ff9ea.',
+      level: 'warning',
+      message: `${STOPPED} the CI of develop is waiting for someone to approve it on 58ff9ea: ${RUN_URL}`,
     });
   });
 
-  it('stops when the run tested another commit', () => {
-    expect(getCiVerdict({ run: run({ sha: OTHER_SHA }), sha: SHA }).isTested).toBe(false);
+  it('stops with a warning when a completed run has no conclusion', () => {
+    expect(getCiVerdict({ run: run({ conclusion: null }), sha: SHA })).toEqual({
+      isTested: false,
+      level: 'warning',
+      message: `${STOPPED} the CI of develop did not pass on 58ff9ea (no conclusion): ${RUN_URL}`,
+    });
   });
 
-  it.each([undefined, '', '58ff9ea'])('stops for the commit %o', sha => {
+  it.each([undefined, null])('stops with a notice when the commit has no run (%o)', missingRun => {
+    expect(getCiVerdict({ run: missingRun, sha: SHA })).toEqual({
+      isTested: false,
+      level: 'notice',
+      message: `${STOPPED} the CI has not run on develop for 58ff9ea.`,
+    });
+  });
+
+  it('stops with a notice when the run tested another commit', () => {
+    expect(getCiVerdict({ run: run({ sha: OTHER_SHA }), sha: SHA })).toEqual({
+      isTested: false,
+      level: 'notice',
+      message: `${STOPPED} the CI has not run on develop for 58ff9ea.`,
+    });
+  });
+
+  it.each([undefined, '', '58ff9ea', SHA.toUpperCase()])('stops for the commit %o', sha => {
     const verdict = getCiVerdict({ run: run(), sha });
     expect(verdict.isTested).toBe(false);
-    expect(verdict.message).toMatch(/^Nothing deployed: the CI has not run on develop for /);
+    expect(verdict.level).toBe('notice');
+    expect(verdict.message.startsWith(`${STOPPED} the CI has not run on develop for `)).toBe(true);
   });
 
   it('names a missing commit', () => {
     expect(getCiVerdict({ run: run() }).message).toBe(
-      'Nothing deployed: the CI has not run on develop for this commit.',
+      `${STOPPED} the CI has not run on develop for this commit.`,
     );
   });
 });
@@ -409,6 +449,7 @@ describe('fetchLatestRun', () => {
         method: 'GET',
         headers: {
           Accept: 'application/vnd.github+json',
+          'User-Agent': 'issoufi.fr',
           'X-GitHub-Api-Version': '2022-11-28',
           Authorization: 'Bearer token',
         },
@@ -638,6 +679,20 @@ describe('the API calls on runs', () => {
       expect(JSON.parse(init.body)).toEqual({ ref: 'develop', return_run_details: true });
     });
 
+    it('sends the inputs of the workflow', async () => {
+      const fetch = stubFetch({ workflow_run_id: 123, html_url: RUN_URL });
+      await dispatchWorkflow({
+        workflow: 'deploy-production.yml',
+        ref: 'develop',
+        inputs: { scheduled: 'true' },
+      });
+      expect(JSON.parse(fetch.mock.calls[0][1].body)).toEqual({
+        ref: 'develop',
+        inputs: { scheduled: 'true' },
+        return_run_details: true,
+      });
+    });
+
     it('throws when GitHub does not say which run it started', async () => {
       vi.stubGlobal(
         'fetch',
@@ -775,6 +830,137 @@ describe('the API calls on runs', () => {
       async runId => {
         const fetch = stubFetch(apiRun());
         await expect(waitForRun({ runId, delayMs: 0 })).rejects.toThrow('Invalid workflow run');
+        expect(fetch).not.toHaveBeenCalled();
+      },
+    );
+  });
+
+  describe('waitForLatestRunToFinish', () => {
+    const filters = { branch: 'develop', event: null, sha: SHA };
+    const LIST_URL = `${RUNS_API_URL}/workflows/ci.yml/runs?branch=develop&head_sha=${SHA}&per_page=1`;
+    const RUN_API_URL = `${RUNS_API_URL}/runs/123`;
+    const runningApiRun = (status = 'in_progress') => apiRun({ status, conclusion: null });
+
+    beforeEach(() => {
+      vi.spyOn(console, 'log').mockImplementation(() => {});
+    });
+
+    afterEach(() => {
+      vi.restoreAllMocks();
+    });
+
+    it.each([
+      ['passed', apiRun()],
+      ['failed', apiRun({ conclusion: 'failure' })],
+      ['waits for approval', apiRun({ conclusion: 'action_required' })],
+    ])('gives a run that %s at once', async (_, listedRun) => {
+      const fetch = stubFetch({ workflow_runs: [listedRun] });
+      await expect(waitForLatestRunToFinish(filters)).resolves.toEqual(readRun(listedRun));
+      expect(fetch.mock.calls.map(([url]) => url)).toEqual([LIST_URL]);
+      expect(console.log).not.toHaveBeenCalled();
+    });
+
+    it('resolves to undefined at once when the commit has no run', async () => {
+      const fetch = stubFetch({ workflow_runs: [] });
+      await expect(waitForLatestRunToFinish(filters)).resolves.toBeUndefined();
+      expect(fetch).toHaveBeenCalledTimes(1);
+    });
+
+    it.each(['queued', 'waiting', 'in_progress'])(
+      'waits for a run that is %s until it finishes',
+      async status => {
+        const fetch = stubFetch(
+          { workflow_runs: [runningApiRun(status)] },
+          runningApiRun(),
+          apiRun({ conclusion: 'failure' }),
+        );
+        await expect(
+          waitForLatestRunToFinish({ ...filters, runWait: { delayMs: 0 } }),
+        ).resolves.toEqual(run({ conclusion: 'failure' }));
+        expect(fetch.mock.calls.map(([url]) => url)).toEqual([LIST_URL, RUN_API_URL, RUN_API_URL]);
+        expect(console.log).toHaveBeenCalledWith(
+          `Waiting for the run still going on 58ff9ea (${status}): ${RUN_URL}`,
+        );
+      },
+    );
+
+    it('gives the run as last read when it is still going after the wait', async () => {
+      const fetch = stubFetch({ workflow_runs: [runningApiRun('queued')] }, runningApiRun());
+      await expect(
+        waitForLatestRunToFinish({ ...filters, runWait: { attempts: 2, delayMs: 0 } }),
+      ).resolves.toEqual(run({ status: 'in_progress', conclusion: null }));
+      expect(fetch).toHaveBeenCalledTimes(3);
+    });
+
+    it('gives the run as listed when no answer of the wait is a run', async () => {
+      stubFetch({ workflow_runs: [runningApiRun()] }, { message: 'odd' });
+      await expect(
+        waitForLatestRunToFinish({ ...filters, runWait: { attempts: 2, delayMs: 0 } }),
+      ).resolves.toEqual(run({ status: 'in_progress', conclusion: null }));
+    });
+
+    it('gives the run as listed when the wait has no attempt', async () => {
+      const fetch = stubFetch({ workflow_runs: [runningApiRun()] });
+      await expect(
+        waitForLatestRunToFinish({ ...filters, runWait: { attempts: 0 } }),
+      ).resolves.toEqual(run({ status: 'in_progress', conclusion: null }));
+      expect(fetch).toHaveBeenCalledTimes(1);
+    });
+
+    it('waits 30 seconds between two reads by default', async () => {
+      vi.useFakeTimers();
+      const fetch = stubFetch({ workflow_runs: [runningApiRun()] }, runningApiRun(), apiRun());
+      const promise = waitForLatestRunToFinish(filters);
+      await vi.advanceTimersByTimeAsync(29_999);
+      expect(fetch).toHaveBeenCalledTimes(2);
+      await vi.advanceTimersByTimeAsync(1);
+      await expect(promise).resolves.toEqual(run());
+      expect(fetch).toHaveBeenCalledTimes(3);
+    });
+
+    it('reads the run of the wait from the same API, repository and token', async () => {
+      const fetch = stubFetch({ workflow_runs: [runningApiRun()] }, apiRun());
+      await waitForLatestRunToFinish({
+        ...filters,
+        apiUrl: 'https://example.com/api/v3',
+        repository: 'owner/repo',
+        token: 'other',
+        runWait: { delayMs: 0 },
+      });
+      const [[listUrl], [runUrl, { headers }]] = fetch.mock.calls;
+      expect(listUrl).toMatch(/^https:\/\/example\.com\/api\/v3\/repos\/owner\/repo\/actions\//);
+      expect(runUrl).toBe('https://example.com/api/v3/repos/owner/repo/actions/runs/123');
+      expect(headers.Authorization).toBe('Bearer other');
+    });
+
+    it('throws when the runs cannot be listed', async () => {
+      vi.stubGlobal(
+        'fetch',
+        vi.fn(async () => new Response('{}', { status: 500 })),
+      );
+      await expect(waitForLatestRunToFinish(filters)).rejects.toThrow(
+        'The GitHub API answered 500',
+      );
+    });
+
+    it('throws when every read of the wait failed', async () => {
+      const answers = [new Response(JSON.stringify({ workflow_runs: [runningApiRun()] }))];
+      vi.stubGlobal(
+        'fetch',
+        vi.fn(async () => answers.shift() ?? new Response('{}', { status: 502 })),
+      );
+      await expect(
+        waitForLatestRunToFinish({ ...filters, runWait: { attempts: 2, delayMs: 0 } }),
+      ).rejects.toThrow('The GitHub API answered 502');
+    });
+
+    it.each([undefined, '', '58ff9ea'])(
+      'throws without asking the API for the commit %o',
+      async sha => {
+        const fetch = stubFetch({ workflow_runs: [apiRun()] });
+        await expect(waitForLatestRunToFinish({ ...filters, sha })).rejects.toThrow(
+          'Cannot list the workflow runs',
+        );
         expect(fetch).not.toHaveBeenCalled();
       },
     );

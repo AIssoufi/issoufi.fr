@@ -1,1 +1,1 @@
-export * from './useEscapeKey';
+export * from './useEscapeKey.ts';

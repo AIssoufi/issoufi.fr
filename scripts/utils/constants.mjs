@@ -32,7 +32,7 @@ export const TRANSLATION_MODULES = {
   en: '/src/i18n/en.ts',
 };
 
-/** Logo of the header (`src/App/Header/Header.tsx`). */
+/** Text of the logo of the header (`LOGO_TEXT` of `src/App/Header/Logo/constants.ts`). */
 export const LOGO_TEXT = 'AI';
 
 /** Design skills in bold in the line under the job title, as on the home page (`Home.tsx`). */

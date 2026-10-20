@@ -67,11 +67,19 @@ export interface BackgroundPhoto {
 /**
  * Media query of the screens that show the portrait version of a {@link BackgroundPhoto}: narrower
  * than the tablet breakpoint and in portrait, as a phone held upright. The other screens, landscape
- * phones included, show the whole photo, framed as before. The style of `Page` and the preload of
- * the photo when the app starts (`src/preloadBackgroundPhoto.ts`) both read it, so a browser
- * downloads only the version that it shows.
+ * phones included, show the whole photo, framed as before. The style of `Page`, the preloads that
+ * the build writes in the HTML of each page (`addPrerenderedPage`) and the preload of the photo
+ * when the app starts (`src/preloadBackgroundPhoto.ts`) all read it, so a browser downloads only
+ * the version that it shows.
  */
 export const PORTRAIT_PHOTO_MEDIA_QUERY = `(orientation: portrait) and (width < ${theme.screens.tablet})`;
+
+/**
+ * Media query of the screens that show the whole version of a {@link BackgroundPhoto}: every
+ * screen that {@link PORTRAIT_PHOTO_MEDIA_QUERY} leaves out, so that a browser matches exactly one
+ * of them.
+ */
+export const LANDSCAPE_PHOTO_MEDIA_QUERY = `not all and ${PORTRAIT_PHOTO_MEDIA_QUERY}`;
 
 /**
  * Home page, the first entry of {@link PAGES}. In the default language, its HTML file is
@@ -221,6 +229,8 @@ export interface PageFile {
   language: Language;
   /** Path of the file in the build, e.g. `en/projects.html`. */
   fileName: string;
+  /** Path of the page in its language, at which the build renders it, e.g. `/en/projects`. */
+  path: string;
 }
 
 /**
@@ -237,6 +247,7 @@ export const getPageFiles = (): PageFile[] =>
       page,
       language,
       fileName: getLanguageFileName({ fileName: page.fileName, language }),
+      path: localizePath({ path: page.path, language }),
     })),
   );
 
@@ -247,8 +258,9 @@ export const getPageFiles = (): PageFile[] =>
  * @param file - Page file of {@link getPageFiles}.
  *
  * @example
- * isTemplatePageFile({ page: HOME_PAGE, language: 'fr', fileName: 'index.html' }); // true
- * isTemplatePageFile({ page: HOME_PAGE, language: 'en', fileName: 'en/index.html' }); // false
+ * const [frenchHome, , , englishHome] = getPageFiles();
+ * isTemplatePageFile(frenchHome); // true
+ * isTemplatePageFile(englishHome); // false
  */
 export const isTemplatePageFile = ({ page, language }: PageFile): boolean =>
   page === HOME_PAGE && language === DEFAULT_LANGUAGE;
@@ -316,6 +328,13 @@ export const NOT_FOUND_FILE_NAME = '404.html';
 export const NOT_FOUND_FOLDER = 'NotFound';
 
 /**
+ * Path at which the build renders the not found page of the default language, and under its
+ * prefix that of each other language (`/en/404`): the path of no page of {@link PAGES}, like those
+ * that Cloudflare Pages answers with that page.
+ */
+export const NOT_FOUND_PATH = '/404';
+
+/**
  * Photo behind every status page (not found, forbidden, unexpected error), which `StatusPage`
  * shows: mountains lost in the clouds, for a visitor who lost their way. It is the photo of the
  * home page, the same object, so changing one changes both: give it its own to set them apart.
@@ -328,6 +347,8 @@ export interface NotFoundFile {
   language: Language;
   /** Path of the file in the build, e.g. `en/404.html`. */
   fileName: string;
+  /** Path at which the build renders the page, e.g. `/en/404` (see {@link NOT_FOUND_PATH}). */
+  path: string;
 }
 
 /**
@@ -338,4 +359,5 @@ export const getNotFoundFiles = (): NotFoundFile[] =>
   LANGUAGES.map(language => ({
     language,
     fileName: getLanguageFileName({ fileName: NOT_FOUND_FILE_NAME, language }),
+    path: localizePath({ path: NOT_FOUND_PATH, language }),
   }));

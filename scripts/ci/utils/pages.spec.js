@@ -1,12 +1,12 @@
 import { readFileSync } from 'node:fs';
 
-import { SITE_URL as APP_SITE_URL } from '../../../src/utils/pages';
-import { SITEMAP_FILE_NAME, SITEMAP_URL } from '../../../src/utils/sitemap';
+import { SITE_URL as APP_SITE_URL } from '../../../src/utils/pages.ts';
+import { SITEMAP_FILE_NAME, SITEMAP_URL } from '../../../src/utils/sitemap.ts';
 import {
   getWebManifestFiles,
   WEB_MANIFEST_FILE_NAME,
   WEB_MANIFEST_MEDIA_TYPE,
-} from '../../../src/utils/webManifest';
+} from '../../../src/utils/webManifest.ts';
 import { SITE_URL } from '../constants.mjs';
 import {
   compareFile,

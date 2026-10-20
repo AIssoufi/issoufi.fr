@@ -1,6 +1,12 @@
 name: Deploy to production
+# The REST API lists the runs without their inputs: the schedule step tells the scheduled runs
+# started by hand from the others by this title (SCHEDULED_RUN_TITLE, scripts/ci/constants.mjs).
+# A dry run is never a scheduled run, so that it never counts as the deploy of the day
+run-name: ${{ inputs.scheduled && !inputs.dry_run && 'Scheduled deploy to production' || github.workflow }}
 
 on:
+  # A fallback for the Cloudflare trigger (scripts/deploy-trigger), which starts this workflow at
+  # 6:05 and 6:35 in Paris: GitHub delays these runs by hours, or drops them under load.
   schedule:
     # Every 30 minutes from 4:07 to 6:37 UTC: 6:07 to 8:37 in Paris in summer (UTC+2), 5:07 to
     # 7:37 in winter (UTC+1). GitHub may drop a scheduled run under load, mostly at the start of
@@ -12,6 +18,11 @@ on:
     inputs:
       dry_run:
         description: Show what would be released and deployed, without merging the release pull request or pushing to main
+        type: boolean
+        default: false
+      # Set by the Cloudflare trigger (SCHEDULED_INPUT, scripts/ci/constants.mjs)
+      scheduled:
+        description: Run as a scheduled run, as the Cloudflare trigger does, which deploys from 6:00 in Paris unless a scheduled run of the day passed
         type: boolean
         default: false
 
@@ -35,13 +46,15 @@ jobs:
       - uses: actions/setup-node@v7
         with:
           node-version-file: .nvmrc
-      # Reads the scheduled runs of this workflow (actions: read), and warns when GitHub skipped
-      # every one of a day
+      # Reads the scheduled runs of this workflow (actions: read), and warns when none started on
+      # a day
       - id: schedule
         name: Check the schedule
         run: node scripts/ci/check-deploy-schedule.mjs
         env:
           GITHUB_TOKEN: ${{ github.token }}
+          # true for a scheduled run started by hand, under the title of the run-name above
+          SCHEDULED: ${{ inputs.scheduled && !inputs.dry_run }}
 
   release:
     # Merges the release pull request once the CI of its pull request event passed, so that
@@ -80,13 +93,15 @@ jobs:
     needs: [schedule, release]
     if: ${{ !cancelled() && needs.schedule.outputs.due == 'true' }}
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    # Waits up to 20 minutes for a run of the CI of develop still going (RUN_WAIT_ATTEMPTS), after
+    # the checkout of the whole history
+    timeout-minutes: 30
     outputs:
       sha: ${{ steps.ci.outputs.sha }}
     steps:
       - uses: actions/checkout@v7
         with:
-          # The trees of main and develop are compared below, once the release merged into develop
+          # The trees of main and develop are compared below
           fetch-depth: 0
       - uses: actions/setup-node@v7
         with:
@@ -102,17 +117,22 @@ jobs:
             exit 1
           fi
 
-      # main holds merge commits that develop lacks, but no content of its own: the same tree
-      # means that main already serves develop
+      # actions/checkout sets origin/develop back to the commit that started the run, which lacks
+      # the release that the release job merged since: the fetch reads both branches as they are
+      # now. main holds merge commits that develop lacks, but no content of its own: the same tree
+      # means that main already serves develop. deploy-production.spec.js runs this step
       - id: trees
         name: Compare develop with main
         run: |
+          git fetch --no-tags origin +refs/heads/develop:refs/remotes/origin/develop +refs/heads/main:refs/remotes/origin/main
           if [ "$(git rev-parse 'origin/develop^{tree}')" = "$(git rev-parse 'origin/main^{tree}')" ]; then
             echo "::notice::Nothing to deploy: main already holds the content of develop."
           else
             echo "sha=$(git rev-parse origin/develop)" >> "$GITHUB_OUTPUT"
           fi
 
+      # Fails when the commit has not passed its CI, once a run still going finished: the run then
+      # does not count as the deploy of the day, and a later scheduled run tries again
       - id: ci
         name: Check the CI of develop
         if: steps.trees.outputs.sha != ''

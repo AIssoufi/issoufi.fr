@@ -2,7 +2,8 @@
   // Type-checks the scripts: JavaScript run by Node.js 24, typed with JSDoc, against ES2024, which
   // Node.js 24 ships whole. The specs stay out, since they pass bad values on purpose. The DOM
   // types cover the functions that the scripts of the Open Graph image and of the CV run in
-  // Chromium.
+  // Chromium, and the Cloudflare Worker of deploy-trigger/, which has the Web APIs but no
+  // process.env.
   "compilerOptions": {
     "target": "ES2024",
     "lib": ["ES2024", "DOM", "DOM.Iterable"],
