@@ -30,11 +30,11 @@
       "proofLinks": [
         {
           "label": "Code",
-          "url": "https://github.com/AIssoufi/issoufi.fr"
+          "url": "https://issoufi.fr/code"
         },
         {
           "label": "Méthode",
-          "url": "https://github.com/AIssoufi/issoufi.fr/tree/develop/docs/ai-workflow"
+          "url": "https://issoufi.fr/method"
         }
       ],
       "skillsTitle": "Compétences",
@@ -129,11 +129,11 @@
       "proofLinks": [
         {
           "label": "Code",
-          "url": "https://github.com/AIssoufi/issoufi.fr"
+          "url": "https://issoufi.fr/code"
         },
         {
           "label": "Method",
-          "url": "https://github.com/AIssoufi/issoufi.fr/tree/develop/docs/ai-workflow"
+          "url": "https://issoufi.fr/method"
         }
       ],
       "skillsTitle": "Skills",
