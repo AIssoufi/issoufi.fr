@@ -10,6 +10,8 @@ The agents read these rules, one line each, in [`CLAUDE.md`](../CLAUDE.md).
 - A ticket branch takes the new commits of `develop` with a rebase, never a merge, so that only `develop` and `main` get merge commits.
 - Commits follow [Conventional Commits](https://www.conventionalcommits.org/).
   Use `feat` and `fix` only for what a visitor notices: they fill the changelog.
+- Every commit names its ticket in a `Refs: ISF-35` footer, which the autolink of the repository turns into a link, so that `git log` and `git blame` lead to the reason for a change.
+  Only the commits of release-please and Dependabot, and merge commits, go without it.
 
 ## Code
 
