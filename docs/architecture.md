@@ -77,7 +77,7 @@ src/
   theme/        design tokens, global styles and fonts
   utils/        pages, generated HTML, sitemap and manifests
 e2e/            browser tests and the screenshot comparison
-scripts/        CI scripts, and the generators of the link preview, the icons and the CV
+scripts/        CI scripts, the Worker of the daily deploy, the link preview, icon and CV generators
 vite/           build helpers, the render at build time and the standalone build
 public/         images, fonts, icons and CVs
 docs/           these guides

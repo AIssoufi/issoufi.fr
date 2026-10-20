@@ -345,13 +345,14 @@ export default defineConfig(({ mode }) => {
       coverage: {
         provider: 'v8',
         // The helpers of the scripts and of the browser tests are measured, not the scripts and the
-        // Playwright tests that use them
+        // Playwright tests that use them. The Worker of the deploy trigger is measured whole
         include: [
           'src/**/*.{ts,tsx}',
           'vite/**/*.ts',
           'e2e/**/*.ts',
           'scripts/utils/**/*.mjs',
           'scripts/ci/utils/**/*.mjs',
+          'scripts/deploy-trigger/**/*.mjs',
           'scripts/og-image/utils/**/*.mjs',
           'scripts/icons/utils/**/*.mjs',
           'scripts/cv/utils/**/*.mjs',

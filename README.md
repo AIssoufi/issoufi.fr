@@ -17,19 +17,19 @@ A bilingual React app, built and maintained with a team of AI agents.
 - **Fast and accessible**: Lighthouse 100 in accessibility, best practices and SEO, 98 to 100 in performance.
 - **Tested in depth**: over 5,000 unit tests at 100 % coverage, and over 600 browser tests in Chromium, from phones to large screens. Each pull request compares the screenshots of every page with `develop`.
 - **A page per route**: each page gets its own HTML file in each language, rendered at build time so it shows before any script runs, with its title, description, preview image and structured data, for search engines and link previews.
-- **Shipped every morning**: a scheduled workflow releases `develop` and deploys it to production.
+- **Shipped every morning**: a Cloudflare Worker starts the workflow that releases `develop` and deploys it to production.
 - **Built with AI agents**: one Claude agent per ticket, each change reviewed by other agents.
 
 ## Tech stack
 
-| Area           | Tools                                            |
-| -------------- | ------------------------------------------------ |
-| UI             | React 19, TypeScript 5                           |
-| Build          | Vite 8                                           |
-| Styles         | styled-components with xstyled design tokens     |
-| Routing, i18n  | React Router 8, i18next (French, English)        |
-| Tests          | Vitest, Testing Library, Playwright, axe-core    |
-| Hosting, CI/CD | Cloudflare Pages, GitHub Actions, release-please |
+| Area           | Tools                                                        |
+| -------------- | ------------------------------------------------------------ |
+| UI             | React 19, TypeScript 5                                       |
+| Build          | Vite 8                                                       |
+| Styles         | styled-components with xstyled design tokens                 |
+| Routing, i18n  | React Router 8, i18next (French, English)                    |
+| Tests          | Vitest, Testing Library, Playwright, axe-core                |
+| Hosting, CI/CD | Cloudflare Pages and Workers, GitHub Actions, release-please |
 
 ## AI workflow
 

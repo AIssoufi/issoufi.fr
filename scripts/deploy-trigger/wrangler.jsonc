@@ -1,0 +1,15 @@
+// Cloudflare Worker that starts the daily deploy from outside GitHub (docs/deployment.md). The
+// site owner deploys it, with its GITHUB_DISPATCH_TOKEN secret: never the CI
+{
+  "name": "issoufi-fr-deploy-trigger",
+  "main": "index.mjs",
+  "compatibility_date": "2026-10-01",
+  // In UTC: the Worker starts a run at the two that fall at 6:05 and 6:35 in Paris, those of 4:xx
+  // UTC in summer and of 5:xx UTC in winter (DEPLOY_WINDOW_MINUTES, constants.mjs)
+  "triggers": { "crons": ["5,35 4,5 * * *"] },
+  // The Worker answers no request, so it gets no address
+  "workers_dev": false,
+  "preview_urls": false,
+  // Keeps the log of each run of a cron: the run of the workflow that it started, or its error
+  "observability": { "enabled": true },
+}
