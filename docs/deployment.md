@@ -20,7 +20,7 @@ On every pull request, and on every push to `develop` and `main`, GitHub Actions
 2. the unit tests with coverage;
 3. the build, its size, and the browser tests over three parallel jobs;
 4. on pull requests, a check of the commit messages and of new dependencies, and a comparison of the screenshots of every page with the base branch, which only informs;
-5. the deployment and its smoke test.
+5. the deployment and its smoke test, and on `main` a check that `http://issoufi.fr/`, `http://www.issoufi.fr/` and `https://www.issoufi.fr/` redirect to `https://issoufi.fr/` in one hop.
 
 ## Daily release and deploy
 
@@ -55,5 +55,6 @@ Done in the repository settings, never by a workflow or an agent:
 - **Deploy key** with write access, its private key in the `DEPLOY_KEY` secret: the daily workflow pushes to `main` with it.
   To replace it, create an ed25519 key pair, add its public key with write access, store its private key in `DEPLOY_KEY`, then delete the old key.
 - **Rulesets** on `main` and `develop`: pull requests with passing checks only. The deploy key may bypass the one of `main`.
+- **Redirects**, in the Cloudflare zone of `issoufi.fr`: a redirect rule sends `http*://www.*` to `https://issoufi.fr/` in 301, with its path and query, so that a request over HTTP reaches it in one hop, without going through _Always Use HTTPS_ first; that setting sends `http://issoufi.fr/` to HTTPS.
 - **Cloudflare secrets**: `CLOUDFLARE_API_TOKEN`, a token with the _Account → Cloudflare Pages → Edit_ permission, and `CLOUDFLARE_ACCOUNT_ID`. The automatic builds of Cloudflare stay paused: the CI deploys the site.
 - **Release GitHub App**, optional: the `RELEASE_APP_CLIENT_ID` variable and the `RELEASE_APP_PRIVATE_KEY` secret. The CI of the release pull request then starts without approval ([steps in #268](https://github.com/AIssoufi/issoufi.fr/pull/268)).
