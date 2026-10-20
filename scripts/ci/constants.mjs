@@ -227,25 +227,44 @@ export const DEPLOY_TIME_ZONE = 'Europe/Paris';
 export const DEPLOY_WORKFLOW_FILE = 'deploy-production.yml';
 
 /**
+ * Input of the `workflow_dispatch` trigger of {@link DEPLOY_WORKFLOW_FILE} that makes a run
+ * started by hand a scheduled run, as the Cloudflare trigger of the daily deploy
+ * (`scripts/deploy-trigger/`) starts it: the schedule check then stops it before 6:00 and once a
+ * scheduled run of the day passed, instead of letting it go on.
+ */
+export const SCHEDULED_INPUT = 'scheduled';
+
+/**
+ * Title that {@link DEPLOY_WORKFLOW_FILE} gives, with its `run-name`, a run that its
+ * {@link SCHEDULED_INPUT} input makes scheduled: the REST API lists the runs without their inputs,
+ * so the schedule check tells these runs from the other runs started by hand by their title.
+ */
+export const SCHEDULED_RUN_TITLE = 'Scheduled deploy to production';
+
+/**
  * Earliest local time of the daily deploy in {@link DEPLOY_TIME_ZONE}, in minutes after midnight:
- * 6:00. The crons of `deploy-production.yml` start a run every 30 minutes from 4:07 to 6:37 UTC,
- * which is 6:07 to 8:37 in Paris in summer (UTC+2) and 5:07 to 7:37 in winter (UTC+1): the runs
- * before 6:00 stop, and the first of the others that passes deploys.
+ * 6:00. The Cloudflare trigger starts a scheduled run at 6:05 and 6:35 in Paris
+ * (`scripts/deploy-trigger/`). The crons of `deploy-production.yml` start one every 30 minutes
+ * from 4:07 to 6:37 UTC, which is 6:07 to 8:37 in Paris in summer (UTC+2) and 5:07 to 7:37 in
+ * winter (UTC+1): the runs before 6:00 stop, and the first of the others that passes deploys.
  */
 export const DEPLOY_START_MINUTES = 360;
 
 /**
- * Number of scheduled runs of {@link DEPLOY_WORKFLOW_FILE} that the schedule check reads, newest
- * first: the six of a day at most, and the last ones of the days before, whose gap it checks.
+ * Number of runs of {@link DEPLOY_WORKFLOW_FILE} that the schedule checks read for each event,
+ * newest first: the runs that its crons started, the six of a day at most, and those started by
+ * hand, among which the two of a day of the Cloudflare trigger, with the last ones of the days
+ * before, whose gap they check.
  */
 export const DEPLOY_RUNS_PAGE_SIZE = 20;
 
 /**
  * Longest gap between two scheduled runs of {@link DEPLOY_WORKFLOW_FILE}, in hours, before the
- * schedule check warns that GitHub skipped every run of a day: a day and the 2 h 30 of the
- * window of the crons, from the first run of a day to the last run of the next, plus 9 h 30 for
- * the delays of GitHub's scheduler, which started the run of 4:00 UTC at 9:29 UTC on
- * 2026-10-19. A day without any run leaves at least 45 h 30 when the runs keep their time.
+ * schedule check warns that no scheduled run started on a day: a day and the 2 h 32 of the window
+ * of the scheduled runs, from the first run of a day, the one of the Cloudflare trigger at 4:05
+ * UTC in summer, to the last run of the next, the cron of 6:37 UTC, plus 9 h 28 for the delays
+ * of GitHub's scheduler, which started the run of 4:00 UTC at 9:29 UTC on 2026-10-19. A day
+ * without any run leaves at least 45 h 28 when the runs keep their time.
  */
 export const SCHEDULE_GAP_WARNING_HOURS = 36;
 
@@ -265,6 +284,9 @@ export const UTC_OFFSET_NAME_PATTERN = /^GMT(?:([+-])(\d{2}):(\d{2}))?$/;
 
 /** Minutes per hour, to turn an offset from UTC into minutes. */
 export const MINUTES_PER_HOUR = 60;
+
+/** Minutes per day: a local time, in minutes after midnight, stays under it. */
+export const MINUTES_PER_DAY = 1440;
 
 /** Event of a run started by a `schedule` of a workflow. */
 export const SCHEDULE_EVENT = 'schedule';
@@ -303,8 +325,15 @@ export const GITHUB_API_VERSION = '2022-11-28';
 export const GITHUB_API_MEDIA_TYPE = 'application/vnd.github+json';
 
 /**
- * Number of runs that the deploy and the schedule-gap check of the CI ask the REST API for: the
- * latest only, since the API lists the runs of a workflow newest first.
+ * `User-Agent` header of the requests to the GitHub REST API, which refuses a request without
+ * one: Node.js sends its own, but the `fetch` of a Cloudflare Worker sends none, as for the
+ * trigger of the daily deploy (`scripts/deploy-trigger/`). GitHub asks for the name of the app.
+ */
+export const GITHUB_API_USER_AGENT = 'issoufi.fr';
+
+/**
+ * Number of runs that the deploy asks the REST API for: the latest only, since the API lists the
+ * runs of a workflow newest first.
  */
 export const LATEST_RUN_PAGE_SIZE = 1;
 

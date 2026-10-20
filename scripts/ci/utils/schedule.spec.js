@@ -3,14 +3,20 @@ import { readFileSync } from 'node:fs';
 import {
   DEPLOY_RUNS_PAGE_SIZE,
   DEPLOY_START_MINUTES,
+  MINUTES_PER_DAY,
   MINUTES_PER_HOUR,
   SCHEDULE_GAP_WARNING_HOURS,
+  SCHEDULED_INPUT,
+  SCHEDULED_RUN_TITLE,
 } from '../constants.mjs';
 import {
+  fetchScheduledRuns,
+  formatLocalTime,
   getLocalTime,
   getScheduleGapWarning,
   getScheduleVerdict,
   getUtcOffsetMinutes,
+  mergeScheduledRuns,
 } from './schedule.mjs';
 
 describe('getUtcOffsetMinutes', () => {
@@ -101,16 +107,145 @@ describe('getLocalTime', () => {
   });
 });
 
+describe('formatLocalTime', () => {
+  it.each([
+    [367, '06:07'],
+    [0, '00:00'],
+    [59, '00:59'],
+    [60, '01:00'],
+    [MINUTES_PER_DAY - 1, '23:59'],
+  ])('writes %i minutes after midnight as %s', (minutes, time) => {
+    expect(formatLocalTime(minutes)).toBe(time);
+  });
+
+  it.each([MINUTES_PER_DAY, -1, 6.5, Number.NaN, Infinity, '367', null, undefined])(
+    'writes nothing for %o',
+    minutes => {
+      expect(formatLocalTime(minutes)).toBe('');
+    },
+  );
+});
+
 const RUNS_URL = 'https://github.com/AIssoufi/issoufi.fr/actions/runs';
 
 /** A scheduled run of deploy-production.yml, as fetchWorkflowRuns returns it. */
-const scheduledRun = ({ id = 1, createdAt, status = 'completed', conclusion = 'success' }) => ({
+const scheduledRun = ({
+  id = 1,
+  createdAt,
+  status = 'completed',
+  conclusion = 'success',
+  title,
+}) => ({
   id,
   sha: '58ff9ea0c3f4e1b2a9d8c7b6a5f4e3d2c1b0a9f8',
   status,
   conclusion,
   createdAt: new Date(createdAt),
   url: `${RUNS_URL}/${id}`,
+  ...(title !== undefined && { title }),
+});
+
+/** A run that the Cloudflare trigger started, under the title of the scheduled runs. */
+const triggerRun = fields => scheduledRun({ title: SCHEDULED_RUN_TITLE, ...fields });
+
+describe('mergeScheduledRuns', () => {
+  it('keeps the runs of the crons and those of the trigger, newest first', () => {
+    const cronRuns = [
+      scheduledRun({ id: 4, createdAt: '2026-10-20T04:37:00Z' }),
+      scheduledRun({ id: 1, createdAt: '2026-10-19T04:07:00Z' }),
+    ];
+    const manualRuns = [
+      triggerRun({ id: 3, createdAt: '2026-10-20T04:35:00Z' }),
+      scheduledRun({ id: 5, createdAt: '2026-10-20T04:20:00Z', title: 'Deploy to production' }),
+      triggerRun({ id: 2, createdAt: '2026-10-20T04:05:00Z' }),
+      scheduledRun({ id: 6, createdAt: '2026-10-19T12:00:00Z' }),
+    ];
+    expect(mergeScheduledRuns({ cronRuns, manualRuns }).map(run => run.id)).toEqual([4, 3, 2, 1]);
+  });
+
+  it.each([[{}], [undefined], [{ cronRuns: [], manualRuns: [] }]])(
+    'returns an empty list without runs (%o)',
+    params => {
+      expect(mergeScheduledRuns(params)).toEqual([]);
+    },
+  );
+
+  it('reads the runs of one event alone', () => {
+    const cronRun = scheduledRun({ id: 1, createdAt: '2026-10-19T04:07:00Z' });
+    const ownRun = triggerRun({ id: 2, createdAt: '2026-10-19T04:05:00Z' });
+    expect(mergeScheduledRuns({ cronRuns: [cronRun] })).toEqual([cronRun]);
+    expect(mergeScheduledRuns({ manualRuns: [ownRun] })).toEqual([ownRun]);
+  });
+});
+
+describe('fetchScheduledRuns', () => {
+  const API_URL = 'https://api.github.com/repos/AIssoufi/issoufi.fr/actions/workflows';
+
+  /** A run of the REST API answer, as GitHub writes it. */
+  const apiRun = ({ id, createdAt, title = 'Deploy to production' }) => ({
+    id,
+    head_sha: '58ff9ea0c3f4e1b2a9d8c7b6a5f4e3d2c1b0a9f8',
+    status: 'completed',
+    conclusion: 'success',
+    created_at: createdAt,
+    html_url: `${RUNS_URL}/${id}`,
+    display_title: title,
+  });
+
+  /** Answers the runs of each event, read from the query of the request. */
+  const stubFetch = ({ status = 200 } = {}) => {
+    const runsByEvent = {
+      schedule: [apiRun({ id: 1, createdAt: '2026-10-20T04:07:00Z' })],
+      workflow_dispatch: [
+        apiRun({ id: 3, createdAt: '2026-10-20T04:35:00Z', title: SCHEDULED_RUN_TITLE }),
+        apiRun({ id: 2, createdAt: '2026-10-20T04:10:00Z' }),
+      ],
+    };
+    const fetch = vi.fn(async url => {
+      const event = new URL(url).searchParams.get('event');
+      const body = { workflow_runs: runsByEvent[event] };
+      return new Response(JSON.stringify(body), { status });
+    });
+    vi.stubGlobal('fetch', fetch);
+    return fetch;
+  };
+
+  beforeEach(() => {
+    vi.stubEnv('GITHUB_API_URL', 'https://api.github.com');
+    vi.stubEnv('GITHUB_REPOSITORY', 'AIssoufi/issoufi.fr');
+    vi.stubEnv('GITHUB_TOKEN', 'token');
+  });
+
+  afterEach(() => {
+    vi.unstubAllEnvs();
+    vi.unstubAllGlobals();
+  });
+
+  it('reads the runs of the crons and those of the trigger, newest first', async () => {
+    const fetch = stubFetch();
+    const runs = await fetchScheduledRuns({ perPage: 20 });
+    expect(runs.map(run => run.id)).toEqual([3, 1]);
+    expect(fetch.mock.calls.map(([url]) => url).sort()).toEqual([
+      `${API_URL}/deploy-production.yml/runs?event=schedule&per_page=20`,
+      `${API_URL}/deploy-production.yml/runs?event=workflow_dispatch&per_page=20`,
+    ]);
+  });
+
+  it('reads another repository with another token', async () => {
+    const fetch = stubFetch();
+    await fetchScheduledRuns({ perPage: 5, repository: 'owner/repo', token: 'other' });
+    for (const [url, { headers }] of fetch.mock.calls) {
+      expect(url).toMatch(/^https:\/\/api\.github\.com\/repos\/owner\/repo\//);
+      expect(headers.Authorization).toBe('Bearer other');
+    }
+  });
+
+  it('throws when the API answers with an error', async () => {
+    stubFetch({ status: 500 });
+    await expect(fetchScheduledRuns({ perPage: 20 })).rejects.toThrow(
+      'The GitHub API answered 500',
+    );
+  });
 });
 
 describe('getScheduleVerdict', () => {
@@ -141,6 +276,92 @@ describe('getScheduleVerdict', () => {
         date: new Date('not a date'),
       }),
     ).toEqual({ isDue: true, message: 'Started by hand: no schedule to check.' });
+  });
+
+  it.each([false, undefined, 'true', 1])(
+    'lets a run started by hand with the scheduled input %o go on as one started by hand',
+    hasScheduledInput => {
+      const verdict = getScheduleVerdict({
+        eventName: 'workflow_dispatch',
+        hasScheduledInput,
+        runs: [summerRun],
+        date: new Date('2026-07-01T03:07:00Z'),
+      });
+      expect(verdict).toEqual({ isDue: true, message: 'Started by hand: no schedule to check.' });
+    },
+  );
+
+  describe('for a run of the Cloudflare trigger, started by hand with the scheduled input', () => {
+    /** The verdict of the run `id` 10 of the trigger, created at `createdAt`, among `others`. */
+    const triggerVerdictAt = ({ createdAt, others = [] }) =>
+      getScheduleVerdict({
+        eventName: 'workflow_dispatch',
+        hasScheduledInput: true,
+        runId: 10,
+        runs: [
+          triggerRun({ id: 10, createdAt, status: 'in_progress', conclusion: null }),
+          ...others,
+        ],
+      });
+
+    it('lets the first scheduled run of the day go on from 6:00', () => {
+      expect(triggerVerdictAt({ createdAt: '2026-07-01T04:05:00Z' })).toEqual({
+        isDue: true,
+        message: 'It is 06:05 in Europe/Paris: the first scheduled run of the day deploys.',
+      });
+    });
+
+    it('stops it before 6:00 in Paris', () => {
+      expect(triggerVerdictAt({ createdAt: '2026-12-01T04:05:00Z' })).toEqual({
+        isDue: false,
+        message: 'Skipped: it is 05:05 in Europe/Paris, before the deploy of 06:00.',
+      });
+    });
+
+    it('stops it once a run of the crons passed today', () => {
+      const cronRun = scheduledRun({ id: 9, createdAt: '2026-07-01T04:07:00Z' });
+      expect(triggerVerdictAt({ createdAt: '2026-07-01T04:35:00Z', others: [cronRun] })).toEqual({
+        isDue: false,
+        message: `Skipped: the scheduled run of 06:07 already went through today: ${RUNS_URL}/9`,
+      });
+    });
+
+    it('lets it try again after a run of the trigger that failed', () => {
+      const failedRun = triggerRun({
+        id: 9,
+        createdAt: '2026-07-01T04:05:00Z',
+        conclusion: 'failure',
+      });
+      expect(
+        triggerVerdictAt({ createdAt: '2026-07-01T04:35:00Z', others: [failedRun] }).message,
+      ).toBe(
+        `It is 06:35 in Europe/Paris, and the scheduled run of 06:05 did not pass (failure): this one tries again. ${RUNS_URL}/9`,
+      );
+    });
+  });
+
+  it('stops a run of the crons once a run of the trigger passed today', () => {
+    const passedRun = triggerRun({ id: 9, createdAt: '2026-07-01T04:05:00Z' });
+    expect(verdictAt({ createdAt: '2026-07-01T04:07:00Z', others: [passedRun] })).toEqual({
+      isDue: false,
+      message: `Skipped: the scheduled run of 06:05 already went through today: ${RUNS_URL}/9`,
+    });
+  });
+
+  it('reads a run of the crons as scheduled, whatever its scheduled input', () => {
+    const verdict = getScheduleVerdict({
+      eventName: 'schedule',
+      hasScheduledInput: false,
+      runId: 10,
+      runs: [summerRun],
+    });
+    expect(verdict.isDue).toBe(true);
+  });
+
+  it('stops a run started by another event, even with the scheduled input', () => {
+    expect(
+      getScheduleVerdict({ eventName: 'push', hasScheduledInput: true, runs: [summerRun] }),
+    ).toEqual({ isDue: false, message: 'Skipped: a run started by push does not deploy.' });
   });
 
   it.each([
@@ -322,7 +543,7 @@ describe('getScheduleGapWarning', () => {
 
   it('names the gap and the last scheduled run after a day without any', () => {
     expect(warningAfter('2026-10-17T06:37:00Z')).toBe(
-      `No scheduled run of deploy-production.yml for 45 hours, since 2026-10-17T06:37:00.000Z: GitHub skipped every run of at least one day, so nothing was deployed then. Check that the workflow is enabled in the Actions tab, and start it by hand if a deploy is missing. ${RUNS_URL}/9`,
+      `No scheduled run of deploy-production.yml for 45 hours, since 2026-10-17T06:37:00.000Z: neither the Cloudflare trigger nor the crons of GitHub started a run on at least one day, so nothing was deployed then. Check the trigger and its token (docs/deployment.md) and that the workflow is enabled in the Actions tab, and start it by hand if a deploy is missing. ${RUNS_URL}/9`,
     );
   });
 
@@ -332,11 +553,23 @@ describe('getScheduleGapWarning', () => {
     ).toBeUndefined();
   });
 
+  it('stays quiet for the first run of the trigger, started by hand with the scheduled input', () => {
+    const ownRun = triggerRun({ id: 10, createdAt: '2026-10-19T04:05:00Z' });
+    const params = { eventName: 'workflow_dispatch', runId: 10, runs: [ownRun] };
+    expect(getScheduleGapWarning({ ...params, hasScheduledInput: true })).toBeUndefined();
+    expect(getScheduleGapWarning(params)).toMatch(/^No scheduled run .* has ever started/);
+  });
+
+  it('counts a run of the trigger as the last scheduled run', () => {
+    const runs = [thisRun, triggerRun({ id: 9, createdAt: '2026-10-18T04:05:00Z' })];
+    expect(getScheduleGapWarning({ eventName: 'schedule', runId: 10, runs })).toBeUndefined();
+  });
+
   it.each([[[]], [undefined]])(
     'warns a run started by hand when no scheduled run ever started (%o)',
     runs => {
       expect(getScheduleGapWarning({ eventName: 'workflow_dispatch', runId: 20, runs })).toBe(
-        'GitHub has never started deploy-production.yml on its schedule: check that the workflow is enabled in the Actions tab and that its crons are on the default branch.',
+        'No scheduled run of deploy-production.yml has ever started: check that the Cloudflare trigger is deployed with its token (docs/deployment.md), that the workflow is enabled in the Actions tab, and that its crons are on the default branch.',
       );
     },
   );
@@ -366,7 +599,7 @@ describe('getScheduleGapWarning', () => {
       /^No scheduled run of deploy-production\.yml for 36 hours, since 2026-10-19T06:37:00\.000Z/,
     );
     expect(getScheduleGapWarning({ eventName: 'push', runs: [] })).toMatch(
-      /^GitHub has never started deploy-production\.yml on its schedule/,
+      /^No scheduled run of deploy-production\.yml has ever started/,
     );
   });
 
@@ -380,12 +613,43 @@ describe('getScheduleGapWarning', () => {
 
   it('warns without any parameter, as for a run started by hand', () => {
     expect(getScheduleGapWarning()).toBe(
-      'GitHub has never started deploy-production.yml on its schedule: check that the workflow is enabled in the Actions tab and that its crons are on the default branch.',
+      'No scheduled run of deploy-production.yml has ever started: check that the Cloudflare trigger is deployed with its token (docs/deployment.md), that the workflow is enabled in the Actions tab, and that its crons are on the default branch.',
     );
   });
 });
 
-const MINUTES_PER_DAY = 24 * MINUTES_PER_HOUR;
+describe('the scheduled runs started by hand in deploy-production.yml', () => {
+  const workflow = readFileSync('.github/workflows/deploy-production.yml', 'utf8');
+  const lines = workflow.split('\n');
+  /** Escapes the characters of a text that a regular expression reads as syntax. */
+  const escapeRegExp = text => text.replace(/[.*+?^${}()|[\]\\]/g, String.raw`\$&`);
+  // A dispatch with the input, but not a dry run
+  const condition = `inputs.${SCHEDULED_INPUT} && !inputs.dry_run`;
+
+  it('get the title by which the schedule check finds them', () => {
+    expect(lines).toContain(
+      `run-name: \${{ ${condition} && '${SCHEDULED_RUN_TITLE}' || github.workflow }}`,
+    );
+  });
+
+  it('come from a boolean input of workflow_dispatch', () => {
+    const input = new RegExp(
+      String.raw`^ {6}${escapeRegExp(SCHEDULED_INPUT)}:\n(?: {8}.*\n)*? {8}type: boolean\n {8}default: false$`,
+      'm',
+    );
+    expect(workflow).toMatch(input);
+  });
+
+  it('tell the schedule check that they are scheduled, under the same condition as the title', () => {
+    const env = new RegExp(
+      String.raw`run: node scripts/ci/check-deploy-schedule\.mjs\n(?: {8}.*\n)*? {10}SCHEDULED: ` +
+        escapeRegExp(`\${{ ${condition} }}`) +
+        '$',
+      'm',
+    );
+    expect(workflow).toMatch(env);
+  });
+});
 
 describe('the crons of deploy-production.yml', () => {
   const workflow = readFileSync('.github/workflows/deploy-production.yml', 'utf8');

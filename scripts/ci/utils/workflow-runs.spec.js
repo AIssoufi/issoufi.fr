@@ -149,6 +149,16 @@ describe('readRun', () => {
     );
   });
 
+  it.each(['Scheduled deploy to production', ''])('reads the title %o of the run', title => {
+    expect(readRun(apiRun({ display_title: title }))).toEqual(run({ title }));
+  });
+
+  it.each([undefined, null, 42, { text: 'Deploy' }])('leaves out the title %o', title => {
+    const result = readRun(apiRun({ display_title: title }));
+    expect(result).toEqual(run());
+    expect(result).not.toHaveProperty('title');
+  });
+
   it.each([
     undefined,
     null,
@@ -439,6 +449,7 @@ describe('fetchLatestRun', () => {
         method: 'GET',
         headers: {
           Accept: 'application/vnd.github+json',
+          'User-Agent': 'issoufi.fr',
           'X-GitHub-Api-Version': '2022-11-28',
           Authorization: 'Bearer token',
         },
@@ -666,6 +677,20 @@ describe('the API calls on runs', () => {
       expect(url).toBe(`${RUNS_API_URL}/workflows/ci.yml/dispatches`);
       expect(init.method).toBe('POST');
       expect(JSON.parse(init.body)).toEqual({ ref: 'develop', return_run_details: true });
+    });
+
+    it('sends the inputs of the workflow', async () => {
+      const fetch = stubFetch({ workflow_run_id: 123, html_url: RUN_URL });
+      await dispatchWorkflow({
+        workflow: 'deploy-production.yml',
+        ref: 'develop',
+        inputs: { scheduled: 'true' },
+      });
+      expect(JSON.parse(fetch.mock.calls[0][1].body)).toEqual({
+        ref: 'develop',
+        inputs: { scheduled: 'true' },
+        return_run_details: true,
+      });
     });
 
     it('throws when GitHub does not say which run it started', async () => {

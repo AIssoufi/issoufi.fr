@@ -100,13 +100,16 @@ export const getWorkflowRunsUrl = ({
  * @property {Date} createdAt - Moment GitHub created the run, which for a scheduled run is when
  * its cron fired, delays of the scheduler included.
  * @property {string} url - Page of the run on GitHub.
+ * @property {string} [title] - Title of the run in the Actions tab, the `run-name` of its
+ * workflow or else its name, left out when the API does not give it.
  */
 
 /**
  * Reads a run of a workflow from an answer of the REST API.
  * @param {unknown} value - The run, as the API writes it.
  * @returns {WorkflowRun | undefined} The run, or `undefined` when the value is not an object, or
- * when it lacks its identifier, commit, status, conclusion, creation date or page.
+ * when it lacks its identifier, commit, status, conclusion, creation date or page. A title that
+ * is not a string is left out.
  * @example
  * readRun({ id: 123, head_sha, status: 'completed', conclusion: 'success', created_at, html_url });
  * // { id: 123, sha: head_sha, status: 'completed', conclusion: 'success', createdAt, url }
@@ -122,6 +125,7 @@ export const readRun = value => {
     conclusion,
     created_at: creationDate,
     html_url: url,
+    display_title: title,
   } = /** @type {Record<string, unknown>} */ (value);
   const createdAt = new Date(typeof creationDate === 'string' ? creationDate : Number.NaN);
   const hasCreationDate = !Number.isNaN(createdAt.getTime());
@@ -133,7 +137,17 @@ export const readRun = value => {
     hasConclusion &&
     hasCreationDate &&
     typeof url === 'string';
-  return isRun ? { id, sha, status, conclusion, createdAt, url } : undefined;
+  if (!isRun) return undefined;
+
+  return {
+    id,
+    sha,
+    status,
+    conclusion,
+    createdAt,
+    url,
+    ...(typeof title === 'string' && { title }),
+  };
 };
 
 /**
@@ -496,6 +510,8 @@ export const readDispatchedRun = response => {
  * @property {string} workflow - File name of the workflow, which must have a
  * `workflow_dispatch` trigger, e.g. `ci.yml`.
  * @property {string} ref - Branch or tag to run the workflow on, e.g. `develop`.
+ * @property {Record<string, string>} [inputs] - Values of the `workflow_dispatch` inputs of the
+ * workflow, by name. Left out, each input takes its default.
  * @property {string} [apiUrl] - REST API of GitHub. Defaults to the `GITHUB_API_URL` variable.
  * @property {string} [repository] - Repository as `owner/name`. Defaults to the
  * `GITHUB_REPOSITORY` variable.
@@ -513,7 +529,7 @@ export const readDispatchedRun = response => {
  * @example
  * await dispatchWorkflow({ workflow: 'ci.yml', ref: 'develop' }); // { id: 123, url: '…' }
  */
-export const dispatchWorkflow = async ({ workflow, ref, ...api }) => {
+export const dispatchWorkflow = async ({ workflow, ref, inputs, ...api }) => {
   const hasWorkflow = typeof workflow === 'string' && workflow !== '';
   const hasRef = typeof ref === 'string' && ref !== '';
   if (!hasWorkflow || !hasRef) {
@@ -524,7 +540,7 @@ export const dispatchWorkflow = async ({ workflow, ref, ...api }) => {
     ...api,
     path: `/actions/workflows/${encodeURIComponent(workflow)}/dispatches`,
     method: 'POST',
-    body: { ref, return_run_details: true },
+    body: { ref, ...(inputs && { inputs }), return_run_details: true },
   });
   const run = readDispatchedRun(response);
   if (!run) throw new Error(`GitHub started ${workflow} on ${ref} without saying which run`);
