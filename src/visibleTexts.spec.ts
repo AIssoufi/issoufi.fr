@@ -20,9 +20,13 @@ const DATA_DIR_NAME = '.data';
 /** Extension of the data files. */
 const DATA_FILE_EXTENSION = '.json';
 
+/** Whether a file of `src/`, by its path from there, is a JSON data file of a page. */
+const isDataFile = (file: string) =>
+  file.endsWith(DATA_FILE_EXTENSION) && file.split(sep).includes(DATA_DIR_NAME);
+
 /** Files of JSON data of the site, whose texts the pages show, such as the experiences. */
 const DATA_FILES = readdirSync(SOURCE_DIR, { recursive: true, encoding: 'utf8' })
-  .filter(file => file.endsWith(DATA_FILE_EXTENSION) && file.split(sep).includes(DATA_DIR_NAME))
+  .filter(isDataFile)
   .map(file => join(SOURCE_DIR, file));
 
 describe('the visible texts of the site', () => {

@@ -66,6 +66,67 @@ export const buildPdfInfo = content => ({
 export const listCvPdfInfo = content => ({ Title: content.title, ...buildPdfInfo(content) });
 
 /**
+ * What the last trailer of a PDF names, as written in the PDF.
+ * @typedef {object} PdfTrailer
+ * @property {string} size - Number of entries of the cross-reference of the PDF, e.g. `15`.
+ * @property {string} root - Reference of its catalog, e.g. `1 0 R`.
+ * @property {string} objectNumber - Number of the object of its information dictionary.
+ * @property {string} generation - Generation of that object, e.g. `0`.
+ * @property {string} previousXrefOffset - Offset of the cross-reference table that the trailer
+ * closes, which an incremental update points back to.
+ */
+
+/**
+ * Reads the last trailer of a PDF, the one that readers follow.
+ * @param {string} text - Content of the PDF, read as latin1.
+ * @returns {PdfTrailer} What the trailer names.
+ * @throws {Error} When the PDF has no classic trailer that names its root and its information
+ * dictionary, as one with a cross-reference stream.
+ */
+const readPdfTrailer = text => {
+  // Without a trailer, the slice holds the last character alone, which the pattern never matches
+  const lastTrailer = text.slice(text.lastIndexOf(PDF_TRAILER_KEYWORD));
+  const [, trailer = '', previousXrefOffset = ''] = lastTrailer.match(PDF_TRAILER_PATTERN) ?? [];
+  const size = trailer.match(PDF_SIZE_PATTERN)?.[1];
+  const root = trailer.match(PDF_ROOT_PATTERN)?.[1];
+  const [, objectNumber, generation] = trailer.match(PDF_INFO_REFERENCE_PATTERN) ?? [];
+  const isTrailerComplete = !!size && !!root && !!objectNumber && !!generation;
+  if (!isTrailerComplete) {
+    throw new Error('The PDF has no classic trailer that names its root and its information');
+  }
+
+  return { size, root, objectNumber, generation, previousXrefOffset };
+};
+
+/**
+ * Parameters of {@link findInfoDictionary}.
+ * @typedef {object} FindInfoDictionaryParams
+ * @property {string} text - Content of the PDF, read as latin1.
+ * @property {string} objectNumber - Number of the object of the dictionary, from its trailer.
+ * @property {string} generation - Generation of that object, from its trailer.
+ */
+
+/**
+ * Finds the entries of the information dictionary of a PDF, in the last version of its object,
+ * should the PDF already have an incremental update.
+ * @param {FindInfoDictionaryParams} params
+ * @returns {string} The entries, between the `<<` and the `>>` of the dictionary.
+ * @throws {Error} When the PDF lacks that object.
+ */
+const findInfoDictionary = ({ text, objectNumber, generation }) => {
+  const objectPattern = new RegExp(
+    `(?<!\\d)${objectNumber} ${generation} obj\\s*<<([\\s\\S]*?)>>\\s*endobj`,
+    'g',
+  );
+  const dictionary = [...text.matchAll(objectPattern)].at(-1)?.[1];
+  if (dictionary === undefined) {
+    throw new Error(`The PDF lacks its information dictionary, ${objectNumber} ${generation} obj`);
+  }
+
+  return dictionary;
+};
+
+/**
  * Parameters of {@link addPdfInfo}.
  * @typedef {object} AddPdfInfoParams
  * @property {Uint8Array} pdf - Content of a PDF file with a classic cross-reference table, as
@@ -92,25 +153,8 @@ export const addPdfInfo = ({ pdf, info }) => {
   if (entries.length === 0) return Buffer.from(pdf);
 
   const text = Buffer.from(pdf).toString('latin1');
-  // Without a trailer, the slice holds the last character alone, which the pattern never matches
-  const lastTrailer = text.slice(text.lastIndexOf(PDF_TRAILER_KEYWORD));
-  const [, trailer = '', previousXrefOffset = ''] = lastTrailer.match(PDF_TRAILER_PATTERN) ?? [];
-  const size = trailer.match(PDF_SIZE_PATTERN)?.[1];
-  const root = trailer.match(PDF_ROOT_PATTERN)?.[1];
-  const [, objectNumber, generation] = trailer.match(PDF_INFO_REFERENCE_PATTERN) ?? [];
-  if (!size || !root || !objectNumber || !generation) {
-    throw new Error('The PDF has no classic trailer that names its root and its information');
-  }
-
-  // The last version of the object, should the PDF already have an incremental update
-  const objectPattern = new RegExp(
-    `(?<!\\d)${objectNumber} ${generation} obj\\s*<<([\\s\\S]*?)>>\\s*endobj`,
-    'g',
-  );
-  const dictionary = [...text.matchAll(objectPattern)].at(-1)?.[1];
-  if (dictionary === undefined) {
-    throw new Error(`The PDF lacks its information dictionary, ${objectNumber} ${generation} obj`);
-  }
+  const { size, root, objectNumber, generation, previousXrefOffset } = readPdfTrailer(text);
+  const dictionary = findInfoDictionary({ text, objectNumber, generation });
   /** @param {[string, string]} entry */
   const isAlreadyHeld = ([key]) => new RegExp(`/${key}(?![A-Za-z])`).test(dictionary);
   const heldKeys = entries.filter(isAlreadyHeld).map(([key]) => key);
