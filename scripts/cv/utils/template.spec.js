@@ -130,8 +130,36 @@ describe('renderCvHtml', () => {
         url: item.querySelector('a')?.getAttribute('href') ?? '',
       }));
 
-    expect(readItems(contactList)).toEqual(FRENCH_CV.contacts);
-    expect(readItems(profileList)).toEqual(FRENCH_CV.profiles);
+    const toItem = ({ text, url }) => ({ text, url });
+
+    expect(readItems(contactList)).toEqual(FRENCH_CV.contacts.map(toItem));
+    expect(readItems(profileList)).toEqual(FRENCH_CV.profiles.map(toItem));
+  });
+
+  it('writes the icon of each contact detail before its text, hidden from screen readers', () => {
+    const icons = {
+      email: '<svg class="icon" aria-hidden="true"><path d="M1 1"/></svg>',
+      location: '<svg class="icon" aria-hidden="true"><circle r="1"/></svg>',
+    };
+    const content = {
+      ...FRENCH_CV,
+      contacts: [
+        { text: 'adam@example.com', url: 'mailto:adam@example.com', icon: 'email' },
+        { text: 'Paris', url: '', icon: 'location' },
+      ],
+    };
+    const html = renderCvHtml({ content, styles, fontFaces: '', icons });
+
+    expect(html).toContain(
+      `<ul class="contacts"><li>${icons.email}<a href="mailto:adam@example.com">adam@example.com</a></li><li>${icons.location}Paris</li></ul>`,
+    );
+  });
+
+  it('writes a contact detail without icon when the icons lack its own', () => {
+    const document = renderDocument(FRENCH_CV);
+
+    expect(document.querySelectorAll('.contacts li')).toHaveLength(5);
+    expect(document.querySelector('.contacts svg')).toBeNull();
   });
 
   it('writes each company, then each of its roles with its period', () => {

@@ -5,6 +5,7 @@ import { DETAILS_SEPARATOR, PERIOD_SEPARATOR, SKILLS_SEPARATOR } from '../consta
 /** @typedef {import('./types.mjs').CvContent} CvContent */
 /** @typedef {import('./types.mjs').CvExperience} CvExperience */
 /** @typedef {import('./types.mjs').CvLabeledLink} CvLabeledLink */
+/** @typedef {import('./types.mjs').CvIconName} CvIconName */
 /** @typedef {import('./types.mjs').CvLink} CvLink */
 /** @typedef {import('./types.mjs').CvProject} CvProject */
 /** @typedef {import('./types.mjs').CvProjectGroup} CvProjectGroup */
@@ -66,14 +67,26 @@ const renderTechnologies = technologies =>
   });
 
 /**
- * Writes a contact detail: a link, or a text when it has no URL.
- * @param {CvLink} contact - Contact detail.
- * @returns {string} The item of the list of the header.
+ * Icons of the contact details, each an inline `svg` element from `toInlineIcon`, by name.
+ * @typedef {Partial<Record<CvIconName, string>>} CvIcons
  */
-const renderContact = ({ text, url }) =>
-  url
-    ? `<li><a href="${escapeHtml(url)}">${escapeHtml(text)}</a></li>`
-    : `<li>${escapeHtml(text)}</li>`;
+
+/**
+ * Parameters of {@link renderContact}.
+ * @typedef {object} RenderContactParams
+ * @property {CvLink} contact - Contact detail.
+ * @property {CvIcons} icons - Icons of the contact details.
+ */
+
+/**
+ * Writes a contact detail after its icon: a link, or a text when it has no URL.
+ * @param {RenderContactParams} params
+ * @returns {string} The item of the list of the header, without icon when `icons` lacks its own.
+ */
+const renderContact = ({ contact: { text, url, icon }, icons }) => {
+  const html = url ? `<a href="${escapeHtml(url)}">${escapeHtml(text)}</a>` : escapeHtml(text);
+  return `<li>${icons[icon] ?? ''}${html}</li>`;
+};
 
 /**
  * Parameters of {@link renderLabeledItem}.
@@ -252,6 +265,8 @@ const renderDegree = ({ degree, period, school }) => {
  * @property {string} styles - Style sheet of the page, from `renderCvStyles`.
  * @property {string} fontFaces - `@font-face` rules of the static font files of the CV, from
  * `renderFontFaces`, which Chromium embeds in the PDF as TrueType fonts.
+ * @property {CvIcons} [icons] - Icons of the contact details: a detail whose icon is missing goes
+ * without one.
  */
 
 /**
@@ -262,11 +277,13 @@ const renderDegree = ({ degree, period, school }) => {
  * @param {RenderCvHtmlParams} params
  * @returns {string} A complete HTML document, in the language of the content.
  * @example
- * await page.setContent(renderCvHtml({ content, styles, fontFaces }));
+ * await page.setContent(renderCvHtml({ content, styles, fontFaces, icons }));
  * await page.pdf({ preferCSSPageSize: true, tagged: true });
  */
-export const renderCvHtml = ({ content, styles, fontFaces }) => {
+export const renderCvHtml = ({ content, styles, fontFaces, icons = {} }) => {
   const { profile, skills, experiences, projects, education, labelSeparator } = content;
+  /** @param {CvLink} contact */
+  const renderHeaderContact = contact => renderContact({ contact, icons });
 
   return `<!doctype html>
 <html lang="${escapeHtml(content.language)}">
@@ -282,8 +299,8 @@ export const renderCvHtml = ({ content, styles, fontFaces }) => {
       <h1 class="name">${escapeHtml(content.name)}</h1>
       <p class="job-title">${escapeHtml(content.jobTitle)}</p>
       ${renderElement({ tag: 'p', className: 'tagline', html: renderSegments(content.passion) })}
-      <ul class="contacts">${content.contacts.map(renderContact).join('')}</ul>
-      <ul class="contacts">${content.profiles.map(renderContact).join('')}</ul>
+      <ul class="contacts">${content.contacts.map(renderHeaderContact).join('')}</ul>
+      <ul class="contacts">${content.profiles.map(renderHeaderContact).join('')}</ul>
     </header>
     <main>
       ${renderProfile({ profile, separator: labelSeparator })}

@@ -110,6 +110,12 @@ const PARAMS = {
   linkedInUrl: 'https://www.linkedin.com/in/adam/',
 };
 
+/** Links of the header to the site and LinkedIn that {@link PARAMS} give. */
+const PROFILES = [
+  { text: 'issoufi.fr', url: 'https://issoufi.fr/', icon: 'site' },
+  { text: 'linkedin.com/in/adam', url: 'https://www.linkedin.com/in/adam/', icon: 'linkedin' },
+];
+
 describe('buildExperiences', () => {
   it('translates the company, its roles and their projects', () => {
     expect(buildExperiences({ translate, experiences: [ACME] })).toEqual([
@@ -290,18 +296,24 @@ describe('buildCvContent', () => {
     expect(buildCvContent(PARAMS)).not.toHaveProperty('subtitle');
   });
 
-  it('lists the contact details, the email address and the phone number as links', () => {
+  it('lists the contact details with their icons, the email address and the phone as links', () => {
     expect(buildCvContent(PARAMS).contacts).toEqual([
-      { text: 'adam@example.com', url: 'mailto:adam@example.com' },
-      { text: '06 00 00 00 00', url: 'tel:+33600000000' },
-      { text: 'Paris', url: '' },
+      { text: 'adam@example.com', url: 'mailto:adam@example.com', icon: 'email' },
+      { text: '06 00 00 00 00', url: 'tel:+33600000000', icon: 'phone' },
+      { text: 'Paris', url: '', icon: 'location' },
     ]);
   });
 
-  it('lists the links to the site and LinkedIn', () => {
-    expect(buildCvContent(PARAMS).profiles).toEqual([
-      { text: 'issoufi.fr', url: 'https://issoufi.fr/' },
-      { text: 'linkedin.com/in/adam', url: 'https://www.linkedin.com/in/adam/' },
+  it('lists the links to the site and LinkedIn with their icons', () => {
+    expect(buildCvContent(PARAMS).profiles).toEqual(PROFILES);
+  });
+
+  it('keeps the icon of each contact detail when the one before it is left out', () => {
+    const cvData = { ...CV_DATA, contact: { ...CV_DATA.contact, email: '' } };
+
+    expect(buildCvContent({ ...PARAMS, cvData }).contacts.map(({ icon }) => icon)).toEqual([
+      'phone',
+      'location',
     ]);
   });
 
@@ -361,10 +373,7 @@ describe('buildCvContent', () => {
       const content = buildCvContent({ ...PARAMS, cvData });
 
       expect(content.contacts).toEqual([]);
-      expect(content.profiles).toEqual([
-        { text: 'issoufi.fr', url: 'https://issoufi.fr/' },
-        { text: 'linkedin.com/in/adam', url: 'https://www.linkedin.com/in/adam/' },
-      ]);
+      expect(content.profiles).toEqual(PROFILES);
       expect(content.labelSeparator).toBe('');
       expect(content.profile).toEqual({ title: '', summary: '', proof: '', proofLinks: [] });
       expect(content.skills).toEqual({ title: '', items: [] });
@@ -378,6 +387,7 @@ describe('buildCvContent', () => {
       expect(buildCvContent({ ...PARAMS, siteUrl }).profiles[0]).toEqual({
         text: 'issoufi.fr',
         url: '',
+        icon: 'site',
       });
     },
   );
@@ -397,6 +407,7 @@ describe('buildCvContent', () => {
     expect(buildCvContent({ ...PARAMS, cvData }).contacts[0]).toEqual({
       text: 'adam at example',
       url: '',
+      icon: 'email',
     });
   });
 

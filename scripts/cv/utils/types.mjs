@@ -50,10 +50,16 @@
  */
 
 /**
- * A contact detail of the header, or a link of the CV.
+ * Name of an icon of the contact details, a key of `CV_ICON_FILES`.
+ * @typedef {keyof typeof import('../constants.mjs').CV_ICON_FILES} CvIconName
+ */
+
+/**
+ * A contact detail of the header, or a link to the site or a profile of its owner.
  * @typedef {object} CvLink
  * @property {string} text - Text written on the CV.
  * @property {string} url - URL it opens, `''` for a text that is not a link, such as a city.
+ * @property {CvIconName} icon - Icon written before the text, which shows what it is.
  */
 
 /**

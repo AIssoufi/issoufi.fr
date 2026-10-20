@@ -26,6 +26,7 @@ import {
   CV_FINGERPRINTS_FILE,
   CV_FONT_FILES,
   CV_FONTS_DIR,
+  CV_ICON_FILES,
   CV_MAX_BYTES,
   CV_MAX_PAGES,
   DATA_MODULES,
@@ -34,6 +35,7 @@ import {
 } from './constants.mjs';
 import { getCvFingerprint } from './utils/fingerprint.mjs';
 import { renderFontFaces } from './utils/fonts.mjs';
+import { toInlineIcon } from './utils/icons.mjs';
 import { buildCvContents } from './utils/languages.mjs';
 import { addPdfInfo, buildPdfInfo, listCvPdfInfo } from './utils/metadata.mjs';
 import { findPdfProblems, isSamePdfApartFromDates, readPdf } from './utils/pdf.mjs';
@@ -136,12 +138,23 @@ const fontFaces = renderFontFaces({
 });
 const fonts = listFontsInUse({ theme, fontsInUse: FONTS_IN_USE });
 
+const icons = Object.fromEntries(
+  Object.entries(CV_ICON_FILES).map(([name, file]) => [
+    name,
+    toInlineIcon(readFileSync(file, 'utf8')),
+  ]),
+);
+const invalidIcons = Object.keys(icons).filter(name => icons[name] === '');
+if (invalidIcons.length > 0) {
+  throw new Error(`Icons of the CV that hold no SVG drawing: ${invalidIcons.join(', ')}`);
+}
+
 /** @type {{ fileName: string, file: Buffer }[]} */
 const files = [];
 // One after the other, so that only one Chromium runs at a time
 for (const content of contents) {
   const fileName = join(PUBLIC_DIR, cvUrls[content.language]);
-  const html = renderCvHtml({ content, styles, fontFaces });
+  const html = renderCvHtml({ content, styles, fontFaces, icons });
   const info = buildPdfInfo(content);
   const file = await printPdf({ html, fonts, info });
   const problems = findPdfProblems({

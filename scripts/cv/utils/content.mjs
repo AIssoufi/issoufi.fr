@@ -148,7 +148,7 @@ const buildDegrees = education =>
  */
 
 /**
- * Lists the contact details of the header: email, phone and city.
+ * Lists the contact details of the header: email, phone and city, each with its icon.
  * @param {BuildContactsParams} params
  * @returns {CvLink[]} The details whose text is filled, in that order, the email address and the
  * phone number as links.
@@ -157,11 +157,13 @@ const buildContacts = ({ contact, texts }) => {
   const email = toText(contact.email);
   const isEmailAddress = EMAIL_PATTERN.test(email);
 
-  return [
-    { text: email, url: isEmailAddress ? `${MAILTO_PREFIX}${email}` : '' },
-    { text: toText(texts.phone), url: toLinkUrl(contact.phoneUrl) },
-    { text: toText(texts.location), url: '' },
-  ].filter(({ text }) => isFilled(text));
+  /** @type {CvLink[]} */
+  const contacts = [
+    { text: email, url: isEmailAddress ? `${MAILTO_PREFIX}${email}` : '', icon: 'email' },
+    { text: toText(texts.phone), url: toLinkUrl(contact.phoneUrl), icon: 'phone' },
+    { text: toText(texts.location), url: '', icon: 'location' },
+  ];
+  return contacts.filter(({ text }) => isFilled(text));
 };
 
 /**
@@ -173,17 +175,20 @@ const buildContacts = ({ contact, texts }) => {
  */
 
 /**
- * Lists the links of the header to the site and the LinkedIn profile of its owner. The CV leaves
- * out the GitHub profile: the repository of the site, which its proof of practice links to,
- * shows the work better.
+ * Lists the links of the header to the site and the LinkedIn profile of its owner, each with its
+ * icon. The CV leaves out the GitHub profile: the repository of the site, which its proof of
+ * practice links to, shows the work better.
  * @param {BuildProfilesParams} params
  * @returns {CvLink[]} The links whose text is filled, in that order.
  */
-const buildProfiles = ({ siteUrl, siteDomain, linkedInUrl }) =>
-  [
-    { text: siteDomain, url: toLinkUrl(siteUrl) },
-    { text: toLinkText(linkedInUrl), url: toLinkUrl(linkedInUrl) },
-  ].filter(({ text }) => isFilled(text));
+const buildProfiles = ({ siteUrl, siteDomain, linkedInUrl }) => {
+  /** @type {CvLink[]} */
+  const profiles = [
+    { text: siteDomain, url: toLinkUrl(siteUrl), icon: 'site' },
+    { text: toLinkText(linkedInUrl), url: toLinkUrl(linkedInUrl), icon: 'linkedin' },
+  ];
+  return profiles.filter(({ text }) => isFilled(text));
+};
 
 /**
  * Parameters of {@link buildCvContent}.

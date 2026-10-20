@@ -28,8 +28,16 @@ describe('buildCvContents', () => {
   it('links each CV to the home page of its language', async () => {
     const [french, english] = await buildCvContents(CV_SOURCES);
 
-    expect(french.profiles).toContainEqual({ text: 'issoufi.fr', url: 'https://issoufi.fr/' });
-    expect(english.profiles).toContainEqual({ text: 'issoufi.fr', url: 'https://issoufi.fr/en/' });
+    expect(french.profiles[0]).toEqual({
+      text: 'issoufi.fr',
+      url: 'https://issoufi.fr/',
+      icon: 'site',
+    });
+    expect(english.profiles[0]).toEqual({
+      text: 'issoufi.fr',
+      url: 'https://issoufi.fr/en/',
+      icon: 'site',
+    });
   });
 
   it('writes the French text of a key that English lacks, as the site does', async () => {

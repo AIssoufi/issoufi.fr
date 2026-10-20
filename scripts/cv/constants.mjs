@@ -75,6 +75,34 @@ export const CV_FONT_FILES = {
   bold: 'Montserrat-Bold.ttf',
 };
 
+/**
+ * File of each icon of the contact details, relative to the project root, by its name: a
+ * monochrome drawing in the color of its text, drawn for the CV, but the LinkedIn logo, which the
+ * menu of the site shows too.
+ */
+export const CV_ICON_FILES = {
+  email: 'scripts/cv/icons/email.svg',
+  phone: 'scripts/cv/icons/phone.svg',
+  location: 'scripts/cv/icons/location.svg',
+  site: 'scripts/cv/icons/site.svg',
+  linkedin: 'src/App/Header/NavMenu/ProfileLinks/icons/linkedin.svg',
+};
+
+/** XML declarations and comments of an SVG file, which an icon inside the page leaves out. */
+export const XML_PROLOG_AND_COMMENTS_PATTERN = /<\?xml[\s\S]*?\?>|<!--[\s\S]*?-->/g;
+
+/** Opening of the root element of an SVG drawing, before its attributes. */
+export const SVG_OPENING_PATTERN = /^<svg(?=[\s>])/;
+
+/** Closing of the root element of an SVG drawing. */
+export const SVG_CLOSING_TAG = '</svg>';
+
+/**
+ * Attributes that an icon of the CV gets: the class that sizes it, and the attribute that hides it
+ * from screen readers and from the tags of the PDF, since the text next to it says what it shows.
+ */
+export const ICON_ATTRIBUTES = 'class="icon" aria-hidden="true"';
+
 /** Format of the font files of {@link CV_FONT_FILES}, in the `src` of their `@font-face` rules. */
 export const FONT_FORMAT = 'truetype';
 
@@ -267,6 +295,10 @@ export const CV_LAYOUT = {
   bulletMarkRaise: '0.12em',
   /** Space between two contact details. */
   contactGap: '3.5mm',
+  /** Side of the icon before a contact detail. */
+  contactIconSize: '1.1em',
+  /** Space between the icon of a contact detail and its text. */
+  contactIconGap: '1.2mm',
   /** Space between two columns. */
   columnGap: '6mm',
 };

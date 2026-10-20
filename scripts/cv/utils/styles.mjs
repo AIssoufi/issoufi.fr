@@ -107,6 +107,17 @@ export const renderCvStyles = theme => {
       .contacts + .contacts {
         margin-top: 0;
       }
+      .contacts li {
+        display: flex;
+        align-items: center;
+        column-gap: ${CV_LAYOUT.contactIconGap};
+      }
+      .icon {
+        flex-shrink: 0;
+        width: ${CV_LAYOUT.contactIconSize};
+        height: ${CV_LAYOUT.contactIconSize};
+        color: ${colors.accent};
+      }
       .section {
         margin-top: ${CV_LAYOUT.sectionMarginTop};
       }
