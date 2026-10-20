@@ -1,5 +1,15 @@
 # Changelog
 
+## [1.4.2](https://github.com/AIssoufi/issoufi.fr/compare/v1.4.1...v1.4.2) (2026-10-20)
+
+
+### Documentation
+
+* link the evolution page and state the rule of the decision records ([d7d8ff6](https://github.com/AIssoufi/issoufi.fr/commit/d7d8ff668e6253a43e0d29bc3ed44f0f14f95397))
+* record the past tool changes in decision records ([d2624f6](https://github.com/AIssoufi/issoufi.fr/commit/d2624f68bda233ea6a5ac708cbc6e0606cb80180))
+* renumber the decision on the deploy trigger as 0016 ([0d5dccc](https://github.com/AIssoufi/issoufi.fr/commit/0d5dccc9cd7b98c2e23a83caf8f7ed108b1cd795))
+* tell the evolution of the tools era by era ([87f49ef](https://github.com/AIssoufi/issoufi.fr/commit/87f49eff20850539a2ca46f0ab24949257053b7b))
+
 ## [1.4.1](https://github.com/AIssoufi/issoufi.fr/compare/v1.4.0...v1.4.1) (2026-10-20)
 
 
