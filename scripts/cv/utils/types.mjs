@@ -122,8 +122,8 @@
  * follows the job title on its line. The CV leaves out the line under it, which offers the
  * services of a freelancer to clients.
  * @property {CvLink[]} contacts - Contact details, links or not: email, phone and city.
- * @property {CvLink[]} profiles - Links to the site and the LinkedIn profile of its owner, on
- * the line under the contact details.
+ * @property {CvLink[]} profiles - Links to the site and the LinkedIn profile of its owner, after
+ * the contact details on their line.
  * @property {CvProfile} profile - Profile that opens the CV, from the data of the CV.
  * @property {CvSection<CvSkillGroup>} skills - Skills by category, from the data of the CV.
  * @property {CvSection<CvExperience>} experiences - Experiences of the Experiences page.

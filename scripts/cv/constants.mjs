@@ -174,7 +174,11 @@ export const CV_LAYOUT = {
   /** Thickness of the line under the header and under each section title. */
   ruleWidth: '0.6pt',
   /** Space between two companies. */
-  companyGap: '3mm',
+  companyGap: '5mm',
+  /** Space around the name of a company, inside its tinted band: above and below, then aside. */
+  companyBandPadding: '0.8mm 2mm',
+  /** Thickness of the line on the left of the band of a company. */
+  companyBandRuleWidth: '2pt',
   /** Space between two roles, two projects or two degrees. */
   itemGap: '1.5mm',
   /** Space between the title of a block and its text. */

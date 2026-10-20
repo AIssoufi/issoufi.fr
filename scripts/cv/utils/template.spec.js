@@ -131,19 +131,26 @@ describe('renderCvHtml', () => {
     );
   });
 
-  it('links the contact details that have a URL, and only them, then the profiles on their line', () => {
+  it('links the contact details that have a URL, and only them, then the profiles on one line', () => {
     const document = renderDocument(FRENCH_CV);
-    const [contactList, profileList] = document.querySelectorAll('.contacts');
-    const readItems = list =>
-      [...list.querySelectorAll('li')].map(item => ({
-        text: item.textContent,
-        url: item.querySelector('a')?.getAttribute('href') ?? '',
-      }));
+    const lists = document.querySelectorAll('.contacts');
+    const items = [...lists[0].querySelectorAll('li')].map(item => ({
+      text: item.textContent,
+      url: item.querySelector('a')?.getAttribute('href') ?? '',
+    }));
 
     const toItem = ({ text, url }) => ({ text, url });
 
-    expect(readItems(contactList)).toEqual(FRENCH_CV.contacts.map(toItem));
-    expect(readItems(profileList)).toEqual(FRENCH_CV.profiles.map(toItem));
+    expect(lists).toHaveLength(1);
+    expect(items).toEqual([...FRENCH_CV.contacts, ...FRENCH_CV.profiles].map(toItem));
+  });
+
+  it('writes the profiles alone on the line of the contact details when there are none', () => {
+    const document = renderDocument({ ...FRENCH_CV, contacts: [] });
+
+    expect(getTexts({ document, selector: '.contacts li' })).toEqual(
+      FRENCH_CV.profiles.map(({ text }) => text),
+    );
   });
 
   it('writes the icon of each contact detail before its text, hidden from screen readers', () => {
@@ -157,6 +164,7 @@ describe('renderCvHtml', () => {
         { text: 'adam@example.com', url: 'mailto:adam@example.com', icon: 'email' },
         { text: 'Paris', url: '', icon: 'location' },
       ],
+      profiles: [],
     };
     const html = renderCvHtml({ content, styles, fontFaces: '', icons });
 

@@ -14,9 +14,9 @@ import { CV_LAYOUT, CV_PAPER_FORMAT } from '../constants.mjs';
 /**
  * Builds the style sheet of the CV from the design tokens of the site and the print sizes of
  * {@link CV_LAYOUT}: a sober A4 layout, dark text on white paper with the plum of the site for the
- * name, the section titles, the icons of the contact details and the links, in one column.
- * Ligatures are turned off, so a search for "fi" finds the text in every PDF reader. A missing
- * token shows as `undefined` in it.
+ * name, the section titles, the bands of the companies, the icons of the contact details and the
+ * links, in one column. Ligatures are turned off, so a search for "fi" finds the text in every PDF
+ * reader. A missing token shows as `undefined` in it.
  * @param {CvTheme} theme - Design tokens of the site.
  * @returns {string} The CSS of the page.
  * @example
@@ -94,17 +94,16 @@ export const renderCvStyles = theme => {
         font-size: ${CV_LAYOUT.jobTitleFontSize};
         font-weight: ${fontWeights.medium};
       }
+      /* The contact details spread over the full width of the header, on one line. */
       .contacts {
         display: flex;
         flex-wrap: wrap;
+        justify-content: space-between;
         column-gap: ${CV_LAYOUT.contactGap};
         margin-top: ${CV_LAYOUT.itemGap};
         list-style: none;
         font-size: ${CV_LAYOUT.contactFontSize};
         font-weight: ${fontWeights.medium};
-      }
-      .contacts + .contacts {
-        margin-top: 0;
       }
       .contacts li {
         display: flex;
@@ -140,7 +139,13 @@ export const renderCvStyles = theme => {
         font-size: ${CV_LAYOUT.roleFontSize};
         font-weight: ${fontWeights.bold};
       }
+      /* A tinted band opens each company, so that the eye sees where the next one starts, even at
+         the top of a page, where a rule between two companies would hang alone. */
       .company-name {
+        padding: ${CV_LAYOUT.companyBandPadding};
+        border-left: ${CV_LAYOUT.companyBandRuleWidth} solid ${colors.accent};
+        background-color: ${colors['accent-a10']};
+        color: ${colors.accent};
         font-size: ${CV_LAYOUT.companyFontSize};
       }
       .details,
