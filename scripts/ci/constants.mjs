@@ -214,6 +214,34 @@ export const REDIRECTED_SITE_URLS = [
  */
 export const MAX_REDIRECT_HOPS = 5;
 
+/**
+ * File of the build, copied from `public/`, whose redirects Cloudflare Pages serves, such as the
+ * short links of the CVs: the smoke test checks each one on the deployed site.
+ * @see https://developers.cloudflare.com/pages/configuration/redirects/
+ */
+export const REDIRECTS_FILE = '_redirects';
+
+/** Status that Cloudflare Pages gives a redirect of {@link REDIRECTS_FILE} whose line has none. */
+export const DEFAULT_REDIRECT_STATUS = 302;
+
+/** Mark that starts a comment line of {@link REDIRECTS_FILE}. */
+export const REDIRECT_COMMENT_MARK = '#';
+
+/** Spaces between the fields of a line of {@link REDIRECTS_FILE}. */
+export const REDIRECT_FIELD_SEPARATOR_PATTERN = /\s+/;
+
+/** Fewest fields of a redirect of {@link REDIRECTS_FILE}: its source and its target. */
+export const MIN_REDIRECT_FIELD_COUNT = 2;
+
+/** Most fields of a redirect of {@link REDIRECTS_FILE}: its source, its target and its status. */
+export const MAX_REDIRECT_FIELD_COUNT = 3;
+
+/**
+ * Marks of a source of {@link REDIRECTS_FILE} that matches many paths, a splat (`/blog/*`) or a
+ * placeholder (`/users/:id`), which no single request checks.
+ */
+export const REDIRECT_PATTERN_MARK_PATTERN = /[*:]/;
+
 /** Number of times the smoke test checks the site before failing, while a deployment spreads. */
 export const SMOKE_TEST_ATTEMPTS = 5;
 
@@ -497,7 +525,8 @@ export const MAIN_CI_RUN_LOOKUP_DELAY_MS = 5000;
 
 /**
  * Line break of any platform, which a step output of GitHub Actions cannot hold, and before which
- * the summary of the screenshot comparison cuts the error of a screen.
+ * the summary of the screenshot comparison cuts the error of a screen, and on which
+ * {@link REDIRECTS_FILE} splits its lines.
  */
 export const LINE_BREAK_PATTERN = /[\r\n]/;
 
