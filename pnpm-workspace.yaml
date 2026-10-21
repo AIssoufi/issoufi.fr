@@ -8,6 +8,13 @@ minimumReleaseAgeExclude:
   - pnpm
   - '@pnpm/*'
 
+allowBuilds:
+  # Both come with wrangler. Their binaries come from the platform packages of the lockfile: their
+  # install scripts only check them, and download one from npm, outside the lockfile, when it is
+  # missing. wrangler pages deploy, deploy and dev work without these scripts
+  esbuild: false
+  workerd: false
+
 overrides:
   # Keeps every copy of postcss, which only Vite uses since styled-components 6.5, at a version
   # without the GHSA path-traversal/file-read alerts that no Dependabot PR covered, and within
