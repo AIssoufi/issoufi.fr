@@ -41,7 +41,8 @@
     "typescript-eslint": "^8.71.1",
     "vite": "^8.3.4",
     "vite-plugin-svgr": "^5.2.0",
-    "vitest": "^4.1.11"
+    "vitest": "^4.1.11",
+    "wrangler": "^4.151.0"
   },
   "scripts": {
     "dev": "vite --configLoader native",

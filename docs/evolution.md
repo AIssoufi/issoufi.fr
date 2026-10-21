@@ -142,4 +142,14 @@ On 2026-10-21, pnpm goes from 10.34.7 to 12.14.0 ([#354](https://github.com/AIss
 | Clean install           | 1.8 s            | 0.7 s           |
 | `pnpm audit` advisories | 0                | 0               |
 
-Decision: [0015](decisions/0015-render-at-build-time.md), [0016](decisions/0016-cloudflare-worker-deploy-trigger.md), [0017](decisions/0017-typescript-6.md), [0018](decisions/0018-pnpm-12.md).
+On 2026-10-22, the deploy runs the wrangler of the lockfile instead of the latest one that it installed at each run, and the workflows reference the actions of third parties by the SHA of a commit instead of a tag ([#359](https://github.com/AIssoufi/issoufi.fr/issues/359)). The duration of the CI is in the pull request.
+
+| Figure                     | Before                     | After                      |
+| -------------------------- | -------------------------- | -------------------------- |
+| `deploy` job in CI, median | 22 s                       | 26 s                       |
+| Cache of the pnpm store    | 98.3 MB                    | 156.2 MB                   |
+| wrangler of the deploy     | the latest 4.x at each run | 4.151.0, from the lockfile |
+| Clean install              | 0.5 s                      | 0.5 s                      |
+| `pnpm audit` advisories    | 2 moderate                 | 2 moderate                 |
+
+Decision: [0015](decisions/0015-render-at-build-time.md), [0016](decisions/0016-cloudflare-worker-deploy-trigger.md), [0017](decisions/0017-typescript-6.md), [0018](decisions/0018-pnpm-12.md), [0019](decisions/0019-locked-build-chain.md).
