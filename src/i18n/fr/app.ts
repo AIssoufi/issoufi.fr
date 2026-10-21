@@ -43,10 +43,6 @@ export const frApp = {
       // The page rendered at build time, which cannot know the path that the visitor typed
       messageWithoutPath: 'Cette page n’existe pas.',
     },
-    forbidden: {
-      title: 'Accès refusé',
-      message: 'Vous n’avez pas l’autorisation d’accéder à cette page.',
-    },
     unexpected: {
       title: 'Une erreur est survenue',
       message: 'Cette page n’a pas pu s’afficher. Rechargez-la pour réessayer.',

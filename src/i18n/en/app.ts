@@ -39,10 +39,6 @@ export const enApp = {
       message: 'The page {{path}} does not exist.',
       messageWithoutPath: 'This page does not exist.',
     },
-    forbidden: {
-      title: 'Access denied',
-      message: 'You do not have permission to access this page.',
-    },
     unexpected: {
       title: 'Something went wrong',
       message: 'This page could not be displayed. Reload it to try again.',
