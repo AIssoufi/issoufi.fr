@@ -156,7 +156,11 @@ describe('listCvLinks', () => {
       'https://www.linkedin.com/in/issoufiadam',
       'https://github.com/AIssoufi/issoufi.fr',
       'https://github.com/AIssoufi/issoufi.fr/tree/develop/docs/ai-workflow',
-      'https://aissoufi.github.io/chess/',
+      'https://kane.issoufi.fr/',
+      'https://chess.issoufi.fr/',
+      'https://pedalboards.issoufi.fr/',
+      'https://connect-four.issoufi.fr/',
+      'https://calculator.issoufi.fr/',
     ]);
   });
 });

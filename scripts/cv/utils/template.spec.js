@@ -216,12 +216,17 @@ describe('renderCvHtml', () => {
     },
   );
 
-  it('links a project of the Projects page that has a URL', () => {
+  it('links each project of the Projects page that has a URL to its demo', () => {
     const document = renderDocument(FRENCH_CV);
-    const link = document.querySelector('.entries a');
+    const links = [...document.querySelectorAll('.entries a')];
 
-    expect(link.getAttribute('href')).toBe('https://aissoufi.github.io/chess/');
-    expect(link.textContent).toBe('Jeu d’échecs');
+    expect(links.map(link => [link.textContent, link.getAttribute('href')])).toEqual([
+      ['Kane Riviera Transfert', 'https://kane.issoufi.fr/'],
+      ['Jeu d’échecs', 'https://chess.issoufi.fr/'],
+      ['Magasin de plugins audio', 'https://pedalboards.issoufi.fr/'],
+      ['Puissance 4', 'https://connect-four.issoufi.fr/'],
+      ['Calculatrice', 'https://calculator.issoufi.fr/'],
+    ]);
   });
 
   it('writes each degree with its years and its school', () => {
@@ -290,7 +295,7 @@ describe('renderCvHtml', () => {
             title: 'Projets personnels',
             items: [
               { name: 'Calculatrice', url: '' },
-              { name: 'Jeu d’échecs', url: 'https://aissoufi.github.io/chess/' },
+              { name: 'Jeu d’échecs', url: 'https://chess.issoufi.fr/' },
             ],
           },
         ],
@@ -299,7 +304,7 @@ describe('renderCvHtml', () => {
     const document = renderDocument(content);
 
     expect(document.querySelector('.entries').innerHTML).toBe(
-      '<span class="entry">Calculatrice</span>&nbsp;· <span class="entry"><a href="https://aissoufi.github.io/chess/">Jeu d’échecs</a></span>',
+      '<span class="entry">Calculatrice</span>&nbsp;· <span class="entry"><a href="https://chess.issoufi.fr/">Jeu d’échecs</a></span>',
     );
   });
 });
