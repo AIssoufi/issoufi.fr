@@ -2,9 +2,15 @@ import '@testing-library/jest-dom/vitest';
 import type { RenderOptions } from '@testing-library/react';
 import type { ReactNode } from 'react';
 import { afterEach, vi } from 'vitest';
-import './i18n/index.ts';
 import { logDroppedCssRules } from './cssRuleGuard.ts';
+import { en } from './i18n/en.ts';
+import { fr } from './i18n/fr.ts';
+import { addTranslations } from './i18n/index.ts';
 import { describeLoggedErrors } from './testErrors.ts';
+
+// The app adds the texts of a lazy page when its chunk loads: the specs render a page, or a part
+// of it, on its own, so they start with every text
+addTranslations({ fr, en });
 
 // jsdom ignores the inert attribute: like a browser, refuse the focus to an element inside an
 // inert subtree, so that keyboard tests see the focus stay out of it. The specs that run in the

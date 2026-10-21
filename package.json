@@ -1,6 +1,6 @@
 {
   "name": "issoufi-v3",
-  "version": "1.4.2",
+  "version": "1.5.0",
   "private": true,
   "type": "module",
   "packageManager": "pnpm@10.34.7",
@@ -53,6 +53,7 @@
     "icons": "node scripts/icons/generate-icons.mjs",
     "cv": "node scripts/cv/generate-cv.mjs",
     "cv:check": "node scripts/cv/generate-cv.mjs --check",
+    "cv:audit": "node scripts/cv/audit-cv.mjs",
     "preview": "vite preview --configLoader native",
     "typecheck": "tsc -b && tsc --project scripts",
     "lint": "eslint .",

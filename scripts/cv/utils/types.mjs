@@ -50,18 +50,48 @@
  */
 
 /**
- * A contact detail of the header, or a link of the CV.
- * @typedef {object} CvLink
- * @property {string} text - Text written on the CV.
- * @property {string} url - URL it opens, `''` for a text that is not a link, such as a city.
+ * Name of an icon of the contact details, a key of `CV_ICON_FILES`.
+ * @typedef {keyof typeof import('../constants.mjs').CV_ICON_FILES} CvIconName
  */
 
 /**
- * A project of the Projects page.
+ * A contact detail of the header, or a link to the site or a profile of its owner.
+ * @typedef {object} CvLink
+ * @property {string} text - Text written on the CV.
+ * @property {string} url - URL it opens, `''` for a text that is not a link, such as a city.
+ * @property {CvIconName} icon - Icon written before the text, which shows what it is.
+ */
+
+/**
+ * A link that a label introduces, e.g. "Code : github.com/AIssoufi/issoufi.fr".
+ * @typedef {object} CvLabeledLink
+ * @property {string} label - What the link leads to, e.g. "Code".
+ * @property {string} text - Text of the link: its web address without its scheme.
+ * @property {string} url - URL it opens.
+ */
+
+/**
+ * The profile that opens the CV.
+ * @typedef {object} CvProfile
+ * @property {string} title - Title of the section, e.g. "Profil".
+ * @property {string} summary - Role, scope and practice of the author, in three or four lines.
+ * @property {string} proof - Where a reader can check the practice of AI agents that the summary
+ * describes.
+ * @property {CvLabeledLink[]} proofLinks - Links to that proof, each after its label.
+ */
+
+/**
+ * Skills of one category.
+ * @typedef {object} CvSkillGroup
+ * @property {string} category - Name of the category, e.g. "Front-end".
+ * @property {string[]} items - Skills, as the job descriptions write them, e.g. "React.js".
+ */
+
+/**
+ * A project of the Projects page, which the CV names only: its kind and its technologies, older
+ * than the experiences, would take the space of the recent ones.
  * @typedef {object} CvProjectItem
  * @property {string} name - Name of the project, or of the client.
- * @property {string} type - Kind of project, e.g. "Site vitrine".
- * @property {string[]} tools - Technologies of the project.
  * @property {string} url - URL of the project, `''` without one.
  */
 
@@ -78,7 +108,6 @@
  * @property {string} degree - Name of the degree.
  * @property {string} period - Years of study, e.g. "2016 – 2019".
  * @property {string} school - School or university.
- * @property {string} description - What it taught, `''` without one.
  */
 
 /**
@@ -93,17 +122,25 @@
  * Everything the CV writes, in one language.
  * @typedef {object} CvContent
  * @property {string} language - Code of the language, e.g. `fr`.
- * @property {string} title - Title of the document, e.g. "CV - ADAM Issoufi".
+ * @property {string} title - Title of the document, e.g.
+ * "CV - ADAM Issoufi - Développeur full-stack JavaScript".
+ * @property {string} subject - Subject of the document, in its information: the role and what
+ * sets its author apart, which PDF readers show and recruiting tools index.
+ * @property {string[]} keywords - Keywords of the document, in its information: terms that the
+ * CV writes and that recruiting tools search, e.g. `React`.
+ * @property {string} labelSeparator - What separates a label from the text it introduces, e.g.
+ * the no-break space, the colon and the space of French.
  * @property {string} name - Name of the site's author.
  * @property {string} jobTitle - Job title.
- * @property {TextSegment[]} passion - Line about UX and UI design, as on the home page.
- * @property {string} subtitle - Line under it, as on the home page.
- * @property {CvLink[]} contacts - Contact details, links or not: email, phone, city, mobility.
- * @property {CvLink[]} profiles - Links to the site and the profiles of its owner, on the line
- * under the contact details.
+ * @property {TextSegment[]} passion - Line about UX and UI design, as on the home page. The CV
+ * leaves out the line under it, which offers the services of a freelancer to clients.
+ * @property {CvLink[]} contacts - Contact details, links or not: email, phone and city.
+ * @property {CvLink[]} profiles - Links to the site and the LinkedIn profile of its owner, on
+ * the line under the contact details.
+ * @property {CvProfile} profile - Profile that opens the CV, from the data of the CV.
+ * @property {CvSection<CvSkillGroup>} skills - Skills by category, from the data of the CV.
  * @property {CvSection<CvExperience>} experiences - Experiences of the Experiences page.
  * @property {CvSection<CvProjectGroup>} projects - Freelance then personal projects.
- * @property {CvSection<string>} skills - Skills, from the data of the CV.
  * @property {CvSection<CvDegree>} education - Degrees, from the data of the CV.
  */
 

@@ -1,4 +1,4 @@
-import { GITHUB_PROFILE_URL, LINKEDIN_PROFILE_URL } from '../../src/constants/profiles.ts';
+import { LINKEDIN_PROFILE_URL } from '../../src/constants/profiles.ts';
 import { DEFAULT_LANGUAGE, LANGUAGES } from '../../src/i18n/constants.ts';
 import { en } from '../../src/i18n/en.ts';
 import { fr } from '../../src/i18n/fr.ts';
@@ -24,7 +24,6 @@ export const CV_SOURCES = {
   homePath: HOME_PAGE.path,
   siteUrl: SITE_URL,
   linkedInUrl: LINKEDIN_PROFILE_URL,
-  gitHubUrl: GITHUB_PROFILE_URL,
   cvData,
   experiences,
   personalProjects,

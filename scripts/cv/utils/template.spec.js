@@ -24,7 +24,7 @@ describe('renderCvHtml', () => {
     const document = renderDocument(ENGLISH_CV);
 
     expect(document.documentElement.lang).toBe('en');
-    expect(document.title).toBe('CV - ADAM Issoufi');
+    expect(document.title).toBe('CV - ADAM Issoufi - Full-stack JavaScript Developer');
     expect(document.querySelector('meta[name="author"]').content).toBe('ADAM Issoufi');
   });
 
@@ -39,18 +39,84 @@ describe('renderCvHtml', () => {
 
     expect(getTexts({ document, selector: 'h1' })).toEqual(['ADAM Issoufi']);
     expect(getTexts({ document, selector: 'h2' })).toEqual([
+      'Profil',
+      'Compétences',
       'Expériences',
       'Projets',
-      'Compétences',
       'Formation',
     ]);
+  });
+
+  it('writes the summary of the profile, then its proof, each link after its label', () => {
+    const content = {
+      ...FRENCH_CV,
+      labelSeparator: ' : ',
+      profile: {
+        title: 'Profil',
+        summary: 'Développeur front-end',
+        proof: 'Mon site est développé par des agents',
+        proofLinks: [
+          {
+            label: 'Code',
+            text: 'github.com/AIssoufi/site',
+            url: 'https://github.com/AIssoufi/site',
+          },
+        ],
+      },
+    };
+    const document = renderDocument(content);
+    const [profile] = document.querySelectorAll('.section');
+
+    expect(getTexts({ document: profile, selector: 'p' })).toEqual([
+      'Développeur front-end',
+      'Mon site est développé par des agents',
+    ]);
+    expect(profile.querySelector('.labeled-links').innerHTML).toBe(
+      '<li><strong>Code</strong> : <a href="https://github.com/AIssoufi/site">github.com/AIssoufi/site</a></li>',
+    );
+  });
+
+  it('leaves out the proof of the profile when it is empty', () => {
+    const content = { ...FRENCH_CV, profile: { ...FRENCH_CV.profile, proof: '' } };
+    const [profile] = renderDocument(content).querySelectorAll('.section');
+
+    expect(getTexts({ document: profile, selector: 'p' })).toEqual([FRENCH_CV.profile.summary]);
+  });
+
+  it('writes each category of skills on its line, in bold, its skills after it', () => {
+    const content = {
+      ...FRENCH_CV,
+      labelSeparator: ' : ',
+      skills: {
+        title: 'Compétences',
+        items: [
+          { category: 'Front-end', items: ['React.js', 'TypeScript'] },
+          { category: 'Qualité', items: ['Tests unitaires'] },
+        ],
+      },
+    };
+    const document = renderDocument(content);
+
+    expect(getTexts({ document, selector: '.skills li' })).toEqual([
+      'Front-end : React.js, TypeScript',
+      'Qualité : Tests unitaires',
+    ]);
+    expect(getTexts({ document, selector: '.skills strong' })).toEqual(['Front-end', 'Qualité']);
+  });
+
+  it('writes a category of the real French CV with its no-break space before the colon', () => {
+    const document = renderDocument(FRENCH_CV);
+
+    expect(document.querySelector('.skills li').textContent).toMatch(
+      /^Front-end\u00a0: React\.js, TypeScript, /,
+    );
   });
 
   it('writes the design skills of the line under the job title in bold', () => {
     const document = renderDocument(FRENCH_CV);
 
     expect(document.querySelector('.tagline').textContent).toBe(
-      'passionné par l’UX et l’UI\u00a0Design · Je vous aide à développer vos applications\u00a0web',
+      'passionné par l’UX et l’UI\u00a0Design',
     );
     expect(getTexts({ document, selector: '.tagline strong' })).toEqual(['UX', 'UI']);
   });
@@ -64,20 +130,48 @@ describe('renderCvHtml', () => {
         url: item.querySelector('a')?.getAttribute('href') ?? '',
       }));
 
-    expect(readItems(contactList)).toEqual(FRENCH_CV.contacts);
-    expect(readItems(profileList)).toEqual(FRENCH_CV.profiles);
+    const toItem = ({ text, url }) => ({ text, url });
+
+    expect(readItems(contactList)).toEqual(FRENCH_CV.contacts.map(toItem));
+    expect(readItems(profileList)).toEqual(FRENCH_CV.profiles.map(toItem));
+  });
+
+  it('writes the icon of each contact detail before its text, hidden from screen readers', () => {
+    const icons = {
+      email: '<svg class="icon" aria-hidden="true"><path d="M1 1"/></svg>',
+      location: '<svg class="icon" aria-hidden="true"><circle r="1"/></svg>',
+    };
+    const content = {
+      ...FRENCH_CV,
+      contacts: [
+        { text: 'adam@example.com', url: 'mailto:adam@example.com', icon: 'email' },
+        { text: 'Paris', url: '', icon: 'location' },
+      ],
+    };
+    const html = renderCvHtml({ content, styles, fontFaces: '', icons });
+
+    expect(html).toContain(
+      `<ul class="contacts"><li>${icons.email}<a href="mailto:adam@example.com">adam@example.com</a></li><li>${icons.location}Paris</li></ul>`,
+    );
+  });
+
+  it('writes a contact detail without icon when the icons lack its own', () => {
+    const document = renderDocument(FRENCH_CV);
+
+    expect(document.querySelectorAll('.contacts li')).toHaveLength(5);
+    expect(document.querySelector('.contacts svg')).toBeNull();
   });
 
   it('writes each company, then each of its roles with its period', () => {
     const document = renderDocument(FRENCH_CV);
 
     expect(getTexts({ document, selector: '.company-name' })).toEqual([
-      'Sewan Groupe · CDI · Paris\u00a0(75)',
-      'Wibilong · CDI · Paris\u00a0(75)',
-      'Supralog · Alternance · Antibes\u00a0(06)',
-      'Beepeers · Stage · Valbonne\u00a0(06)',
+      'Sewan Groupe\u00a0· CDI\u00a0· Paris\u00a0(75)',
+      'Wibilong\u00a0· CDI\u00a0· Paris\u00a0(75)',
+      'Supralog\u00a0· Alternance\u00a0· Antibes\u00a0(06)',
+      'Beepeers\u00a0· Stage\u00a0· Valbonne\u00a0(06)',
     ]);
-    expect(getTexts({ document, selector: '.period' })[0]).toBe('oct. 2025 — Aujourd’hui');
+    expect(getTexts({ document, selector: '.period' })[0]).toBe('oct. 2025 – Aujourd’hui');
     expect(document.querySelectorAll('.role')).toHaveLength(7);
   });
 
@@ -96,10 +190,10 @@ describe('renderCvHtml', () => {
     );
     expect(project.querySelector('.technologies')).toBeNull();
     expect(getTexts({ document, selector: '.project-title' })).toContain(
-      'CLARIS\u00a0: refonte du SI de certification · 3 sprints livrés',
+      'CLARIS\u00a0: refonte du SI de certification\u00a0· 3 sprints livrés',
     );
     expect(getTexts({ document, selector: '.project .technologies' })).toContain(
-      'React.js · Redux.js · TypeScript · ChartJS',
+      'React.js\u00a0· Redux.js\u00a0· TypeScript\u00a0· ChartJS',
     );
   });
 
@@ -139,7 +233,7 @@ describe('renderCvHtml', () => {
       'Classe préparatoire',
     ]);
     expect(getTexts({ document, selector: '.degree-entry .details' })[0]).toBe(
-      '2016 – 2019 · Université de Nice',
+      '2016 – 2019\u00a0· Université de Nice',
     );
   });
 
@@ -148,12 +242,15 @@ describe('renderCvHtml', () => {
       ...FRENCH_CV,
       name: '<script>alert(1)</script>',
       contacts: [{ text: 'R&D', url: 'https://example.com/?a="b"' }],
+      labelSeparator: ' <: ',
+      skills: { title: 'Compétences', items: [{ category: 'R&D', items: ['<b>', 'C&C'] }] },
     };
     const html = renderCvHtml({ content, styles, fontFaces: '' });
 
     expect(html).not.toContain('<script>');
     expect(html).toContain('&lt;script&gt;alert(1)&lt;/script&gt;');
     expect(html).toContain('<a href="https://example.com/?a=&quot;b&quot;">R&amp;D</a>');
+    expect(html).toContain('<li><strong>R&amp;D</strong> &lt;: &lt;b&gt;, C&amp;C</li>');
   });
 
   it('leaves out the empty parts: a role without introduction, period or technologies', () => {
@@ -169,7 +266,6 @@ describe('renderCvHtml', () => {
     };
     const content = {
       ...FRENCH_CV,
-      subtitle: '',
       passion: [],
       experiences: {
         title: 'Expériences',
@@ -184,7 +280,7 @@ describe('renderCvHtml', () => {
     expect(document.querySelector('.role').querySelectorAll('p, ul')).toHaveLength(0);
   });
 
-  it('writes a project of the Projects page without kind or technologies by its name alone', () => {
+  it('writes each project of a group in its entry, one without URL by its name alone', () => {
     const content = {
       ...FRENCH_CV,
       projects: {
@@ -192,13 +288,18 @@ describe('renderCvHtml', () => {
         items: [
           {
             title: 'Projets personnels',
-            items: [{ name: 'Calculatrice', type: '', tools: [], url: '' }],
+            items: [
+              { name: 'Calculatrice', url: '' },
+              { name: 'Jeu d’échecs', url: 'https://aissoufi.github.io/chess/' },
+            ],
           },
         ],
       },
     };
     const document = renderDocument(content);
 
-    expect(document.querySelector('.entries li').innerHTML).toBe('<strong>Calculatrice</strong>');
+    expect(document.querySelector('.entries').innerHTML).toBe(
+      '<span class="entry">Calculatrice</span>&nbsp;· <span class="entry"><a href="https://aissoufi.github.io/chess/">Jeu d’échecs</a></span>',
+    );
   });
 });

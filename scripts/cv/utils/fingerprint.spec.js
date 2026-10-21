@@ -21,7 +21,7 @@ describe('getCvFingerprint', () => {
   });
 
   it('changes when a text is shortened, which a search of the text of the PDF would miss', () => {
-    const shortened = { ...FRENCH_CV, subtitle: FRENCH_CV.subtitle.slice(0, -1) };
+    const shortened = { ...FRENCH_CV, jobTitle: FRENCH_CV.jobTitle.slice(0, -1) };
 
     expect(getCvFingerprint(shortened)).not.toBe(getCvFingerprint(FRENCH_CV));
   });

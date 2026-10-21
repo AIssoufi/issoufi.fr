@@ -16,11 +16,31 @@ describe('renderCvStyles', () => {
     expect(styles).toContain(`color: ${theme.colors.accent};`);
   });
 
-  it('marks the bullet points with the "›" of the Experiences page, inside the page', () => {
+  it('draws the mark of the bullet points, which adds no character to the text of the PDF', () => {
     expect(styles).toMatch(/\.bullets \{\s*list-style: none;/);
+    expect(styles).toMatch(/\.bullets li::before \{\s*content: '';/);
+  });
+
+  it('positions no element, which Chromium would paint, so read, after the rest of its page', () => {
+    expect(styles).not.toMatch(/position:/);
+  });
+
+  it('keeps a role on one page, so that its bullet points never leave its title', () => {
+    expect(styles).toMatch(/\.role \{[^}]*break-inside: avoid;/);
+  });
+
+  it('keeps the last word of a paragraph off a line of its own', () => {
+    expect(styles).toContain('text-wrap: pretty;');
+  });
+
+  it('justifies the paragraphs, the bullet points and the skills', () => {
     expect(styles).toMatch(
-      /\.bullets li::before \{\s*content: '›';\s*position: absolute;\s*left: 0;/,
+      /\.summary,\s*\.text,\s*\.bullets li,\s*\.skills li \{[^}]*text-align: justify;/,
     );
+  });
+
+  it('breaks a line of projects between two names, never inside one', () => {
+    expect(styles).toMatch(/\.entry \{[^}]*white-space: nowrap;/);
   });
 
   it('prints on A4 paper', () => {

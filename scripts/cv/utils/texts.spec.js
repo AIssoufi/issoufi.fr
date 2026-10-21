@@ -1,25 +1,39 @@
 import { CV_SOURCES } from '../testUtils.js';
 import { buildCvContents } from './languages.mjs';
-import { findMissingCvTexts, listCvLinks, listCvTexts } from './texts.mjs';
+import { findMissingCvTexts, findUnwrittenKeywords, listCvLinks, listCvTexts } from './texts.mjs';
 
 const [FRENCH_CV, ENGLISH_CV] = await buildCvContents(CV_SOURCES);
 
 /** A small CV, with every kind of text. */
 const CONTENT = {
   language: 'fr',
-  title: 'CV - ADAM Issoufi',
+  title: 'CV - ADAM Issoufi - Développeur',
+  subject: 'Développeur front-end',
+  keywords: ['React', 'Tests unitaires'],
+  labelSeparator: ' : ',
   name: 'ADAM Issoufi',
   jobTitle: 'Développeur',
   passion: [
     { text: 'passionné par l’', isHighlighted: false },
     { text: 'UX', isHighlighted: true },
   ],
-  subtitle: 'Je vous aide',
   contacts: [
     { text: 'adam@example.com', url: 'mailto:adam@example.com' },
     { text: 'Massy (91)', url: '' },
   ],
   profiles: [{ text: 'github.com/AIssoufi', url: 'https://github.com/AIssoufi' }],
+  profile: {
+    title: 'Profil',
+    summary: 'Développeur front-end',
+    proof: 'Mon site est développé par des agents',
+    proofLinks: [
+      { label: 'Code', text: 'github.com/AIssoufi/site', url: 'https://github.com/AIssoufi/site' },
+    ],
+  },
+  skills: {
+    title: 'Compétences',
+    items: [{ category: 'Qualité', items: ['Tests unitaires', 'Revue de code'] }],
+  },
   experiences: {
     title: 'Expériences',
     items: [
@@ -57,16 +71,15 @@ const CONTENT = {
       {
         title: 'Projets freelance',
         items: [
-          { name: 'Study SARL', type: 'Site web', tools: ['PHP'], url: 'https://study.fr/' },
-          { name: 'Calculatrice', type: '', tools: [], url: '' },
+          { name: 'Study SARL', url: 'https://study.fr/' },
+          { name: 'Calculatrice', url: '' },
         ],
       },
     ],
   },
-  skills: { title: 'Compétences', items: ['Tests unitaires'] },
   education: {
     title: 'Formation',
-    items: [{ degree: 'DUT', period: '2014 – 2016', school: 'IUT de Nice', description: '' }],
+    items: [{ degree: 'DUT', period: '2014 – 2016', school: 'IUT de Nice' }],
   },
 };
 
@@ -76,10 +89,18 @@ describe('listCvTexts', () => {
       'ADAM Issoufi',
       'Développeur',
       'passionné par l’UX',
-      'Je vous aide',
       'adam@example.com',
       'Massy (91)',
       'github.com/AIssoufi',
+      'Profil',
+      'Développeur front-end',
+      'Mon site est développé par des agents',
+      'Code',
+      'github.com/AIssoufi/site',
+      'Compétences',
+      'Qualité',
+      'Tests unitaires',
+      'Revue de code',
       'Expériences',
       'Acme',
       'Développeur',
@@ -95,11 +116,7 @@ describe('listCvTexts', () => {
       'Projets',
       'Projets freelance',
       'Study SARL',
-      'Site web',
-      'PHP',
       'Calculatrice',
-      'Compétences',
-      'Tests unitaires',
       'Formation',
       'DUT',
       '2014 – 2016',
@@ -122,21 +139,23 @@ describe('listCvTexts', () => {
 });
 
 describe('listCvLinks', () => {
-  it('lists the contact details, the profiles and the projects that are links', () => {
+  it('lists the contact details, the profiles, the proof and the projects that are links', () => {
     expect(listCvLinks(CONTENT)).toEqual([
       'mailto:adam@example.com',
       'https://github.com/AIssoufi',
+      'https://github.com/AIssoufi/site',
       'https://study.fr/',
     ]);
   });
 
   it('lists the links of the real French CV', () => {
     expect(listCvLinks(FRENCH_CV)).toEqual([
-      'mailto:issoufi.adam1@gmail.com',
+      'mailto:contact@issoufi.fr',
       'tel:+33695758632',
       'https://issoufi.fr/',
       'https://www.linkedin.com/in/issoufiadam',
-      'https://github.com/AIssoufi',
+      'https://github.com/AIssoufi/issoufi.fr',
+      'https://github.com/AIssoufi/issoufi.fr/tree/develop/docs/ai-workflow',
       'https://aissoufi.github.io/chess/',
     ]);
   });
@@ -193,16 +212,18 @@ describe('findMissingCvTexts', () => {
       ...CONTENT,
       contacts: [],
       profiles: [],
-      experiences: { ...CONTENT.experiences, items: [] },
+      profile: { ...CONTENT.profile, proofLinks: [] },
       skills: { ...CONTENT.skills, items: [] },
+      experiences: { ...CONTENT.experiences, items: [] },
       education: { ...CONTENT.education, items: [] },
     };
 
     expect(findMissingCvTexts(content)).toEqual([
       'contacts',
       'profiles',
-      'experiences.items',
+      'profile.proofLinks',
       'skills.items',
+      'experiences.items',
       'education.items',
     ]);
   });
@@ -213,13 +234,89 @@ describe('findMissingCvTexts', () => {
     expect(findMissingCvTexts({ ...CONTENT, passion })).toEqual(['passion']);
   });
 
+  it('reports a missing subject and an empty list of keywords', () => {
+    expect(findMissingCvTexts({ ...CONTENT, subject: ' ', keywords: [] })).toEqual([
+      'subject',
+      'keywords',
+    ]);
+  });
+
   it('reports the missing titles of the sections', () => {
     const content = {
       ...CONTENT,
+      profile: { ...CONTENT.profile, title: '' },
       skills: { ...CONTENT.skills, title: '' },
       education: { ...CONTENT.education, title: '' },
     };
 
-    expect(findMissingCvTexts(content)).toEqual(['skills.title', 'education.title']);
+    expect(findMissingCvTexts(content)).toEqual([
+      'profile.title',
+      'skills.title',
+      'education.title',
+    ]);
+  });
+
+  it('reports a missing separator of the labels, summary or proof of the profile', () => {
+    const content = {
+      ...CONTENT,
+      labelSeparator: '',
+      profile: { ...CONTENT.profile, summary: ' ', proof: '' },
+    };
+
+    expect(findMissingCvTexts(content)).toEqual([
+      'labelSeparator',
+      'profile.summary',
+      'profile.proof',
+    ]);
+  });
+});
+
+describe('findUnwrittenKeywords', () => {
+  it('finds none when the CV writes each keyword, whatever its case', () => {
+    const keywords = ['react', 'TESTS UNITAIRES', 'Study SARL', 'IUT de Nice', 'revue de code'];
+
+    expect(findUnwrittenKeywords({ ...CONTENT, keywords })).toEqual([]);
+  });
+
+  it('finds a keyword in a text where punctuation or spaces surround it', () => {
+    const content = { ...CONTENT, keywords: ['React', 'js', 'Study'] };
+
+    expect(findUnwrittenKeywords(content)).toEqual([]);
+  });
+
+  it('reports the keywords that the CV never writes, in their order', () => {
+    const keywords = ['Angular', 'React', 'Kubernetes'];
+
+    expect(findUnwrittenKeywords({ ...CONTENT, keywords })).toEqual(['Angular', 'Kubernetes']);
+  });
+
+  it.each([
+    ['the start of a word', 'Reac'],
+    ['the end of a word', 'eact'],
+    ['words of two texts', 'Développeur juin'],
+  ])('reports a keyword that the CV writes only as %s', (_case, keyword) => {
+    expect(findUnwrittenKeywords({ ...CONTENT, keywords: [keyword] })).toEqual([keyword]);
+  });
+
+  it('counts neither the title nor the subject, which the page does not write', () => {
+    const content = {
+      ...CONTENT,
+      title: 'CV Vue',
+      subject: 'Angular',
+      keywords: ['Vue', 'Angular'],
+    };
+
+    expect(findUnwrittenKeywords(content)).toEqual(['Vue', 'Angular']);
+  });
+
+  it('finds none in a CV without keyword', () => {
+    expect(findUnwrittenKeywords({ ...CONTENT, keywords: [] })).toEqual([]);
+  });
+
+  it.each([
+    ['French', FRENCH_CV],
+    ['English', ENGLISH_CV],
+  ])('finds none in the %s CV', (_language, content) => {
+    expect(findUnwrittenKeywords(content)).toEqual([]);
   });
 });

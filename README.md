@@ -71,6 +71,7 @@ The browser tests need Chromium once: `pnpm exec playwright install --only-shell
 | [Development](docs/development.md)        | Setup, scripts and checks                            |
 | [Architecture](docs/architecture.md)      | How the app and its pages are built                  |
 | [Assets](docs/assets.md)                  | Images, fonts, icons and the CV                      |
+| [CV audit](docs/cv-audit.md)              | How recruiters and AI screeners read the CV          |
 | [Testing](docs/testing.md)                | Unit and browser tests                               |
 | [Deployment](docs/deployment.md)          | CI, hosting and the daily deploy                     |
 | [Releases](docs/releases.md)              | Versions, changelog and standalone build             |

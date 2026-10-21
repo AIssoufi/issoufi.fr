@@ -1,4 +1,5 @@
 import type { LANGUAGES } from './constants.ts';
+import type { frApp } from './fr/app.ts';
 import type { fr } from './fr.ts';
 
 /** Code of one of the site's {@link LANGUAGES}, as i18next and the `lang` attribute use it. */
@@ -15,3 +16,6 @@ type TranslationsOf<T> = {
  * language lacks or that French does not have.
  */
 export type Translations = TranslationsOf<typeof fr>;
+
+/** Shape of the texts of the app in every language, those that i18next starts with. */
+export type AppTranslations = TranslationsOf<typeof frApp>;

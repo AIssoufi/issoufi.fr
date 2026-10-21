@@ -1,12 +1,10 @@
 // @ts-check
 import { PAGE_TITLE_SEPARATOR } from '../../utils/constants.mjs';
-import {
-  DETAILS_SEPARATOR,
-  EMAIL_PATTERN,
-  LANGUAGE_CODE_PATTERN,
-  MAILTO_PREFIX,
-} from '../constants.mjs';
+import { DETAILS_SEPARATOR } from '../constants.mjs';
+import { EMAIL_PATTERN, LANGUAGE_CODE_PATTERN, MAILTO_PREFIX } from './constants.mjs';
+import { isEntry, isFilled, toEntries, toText, toTexts } from './data.mjs';
 import { toLinkText, toLinkUrl } from './links.mjs';
+import { buildProfile, buildSkillGroups } from './profile.mjs';
 
 /** @typedef {import('./types.mjs').CvContent} CvContent */
 /** @typedef {import('./types.mjs').CvDegree} CvDegree */
@@ -19,14 +17,6 @@ import { toLinkText, toLinkUrl } from './links.mjs';
 /** @typedef {import('./types.mjs').Translate} Translate */
 
 /**
- * Reads a text of the data, so a missing or misspelled field gives an empty text instead of a
- * crash.
- * @param {unknown} value - Value to read.
- * @returns {string} The value, or `''` when it is not a string.
- */
-const toText = value => (typeof value === 'string' ? value : '');
-
-/**
  * Reads a language code of the data, so that a misspelled one never gives a wrong `lang`.
  * @param {unknown} value - Value to read, e.g. the `titleLanguage` of a role.
  * @returns {string} The code, or `''` when it is not one, as `'english'` or `42`.
@@ -35,34 +25,6 @@ const toLanguageCode = value => {
   const code = toText(value);
   return LANGUAGE_CODE_PATTERN.test(code) ? code : '';
 };
-
-/**
- * Tells whether a text holds more than spaces.
- * @param {string} text - Text to check.
- * @returns {boolean} False for `''` and `'  '`.
- */
-const isFilled = text => text.trim() !== '';
-
-/**
- * Tells whether a value of the data is an object other than a list, as an entry is.
- * @param {unknown} value - Value to check.
- * @returns {value is Record<string, any>} True for an object that is not a list.
- */
-const isEntry = value => typeof value === 'object' && value !== null && !Array.isArray(value);
-
-/**
- * Keeps the entries of a list of the data.
- * @param {unknown} value - List to read.
- * @returns {Record<string, any>[]} Its objects, or none when it is not a list.
- */
-const toEntries = value => (Array.isArray(value) ? value.filter(isEntry) : []);
-
-/**
- * Keeps the filled texts of a list of the data, such as technologies.
- * @param {unknown} value - List to read.
- * @returns {string[]} Its texts that hold more than spaces, or none when it is not a list.
- */
-const toTexts = value => (Array.isArray(value) ? value.map(toText).filter(isFilled) : []);
 
 /**
  * Parameters of {@link translateSegments}.
@@ -98,6 +60,22 @@ const translateTexts = ({ translate, keys }) =>
   (Array.isArray(keys) ? keys : []).map(key => translate(key)).filter(isFilled);
 
 /**
+ * Lists the bullet points that the CV writes for a role or a project: those of its `bulletKeys`
+ * that its `cvBulletKeys` selects, so that a role longer on the site than the page budget of the
+ * CV allows still fits, and the CV never writes a text that the site does not show.
+ * @param {Record<string, any>} entry - Role or project of `.data/experiences.json`.
+ * @returns {unknown} The keys of `bulletKeys`, in their order: all of them when `cvBulletKeys`
+ * is not a list, none when `bulletKeys` is not a list but `cvBulletKeys` is.
+ */
+const selectCvBulletKeys = ({ bulletKeys, cvBulletKeys }) => {
+  if (!Array.isArray(cvBulletKeys)) return bulletKeys;
+
+  /** @param {unknown} key - Key of `bulletKeys`. */
+  const isSelected = key => cvBulletKeys.includes(key);
+  return Array.isArray(bulletKeys) ? bulletKeys.filter(isSelected) : [];
+};
+
+/**
  * Parameters of {@link buildRole}.
  * @typedef {object} BuildRoleParams
  * @property {Translate} translate - Translates a key in the language of the CV.
@@ -115,12 +93,12 @@ const buildRole = ({ translate, role }) => ({
   start: translate(role.startKey),
   end: translate(role.endKey),
   intro: translateSegments({ translate, segments: role.intro }),
-  bullets: translateTexts({ translate, keys: role.bulletKeys }),
+  bullets: translateTexts({ translate, keys: selectCvBulletKeys(role) }),
   projects: toEntries(role.projects).map(project => ({
     title: translate(project.titleKey),
     state: translate(project.stateKey),
     description: translateSegments({ translate, segments: project.description }),
-    bullets: translateTexts({ translate, keys: project.bulletKeys }),
+    bullets: translateTexts({ translate, keys: selectCvBulletKeys(project) }),
     technologies: toTexts(project.technologies),
   })),
   technologies: toTexts(role.technologies),
@@ -149,18 +127,14 @@ export const buildExperiences = ({ translate, experiences }) =>
   }));
 
 /**
- * Turns the projects of the Projects page, already translated, into entries of the CV.
+ * Turns the projects of the Projects page, already translated, into entries of the CV: their
+ * names and their links.
  * @param {unknown} projects - Cards of `translateProjects` (`src/pages/Projects/utils.ts`).
  * @returns {CvProjectItem[]} The projects that have a name, none when `projects` is not a list.
  */
 export const buildProjectItems = projects =>
   toEntries(projects)
-    .map(({ name, type, tools, url }) => ({
-      name: toText(name),
-      type: toText(type),
-      tools: toTexts(tools),
-      url: toLinkUrl(url),
-    }))
+    .map(({ name, url }) => ({ name: toText(name), url: toLinkUrl(url) }))
     .filter(({ name }) => isFilled(name));
 
 /**
@@ -170,11 +144,10 @@ export const buildProjectItems = projects =>
  */
 const buildDegrees = education =>
   toEntries(education)
-    .map(({ degree, period, school, description }) => ({
+    .map(({ degree, period, school }) => ({
       degree: toText(degree),
       period: toText(period),
       school: toText(school),
-      description: toText(description),
     }))
     .filter(({ degree }) => isFilled(degree));
 
@@ -187,7 +160,7 @@ const buildDegrees = education =>
  */
 
 /**
- * Lists the contact details of the header: email, phone, city and mobility.
+ * Lists the contact details of the header: email, phone and city, each with its icon.
  * @param {BuildContactsParams} params
  * @returns {CvLink[]} The details whose text is filled, in that order, the email address and the
  * phone number as links.
@@ -196,12 +169,13 @@ const buildContacts = ({ contact, texts }) => {
   const email = toText(contact.email);
   const isEmailAddress = EMAIL_PATTERN.test(email);
 
-  return [
-    { text: email, url: isEmailAddress ? `${MAILTO_PREFIX}${email}` : '' },
-    { text: toText(texts.phone), url: toLinkUrl(contact.phoneUrl) },
-    { text: toText(texts.location), url: '' },
-    { text: toText(texts.mobility), url: '' },
-  ].filter(({ text }) => isFilled(text));
+  /** @type {CvLink[]} */
+  const contacts = [
+    { text: email, url: isEmailAddress ? `${MAILTO_PREFIX}${email}` : '', icon: 'email' },
+    { text: toText(texts.phone), url: toLinkUrl(contact.phoneUrl), icon: 'phone' },
+    { text: toText(texts.location), url: '', icon: 'location' },
+  ];
+  return contacts.filter(({ text }) => isFilled(text));
 };
 
 /**
@@ -210,21 +184,23 @@ const buildContacts = ({ contact, texts }) => {
  * @property {string} siteUrl - URL of the home page of the site in the language.
  * @property {string} siteDomain - Domain of the site, written for that link.
  * @property {unknown} linkedInUrl - LinkedIn profile of the site owner.
- * @property {unknown} gitHubUrl - GitHub profile of the site owner.
  */
 
 /**
- * Lists the links of the header to the site and the profiles of the site owner: the site,
- * LinkedIn and GitHub.
+ * Lists the links of the header to the site and the LinkedIn profile of its owner, each with its
+ * icon. The CV leaves out the GitHub profile: the repository of the site, which its proof of
+ * practice links to, shows the work better.
  * @param {BuildProfilesParams} params
  * @returns {CvLink[]} The links whose text is filled, in that order.
  */
-const buildProfiles = ({ siteUrl, siteDomain, linkedInUrl, gitHubUrl }) =>
-  [
-    { text: siteDomain, url: toLinkUrl(siteUrl) },
-    { text: toLinkText(linkedInUrl), url: toLinkUrl(linkedInUrl) },
-    { text: toLinkText(gitHubUrl), url: toLinkUrl(gitHubUrl) },
-  ].filter(({ text }) => isFilled(text));
+const buildProfiles = ({ siteUrl, siteDomain, linkedInUrl }) => {
+  /** @type {CvLink[]} */
+  const profiles = [
+    { text: siteDomain, url: toLinkUrl(siteUrl), icon: 'site' },
+    { text: toLinkText(linkedInUrl), url: toLinkUrl(linkedInUrl), icon: 'linkedin' },
+  ];
+  return profiles.filter(({ text }) => isFilled(text));
+};
 
 /**
  * Parameters of {@link buildCvContent}.
@@ -240,14 +216,14 @@ const buildProfiles = ({ siteUrl, siteDomain, linkedInUrl, gitHubUrl }) =>
  * @property {unknown} freelanceProjects - Freelance projects, translated by `translateProjects`.
  * @property {string} siteUrl - URL of the home page of the site in that language.
  * @property {unknown} linkedInUrl - LinkedIn profile of the site owner.
- * @property {unknown} gitHubUrl - GitHub profile of the site owner.
  */
 
 /**
  * Gathers everything the CV of one language writes: the name and the job title of the home page,
  * the contact details and the links to the site and the profiles of its owner, the experiences
  * of the Experiences page, the projects of the Projects page, and the skills and the education
- * of the data of the CV, which the site does not show.
+ * of the data of the CV, which the site does not show, with the subject and the keywords that its
+ * document information gives.
  * @param {BuildCvContentParams} params
  * @returns {CvContent} The content, with empty texts where the data or a translation lacks one.
  * @example
@@ -264,7 +240,6 @@ export const buildCvContent = ({
   freelanceProjects,
   siteUrl,
   linkedInUrl,
-  gitHubUrl,
 }) => {
   const texts = isEntry(cvData?.languages?.[language]) ? cvData.languages[language] : {};
   const contact = isEntry(cvData?.contact) ? cvData.contact : {};
@@ -272,18 +247,19 @@ export const buildCvContent = ({
 
   return {
     language,
-    title: [documentName, homeTexts.name].filter(isFilled).join(PAGE_TITLE_SEPARATOR),
+    title: [documentName, homeTexts.name, homeTexts.jobTitle]
+      .filter(isFilled)
+      .join(PAGE_TITLE_SEPARATOR),
+    subject: toText(texts.subject),
+    keywords: toTexts(texts.keywords),
+    labelSeparator: toText(texts.labelSeparator),
     name: homeTexts.name,
     jobTitle: homeTexts.jobTitle,
     passion: homeTexts.passion,
-    subtitle: homeTexts.subtitle,
     contacts: buildContacts({ contact, texts }),
-    profiles: buildProfiles({
-      siteUrl,
-      siteDomain: homeTexts.site,
-      linkedInUrl,
-      gitHubUrl,
-    }),
+    profiles: buildProfiles({ siteUrl, siteDomain: homeTexts.site, linkedInUrl }),
+    profile: buildProfile(texts),
+    skills: { title: toText(texts.skillsTitle), items: buildSkillGroups(texts.skills) },
     experiences: {
       title: translate('exp.pageTitle'),
       items: buildExperiences({ translate, experiences }),
@@ -295,7 +271,6 @@ export const buildCvContent = ({
         { title: translate('projects.personal'), items: buildProjectItems(personalProjects) },
       ].filter(({ items }) => items.length > 0),
     },
-    skills: { title: toText(texts.skillsTitle), items: toTexts(texts.skills) },
     education: { title: toText(texts.educationTitle), items: buildDegrees(texts.education) },
   };
 };
