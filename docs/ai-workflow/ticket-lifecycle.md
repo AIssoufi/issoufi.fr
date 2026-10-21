@@ -27,7 +27,7 @@ Within a priority, what unblocks other tickets goes first, then the cheapest. Tw
 
 ## 2. A worker
 
-The master starts the worker with `ticket.mjs start <ticket> --agent` (`ticket-worktree` skill): a Worktrunk worktree next to the main checkout, a branch named after the ticket, a cmux workspace and a Claude session in it. The effort of the session follows what the ticket asks: the most for architecture, the build or the CI, less for docs or a mechanical change.
+The master starts the worker with `ticket.mjs start <ticket> --agent` (`ticket-worktree` skill): a Worktrunk worktree in `~/Sources/worktrees.noindex/<repo>.<ticket>` (`AIssoufi.github.io.ISF-35`), a branch named after the ticket, a cmux workspace and a Claude session in it. The worktrees sit apart from the main checkout, in a folder whose `.noindex` suffix makes Spotlight skip it, so that macOS does not index the `node_modules` and the builds of each one; `ticket.mjs` finds them through `git worktree list`. The effort of the session follows what the ticket asks: the most for architecture, the build or the CI, less for docs or a mechanical change.
 
 ## 3. A pull request
 
