@@ -135,4 +135,11 @@ On 2026-10-21, TypeScript goes from 5.9.3 to 6.0.3 ([#352](https://github.com/AI
 | `pnpm build`            | 3.9 s          | 4.2 s         |
 | `pnpm audit` advisories | 0              | 0             |
 
-Decision: [0015](decisions/0015-render-at-build-time.md), [0016](decisions/0016-cloudflare-worker-deploy-trigger.md), [0017](decisions/0017-typescript-6.md).
+On 2026-10-21, pnpm goes from 10.34.7 to 12.14.0 ([#354](https://github.com/AIssoufi/issoufi.fr/pull/354)), with `pmOnFail: ignore`, which keeps `pnpm-lock.yaml` one document so that the dependency graph of GitHub still sees the dependencies. The duration of the CI is in the pull request.
+
+| Figure                  | Before (10.34.7) | After (12.14.0) |
+| ----------------------- | ---------------- | --------------- |
+| Clean install           | 1.8 s            | 0.7 s           |
+| `pnpm audit` advisories | 0                | 0               |
+
+Decision: [0015](decisions/0015-render-at-build-time.md), [0016](decisions/0016-cloudflare-worker-deploy-trigger.md), [0017](decisions/0017-typescript-6.md), [0018](decisions/0018-pnpm-12.md).

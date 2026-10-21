@@ -2,7 +2,8 @@
 # Dependabot cooldown, which applies this setting when it updates the lockfile
 minimumReleaseAge: 10080
 # pnpm itself is pinned on purpose by the packageManager field of package.json: without this
-# exclusion, a local pnpm refuses to switch to a pinned version younger than 7 days
+# exclusion, a pnpm that switches to the pinned version refuses one younger than 7 days, for the day
+# when pmOnFail lets it switch again (ISF-353)
 minimumReleaseAgeExclude:
   - pnpm
   - '@pnpm/*'
@@ -13,7 +14,7 @@ overrides:
   # the range of Vite
   postcss: ^8.5.29
 
-# A patch that no longer applies, after an update changed the code it patches, fails the install
-# instead of a warning, so an update never drops it silently. A patch whose package left the
-# dependencies fails it too (allowUnusedPatches is false by default).
-ignorePatchFailures: false
+# Keeps pnpm-lock.yaml one YAML document: when pnpm switches to the version of packageManager, it
+# writes that version in a first document, and the dependency graph of GitHub then sees no
+# dependency, so Dependabot raises no security alert (dependabot/dependabot-core#15904, ISF-353)
+pmOnFail: ignore
