@@ -24,7 +24,7 @@ A bilingual React app, built and maintained with a team of AI agents.
 
 | Area           | Tools                                                        |
 | -------------- | ------------------------------------------------------------ |
-| UI             | React 19, TypeScript 5                                       |
+| UI             | React 19, TypeScript 6                                       |
 | Build          | Vite 8                                                       |
 | Styles         | styled-components with xstyled design tokens                 |
 | Routing, i18n  | React Router 8, i18next (French, English)                    |

@@ -127,4 +127,12 @@ Measured with Node.js 24.22.0.
 | FCP, simulated, `/`             | 1.81 s              | 0.62 s                                                      |
 | Start of the daily deploy       | crons of GitHub     | a Cloudflare Worker, with the crons of GitHub as a fallback |
 
-Decision: [0015](decisions/0015-render-at-build-time.md), [0016](decisions/0016-cloudflare-worker-deploy-trigger.md).
+On 2026-10-21, TypeScript goes from 5.9.3 to 6.0.3 ([#352](https://github.com/AIssoufi/issoufi.fr/pull/352)), with no change of the code nor of the tsconfig files. TypeScript 7 waits for `typescript-eslint`, which accepts no version from 6.1.0.
+
+| Figure                  | Before (5.9.3) | After (6.0.3) |
+| ----------------------- | -------------- | ------------- |
+| `pnpm typecheck`        | 3.5 s          | 3.7 s         |
+| `pnpm build`            | 3.9 s          | 4.2 s         |
+| `pnpm audit` advisories | 0              | 0             |
+
+Decision: [0015](decisions/0015-render-at-build-time.md), [0016](decisions/0016-cloudflare-worker-deploy-trigger.md), [0017](decisions/0017-typescript-6.md).
