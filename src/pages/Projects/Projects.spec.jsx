@@ -44,6 +44,15 @@ const ENGLISH_CARDS = [
   ['Baby gifts', 'Brochure website'],
 ];
 
+/** French name and address of each demo that a card links, in the order of the page. */
+const DEMO_LINKS = [
+  ['Jeu d’échecs', 'https://chess.issoufi.fr/'],
+  ['Magasin de plugins audio', 'https://pedalboards.issoufi.fr/'],
+  ['Puissance 4', 'https://connect-four.issoufi.fr/'],
+  ['Calculatrice', 'https://calculator.issoufi.fr/'],
+  ['Kane Riviera Transfert', 'https://kane.issoufi.fr/'],
+];
+
 /** A text that holds more than whitespace. */
 const FILLED_TEXT = /\S/;
 
@@ -324,6 +333,20 @@ describe('Projects', () => {
       for (const link of links) expect(link.querySelector(INTERACTIVE_SELECTOR)).toBeNull();
     },
   );
+
+  it('links each demo to its address on issoufi.fr, in a new tab', async () => {
+    render(<Projects />);
+    await showAllProjects();
+
+    const links = screen.getAllByRole('link');
+    expect(links.map(link => [link.textContent, link.getAttribute('href')])).toEqual(
+      DEMO_LINKS.map(([name, url]) => [`${name} ${fr.newTabLink.notice}`, url]),
+    );
+    for (const link of links) {
+      expect(link).toHaveAttribute('target', '_blank');
+      expect(link).toHaveAttribute('rel', 'noopener noreferrer');
+    }
+  });
 });
 
 /** Layouts of the cards of a section: the row, then every card after "Show all". */
