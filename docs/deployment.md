@@ -35,6 +35,7 @@ Every morning between 6:00 and 7:00, Paris time, a Cloudflare Worker starts a wo
 - A run waits up to 20 minutes for a CI of `develop` still running. When `develop` has not passed its CI, the run fails, so that a later one tries again: a red run or badge may mean a deploy put off, whose notice or warning says why.
 - _Actions → Deploy to production → Run workflow_ releases and deploys at once; its `dry_run` option shows what it would do, without merging or pushing, and its `scheduled` option runs it as the Worker does.
 - A warning says when someone has to act, such as after a day without any scheduled run.
+- _The Cloudflare trigger has not started…_, a warning of the CI of `develop` and of the deploy, means that the Worker started no run for 36 hours while GitHub's schedule still does, hours late: its token expired or the Worker is gone. Read its logs, then store a new token or deploy it again (_Deploy trigger_, below).
 - The deploy fetches `develop` again after the release: `actions/checkout` sets `origin/develop` back to the commit that started the run, which lacks the release merge.
 - A change merged into `develop` is online the next morning.
 - A monthly run rebuilds production, so that the years of experience written in the pages stay right.

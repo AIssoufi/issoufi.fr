@@ -15,6 +15,7 @@ import {
   getLocalTime,
   getScheduleGapWarning,
   getScheduleVerdict,
+  getTriggerGapWarning,
   getUtcOffsetMinutes,
   mergeScheduledRuns,
 } from './schedule.mjs';
@@ -615,6 +616,108 @@ describe('getScheduleGapWarning', () => {
     expect(getScheduleGapWarning()).toBe(
       'No scheduled run of deploy-production.yml has ever started: check that the Cloudflare trigger is deployed with its token (docs/deployment.md), that the workflow is enabled in the Actions tab, and that its crons are on the default branch.',
     );
+  });
+});
+
+describe('getTriggerGapWarning', () => {
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  /** A run of the crons on each morning from 2026-10-18 to 2026-10-20, newest first. */
+  const cronRuns = [
+    scheduledRun({ id: 30, createdAt: '2026-10-20T09:29:00Z' }),
+    scheduledRun({ id: 20, createdAt: '2026-10-19T09:29:00Z' }),
+    scheduledRun({ id: 10, createdAt: '2026-10-18T09:29:00Z' }),
+  ];
+
+  /** The warning of the CI of a push at `now`, after a last run of the trigger at `createdAt`. */
+  const warningAt = ({ now, createdAt = '2026-10-19T04:05:00Z' }) => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date(now));
+    return getTriggerGapWarning({
+      runs: mergeScheduledRuns({ cronRuns, manualRuns: [triggerRun({ id: 19, createdAt })] }),
+    });
+  };
+
+  it.each(['2026-10-20T15:05:00Z', '2026-10-20T16:05:00Z'])(
+    'stays quiet up to 36 hours after the last run of the trigger (%s)',
+    now => {
+      expect(warningAt({ now })).toBeUndefined();
+    },
+  );
+
+  it('warns from more than 36 hours after the last run of the trigger, while the crons go on', () => {
+    expect(warningAt({ now: '2026-10-20T16:05:01Z' })).toBeDefined();
+    expect(warningAt({ now: '2026-10-20T17:05:00Z' })).toBe(
+      `The Cloudflare trigger has not started a run of deploy-production.yml since 2026-10-19T04:05:00.000Z, while the crons of GitHub started 2 runs, which deploy hours late: renew its dispatch token, read its logs in Cloudflare (docs/deployment.md). ${RUNS_URL}/19`,
+    );
+  });
+
+  it('stays quiet when no cron started a run since the last one of the trigger', () => {
+    // getScheduleGapWarning reports a schedule that stopped altogether
+    expect(
+      warningAt({ now: '2026-10-22T17:05:00Z', createdAt: '2026-10-20T10:00:00Z' }),
+    ).toBeUndefined();
+  });
+
+  it('counts a single run of the crons', () => {
+    expect(warningAt({ now: '2026-10-21T17:05:00Z', createdAt: '2026-10-20T04:05:00Z' })).toContain(
+      'started 1 run, which',
+    );
+  });
+
+  it('warns a run of the crons when the trigger missed its mornings', () => {
+    const thisRun = scheduledRun({ id: 40, createdAt: '2026-10-21T04:07:00Z' });
+    const runs = [thisRun, ...cronRuns, triggerRun({ id: 9, createdAt: '2026-10-18T04:05:00Z' })];
+    expect(getTriggerGapWarning({ runId: 40, runs })).toMatch(
+      /^The Cloudflare trigger has not started a run of deploy-production\.yml since 2026-10-18T04:05:00\.000Z, while the crons of GitHub started 4 runs/,
+    );
+  });
+
+  it('stays quiet for a run of the trigger itself', () => {
+    const thisRun = triggerRun({ id: 40, createdAt: '2026-10-21T04:05:00Z' });
+    expect(getTriggerGapWarning({ runId: 40, runs: [thisRun, ...cronRuns] })).toBeUndefined();
+  });
+
+  it('leaves out the runs created after this one', () => {
+    const runs = [
+      triggerRun({ id: 41, createdAt: '2026-10-21T04:35:00Z' }),
+      scheduledRun({ id: 40, createdAt: '2026-10-21T04:07:00Z' }),
+      ...cronRuns,
+      triggerRun({ id: 9, createdAt: '2026-10-18T04:05:00Z' }),
+    ];
+    expect(getTriggerGapWarning({ runId: 40, runs })).toContain('since 2026-10-18T04:05:00.000Z');
+  });
+
+  describe('without any run of the trigger', () => {
+    it('stays quiet while the runs of the crons go back 36 hours or less', () => {
+      vi.useFakeTimers();
+      vi.setSystemTime(new Date('2026-10-19T21:29:00Z'));
+      expect(getTriggerGapWarning({ runs: cronRuns })).toBeUndefined();
+      vi.setSystemTime(new Date('2026-10-19T21:29:01Z'));
+      expect(getTriggerGapWarning({ runs: cronRuns })).toBeDefined();
+    });
+
+    it('warns from the oldest run of the crons', () => {
+      vi.useFakeTimers();
+      vi.setSystemTime(new Date('2026-10-20T10:00:00Z'));
+      expect(getTriggerGapWarning({ runs: cronRuns })).toBe(
+        'The Cloudflare trigger has not started any run of deploy-production.yml since at least 2026-10-18T09:29:00.000Z, while the crons of GitHub started 3 runs, which deploy hours late: deploy the trigger with a valid dispatch token (docs/deployment.md).',
+      );
+    });
+  });
+
+  it.each([[[]], [undefined]])('stays quiet without any scheduled run (%o)', runs => {
+    expect(getTriggerGapWarning({ runs })).toBeUndefined();
+  });
+
+  it('stays quiet without any parameter', () => {
+    expect(getTriggerGapWarning()).toBeUndefined();
+  });
+
+  it('stays quiet for an invalid date', () => {
+    expect(getTriggerGapWarning({ runs: cronRuns, date: new Date('x') })).toBeUndefined();
   });
 });
 
