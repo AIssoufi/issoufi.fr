@@ -50,6 +50,7 @@ Every morning between 6:00 and 7:00, Paris time, a Cloudflare Worker starts a wo
 
 - Dependabot opens weekly update pull requests against `develop`.
 - pnpm installs no version published less than 7 days ago.
+- The deploy runs the wrangler of the lockfile, the one `pnpm exec wrangler` runs locally.
 
 ## Setup by the site owner
 
