@@ -4,7 +4,8 @@
 // run goes on from 6:00 in Paris until one of them passes (see getScheduleVerdict). A run started
 // by hand always goes on, unless its `scheduled` input makes it a scheduled run. Writes `due`
 // (`true` or `false`) to the step outputs, a notice when the run stops, and a warning when no
-// scheduled run started on a day (see getScheduleGapWarning).
+// scheduled run started on a day (see getScheduleGapWarning) or when the Cloudflare trigger
+// stopped while the crons go on (see getTriggerGapWarning).
 // Usage: GITHUB_EVENT_NAME=<schedule|workflow_dispatch> SCHEDULED=<true|false> \
 //   GITHUB_RUN_ID=<id> GITHUB_REPOSITORY=<owner/name> GITHUB_TOKEN=<token> \
 //   node scripts/ci/check-deploy-schedule.mjs
@@ -14,6 +15,7 @@ import {
   fetchScheduledRuns,
   getScheduleGapWarning,
   getScheduleVerdict,
+  getTriggerGapWarning,
 } from './utils/schedule.mjs';
 import { setStepOutput } from './utils/step-output.mjs';
 
@@ -43,5 +45,8 @@ const gapWarning = runs
   ? getScheduleGapWarning({ eventName, hasScheduledInput, runId, runs })
   : undefined;
 if (gapWarning) writeAnnotation({ level: 'warning', message: gapWarning });
+
+const triggerGapWarning = runs ? getTriggerGapWarning({ runId, runs }) : undefined;
+if (triggerGapWarning) writeAnnotation({ level: 'warning', message: triggerGapWarning });
 
 setStepOutput({ name: 'due', value: String(isDue) });

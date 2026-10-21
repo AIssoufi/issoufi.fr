@@ -330,3 +330,57 @@ export const getScheduleGapWarning = ({
 
   return `No scheduled run of ${DEPLOY_WORKFLOW_FILE} for ${gapHours} hours, since ${previousRun.createdAt.toISOString()}: neither the Cloudflare trigger nor the crons of GitHub started a run on at least one day, so nothing was deployed then. Check the trigger and its token (docs/deployment.md) and that the workflow is enabled in the Actions tab, and start it by hand if a deploy is missing. ${previousRun.url}`;
 };
+
+/**
+ * Tells whether a scheduled run was started by the Cloudflare trigger, rather than by a cron of
+ * the workflow, by its title, {@link SCHEDULED_RUN_TITLE}. A run started by hand with the
+ * `scheduled` input (`SCHEDULED_INPUT`) shares that title, so it counts as a run of the trigger:
+ * the API lists the runs without their inputs.
+ * @param {WorkflowRun} run - A scheduled run, from {@link mergeScheduledRuns}.
+ * @returns {boolean} False for a run of the crons, and for a run without a title.
+ */
+const isTriggerRun = run => run.title === SCHEDULED_RUN_TITLE;
+
+/**
+ * Tells whether the Cloudflare trigger stopped starting runs while the crons of GitHub still do,
+ * as when its dispatch token expired or the Worker was deleted: each of its calls then fails in
+ * the logs of Cloudflare only, and {@link getScheduleGapWarning}, which counts the runs of the
+ * crons too, stays quiet while they deploy, hours late. The last run of the trigger is more than
+ * {@link SCHEDULE_GAP_WARNING_HOURS} old, or none is found among runs of the crons that go back
+ * further, and the crons started a run since. Measured from this run, or from now for the CI of a
+ * push to develop (`check-deploy-schedule-gap.mjs`).
+ * @param {ScheduledRunsParams} [params]
+ * @returns {string | undefined} The warning, naming the last run of the trigger, or `undefined`
+ * when the trigger kept up, when no cron started a run since it stopped, or when the runs do not go
+ * back {@link SCHEDULE_GAP_WARNING_HOURS}.
+ * @example
+ * getTriggerGapWarning({ runId: 10, runs: [thisCronRun, cronRun, triggerRunOfTwoDaysAgo] });
+ * // 'The Cloudflare trigger has not started a run of deploy-production.yml since …'
+ */
+export const getTriggerGapWarning = ({ runId, runs = [], date } = {}) => {
+  const moment = getRunMoment({ runId, runs, date });
+  /** @param {WorkflowRun} run */
+  const isStartedByMoment = run => run.createdAt.getTime() <= moment.getTime();
+  const startedRuns = runs.filter(isStartedByMoment);
+  const lastTriggerRun = startedRuns.find(isTriggerRun);
+  const lastTriggerTime = lastTriggerRun?.createdAt.getTime() ?? Number.NEGATIVE_INFINITY;
+  /** @param {WorkflowRun} run */
+  const isCronRunSinceTrigger = run =>
+    !isTriggerRun(run) && run.createdAt.getTime() > lastTriggerTime;
+  const cronRunsSince = startedRuns.filter(isCronRunSinceTrigger);
+  const oldestCronRun = cronRunsSince.at(-1);
+  if (!oldestCronRun) return undefined;
+
+  // Without any run of the trigger, the runs of the crons tell how long it has been missing
+  const since = lastTriggerRun?.createdAt ?? oldestCronRun.createdAt;
+  const gapMinutes = (moment.getTime() - since.getTime()) / MS_PER_MINUTE;
+  const isGapTooLong = gapMinutes > SCHEDULE_GAP_WARNING_HOURS * MINUTES_PER_HOUR;
+  if (!isGapTooLong) return undefined;
+
+  const isSingleCronRun = cronRunsSince.length === 1;
+  const cronCount = `${cronRunsSince.length} run${isSingleCronRun ? '' : 's'}`;
+  if (!lastTriggerRun) {
+    return `The Cloudflare trigger has not started any run of ${DEPLOY_WORKFLOW_FILE} since at least ${since.toISOString()}, while the crons of GitHub started ${cronCount}, which deploy hours late: deploy the trigger with a valid dispatch token (docs/deployment.md).`;
+  }
+  return `The Cloudflare trigger has not started a run of ${DEPLOY_WORKFLOW_FILE} since ${since.toISOString()}, while the crons of GitHub started ${cronCount}, which deploy hours late: renew its dispatch token, read its logs in Cloudflare (docs/deployment.md). ${lastTriggerRun.url}`;
+};
