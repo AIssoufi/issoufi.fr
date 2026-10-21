@@ -52,7 +52,7 @@ More in [AI workflow](docs/ai-workflow/README.md).
 
 ## Getting started
 
-Requires Node.js 24 and pnpm 10.
+Requires Node.js 24 and pnpm 12.
 
 ```bash
 pnpm install

@@ -3,7 +3,7 @@
   "version": "1.5.0",
   "private": true,
   "type": "module",
-  "packageManager": "pnpm@10.34.7",
+  "packageManager": "pnpm@12.14.0",
   "dependencies": {
     "@xstyled/styled-components": "4.1.1",
     "i18next": "^26.4.4",
