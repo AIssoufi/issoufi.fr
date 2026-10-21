@@ -56,7 +56,16 @@
         }
       ],
       "url": "https://pedalboards.issoufi.fr/",
-      "tools": ["HTML 5", "SCSS", "React.js", "Redux.js"]
+      "tools": [
+        "HTML 5",
+        "SCSS",
+        "React.js",
+        "Redux.js",
+        "Express",
+        "Vite",
+        "Vitest",
+        "Cloudflare Workers"
+      ]
     },
     {
       "id": 3,
