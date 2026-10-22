@@ -25,6 +25,8 @@ The agents read these rules, one line each, in [`CLAUDE.md`](../CLAUDE.md).
 - A relative import names its file with its extension (`./utils.ts`, `./List/index.ts`): Node.js loads the Vite configs as they are, and resolves no other path. ESLint refuses one without it.
 - Props are optional, and a missing one never crashes.
 - A meaningful number is a named constant with its unit. A computation is a pure helper, an effect a hook, each with its tests.
+- Nothing stays that the site does not use: a file that no entry point reaches goes, and so does an export that no other module imports, or it loses its `export`, unless it is a type that its own file uses, such as one that an exported type names.
+  `pnpm knip`, which the lint job of the CI runs, lists them with the unused dependencies. Its plugins find the entry points in the configs of Vite, Vitest and Playwright, the scripts of `package.json` and the workflows; [`knip.jsonc`](../knip.jsonc) adds the others, each with its reason.
 
 ## Styles
 
