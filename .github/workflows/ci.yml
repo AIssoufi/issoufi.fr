@@ -81,6 +81,13 @@ jobs:
       - run: |
           echo "::add-matcher::.github/actionlint-matcher.json"
           "$RUNNER_TEMP/actionlint" -color
+      - if: ${{ !cancelled() }}
+        uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+      # actionlint accepts an action of a third party referenced by a tag, which its owner can move
+      - if: ${{ !cancelled() }}
+        run: node scripts/ci/check-action-pins.mjs
 
   commits:
     # Dependabot writes conventional subjects, but its bodies hold release notes with long lines

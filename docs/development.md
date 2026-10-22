@@ -50,3 +50,5 @@ The generators are described in [Assets](assets.md#generated-files).
 - A lint error stops the commit.
 - The CI also lints the workflows with actionlint and ShellCheck.
   To run them locally: `brew install actionlint shellcheck`, then `actionlint`.
+- The same job fails on an action of a third party that a workflow or an action does not pin by the SHA of a commit ([Dependencies](deployment.md#dependencies)).
+  To run the check locally: `node scripts/ci/check-action-pins.mjs`.

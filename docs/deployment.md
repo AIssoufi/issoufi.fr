@@ -52,6 +52,7 @@ Every morning between 6:00 and 7:00, Paris time, a Cloudflare Worker starts a wo
 - pnpm installs no version published less than 7 days ago.
 - The deploy runs the wrangler of the lockfile, the one `pnpm exec wrangler` runs locally.
 - The workflows reference each action of a third party by the SHA of its commit, its version in a comment, which Dependabot updates, since the owner of a tag can move it. The actions of GitHub keep their major tag.
+- The `workflows` job of the CI keeps it so: [`check-action-pins.mjs`](../scripts/ci/check-action-pins.mjs) reads each `uses:` key of the YAML files of `.github/`, and fails with an annotation on the line of one that is neither an action of GitHub (`actions/*`), nor an action of the repository (`./`), nor pinned by a 40-character SHA, or by its digest for a Docker image. It reads the keys written one per line, as Prettier and Dependabot write them, not those in quotes or in a flow mapping (`- { uses: … }`).
 
 ## Setup by the site owner
 

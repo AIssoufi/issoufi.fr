@@ -574,3 +574,57 @@ export const TEST_TITLE_SEPARATOR = ' › ';
 
 /** Pipe that would end a cell of a Markdown table, written `\|` inside a cell. */
 export const TABLE_CELL_PIPE_PATTERN = /\|/g;
+
+/** Folder of the workflows and of the actions of the repository, relative to the project root. */
+export const GITHUB_DIR = '.github';
+
+/** File of YAML, as the workflows and the `action.yml` of an action are. */
+export const YAML_FILE_PATTERN = /\.ya?ml$/;
+
+/** Line break of a text file, a Windows one counting as one break, so that lines are numbered. */
+export const TEXT_LINE_BREAK_PATTERN = /\r?\n/;
+
+/** First character of a line that is not a space, whose index is the indentation of the line. */
+export const NON_BLANK_CHARACTER_PATTERN = /\S/;
+
+/**
+ * Line of a key of a YAML block mapping: its `prefix` (the indentation and the `- ` of a sequence
+ * item), its `key`, and its `value` on the same line, if any. A key in quotes or in a flow mapping
+ * (`{ uses: … }`) does not match.
+ */
+export const YAML_KEY_LINE_PATTERN =
+  /^(?<prefix>\s*(?:-\s+)*)(?<key>[\w-]+)\s*:(?:\s+(?<value>.*))?$/;
+
+/** Comment at the end of a YAML value, from a `#` that starts the value or follows a space. */
+export const YAML_COMMENT_PATTERN = /(?:^|\s)#.*$/;
+
+/**
+ * Indicator of a YAML block scalar, `|` or `>`, with its optional chomping and indentation
+ * indicators: the value goes on in the lines indented further than its key.
+ */
+export const YAML_BLOCK_SCALAR_PATTERN = /^[|>][-+1-9]{0,2}$/;
+
+/** YAML scalar in single or double quotes, the text between them in its second group. */
+export const YAML_QUOTED_SCALAR_PATTERN = /^(['"])(.*)\1$/;
+
+/** Key of a step that runs an action, or of a job that calls a reusable workflow. */
+export const USES_KEY = 'uses';
+
+/**
+ * Start of the reference of an action that GitHub publishes, from its owner `actions`, e.g.
+ * `actions/checkout@v7`. The workflows reference them by their major tag (ADR 0019): GitHub also
+ * provides the runners that run every job.
+ */
+export const GITHUB_ACTION_PREFIX = 'actions/';
+
+/** Start of the reference of an action of this repository, which the commit of the job pins. */
+export const LOCAL_ACTION_PREFIX = './';
+
+/** Start of the reference of a Docker image that a step runs as an action. */
+export const DOCKER_ACTION_PREFIX = 'docker://';
+
+/** End of the reference of a Docker image pinned by the SHA-256 digest of its content. */
+export const DOCKER_DIGEST_PATTERN = /@sha256:[0-9a-f]{64}$/;
+
+/** Character between an action or a reusable workflow and its tag, branch or commit SHA. */
+export const ACTION_VERSION_SEPARATOR = '@';

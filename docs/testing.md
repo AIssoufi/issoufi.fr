@@ -53,6 +53,7 @@ They run in both languages, on screens from small phones to large desktops:
 - **Mocks**: Vitest clears the calls of every mock before each test (`clearMocks`, the default since Vitest 5). Assert the calls that the test makes, never those of a `beforeAll` or of the top of the file. Await every `resolves` and `rejects`: one left unawaited fails the test.
 - **`matchMedia`**: jsdom has none. Stub it with `stubMatchMedia`, and undo it with `vi.unstubAllGlobals()`.
 - **Hydration**: in production, React keeps an attribute of the build that differs from its own render, and says nothing. In a test, the development build of React logs it, which fails the test.
+- **Child processes**: the CI sets `FORCE_COLOR`, which colors the output of a script that a spec runs, such as commitlint. Give it `UNCOLORED_ENV` (`scripts/testUtils.js`) as its environment before reading its text.
 - **Render in Node.js**: React leaves the contexts of a render at build time set, in the same JavaScript realm. Run `await prerender(null)` before hydrating in the same file, as `src/prerender.spec.jsx` does.
 
 ### Playwright
