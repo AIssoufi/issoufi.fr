@@ -43,6 +43,8 @@ jobs:
       due: ${{ steps.schedule.outputs.due }}
     steps:
       - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
       - uses: actions/setup-node@v7
         with:
           node-version-file: .nvmrc
@@ -79,6 +81,8 @@ jobs:
       checks: read
     steps:
       - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
       - uses: actions/setup-node@v7
         with:
           node-version-file: .nvmrc
@@ -103,6 +107,9 @@ jobs:
         with:
           # The trees of main and develop are compared below
           fetch-depth: 0
+          # The step that compares develop with main fetches both branches again, with the token
+          # that the checkout keeps in the git config
+          persist-credentials: true
       - uses: actions/setup-node@v7
         with:
           node-version-file: .nvmrc
@@ -155,6 +162,9 @@ jobs:
           ref: main
           fetch-depth: 0
           ssh-key: ${{ secrets.DEPLOY_KEY }}
+          # The step that pushes to main, and its dry run, connect with the deploy key, which the
+          # checkout keeps in the git config
+          persist-credentials: true
       - uses: actions/setup-node@v7
         with:
           node-version-file: .nvmrc

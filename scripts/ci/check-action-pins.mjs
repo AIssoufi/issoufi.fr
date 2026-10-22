@@ -8,8 +8,9 @@
 import { readFileSync } from 'node:fs';
 
 import { GITHUB_DIR } from './constants.mjs';
-import { describePinProblem, findUsesReferences, listYamlFiles } from './utils/action-pins.mjs';
+import { describePinProblem, findUsesReferences } from './utils/action-pins.mjs';
 import { writeAnnotation } from './utils/annotations.mjs';
+import { listYamlFiles } from './utils/yaml.mjs';
 
 const files = listYamlFiles();
 const references = files.flatMap(file =>

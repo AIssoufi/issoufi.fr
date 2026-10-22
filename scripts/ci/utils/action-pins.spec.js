@@ -1,59 +1,7 @@
-import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
-import { tmpdir } from 'node:os';
-import { join } from 'node:path';
-
-import { describePinProblem, findUsesReferences, listYamlFiles } from './action-pins.mjs';
+import { describePinProblem, findUsesReferences } from './action-pins.mjs';
 
 const SHA = '58ff9ea0c3f4e1b2a9d8c7b6a5f4e3d2c1b0a9f8';
 const DIGEST = 'f2a5f9e1c3d4b5a6978877665544332211009988aabbccddeeff001122334455';
-
-describe('listYamlFiles', () => {
-  let directory;
-
-  beforeEach(() => {
-    directory = mkdtempSync(join(tmpdir(), 'action-pins-'));
-  });
-
-  afterEach(() => {
-    rmSync(directory, { recursive: true, force: true });
-  });
-
-  it('lists the YAML files of the folder and of its subfolders, in alphabetical order', () => {
-    mkdirSync(join(directory, 'workflows'));
-    mkdirSync(join(directory, 'actions', 'setup'), { recursive: true });
-    writeFileSync(join(directory, 'workflows', 'release.yml'), '');
-    writeFileSync(join(directory, 'workflows', 'ci.yaml'), '');
-    writeFileSync(join(directory, 'actions', 'setup', 'action.yml'), '');
-    writeFileSync(join(directory, 'dependabot.yml'), '');
-
-    expect(listYamlFiles(directory)).toEqual([
-      join(directory, 'actions', 'setup', 'action.yml'),
-      join(directory, 'dependabot.yml'),
-      join(directory, 'workflows', 'ci.yaml'),
-      join(directory, 'workflows', 'release.yml'),
-    ]);
-  });
-
-  it('leaves out the other files and a folder named like a YAML file', () => {
-    mkdirSync(join(directory, 'old.yml'));
-    writeFileSync(join(directory, 'actionlint-matcher.json'), '{}');
-    writeFileSync(join(directory, 'ci.yml.bak'), '');
-    writeFileSync(join(directory, 'yml'), '');
-
-    expect(listYamlFiles(directory)).toEqual([]);
-  });
-
-  it('reads the .github folder of the current folder by default', () => {
-    const files = listYamlFiles();
-
-    expect(files).toContain(join('.github', 'workflows', 'ci.yml'));
-    expect(files).toContain(join('.github', 'actions', 'setup', 'action.yml'));
-  });
-
-  it('throws when the folder does not exist', () => {
-    expect(() => listYamlFiles(join(directory, 'missing'))).toThrow(/ENOENT/);
-  });
-});
 
 describe('findUsesReferences', () => {
   it('reads the reference of each step, with the line and the column of its key', () => {

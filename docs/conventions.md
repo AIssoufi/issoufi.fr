@@ -13,6 +13,12 @@ The agents read these rules, one line each, in [`CLAUDE.md`](../CLAUDE.md).
 - Every commit names its ticket in a `Refs: ISF-35` footer, which the autolink of the repository turns into a link, so that `git log` and `git blame` lead to the reason for a change.
   Only the commits of release-please and Dependabot, and merge commits, go without it.
 
+## Workflows
+
+- Every `actions/checkout` step of `.github/` sets `persist-credentials: false`: otherwise the checkout keeps the token of its job, or its SSH key, in the git config, where every later step of the job can read it, a third-party action or a package script included.
+  Only a checkout whose credentials a later step uses to fetch or push with git keeps them, with `persist-credentials: true` and a comment on that line or right above it that names that step, as the `check` and `promote` jobs of `deploy-production.yml` do.
+  The `workflows` job of the CI fails on a checkout that does neither; run `node scripts/ci/check-checkout-credentials.mjs` to check it locally.
+
 ## Code
 
 - Code, comments and docs are in English. Only the texts of the site are translated.
