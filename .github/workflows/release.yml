@@ -26,10 +26,11 @@ jobs:
       release_created: ${{ steps.release.outputs.release_created || steps.release-retry.outputs.release_created }}
       tag_name: ${{ steps.release.outputs.tag_name || steps.release-retry.outputs.tag_name }}
     steps:
-      # GitHub holds the CI of a pull request that the GITHUB_TOKEN opened until a person approves
-      # it, while the daily release needs it to merge the release pull request. A token of the
-      # release GitHub App, once the site owner has set it up, opens the pull request instead, so
-      # its CI starts at once. A step condition cannot read secrets: this step checks them.
+      # GitHub holds the runs of a pull request that the GITHUB_TOKEN opened, its CI and the lint
+      # of its title, until someone approves them, while the daily release needs them to merge the
+      # release pull request. A token of the release GitHub App, once the site owner has set it
+      # up, opens the pull request instead, so its runs start at once. A step condition cannot
+      # read secrets: this step checks them.
       - id: app
         name: Check the release app
         env:
@@ -39,7 +40,7 @@ jobs:
           if [ -n "$RELEASE_APP_CLIENT_ID" ] && [ -n "$RELEASE_APP_PRIVATE_KEY" ]; then
             echo "configured=true" >> "$GITHUB_OUTPUT"
           else
-            echo "::notice::release-please uses the GITHUB_TOKEN: the RELEASE_APP_CLIENT_ID variable or the RELEASE_APP_PRIVATE_KEY secret is not set, so GitHub holds the CI of the release pull request until someone approves it."
+            echo "::notice::release-please uses the GITHUB_TOKEN: the RELEASE_APP_CLIENT_ID variable or the RELEASE_APP_PRIVATE_KEY secret is not set, so GitHub holds the runs of the release pull request until someone approves them."
           fi
       - id: app-token
         if: steps.app.outputs.configured == 'true'

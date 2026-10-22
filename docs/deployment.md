@@ -73,4 +73,4 @@ Done in the repository settings, never by a workflow or an agent:
 
   To try it: `pnpm exec wrangler dev --test-scheduled --config scripts/deploy-trigger/wrangler.jsonc`, with the token in `scripts/deploy-trigger/.dev.vars`, then open `http://localhost:8787/__scheduled`. Outside 6:00 to 7:00 in Paris, it only logs why it starts nothing.
 
-- **Release GitHub App**, optional: the `RELEASE_APP_CLIENT_ID` variable and the `RELEASE_APP_PRIVATE_KEY` secret. The CI of the release pull request then starts without approval ([steps in #268](https://github.com/AIssoufi/issoufi.fr/pull/268)).
+- **Release GitHub App**, optional: the `RELEASE_APP_CLIENT_ID` variable and the `RELEASE_APP_PRIVATE_KEY` secret. The runs of the release pull request then start without approval ([steps in #268](https://github.com/AIssoufi/issoufi.fr/pull/268)). Without the App, GitHub holds them, and the daily release approves those of the workflows that run on pull requests: `ci.yml` and `pull-request-title.yml`.

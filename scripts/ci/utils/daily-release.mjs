@@ -6,6 +6,8 @@ import {
   RELEASE_MERGE_ATTEMPTS,
   RELEASE_WORKFLOW_FILE,
 } from '../constants.mjs';
+import { getErrorMessage } from './github-api.mjs';
+import { approveHeldRuns, nameRun } from './held-runs.mjs';
 import {
   describeMergeBlock,
   describeUnpassedChecks,
@@ -16,7 +18,6 @@ import {
 } from './mergeability.mjs';
 import { fetchReleasePullRequest, mergePullRequest } from './release-pull-request.mjs';
 import {
-  approveRun,
   describeRunOutcome,
   dispatchWorkflow,
   isHeldRun,
@@ -32,13 +33,6 @@ import {
  * `warning` when someone has to act.
  * @property {string} message - What happened, with the page to look at.
  */
-
-/**
- * Reads the message of an error that a request threw.
- * @param {unknown} error - The error.
- * @returns {string} Its message, or its text when it is not an `Error`.
- */
-const getErrorMessage = error => (error instanceof Error ? error.message : String(error));
 
 /**
  * Parameters of {@link runCi}.
@@ -73,21 +67,6 @@ const readUnpassedChecks = async sha => {
       `Could not read the required checks of ${shortenSha(sha)}: ${getErrorMessage(error)}`,
     );
     return [];
-  }
-};
-
-/**
- * Approves a run of the CI that GitHub holds, as it does for the pull request runs of a pull
- * request that GitHub Actions opened.
- * @param {number} runId - Identifier of the held run.
- * @returns {Promise<string | undefined>} `undefined` once approved, or why GitHub refused.
- */
-const approveHeldRun = async runId => {
-  try {
-    await approveRun({ runId });
-    return undefined;
-  } catch (error) {
-    return getErrorMessage(error);
   }
 };
 
@@ -138,10 +117,12 @@ const hasHeadMoved = async ({ number, sha }) => {
 
 /**
  * Tries once to merge the release pull request at its current head: finds the run of the CI that
- * its pull request event started, approves it when GitHub holds it, waits for it, then for GitHub
- * to say that the pull request can merge, and merges it at the tested commit. Whenever it has to
- * stop, it reads the head again, so that a branch moved by release-please leads to another attempt
- * rather than to a report.
+ * its pull request event started, approves it when GitHub holds it, with the held runs of the
+ * other workflows that run on pull requests ({@link approveHeldRuns}), waits for it, then for
+ * GitHub to say that the pull request can merge, which waits for the required checks of the
+ * other runs, and merges it at the tested commit. Whenever it has to stop, it reads the head
+ * again, so that a branch moved by release-please leads to another attempt rather than to a
+ * report.
  * @param {MergeReleasePullRequestParams} params
  * @returns {Promise<MergeAttempt>} How the attempt ended.
  */
@@ -170,15 +151,16 @@ const mergeReleasePullRequest = async ({
     });
   }
 
+  // GitHub holds the runs of the other workflows along with that of the CI, so they are looked up
+  // only then: a pull request that the release App opened holds none, and costs no other request
   if (isHeldRun(pullRequestRun)) {
-    const refusal = await approveHeldRun(pullRequestRun.id);
+    const refusal = await approveHeldRuns({ name, branch, ciRun: pullRequestRun });
     if (refusal !== undefined) {
       return stop({
         level: 'warning',
-        message: `No release today: GitHub holds the CI of ${name} until someone approves it, and refused to let this job do it (${refusal}). Approve the run, then start deploy-production.yml by hand to release it: ${pullRequestRun.url}`,
+        message: `No release today: GitHub holds ${nameRun(refusal.workflow)} of ${name} until someone approves it, and refused to let this job do it (${refusal.reason}). Approve the run, then start deploy-production.yml by hand to release it: ${refusal.run.url}`,
       });
     }
-    console.log(`Approved the CI of ${name}, which GitHub held: ${pullRequestRun.url}`);
   }
 
   const run = await waitForRun({ runId: pullRequestRun.id, ...runWait });
@@ -290,8 +272,9 @@ const publishRelease = async ({ name, mergeSha, runWait }) => {
  * 2. finds the run of the CI that its pull request event started on its head commit, the only one
  *    whose checks GitHub links to the pull request, so the only one that the required checks of
  *    develop count. When GitHub holds that run, as it does when GitHub Actions opened the pull
- *    request, it approves it, and gives up with a warning and the link of the run when GitHub
- *    refuses: a dry run approves it too;
+ *    request, it approves it, then the held run of each other workflow that runs on pull requests
+ *    on that head, such as the lint of the title ({@link approveHeldRuns}), and gives up with a
+ *    warning and the link of the run when GitHub refuses: a dry run approves them too;
  * 3. waits for that run, then for GitHub to say that the pull request can merge, and merges it at
  *    the commit that the CI tested. When release-please moved the branch meanwhile, which cancels
  *    that run or makes GitHub refuse the merge, it starts again from step 1, up to

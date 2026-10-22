@@ -306,6 +306,17 @@ export const PULL_REQUEST_EVENT = 'pull_request';
 /** Workflow whose run must pass on develop before a deploy, and that deploys main. */
 export const CI_WORKFLOW_FILE = 'ci.yml';
 
+/** Workflow that lints the title of a pull request, on each push and on each edit of it. */
+const PULL_REQUEST_TITLE_WORKFLOW_FILE = 'pull-request-title.yml';
+
+/**
+ * Workflows that run on the {@link PULL_REQUEST_EVENT}, so on the release pull request. When
+ * GitHub holds the run of the CI on its head, as it does for a pull request that GitHub Actions
+ * opened, it holds theirs too, and the daily release approves each one. A spec checks that the
+ * list names every workflow with a `pull_request` trigger.
+ */
+export const PULL_REQUEST_WORKFLOW_FILES = [CI_WORKFLOW_FILE, PULL_REQUEST_TITLE_WORKFLOW_FILE];
+
 /** Integration branch, deployed to production by `deploy-production.yml`. */
 export const DEVELOP_BRANCH = 'develop';
 

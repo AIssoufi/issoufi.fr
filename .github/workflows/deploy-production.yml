@@ -74,7 +74,7 @@ jobs:
       # Merges the release pull request
       contents: write
       pull-requests: write
-      # Approves the held CI of the release pull request, starts ci.yml and release.yml, and
+      # Approves the held runs of the release pull request, starts ci.yml and release.yml, and
       # follows their runs
       actions: write
       # Names the required checks that did not pass when the release pull request cannot merge
