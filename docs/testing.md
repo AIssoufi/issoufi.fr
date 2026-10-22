@@ -17,6 +17,7 @@
 ## Browser tests
 
 jsdom computes no layout, so these tests run in Chromium, on the production build.
+In the CI, `.github/actions/playwright` installs the headless shell of Chromium, cached, and takes its system libraries from the image of the runner, falling back to the apt mirror only when the browser does not start ([decision 0022](decisions/0022-chromium-libraries-from-runner-image.md)).
 They run in both languages, on screens from small phones to large desktops:
 
 | Area          | What they check                                                                                                                                                   |
