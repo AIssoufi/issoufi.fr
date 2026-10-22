@@ -37,6 +37,15 @@ done
   `cwebp -q 80 -m 6 -sharp_yuv original.png -o public/chess-W.webp`.
 - List the files in the `thumbnails` of the project.
 
+## README screenshot
+
+The README shows the English home page in `docs/images/home.webp`, at 1440 × 900 px and about 40 kB.
+Capture it again with each release that changes the look of the home page: build that release, run `pnpm preview`, screenshot `/en/` at 1440 × 900 px once the animations end, then write it:
+
+```bash
+cwebp -q 80 -m 6 -sharp_yuv home.png -o docs/images/home.webp
+```
+
 ## Company logos
 
 Square WebP files of 108 px, twice the size they show at:
