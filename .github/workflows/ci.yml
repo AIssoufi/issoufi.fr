@@ -89,6 +89,8 @@ jobs:
       - if: ${{ !cancelled() }}
         run: node scripts/ci/check-action-pins.mjs
 
+  # Lints the commits of a pull request. Its title has a workflow of its own,
+  # pull-request-title.yml, which also runs on each edit of the pull request
   commits:
     # Dependabot writes conventional subjects, but its bodies hold release notes with long lines
     if: github.event_name == 'pull_request' && github.event.pull_request.user.login != 'dependabot[bot]'
@@ -103,11 +105,6 @@ jobs:
         env:
           BASE_SHA: ${{ github.event.pull_request.base.sha }}
           HEAD_SHA: ${{ github.event.pull_request.head.sha }}
-      # GitHub writes the title in the merge commit, where release-please reads it as a commit
-      - name: Lint the title of the pull request
-        run: printf '%s\n' "$TITLE" | pnpm exec commitlint --config scripts/commits/title.config.mjs --verbose
-        env:
-          TITLE: ${{ github.event.pull_request.title }}
 
   dependencies:
     # Fails when a pull request adds or upgrades to a dependency with a known vulnerability

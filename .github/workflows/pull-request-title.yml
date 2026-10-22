@@ -1,0 +1,31 @@
+name: Pull request title
+
+# GitHub writes the title of a pull request in its merge commit, where release-please reads it as a
+# commit. The title has its own workflow so that an edit lints it again without running the CI
+on:
+  pull_request:
+    # An edit of the body or of the base lints the title again too: a job skipped then would replace
+    # a failed check with a passing one
+    types: [opened, edited, synchronize, reopened]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pull-request-title-${{ github.event.pull_request.number }}
+  # The check of the last title counts: an older run that ended after it would replace its result
+  cancel-in-progress: true
+
+jobs:
+  title:
+    # Dependabot writes some titles in sentence case (Bump the minor-and-patch group…), which
+    # commitlint refuses
+    if: github.event.pull_request.user.login != 'dependabot[bot]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v7
+      - uses: ./.github/actions/setup
+      - run: printf '%s\n' "$TITLE" | pnpm exec commitlint --config scripts/commits/title.config.mjs --verbose
+        env:
+          TITLE: ${{ github.event.pull_request.title }}

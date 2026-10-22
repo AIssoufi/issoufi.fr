@@ -47,6 +47,7 @@ The generators are described in [Assets](assets.md#generated-files).
 - On a ticket branch (`ISF-35`), the `prepare-commit-msg` hook adds the footer `Refs: ISF-35` to a message that has no `Refs:` footer yet, before the editor opens. It leaves merge and squash messages alone.
 - commitlint checks Conventional Commits and the `Refs: ISF-<n>` footer ([`commitlint.config.mjs`](../commitlint.config.mjs), with its rule in [`scripts/commits/`](../scripts/commits/)).
   The CI lints the commits of a pull request with it, and its title as a commit header without the footer ([`title.config.mjs`](../scripts/commits/title.config.mjs)), since GitHub writes the title in the merge commit.
+  The title has a workflow of its own, [`pull-request-title.yml`](../.github/workflows/pull-request-title.yml): it runs on each push to the pull request, and again on each edit of it, which starts no other check. A fixed title needs no new commit.
 - A lint error stops the commit.
 - The CI also lints the workflows with actionlint and ShellCheck.
   To run them locally: `brew install actionlint shellcheck`, then `actionlint`.
