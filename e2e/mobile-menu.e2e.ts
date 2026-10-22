@@ -15,6 +15,7 @@ import {
   MIN_TARGET_SIZE_PX,
   MOBILE_LAYOUT_SCREENS,
   PAGE_SELECTOR,
+  PROJECTS_ROUTE,
   SHORTER_THAN_MENU_SCREEN,
 } from './constants.ts';
 import { scrollDownWithGesture, type ScrollGestureSource } from './gestures.ts';
@@ -97,6 +98,12 @@ const expectLinksBesideToggle = async ({
       `"${name}" in the column of the language toggle: ${JSON.stringify(box)}`,
     ).toBe(false);
   }
+};
+
+/** Color and weight of the text of an element, as the browser draws it. Runs in the browser. */
+const getTextStyle = (element: Element) => {
+  const { color, fontWeight } = getComputedStyle(element);
+  return { color, fontWeight };
 };
 
 /** Tells whether an element holds more than it shows, so it scrolls. Runs in the browser. */
@@ -220,6 +227,29 @@ for (const viewport of MOBILE_LAYOUT_SCREENS) {
           'scroll position after a wheel scroll once the menu is closed',
         ).toBeGreaterThan(MENU_OPENING_SCROLL_Y_PX);
       }).toPass();
+    });
+
+    // jsdom ignores the media queries, so only a real browser draws the link as the phone does
+    test('the open mobile menu marks the link of the current page with its color and its weight', async ({
+      page,
+    }) => {
+      await page.goto(PROJECTS_ROUTE);
+      const navigation = await openMenu({ page, translations: fr });
+      const currentLink = navigation.getByRole('link', { name: fr.nav.projects, exact: true });
+      await expect(currentLink).toHaveAttribute('aria-current', 'page');
+
+      const currentStyle = await currentLink.evaluate(getTextStyle);
+      for (const name of [fr.nav.home, fr.nav.experience]) {
+        const otherStyle = await navigation
+          .getByRole('link', { name, exact: true })
+          .evaluate(getTextStyle);
+        expect(currentStyle.color, `color of the current link, beside "${name}"`).not.toBe(
+          otherStyle.color,
+        );
+        expect(currentStyle.fontWeight, `weight of the current link, beside "${name}"`).not.toBe(
+          otherStyle.fontWeight,
+        );
+      }
     });
 
     test('the language toggle stays usable over the open mobile menu, with Tab and a tap', async ({
