@@ -23,5 +23,7 @@ Each release attaches `issoufi.fr-vX.Y.Z.zip`: the code of the site in one `inde
 
 - It opens from the disk with a double click, with no server, and works offline.
 - `pnpm build:standalone` builds it from the production config, with a hash router and relative URLs.
+- `standalone-build.yml` attaches it to each new release.
+- To add it to an existing release, run that workflow with its tag: `gh workflow run standalone-build.yml -f tag=vX.Y.Z`, or from the Actions tab.
 - The production build does not depend on it.
 - Write each URL of a file of `public/` as one whole string, so that this build can rewrite it.
