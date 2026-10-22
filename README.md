@@ -28,7 +28,7 @@ A bilingual React app, built and maintained with a team of AI agents.
 | Build          | Vite 8                                                       |
 | Styles         | styled-components with xstyled design tokens                 |
 | Routing, i18n  | React Router 8, i18next (French, English)                    |
-| Tests          | Vitest, Testing Library, Playwright, axe-core                |
+| Tests          | Vitest 5, Testing Library, Playwright, axe-core              |
 | Hosting, CI/CD | Cloudflare Pages and Workers, GitHub Actions, release-please |
 
 ## AI workflow

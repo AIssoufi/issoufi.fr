@@ -61,3 +61,4 @@ An ADR is not rewritten later: a new decision supersedes it, and the old one get
 | [0017](0017-typescript-6.md)                     | 2026-10-21 | Update TypeScript to 6                                 |
 | [0018](0018-pnpm-12.md)                          | 2026-10-21 | Update pnpm to 12                                      |
 | [0019](0019-locked-build-chain.md)               | 2026-10-22 | Lock wrangler and pin the actions of third parties     |
+| [0020](0020-vitest-5.md)                         | 2026-10-22 | Update Vitest to 5                                     |
