@@ -1,17 +1,5 @@
-import { readFileSync } from 'node:fs';
-import { basename } from 'node:path';
-import { PULL_REQUEST_EVENT, PULL_REQUEST_WORKFLOW_FILES } from '../constants.mjs';
 import { releaseVersionOfTheDay } from './daily-release.mjs';
-import { findKeyLines, listYamlFiles } from './yaml.mjs';
 
-const WORKFLOWS_DIR = '.github/workflows';
-// The key of a workflow that names the events it runs on, under it or on its line
-const TRIGGERS_KEY = 'on';
-// Columns of a top-level key and of an event under the `on` key, as findKeyLines counts them
-const TOP_LEVEL_COLUMN = 1;
-const TRIGGER_COLUMN = 3;
-// What separates the events written on the line of the `on` key: `on: [push, pull_request]`
-const INLINE_TRIGGERS_SEPARATOR = /[\s,[\]]+/;
 const SHA = '58ff9ea0c3f4e1b2a9d8c7b6a5f4e3d2c1b0a9f8';
 const OTHER_SHA = '9ff31f7aa1b2c3d4e5f60718293a4b5c6d7e8f90';
 const MERGE_SHA = '3c1b0a9f858ff9ea0c3f4e1b2a9d8c7b6a5f4e3d';
@@ -212,26 +200,6 @@ describe('releaseVersionOfTheDay', () => {
     await expect(releaseVersionOfTheDay(WAITS)).resolves.toMatchObject({ level: 'notice' });
     expect(routesOf(requests)).not.toContain('GET /actions/workflows/pull-request-title.yml/runs');
     expect(routesOf(requests).filter(route => route.endsWith('/approve'))).toEqual([]);
-    expect(routesOf(requests)).toContain('PUT /pulls/162/merge');
-  });
-
-  it.each([
-    ['without a run on the head', { workflow_runs: [] }],
-    ['with a run that it cannot read', { workflow_runs: [{ id: 'odd' }] }],
-    ['with an answer without runs', {}],
-  ])('approves the held CI alone %s of the title lint', async (_, titleRuns) => {
-    const routes = releaseRoutes();
-    routes['GET /actions/workflows/ci.yml/runs'] = [
-      { body: { workflow_runs: [apiRun({ conclusion: 'action_required' })] } },
-    ];
-    routes['GET /actions/workflows/pull-request-title.yml/runs'] = [{ body: titleRuns }];
-    routes['POST /actions/runs/501/approve'] = [{ status: 201 }];
-    const requests = stubGitHub(routes);
-
-    await expect(releaseVersionOfTheDay(WAITS)).resolves.toMatchObject({ level: 'notice' });
-    expect(routesOf(requests).filter(route => route.endsWith('/approve'))).toEqual([
-      'POST /actions/runs/501/approve',
-    ]);
     expect(routesOf(requests)).toContain('PUT /pulls/162/merge');
   });
 
@@ -616,61 +584,5 @@ describe('releaseVersionOfTheDay', () => {
     await expect(promise).resolves.toMatchObject({ level: 'notice' });
     expect(routesOf(requests)).toContain('PUT /pulls/162/merge');
     vi.useRealTimers();
-  });
-});
-
-describe('the workflows whose held runs the daily release approves', () => {
-  const isTopLevelKey = ({ column }) => column === TOP_LEVEL_COLUMN;
-  const isTriggersKey = keyLine => isTopLevelKey(keyLine) && keyLine.key === TRIGGERS_KEY;
-  const isTrigger = ({ column }) => column === TRIGGER_COLUMN;
-
-  /**
-   * The events that a workflow runs on: those written on the line of its `on` key, then the keys
-   * right under it.
-   */
-  const readTriggers = source => {
-    const keys = findKeyLines(source);
-    const triggersIndex = keys.findIndex(isTriggersKey);
-    const triggersKey = keys[triggersIndex];
-    if (triggersKey === undefined) return [];
-
-    const inlineTriggers = triggersKey.value.split(INLINE_TRIGGERS_SEPARATOR).filter(Boolean);
-    const keysAfter = keys.slice(triggersIndex + 1);
-    const nextTopIndex = keysAfter.findIndex(isTopLevelKey);
-    const hasNextTopKey = nextTopIndex !== -1;
-    const keysUnder = hasNextTopKey ? keysAfter.slice(0, nextTopIndex) : keysAfter;
-    return [...inlineTriggers, ...keysUnder.filter(isTrigger).map(({ key }) => key)];
-  };
-
-  it.each([
-    [
-      'under the on key',
-      'on:\n  push:\n  pull_request:\n    types: [opened]\njobs:\n  a:\n',
-      ['push', PULL_REQUEST_EVENT],
-    ],
-    ['as the last key', 'name: x\non:\n  push:\n  pull_request:\n', ['push', PULL_REQUEST_EVENT]],
-    [
-      'on the line of the on key',
-      'on: pull_request\njobs:\n  pull_request:\n',
-      [PULL_REQUEST_EVENT],
-    ],
-    [
-      'in a list on the line of the on key',
-      'on: [push, pull_request]\n',
-      ['push', PULL_REQUEST_EVENT],
-    ],
-    ['before a job named like an event', 'on:\n  push:\njobs:\n  pull_request:\n', ['push']],
-    ['without an on key', 'jobs:\n  pull_request:\n', []],
-    ['that is empty', '', []],
-  ])('reads the events of a workflow written %s', (_form, source, events) => {
-    expect(readTriggers(source)).toEqual(events);
-  });
-
-  it('are every workflow that runs on pull requests', () => {
-    const pullRequestWorkflows = listYamlFiles(WORKFLOWS_DIR)
-      .filter(file => readTriggers(readFileSync(file, 'utf8')).includes(PULL_REQUEST_EVENT))
-      .map(file => basename(file));
-
-    expect(pullRequestWorkflows).toEqual([...PULL_REQUEST_WORKFLOW_FILES].sort());
   });
 });

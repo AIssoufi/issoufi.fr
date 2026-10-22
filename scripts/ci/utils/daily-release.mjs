@@ -3,10 +3,11 @@ import {
   CI_WORKFLOW_FILE,
   DEVELOP_BRANCH,
   PULL_REQUEST_EVENT,
-  PULL_REQUEST_WORKFLOW_FILES,
   RELEASE_MERGE_ATTEMPTS,
   RELEASE_WORKFLOW_FILE,
 } from '../constants.mjs';
+import { getErrorMessage } from './github-api.mjs';
+import { approveHeldRuns, nameRun } from './held-runs.mjs';
 import {
   describeMergeBlock,
   describeUnpassedChecks,
@@ -17,10 +18,8 @@ import {
 } from './mergeability.mjs';
 import { fetchReleasePullRequest, mergePullRequest } from './release-pull-request.mjs';
 import {
-  approveRun,
   describeRunOutcome,
   dispatchWorkflow,
-  fetchLatestRun,
   isHeldRun,
   shortenSha,
   waitForLatestRun,
@@ -34,13 +33,6 @@ import {
  * `warning` when someone has to act.
  * @property {string} message - What happened, with the page to look at.
  */
-
-/**
- * Reads the message of an error that a request threw.
- * @param {unknown} error - The error.
- * @returns {string} Its message, or its text when it is not an `Error`.
- */
-const getErrorMessage = error => (error instanceof Error ? error.message : String(error));
 
 /**
  * Parameters of {@link runCi}.
@@ -76,79 +68,6 @@ const readUnpassedChecks = async sha => {
     );
     return [];
   }
-};
-
-/**
- * Tells whether a workflow of the release pull request is the CI, whose run the daily release
- * already found, rather than another one that it looks up.
- * @param {string} workflow - File name of the workflow, from {@link PULL_REQUEST_WORKFLOW_FILES}.
- * @returns {boolean} True for {@link CI_WORKFLOW_FILE}.
- */
-const isCiWorkflow = workflow => workflow === CI_WORKFLOW_FILE;
-
-/**
- * Names the run of a workflow of the release pull request in a message.
- * @param {string} workflow - File name of the workflow, from {@link PULL_REQUEST_WORKFLOW_FILES}.
- * @returns {string} `the CI` for {@link CI_WORKFLOW_FILE}, `the <file> run` for another workflow.
- */
-const nameRun = workflow => (isCiWorkflow(workflow) ? 'the CI' : `the ${workflow} run`);
-
-/**
- * Approves a run that GitHub holds, as it does for the pull request runs of a pull request that
- * GitHub Actions opened.
- * @param {number} runId - Identifier of the held run.
- * @returns {Promise<string | undefined>} `undefined` once approved, or why GitHub refused.
- */
-const approveHeldRun = async runId => {
-  try {
-    await approveRun({ runId });
-    return undefined;
-  } catch (error) {
-    return getErrorMessage(error);
-  }
-};
-
-/**
- * A held run of the release pull request that GitHub refused to let the daily release approve.
- * @typedef {object} RefusedApproval
- * @property {string} workflow - File name of the workflow of the run.
- * @property {import('./workflow-runs.mjs').WorkflowRun} run - The held run.
- * @property {string} reason - Why GitHub refused, from {@link approveHeldRun}.
- */
-
-/**
- * Parameters of {@link approveHeldRuns}.
- * @typedef {object} ApproveHeldRunsParams
- * @property {string} name - The release pull request, as messages name it.
- * @property {string} branch - Branch of the release pull request.
- * @property {import('./workflow-runs.mjs').WorkflowRun} ciRun - The run of the CI that its pull
- * request event started on its head, which GitHub holds.
- */
-
-/**
- * Approves the runs that GitHub holds on the head of the release pull request, in the order of
- * {@link PULL_REQUEST_WORKFLOW_FILES}: the run of the CI, and the latest pull request run of each
- * other workflow on that head, which GitHub holds along with it. A workflow without a run on that
- * head, or whose run GitHub does not hold, is left alone. It stops at the first run that GitHub
- * refuses to let it approve.
- * @param {ApproveHeldRunsParams} params
- * @returns {Promise<RefusedApproval | undefined>} `undefined` once every held run is approved, or
- * the run that GitHub refused to approve.
- * @throws {Error} When the runs of another workflow cannot be listed.
- */
-const approveHeldRuns = async ({ name, branch, ciRun }) => {
-  for (const workflow of PULL_REQUEST_WORKFLOW_FILES) {
-    const run = isCiWorkflow(workflow)
-      ? ciRun
-      : await fetchLatestRun({ workflow, branch, event: PULL_REQUEST_EVENT, sha: ciRun.sha });
-    const isHeld = run !== undefined && isHeldRun(run);
-    if (!isHeld) continue;
-
-    const reason = await approveHeldRun(run.id);
-    if (reason !== undefined) return { workflow, run, reason };
-    console.log(`Approved ${nameRun(workflow)} of ${name}, which GitHub held: ${run.url}`);
-  }
-  return undefined;
 };
 
 /**
@@ -199,10 +118,11 @@ const hasHeadMoved = async ({ number, sha }) => {
 /**
  * Tries once to merge the release pull request at its current head: finds the run of the CI that
  * its pull request event started, approves it when GitHub holds it, with the held runs of the
- * other workflows of {@link PULL_REQUEST_WORKFLOW_FILES}, waits for it, then for GitHub to say
- * that the pull request can merge, which waits for the required checks of the other runs, and
- * merges it at the tested commit. Whenever it has to stop, it reads the head again, so that a
- * branch moved by release-please leads to another attempt rather than to a report.
+ * other workflows that run on pull requests ({@link approveHeldRuns}), waits for it, then for
+ * GitHub to say that the pull request can merge, which waits for the required checks of the
+ * other runs, and merges it at the tested commit. Whenever it has to stop, it reads the head
+ * again, so that a branch moved by release-please leads to another attempt rather than to a
+ * report.
  * @param {MergeReleasePullRequestParams} params
  * @returns {Promise<MergeAttempt>} How the attempt ended.
  */
@@ -352,9 +272,9 @@ const publishRelease = async ({ name, mergeSha, runWait }) => {
  * 2. finds the run of the CI that its pull request event started on its head commit, the only one
  *    whose checks GitHub links to the pull request, so the only one that the required checks of
  *    develop count. When GitHub holds that run, as it does when GitHub Actions opened the pull
- *    request, it approves it, then the held run of each other workflow of
- *    {@link PULL_REQUEST_WORKFLOW_FILES} on that head, such as the lint of the title, and gives up
- *    with a warning and the link of the run when GitHub refuses: a dry run approves them too;
+ *    request, it approves it, then the held run of each other workflow that runs on pull requests
+ *    on that head, such as the lint of the title ({@link approveHeldRuns}), and gives up with a
+ *    warning and the link of the run when GitHub refuses: a dry run approves them too;
  * 3. waits for that run, then for GitHub to say that the pull request can merge, and merges it at
  *    the commit that the CI tested. When release-please moved the branch meanwhile, which cancels
  *    that run or makes GitHub refuse the merge, it starts again from step 1, up to
