@@ -1,0 +1,61 @@
+name: Standalone build
+run-name: Standalone build of ${{ inputs.tag }}
+
+on:
+  # Called by release.yml for each release that release-please creates
+  workflow_call:
+    inputs:
+      tag:
+        description: Tag of the release, e.g. v1.6.0
+        type: string
+        required: true
+  # Rebuilds the archive of a release that lacks it. When release-please creates a release, then
+  # fails on the comment or the labels of its pull request, it outputs nothing, and its second call
+  # finds the release made and outputs nothing either: release.yml never attaches the archive, and
+  # no later run creates that release again. Run it from the Actions tab, or with
+  # gh workflow run standalone-build.yml -f tag=v1.6.0, also after a failed standalone build. It
+  # builds the code of the tag, from v1.1.0, the first version with this build, and replaces the
+  # archive that the release may already have.
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Tag of the release that gets the archive, e.g. v1.6.0
+        type: string
+        required: true
+
+permissions: {}
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    # Uploads the archive to the release
+    permissions:
+      contents: write
+    steps:
+      # Stops before the build when no release has this tag, e.g. a mistyped one, or when GitHub
+      # does not answer
+      - name: Check the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          TAG_NAME: ${{ inputs.tag }}
+        run: |
+          if ! gh release view "$TAG_NAME" > /dev/null; then
+            echo "::error::Could not read the release of the tag $TAG_NAME: gh says why in the log."
+            exit 1
+          fi
+      - uses: actions/checkout@v7
+        with:
+          ref: refs/tags/${{ inputs.tag }}
+      - uses: ./.github/actions/setup
+      - run: pnpm build:standalone
+      # The archive holds one folder named after it, so unzipping it never scatters its files
+      - run: |
+          mv dist-standalone "$ARCHIVE"
+          zip -r -X -q "$ARCHIVE.zip" "$ARCHIVE"
+          gh release upload "$TAG_NAME" "$ARCHIVE.zip" --clobber
+        env:
+          ARCHIVE: issoufi.fr-${{ inputs.tag }}
+          TAG_NAME: ${{ inputs.tag }}
+          GH_TOKEN: ${{ github.token }}

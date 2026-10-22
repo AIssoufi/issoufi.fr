@@ -32,6 +32,7 @@ The workflows of [`.github/workflows/`](../../.github/workflows/):
 | `ci.yml`                 | On each pull request and push to `develop` and `main`: format, lint, types, tests, commits, build, browser and visual tests, then the deploy and a smoke test |
 | `pull-request-title.yml` | On each pull request opened, pushed, edited or reopened: lints its title with commitlint, so that a title fixed with `gh pr edit` is checked without a push   |
 | `release.yml`            | On each push to `develop`: release-please keeps the release pull request up to date ([releases](../releases.md))                                              |
+| `standalone-build.yml`   | For each release of `release.yml`, or by hand with a tag: attaches the standalone build to its release ([releases](../releases.md#standalone-build))          |
 | `deploy-production.yml`  | Every morning: releases `develop` to `main`, which deploys production ([deployment](../deployment.md))                                                        |
 | `rebuild.yml`            | Every month: rebuilds production, so that the years of experience stay right                                                                                  |
 
