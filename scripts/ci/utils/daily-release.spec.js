@@ -1,5 +1,17 @@
+import { readFileSync } from 'node:fs';
+import { basename } from 'node:path';
+import { PULL_REQUEST_EVENT, PULL_REQUEST_WORKFLOW_FILES } from '../constants.mjs';
 import { releaseVersionOfTheDay } from './daily-release.mjs';
+import { findKeyLines, listYamlFiles } from './yaml.mjs';
 
+const WORKFLOWS_DIR = '.github/workflows';
+// The key of a workflow that names the events it runs on, under it or on its line
+const TRIGGERS_KEY = 'on';
+// Columns of a top-level key and of an event under the `on` key, as findKeyLines counts them
+const TOP_LEVEL_COLUMN = 1;
+const TRIGGER_COLUMN = 3;
+// What separates the events written on the line of the `on` key: `on: [push, pull_request]`
+const INLINE_TRIGGERS_SEPARATOR = /[\s,[\]]+/;
 const SHA = '58ff9ea0c3f4e1b2a9d8c7b6a5f4e3d2c1b0a9f8';
 const OTHER_SHA = '9ff31f7aa1b2c3d4e5f60718293a4b5c6d7e8f90';
 const MERGE_SHA = '3c1b0a9f858ff9ea0c3f4e1b2a9d8c7b6a5f4e3d';
@@ -13,7 +25,7 @@ const WAITS = {
   mergeableWait: { attempts: 3, delayMs: 0 },
 };
 
-/** A run of the CI, as the REST API writes it, by default the passed pull request run. */
+/** A workflow run, as the REST API writes it, by default the passed pull request run of the CI. */
 const apiRun = ({ id = 501, ...fields } = {}) => ({
   id,
   head_sha: SHA,
@@ -39,10 +51,13 @@ const apiPullRequestState = ({ mergeableState, sha = SHA }) => ({
   mergeable_state: mergeableState,
 });
 
-/** The routes of a release that goes well, from a pull request run that already passed. */
+/** The routes of a release that goes well, from pull request runs that already passed. */
 const releaseRoutes = () => ({
   'GET /pulls': [{ body: [apiReleasePullRequest] }],
   'GET /actions/workflows/ci.yml/runs': [{ body: { workflow_runs: [apiRun()] } }],
+  'GET /actions/workflows/pull-request-title.yml/runs': [
+    { body: { workflow_runs: [apiRun({ id: 511 })] } },
+  ],
   'GET /actions/runs/501': [{ body: apiRun() }],
   'GET /pulls/162': [{ body: apiPullRequestState({ mergeableState: 'clean' }) }],
   'PUT /pulls/162/merge': [{ body: { sha: MERGE_SHA, merged: true } }],
@@ -147,14 +162,113 @@ describe('releaseVersionOfTheDay', () => {
     const requests = stubGitHub(routes);
 
     await expect(releaseVersionOfTheDay(WAITS)).resolves.toMatchObject({ level: 'notice' });
-    expect(routesOf(requests).slice(1, 6)).toEqual([
+    expect(routesOf(requests).slice(1, 7)).toEqual([
       'GET /actions/workflows/ci.yml/runs',
       'POST /actions/runs/501/approve',
+      'GET /actions/workflows/pull-request-title.yml/runs',
       'GET /actions/runs/501',
       'GET /actions/runs/501',
       'GET /actions/runs/501',
     ]);
     expect(routesOf(requests)).toContain('PUT /pulls/162/merge');
+  });
+
+  it('approves the held run of the title lint along with the CI, on the same head', async () => {
+    const routes = releaseRoutes();
+    routes['GET /actions/workflows/ci.yml/runs'] = [
+      { body: { workflow_runs: [apiRun({ conclusion: 'action_required' })] } },
+    ];
+    routes['GET /actions/workflows/pull-request-title.yml/runs'] = [
+      { body: { workflow_runs: [apiRun({ id: 511, conclusion: 'action_required' })] } },
+    ];
+    routes['POST /actions/runs/501/approve'] = [{ status: 201 }];
+    routes['POST /actions/runs/511/approve'] = [{ status: 201 }];
+    const requests = stubGitHub(routes);
+
+    await expect(releaseVersionOfTheDay(WAITS)).resolves.toMatchObject({ level: 'notice' });
+    expect(routesOf(requests).slice(1, 6)).toEqual([
+      'GET /actions/workflows/ci.yml/runs',
+      'POST /actions/runs/501/approve',
+      'GET /actions/workflows/pull-request-title.yml/runs',
+      'POST /actions/runs/511/approve',
+      'GET /actions/runs/501',
+    ]);
+    const titleRunsQuery = new URL(requests[3].url).searchParams;
+    expect(titleRunsQuery.get('event')).toBe('pull_request');
+    expect(titleRunsQuery.get('branch')).toBe(BRANCH);
+    expect(titleRunsQuery.get('head_sha')).toBe(SHA);
+    expect(console.log).toHaveBeenCalledWith(
+      `Approved the CI of the release pull request #162, which GitHub held: ${RUNS_URL}/501`,
+    );
+    expect(console.log).toHaveBeenCalledWith(
+      `Approved the pull-request-title.yml run of the release pull request #162, which GitHub held: ${RUNS_URL}/511`,
+    );
+    expect(routesOf(requests)).toContain('PUT /pulls/162/merge');
+  });
+
+  it('leaves the other runs alone when the CI is not held, as with the release App', async () => {
+    const requests = stubGitHub(releaseRoutes());
+
+    await expect(releaseVersionOfTheDay(WAITS)).resolves.toMatchObject({ level: 'notice' });
+    expect(routesOf(requests)).not.toContain('GET /actions/workflows/pull-request-title.yml/runs');
+    expect(routesOf(requests).filter(route => route.endsWith('/approve'))).toEqual([]);
+    expect(routesOf(requests)).toContain('PUT /pulls/162/merge');
+  });
+
+  it.each([
+    ['without a run on the head', { workflow_runs: [] }],
+    ['with a run that it cannot read', { workflow_runs: [{ id: 'odd' }] }],
+    ['with an answer without runs', {}],
+  ])('approves the held CI alone %s of the title lint', async (_, titleRuns) => {
+    const routes = releaseRoutes();
+    routes['GET /actions/workflows/ci.yml/runs'] = [
+      { body: { workflow_runs: [apiRun({ conclusion: 'action_required' })] } },
+    ];
+    routes['GET /actions/workflows/pull-request-title.yml/runs'] = [{ body: titleRuns }];
+    routes['POST /actions/runs/501/approve'] = [{ status: 201 }];
+    const requests = stubGitHub(routes);
+
+    await expect(releaseVersionOfTheDay(WAITS)).resolves.toMatchObject({ level: 'notice' });
+    expect(routesOf(requests).filter(route => route.endsWith('/approve'))).toEqual([
+      'POST /actions/runs/501/approve',
+    ]);
+    expect(routesOf(requests)).toContain('PUT /pulls/162/merge');
+  });
+
+  it('warns with the link of the held title lint when its approval is refused', async () => {
+    const routes = releaseRoutes();
+    routes['GET /actions/workflows/ci.yml/runs'] = [
+      { body: { workflow_runs: [apiRun({ conclusion: 'action_required' })] } },
+    ];
+    routes['GET /actions/workflows/pull-request-title.yml/runs'] = [
+      { body: { workflow_runs: [apiRun({ id: 511, conclusion: 'action_required' })] } },
+    ];
+    routes['POST /actions/runs/501/approve'] = [{ status: 201 }];
+    routes['POST /actions/runs/511/approve'] = [
+      { status: 403, body: { message: 'Resource not accessible by integration' } },
+    ];
+    const requests = stubGitHub(routes);
+
+    await expect(releaseVersionOfTheDay(WAITS)).resolves.toEqual({
+      level: 'warning',
+      message: `No release today: GitHub holds the pull-request-title.yml run of the release pull request #162 until someone approves it, and refused to let this job do it (The GitHub API answered 403 to https://api.github.com/repos/${REPOSITORY}/actions/runs/511/approve: Resource not accessible by integration). Approve the run, then start deploy-production.yml by hand to release it: ${RUNS_URL}/511`,
+    });
+    expect(routesOf(requests)).not.toContain('PUT /pulls/162/merge');
+  });
+
+  it('throws when the runs of the title lint cannot be listed', async () => {
+    const routes = releaseRoutes();
+    routes['GET /actions/workflows/ci.yml/runs'] = [
+      { body: { workflow_runs: [apiRun({ conclusion: 'action_required' })] } },
+    ];
+    routes['GET /actions/workflows/pull-request-title.yml/runs'] = [
+      { status: 500, body: { message: 'Server Error' } },
+    ];
+    routes['POST /actions/runs/501/approve'] = [{ status: 201 }];
+    const requests = stubGitHub(routes);
+
+    await expect(releaseVersionOfTheDay(WAITS)).rejects.toThrow('The GitHub API answered 500');
+    expect(routesOf(requests)).not.toContain('PUT /pulls/162/merge');
   });
 
   it('warns with the link of the held CI when GitHub refuses to let the job approve it', async () => {
@@ -502,5 +616,61 @@ describe('releaseVersionOfTheDay', () => {
     await expect(promise).resolves.toMatchObject({ level: 'notice' });
     expect(routesOf(requests)).toContain('PUT /pulls/162/merge');
     vi.useRealTimers();
+  });
+});
+
+describe('the workflows whose held runs the daily release approves', () => {
+  const isTopLevelKey = ({ column }) => column === TOP_LEVEL_COLUMN;
+  const isTriggersKey = keyLine => isTopLevelKey(keyLine) && keyLine.key === TRIGGERS_KEY;
+  const isTrigger = ({ column }) => column === TRIGGER_COLUMN;
+
+  /**
+   * The events that a workflow runs on: those written on the line of its `on` key, then the keys
+   * right under it.
+   */
+  const readTriggers = source => {
+    const keys = findKeyLines(source);
+    const triggersIndex = keys.findIndex(isTriggersKey);
+    const triggersKey = keys[triggersIndex];
+    if (triggersKey === undefined) return [];
+
+    const inlineTriggers = triggersKey.value.split(INLINE_TRIGGERS_SEPARATOR).filter(Boolean);
+    const keysAfter = keys.slice(triggersIndex + 1);
+    const nextTopIndex = keysAfter.findIndex(isTopLevelKey);
+    const hasNextTopKey = nextTopIndex !== -1;
+    const keysUnder = hasNextTopKey ? keysAfter.slice(0, nextTopIndex) : keysAfter;
+    return [...inlineTriggers, ...keysUnder.filter(isTrigger).map(({ key }) => key)];
+  };
+
+  it.each([
+    [
+      'under the on key',
+      'on:\n  push:\n  pull_request:\n    types: [opened]\njobs:\n  a:\n',
+      ['push', PULL_REQUEST_EVENT],
+    ],
+    ['as the last key', 'name: x\non:\n  push:\n  pull_request:\n', ['push', PULL_REQUEST_EVENT]],
+    [
+      'on the line of the on key',
+      'on: pull_request\njobs:\n  pull_request:\n',
+      [PULL_REQUEST_EVENT],
+    ],
+    [
+      'in a list on the line of the on key',
+      'on: [push, pull_request]\n',
+      ['push', PULL_REQUEST_EVENT],
+    ],
+    ['before a job named like an event', 'on:\n  push:\njobs:\n  pull_request:\n', ['push']],
+    ['without an on key', 'jobs:\n  pull_request:\n', []],
+    ['that is empty', '', []],
+  ])('reads the events of a workflow written %s', (_form, source, events) => {
+    expect(readTriggers(source)).toEqual(events);
+  });
+
+  it('are every workflow that runs on pull requests', () => {
+    const pullRequestWorkflows = listYamlFiles(WORKFLOWS_DIR)
+      .filter(file => readTriggers(readFileSync(file, 'utf8')).includes(PULL_REQUEST_EVENT))
+      .map(file => basename(file));
+
+    expect(pullRequestWorkflows).toEqual([...PULL_REQUEST_WORKFLOW_FILES].sort());
   });
 });
