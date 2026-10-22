@@ -152,4 +152,13 @@ On 2026-10-22, the deploy runs the wrangler of the lockfile instead of the lates
 | Clean install              | 0.5 s                      | 0.5 s                      |
 | `pnpm audit` advisories    | 2 moderate                 | 2 moderate                 |
 
-Decision: [0015](decisions/0015-render-at-build-time.md), [0016](decisions/0016-cloudflare-worker-deploy-trigger.md), [0017](decisions/0017-typescript-6.md), [0018](decisions/0018-pnpm-12.md), [0019](decisions/0019-locked-build-chain.md).
+On 2026-10-22, Vitest and its coverage go from 4.1.11 to 5.0.4 ([#324](https://github.com/AIssoufi/issoufi.fr/issues/324)), with no change of the specs. The config sets the default pool and isolation explicitly, which silences the hints of Vitest 5 to share a worker or a jsdom between specs: both fail tests here.
+
+| Figure                       | Before (4.1.11) | After (5.0.4) |
+| ---------------------------- | --------------- | ------------- |
+| `pnpm test:coverage`, local  | 35.8 s          | 35.1 s        |
+| `pnpm test:coverage`, CI     | 103.0 s         | 132.5 s       |
+| Coverage of the four metrics | 100 %           | 100 %         |
+| `pnpm audit` advisories      | 2 moderate      | 0             |
+
+Decision: [0015](decisions/0015-render-at-build-time.md), [0016](decisions/0016-cloudflare-worker-deploy-trigger.md), [0017](decisions/0017-typescript-6.md), [0018](decisions/0018-pnpm-12.md), [0019](decisions/0019-locked-build-chain.md), [0020](decisions/0020-vitest-5.md).
