@@ -22,6 +22,8 @@ On every pull request, and on every push to `develop` and `main`, GitHub Actions
 4. on pull requests, a check of the commit messages and of new dependencies, and a comparison of the screenshots of every page with the base branch, which only informs;
 5. the deployment and its smoke test, and on `main` a check that `http://issoufi.fr/`, `http://www.issoufi.fr/` and `https://www.issoufi.fr/` redirect to `https://issoufi.fr/` in one hop.
 
+The title of a pull request has a workflow of its own, [`pull-request-title.yml`](../.github/workflows/pull-request-title.yml), which lints it on each push and on each edit of the pull request: an edit starts no other check.
+
 ## Daily release and deploy
 
 Every morning between 6:00 and 7:00, Paris time, a Cloudflare Worker starts a workflow that:

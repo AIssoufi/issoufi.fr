@@ -21,17 +21,18 @@ Each ticket gets its own [Worktrunk](https://github.com/max-sixty/worktrunk) wor
 
 ## Commits
 
-commitlint checks each commit message, in the `commit-msg` hook of Husky and in the `commits` job of the CI, with the Conventional Commits rules and a rule of this repository: every commit names its ticket in a `Refs: ISF-<n>` footer ([#322](https://github.com/AIssoufi/issoufi.fr/issues/322)). On a branch named after a ticket, the `prepare-commit-msg` hook adds that footer when the message has none. The release commits of release-please and the commits of Dependabot are exempt, and the title of a pull request, which GitHub writes in the merge commit, is linted without the footer.
+commitlint checks each commit message, in the `commit-msg` hook of Husky and in the `commits` job of the CI, with the Conventional Commits rules and a rule of this repository: every commit names its ticket in a `Refs: ISF-<n>` footer ([#322](https://github.com/AIssoufi/issoufi.fr/issues/322)). On a branch named after a ticket, the `prepare-commit-msg` hook adds that footer when the message has none. The release commits of release-please and the commits of Dependabot are exempt, and the title of a pull request, which GitHub writes in the merge commit, is linted without the footer, again whenever the pull request is edited: a worker fixes a title with `gh pr edit --title`, without a push.
 
 ## CI and Cloudflare
 
 The workflows of [`.github/workflows/`](../../.github/workflows/):
 
-| Workflow                | Runs                                                                                                                                                          |
-| ----------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `ci.yml`                | On each pull request and push to `develop` and `main`: format, lint, types, tests, commits, build, browser and visual tests, then the deploy and a smoke test |
-| `release.yml`           | On each push to `develop`: release-please keeps the release pull request up to date ([releases](../releases.md))                                              |
-| `deploy-production.yml` | Every morning: releases `develop` to `main`, which deploys production ([deployment](../deployment.md))                                                        |
-| `rebuild.yml`           | Every month: rebuilds production, so that the years of experience stay right                                                                                  |
+| Workflow                 | Runs                                                                                                                                                          |
+| ------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `ci.yml`                 | On each pull request and push to `develop` and `main`: format, lint, types, tests, commits, build, browser and visual tests, then the deploy and a smoke test |
+| `pull-request-title.yml` | On each pull request opened, pushed, edited or reopened: lints its title with commitlint, so that a title fixed with `gh pr edit` is checked without a push   |
+| `release.yml`            | On each push to `develop`: release-please keeps the release pull request up to date ([releases](../releases.md))                                              |
+| `deploy-production.yml`  | Every morning: releases `develop` to `main`, which deploys production ([deployment](../deployment.md))                                                        |
+| `rebuild.yml`            | Every month: rebuilds production, so that the years of experience stay right                                                                                  |
 
 The site is hosted on Cloudflare Pages, and each branch gets a preview at `<branch>.issoufi-fr.pages.dev`, which the visual tester can open. A Cloudflare Worker, the deploy trigger of [`scripts/deploy-trigger/`](../../scripts/deploy-trigger/), starts the daily deploy, since GitHub's scheduler delays or drops its runs ([#321](https://github.com/AIssoufi/issoufi.fr/issues/321), [decision 0016](../decisions/0016-cloudflare-worker-deploy-trigger.md)).
