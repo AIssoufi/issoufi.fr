@@ -25,13 +25,13 @@ export const WEB_MANIFEST_MEDIA_TYPE = 'application/manifest+json';
  * Identity of the installed app, the same in every language: the site installs once, in the
  * language of the page it was installed from.
  */
-export const WEB_APP_ID = '/';
+const WEB_APP_ID = '/';
 
 /** Pages that the installed app opens itself: every page of every language. */
-export const WEB_APP_SCOPE = '/';
+const WEB_APP_SCOPE = '/';
 
 /** How the installed app opens: in a window of its own, without the bar of the browser. */
-export const WEB_APP_DISPLAY = 'standalone';
+const WEB_APP_DISPLAY = 'standalone';
 
 /** Placeholder of the years of experience in the description of the app. */
 const YEARS_PLACEHOLDER_PATTERN = /{{years}}/g;

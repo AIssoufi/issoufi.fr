@@ -1,0 +1,26 @@
+{
+  "$schema": "./node_modules/knip/schema-jsonc.json",
+  // The plugins of knip find the other entry points: index.html for Vite, the specs for Vitest,
+  // the scripts of package.json and the run steps of the workflows
+  "entry": [
+    // pull-request-title.yml passes it to commitlint with --config, which knip does not read
+    "scripts/commits/title.config.mjs",
+  ],
+  "playwright": {
+    // pnpm test:visual runs the second one from scripts/ci/compare-screenshots.mjs
+    "config": ["playwright.config.ts", "playwright.visual.config.ts"],
+  },
+  // A type that its own file uses may stay exported, such as one that an exported type names,
+  // which its users may need to name too
+  "ignoreExportsUsedInFile": { "interface": true, "type": true },
+  "ignoreDependencies": [
+    // The deploy job of ci.yml runs it through cloudflare/wrangler-action, which no script names
+    "wrangler",
+  ],
+  "ignoreIssues": {
+    // Both files hold an export that only its own file uses, left while the pull request #347
+    // changes scripts/cv/ (#370)
+    "scripts/cv/constants.mjs": ["exports"],
+    "scripts/cv/utils/constants.mjs": ["exports"],
+  },
+}

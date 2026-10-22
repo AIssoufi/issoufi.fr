@@ -161,4 +161,13 @@ On 2026-10-22, Vitest and its coverage go from 4.1.11 to 5.0.4 ([#324](https://g
 | Coverage of the four metrics | 100 %           | 100 %         |
 | `pnpm audit` advisories      | 2 moderate      | 0             |
 
-Decision: [0015](decisions/0015-render-at-build-time.md), [0016](decisions/0016-cloudflare-worker-deploy-trigger.md), [0017](decisions/0017-typescript-6.md), [0018](decisions/0018-pnpm-12.md), [0019](decisions/0019-locked-build-chain.md), [0020](decisions/0020-vitest-5.md).
+On 2026-10-22, knip 6.41.0 reports in the `lint` job of the CI the files that no entry point reaches, the exports that no module imports and the dependencies that nothing uses ([#357](https://github.com/AIssoufi/issoufi.fr/issues/357)). Twelve constants lose their `export` and an unused type goes. The duration of the CI is in the pull request.
+
+| Figure                  | Before (`3e91798`) | After  |
+| ----------------------- | ------------------ | ------ |
+| knip findings           | 26                 | 0      |
+| knip run, local         | 0.57 s             | 0.57 s |
+| Clean install           | 0.5 s              | 0.5 s  |
+| `pnpm audit` advisories | 0                  | 0      |
+
+Decision: [0015](decisions/0015-render-at-build-time.md), [0016](decisions/0016-cloudflare-worker-deploy-trigger.md), [0017](decisions/0017-typescript-6.md), [0018](decisions/0018-pnpm-12.md), [0019](decisions/0019-locked-build-chain.md), [0020](decisions/0020-vitest-5.md), [0021](decisions/0021-knip.md).

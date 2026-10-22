@@ -82,7 +82,7 @@ export const HASHED_ASSET_MAX_AGE_SECONDS = 31_536_000;
  * file of the site is served by its own origin, and the site sends nothing to another one.
  * @see https://developer.mozilla.org/docs/Web/HTTP/Guides/CSP
  */
-export const CONTENT_SECURITY_POLICY_DIRECTIVES: readonly string[] = [
+const CONTENT_SECURITY_POLICY_DIRECTIVES: readonly string[] = [
   "default-src 'self'",
   "script-src 'self'",
   // styled-components writes its rules in <style> elements, as the font-faces plugin of
@@ -208,13 +208,13 @@ export const NODE_MODULES_PATTERN = /[\\/]node_modules[\\/]/;
  * Tag that Rolldown gives to the modules that an entry imports statically, directly or not: those
  * of the first load of a page, as opposed to the modules that only the lazy pages import.
  */
-export const INITIAL_MODULE_TAG = '$initial';
+const INITIAL_MODULE_TAG = '$initial';
 
 /**
  * Fewest chunks that must use a module of the first load for it to go to the
  * {@link SHARED_CHUNK_NAME} chunk: the main chunk and at least one lazy page.
  */
-export const MIN_SHARED_MODULE_USERS = 2;
+const MIN_SHARED_MODULE_USERS = 2;
 
 /**
  * Groups of modules that the build puts in chunks of their own name, where Rolldown would name a

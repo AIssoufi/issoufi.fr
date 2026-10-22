@@ -623,7 +623,7 @@ export const MENU_AXE_SCREEN_WIDTHS_PX = [375, 768] as const;
  * Rule of axe-core that checks the contrast of each text against its background: 4.5:1, or 3:1 for
  * a large text, the level AA of the Web Content Accessibility Guidelines (success criterion 1.4.3).
  */
-export const COLOR_CONTRAST_RULE = 'color-contrast';
+const COLOR_CONTRAST_RULE = 'color-contrast';
 
 /**
  * Rule of axe-core that checks that the accessible name of a control given by `aria-label` or
@@ -631,7 +631,7 @@ export const COLOR_CONTRAST_RULE = 'color-contrast';
  * finds it (success criterion 2.5.3, Label in Name, level A). Experimental, so axe-core runs it
  * only when it is named.
  */
-export const LABEL_IN_NAME_RULE = 'label-content-name-mismatch';
+const LABEL_IN_NAME_RULE = 'label-content-name-mismatch';
 
 /** Rules of axe-core that every page passes, at each of {@link AXE_SCREEN_WIDTHS_PX}. */
 export const PAGE_AXE_RULES = [COLOR_CONTRAST_RULE, LABEL_IN_NAME_RULE] as const;
@@ -754,7 +754,7 @@ export const LINE_BREAK_SCREEN_WIDTHS_PX = [320, 360, 375, 390, 414] as const;
 export const DEPARTMENT_LINE_START_PATTERN = /^\(\d{2}\)/u;
 
 /** Title of the home page: the job title, then the passion for UX and UI design. */
-export const HERO_TITLE_SELECTOR = `${PAGE_SELECTOR} h1`;
+const HERO_TITLE_SELECTOR = `${PAGE_SELECTOR} h1`;
 
 /** First line of the home title, the job title, "Développeur full-stack JavaScript". */
 export const HERO_JOB_TITLE_SELECTOR = `${HERO_TITLE_SELECTOR} > :first-child`;
