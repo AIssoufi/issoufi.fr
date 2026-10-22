@@ -101,6 +101,11 @@ jobs:
       # actionlint accepts an action of a third party referenced by a tag, which its owner can move
       - if: ${{ !cancelled() }}
         run: node scripts/ci/check-action-pins.mjs
+      # actions/checkout keeps the token of the job in the git config for every later step unless
+      # it sets persist-credentials: false. This check asks for false, or for true with a comment
+      # that names the later step using the token
+      - if: ${{ !cancelled() }}
+        run: node scripts/ci/check-checkout-credentials.mjs
 
   # Lints the commits of a pull request. Its title has a workflow of its own,
   # pull-request-title.yml, which also runs on each edit of the pull request
