@@ -11,7 +11,7 @@
 ## Daily release
 
 1. Each push to `develop` updates a release pull request, with the next version and its changelog.
-2. Every morning, the daily workflow waits for the CI of that pull request, which it tries to approve when GitHub holds it, then merges it.
+2. Every morning, the daily workflow waits for the CI of that pull request, then merges it. When GitHub holds its runs, the CI and the lint of its title, it tries to approve them first.
 3. The merge tags the version, and publishes a GitHub release with the standalone build attached.
 4. The production deploy that follows ships it.
 
