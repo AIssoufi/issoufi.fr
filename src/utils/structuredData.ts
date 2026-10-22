@@ -12,7 +12,7 @@ export const SCHEMA_ORG_CONTEXT = 'https://schema.org';
  * browsers do not run, so the Content Security Policy of the site, which refuses inline scripts,
  * leaves it alone.
  */
-export const STRUCTURED_DATA_MEDIA_TYPE = 'application/ld+json';
+const STRUCTURED_DATA_MEDIA_TYPE = 'application/ld+json';
 
 /**
  * Identifier of the owner of the site in the structured data, the same in every language, since
