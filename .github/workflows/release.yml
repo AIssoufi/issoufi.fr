@@ -81,9 +81,10 @@ jobs:
 
   standalone-build:
     # Attaches to each new release a build of the site that opens from the disk, next to the
-    # source archives that GitHub adds itself
+    # source archives that GitHub adds itself. It runs even when the release-please job failed
+    # on the release pull request after creating the release, which no later run creates again.
     needs: release-please
-    if: needs.release-please.outputs.release_created == 'true'
+    if: ${{ !cancelled() && needs.release-please.outputs.release_created == 'true' }}
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
