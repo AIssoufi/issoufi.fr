@@ -127,4 +127,29 @@ Measured with Node.js 24.22.0.
 | FCP, simulated, `/`             | 1.81 s              | 0.62 s                                                      |
 | Start of the daily deploy       | crons of GitHub     | a Cloudflare Worker, with the crons of GitHub as a fallback |
 
-Decision: [0015](decisions/0015-render-at-build-time.md), [0016](decisions/0016-cloudflare-worker-deploy-trigger.md).
+On 2026-10-21, TypeScript goes from 5.9.3 to 6.0.3 ([#352](https://github.com/AIssoufi/issoufi.fr/pull/352)), with no change of the code nor of the tsconfig files. TypeScript 7 waits for `typescript-eslint`, which accepts no version from 6.1.0.
+
+| Figure                  | Before (5.9.3) | After (6.0.3) |
+| ----------------------- | -------------- | ------------- |
+| `pnpm typecheck`        | 3.5 s          | 3.7 s         |
+| `pnpm build`            | 3.9 s          | 4.2 s         |
+| `pnpm audit` advisories | 0              | 0             |
+
+On 2026-10-21, pnpm goes from 10.34.7 to 12.14.0 ([#354](https://github.com/AIssoufi/issoufi.fr/pull/354)), with `pmOnFail: ignore`, which keeps `pnpm-lock.yaml` one document so that the dependency graph of GitHub still sees the dependencies. The duration of the CI is in the pull request.
+
+| Figure                  | Before (10.34.7) | After (12.14.0) |
+| ----------------------- | ---------------- | --------------- |
+| Clean install           | 1.8 s            | 0.7 s           |
+| `pnpm audit` advisories | 0                | 0               |
+
+On 2026-10-22, the deploy runs the wrangler of the lockfile instead of the latest one that it installed at each run, and the workflows reference the actions of third parties by the SHA of a commit instead of a tag ([#359](https://github.com/AIssoufi/issoufi.fr/issues/359)). The duration of the CI is in the pull request.
+
+| Figure                     | Before                     | After                      |
+| -------------------------- | -------------------------- | -------------------------- |
+| `deploy` job in CI, median | 22 s                       | 26 s                       |
+| Cache of the pnpm store    | 98.3 MB                    | 156.2 MB                   |
+| wrangler of the deploy     | the latest 4.x at each run | 4.151.0, from the lockfile |
+| Clean install              | 0.5 s                      | 0.5 s                      |
+| `pnpm audit` advisories    | 2 moderate                 | 2 moderate                 |
+
+Decision: [0015](decisions/0015-render-at-build-time.md), [0016](decisions/0016-cloudflare-worker-deploy-trigger.md), [0017](decisions/0017-typescript-6.md), [0018](decisions/0018-pnpm-12.md), [0019](decisions/0019-locked-build-chain.md).

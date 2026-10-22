@@ -8,7 +8,7 @@ const CHESS: ProjectData = {
   nameKey: 'chess',
   typeKey: 'webApp',
   thumbnails: [{ url: '/chess-480.webp', width: 480, height: 300 }],
-  url: 'https://aissoufi.github.io/chess/',
+  url: 'https://chess.issoufi.fr/',
   tools: ['HTML 5', 'CSS 3'],
 };
 
@@ -65,7 +65,7 @@ describe('translateProjects', () => {
         name: 'Jeu d’échecs',
         type: 'Application web',
         thumbnails: [{ url: '/chess-480.webp', width: 480, height: 300 }],
-        url: 'https://aissoufi.github.io/chess/',
+        url: 'https://chess.issoufi.fr/',
         tools: ['HTML 5', 'CSS 3'],
       },
       {

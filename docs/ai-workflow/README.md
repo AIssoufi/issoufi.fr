@@ -24,6 +24,7 @@ flowchart LR
 | [Life of a ticket](ticket-lifecycle.md) | From a finding to an issue, a worker, a pull request, a merge and the daily deploy                  |
 | [Reviews](reviews.md)                   | The conventions review, the visual test, and what waits for the owner                               |
 | [Journal and lessons](journal.md)       | What the fleet journal and the lessons journal record, and why                                      |
+| [Tooling](tooling.md)                   | Claude Code, cmux, Worktrunk and its hooks, commitlint, the CI and Cloudflare in this repository    |
 
 ## Guardrails in the repository
 

@@ -35,6 +35,7 @@ Every morning between 6:00 and 7:00, Paris time, a Cloudflare Worker starts a wo
 - A run waits up to 20 minutes for a CI of `develop` still running. When `develop` has not passed its CI, the run fails, so that a later one tries again: a red run or badge may mean a deploy put off, whose notice or warning says why.
 - _Actions → Deploy to production → Run workflow_ releases and deploys at once; its `dry_run` option shows what it would do, without merging or pushing, and its `scheduled` option runs it as the Worker does.
 - A warning says when someone has to act, such as after a day without any scheduled run.
+- _The Cloudflare trigger has not started…_, a warning of the CI of `develop` and of the deploy, means that the Worker started no run for 36 hours while GitHub's schedule still does, hours late: its token expired or the Worker is gone. Read its logs, then store a new token or deploy it again (_Deploy trigger_, below).
 - The deploy fetches `develop` again after the release: `actions/checkout` sets `origin/develop` back to the commit that started the run, which lacks the release merge.
 - A change merged into `develop` is online the next morning.
 - A monthly run rebuilds production, so that the years of experience written in the pages stay right.
@@ -49,6 +50,8 @@ Every morning between 6:00 and 7:00, Paris time, a Cloudflare Worker starts a wo
 
 - Dependabot opens weekly update pull requests against `develop`.
 - pnpm installs no version published less than 7 days ago.
+- The deploy runs the wrangler of the lockfile, the one `pnpm exec wrangler` runs locally.
+- The workflows reference each action of a third party by the SHA of its commit, its version in a comment, which Dependabot updates, since the owner of a tag can move it. The actions of GitHub keep their major tag.
 
 ## Setup by the site owner
 
@@ -61,10 +64,10 @@ Done in the repository settings, never by a workflow or an agent:
 - **Cloudflare secrets**: `CLOUDFLARE_API_TOKEN`, a token with the _Account → Cloudflare Pages → Edit_ permission, and `CLOUDFLARE_ACCOUNT_ID`. The automatic builds of Cloudflare stay paused: the CI deploys the site.
 - **Deploy trigger**, the Cloudflare Worker `issoufi-fr-deploy-trigger`, deployed from `scripts/deploy-trigger/` by the site owner, never by the CI:
   1. Create a fine-grained personal access token limited to this repository, with the _Actions: Read and write_ permission alone, besides the _Metadata: Read_ that GitHub adds, and an expiry date.
-  2. Deploy the Worker: `pnpm dlx wrangler deploy --config scripts/deploy-trigger/wrangler.jsonc`.
-  3. Store the token as its `GITHUB_DISPATCH_TOKEN` secret, which stays in Cloudflare, never in the repository: `pnpm dlx wrangler secret put GITHUB_DISPATCH_TOKEN --config scripts/deploy-trigger/wrangler.jsonc`.
+  2. Deploy the Worker: `pnpm exec wrangler deploy --config scripts/deploy-trigger/wrangler.jsonc`.
+  3. Store the token as its `GITHUB_DISPATCH_TOKEN` secret, which stays in Cloudflare, never in the repository: `pnpm exec wrangler secret put GITHUB_DISPATCH_TOKEN --config scripts/deploy-trigger/wrangler.jsonc`.
   4. Store a new token before this one expires. Without a valid token, each run of the Worker fails, with the answer of GitHub in its logs (_Workers & Pages → issoufi-fr-deploy-trigger → Logs_), and only GitHub's schedule deploys, late.
 
-  To try it: `pnpm dlx wrangler dev --test-scheduled --config scripts/deploy-trigger/wrangler.jsonc`, with the token in `scripts/deploy-trigger/.dev.vars`, then open `http://localhost:8787/__scheduled`. Outside 6:00 to 7:00 in Paris, it only logs why it starts nothing.
+  To try it: `pnpm exec wrangler dev --test-scheduled --config scripts/deploy-trigger/wrangler.jsonc`, with the token in `scripts/deploy-trigger/.dev.vars`, then open `http://localhost:8787/__scheduled`. Outside 6:00 to 7:00 in Paris, it only logs why it starts nothing.
 
 - **Release GitHub App**, optional: the `RELEASE_APP_CLIENT_ID` variable and the `RELEASE_APP_PRIVATE_KEY` secret. The CI of the release pull request then starts without approval ([steps in #268](https://github.com/AIssoufi/issoufi.fr/pull/268)).

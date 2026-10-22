@@ -1,9 +1,9 @@
 {
   "name": "issoufi-v3",
-  "version": "1.5.0",
+  "version": "1.6.0",
   "private": true,
   "type": "module",
-  "packageManager": "pnpm@10.34.7",
+  "packageManager": "pnpm@12.14.0",
   "dependencies": {
     "@xstyled/styled-components": "4.1.1",
     "i18next": "^26.4.4",
@@ -37,11 +37,12 @@
     "lint-staged": "^17.6.0",
     "pdfjs-dist": "^6.4.299",
     "prettier": "3.9.10",
-    "typescript": "^5.7.0",
+    "typescript": "^6.0.3",
     "typescript-eslint": "^8.71.1",
     "vite": "^8.3.4",
     "vite-plugin-svgr": "^5.2.0",
-    "vitest": "^4.1.11"
+    "vitest": "^4.1.11",
+    "wrangler": "^4.151.0"
   },
   "scripts": {
     "dev": "vite --configLoader native",

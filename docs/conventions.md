@@ -19,7 +19,7 @@ The agents read these rules, one line each, in [`CLAUDE.md`](../CLAUDE.md).
 - No text that a visitor reads, the CV included, holds an em dash (U+2014): a period takes an en dash, a pause a comma.
   `src/visibleTexts.spec.ts` and `pnpm cv` fail on one.
 - Prettier wraps the code at 100 characters but never a comment: ESLint refuses a comment line wider than that.
-- One folder per component: `Name.tsx` with its JSDoc, `Name.spec.jsx`, `Name.styled.ts` and `index.ts`.
+- One folder per component: `Name.tsx` with its JSDoc, `Name.spec.jsx`, `Name.styled.ts` and `index.ts`. The root `App` has no `index.ts`: the entry points import `App/App.tsx`.
 - A sub-component nests in the folder of its parent. A component shared by pages goes in `src/components/`.
 - A style file is imported by its own component only.
 - A relative import names its file with its extension (`./utils.ts`, `./List/index.ts`): Node.js loads the Vite configs as they are, and resolves no other path. ESLint refuses one without it.

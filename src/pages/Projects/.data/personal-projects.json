@@ -26,7 +26,7 @@
           "height": 750
         }
       ],
-      "url": "https://aissoufi.github.io/chess/",
+      "url": "https://chess.issoufi.fr/",
       "tools": ["HTML 5", "CSS 3", "JavaScript", "Gulp", "Mocha", "Babel"]
     },
     {
@@ -55,7 +55,17 @@
           "height": 700
         }
       ],
-      "tools": ["HTML 5", "SCSS", "React.js", "Redux.js"]
+      "url": "https://pedalboards.issoufi.fr/",
+      "tools": [
+        "HTML 5",
+        "SCSS",
+        "React.js",
+        "Redux.js",
+        "Express",
+        "Vite",
+        "Vitest",
+        "Cloudflare Workers"
+      ]
     },
     {
       "id": 3,
@@ -83,6 +93,7 @@
           "height": 750
         }
       ],
+      "url": "https://connect-four.issoufi.fr/",
       "tools": ["HTML 5", "CSS 3", "Express", "Swagger"]
     },
     {
@@ -111,6 +122,7 @@
           "height": 755
         }
       ],
+      "url": "https://calculator.issoufi.fr/",
       "tools": ["HTML 5", "CSS 3", "React.js", "Redux.js"]
     }
   ]

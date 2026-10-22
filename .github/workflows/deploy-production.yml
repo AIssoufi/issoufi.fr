@@ -47,7 +47,7 @@ jobs:
         with:
           node-version-file: .nvmrc
       # Reads the scheduled runs of this workflow (actions: read), and warns when none started on
-      # a day
+      # a day, or when the Cloudflare trigger stopped while the crons go on
       - id: schedule
         name: Check the schedule
         run: node scripts/ci/check-deploy-schedule.mjs
