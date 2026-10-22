@@ -39,7 +39,7 @@ done
 
 ## README screenshot
 
-The README shows the English home page in `docs/images/home.webp`, at 1440 × 900 px and about 40 kB.
+The README shows the English home page in `docs/images/home.webp`, at 1440 × 900 px and at most 50 kB, which `src/docsImages.spec.ts` checks for every image of `docs/images/`.
 Capture it again with each release that changes the look of the home page: build that release, run `pnpm preview`, screenshot `/en/` at 1440 × 900 px once the animations end, then write it:
 
 ```bash
