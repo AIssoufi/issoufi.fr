@@ -1,5 +1,27 @@
 # Changelog
 
+## [1.6.0](https://github.com/AIssoufi/issoufi.fr/compare/v1.5.0...v1.6.0) (2026-10-21)
+
+
+### Features
+
+* **projects:** link the chess, calculator, Connect Four, Kane and Pedalboards demos ([5977b7e](https://github.com/AIssoufi/issoufi.fr/commit/5977b7ed481c2cb44b6194154d1589b430b0a7d8))
+* **projects:** list the current tools of the Pedalboards project ([a85b245](https://github.com/AIssoufi/issoufi.fr/commit/a85b245efe80a670a0429cbd3d7e1f46fe2b7df1))
+
+
+### Code Refactoring
+
+* remove the unused Forbidden page and the App barrel ([e3d8dee](https://github.com/AIssoufi/issoufi.fr/commit/e3d8deebe8b3e05d4f3b722f4e31d2b156ce02e1))
+
+
+### Documentation
+
+* describe the tools of the agents in this repository ([401845e](https://github.com/AIssoufi/issoufi.fr/commit/401845ed6156865d1e1c4701e4977d2cddb42e21))
+* record the locked wrangler and the pinned actions ([5c6bac7](https://github.com/AIssoufi/issoufi.fr/commit/5c6bac785950d8413885a556e0d97b1ddae7ea5d))
+* record the update to pnpm 12 ([5bb2936](https://github.com/AIssoufi/issoufi.fr/commit/5bb293683df98d0ed0b731e18a968b929ab56304))
+* record the update to TypeScript 6 ([4c7e5da](https://github.com/AIssoufi/issoufi.fr/commit/4c7e5da4330127751c65ae192b7fcc1b2be19739))
+* say where the worktree of a ticket lives ([b9632f9](https://github.com/AIssoufi/issoufi.fr/commit/b9632f9a40a8c2b21d0c3a0953b20a406fed1101))
+
 ## [1.5.0](https://github.com/AIssoufi/issoufi.fr/compare/v1.4.2...v1.5.0) (2026-10-20)
 
 
