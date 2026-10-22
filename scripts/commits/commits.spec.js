@@ -3,6 +3,8 @@ import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 
+import { UNCOLORED_ENV } from '../testUtils.js';
+
 // Runs commitlint with the configurations of the repository, and the prepare-commit-msg hook in a
 // repository of its own, as git runs them
 
@@ -14,15 +16,6 @@ const HOOK = join(ROOT, '.husky/prepare-commit-msg');
 
 /** Time commitlint may take for one message, in milliseconds: it loads its config each time. */
 const COMMITLINT_TIMEOUT_MS = 20_000;
-
-/**
- * Environment of commitlint, without colors, which the CI forces with `FORCE_COLOR` and which would
- * break the text of its output with escape codes.
- */
-const UNCOLORED_ENV = {
-  ...Object.fromEntries(Object.entries(process.env).filter(([name]) => name !== 'FORCE_COLOR')),
-  NO_COLOR: '1',
-};
 
 /** Runs commitlint on a message and gives its exit code and its output. */
 const lint = ({ message, config = COMMITS_CONFIG }) => {

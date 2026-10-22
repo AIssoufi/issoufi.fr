@@ -4,19 +4,12 @@ import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import { promisify } from 'node:util';
 
+import { UNCOLORED_ENV } from '../testUtils.js';
+
 // Runs check-action-pins.mjs on the workflows of the repository, then on files written for a test
 
 const SCRIPT = join(process.cwd(), 'scripts', 'ci', 'check-action-pins.mjs');
 const SHA = '58ff9ea0c3f4e1b2a9d8c7b6a5f4e3d2c1b0a9f8';
-
-/**
- * Environment of the script, without colors, which the CI forces with `FORCE_COLOR` and which would
- * break the text of an error that Node.js prints with escape codes.
- */
-const UNCOLORED_ENV = {
-  ...Object.fromEntries(Object.entries(process.env).filter(([name]) => name !== 'FORCE_COLOR')),
-  NO_COLOR: '1',
-};
 
 const runFile = promisify(execFile);
 
