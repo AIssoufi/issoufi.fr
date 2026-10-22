@@ -19,11 +19,14 @@ jobs:
   release-please:
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    # The outputs of the first call of release-please, or else of the second. A first call that
+    # created the release, then failed on the release pull request, keeps its outputs, and the
+    # second finds the release made and writes none.
     outputs:
-      release_created: ${{ steps.release.outputs.release_created }}
-      tag_name: ${{ steps.release.outputs.tag_name }}
-      version: ${{ steps.release.outputs.version }}
-      sha: ${{ steps.release.outputs.sha }}
+      release_created: ${{ steps.release.outputs.release_created || steps.release-retry.outputs.release_created }}
+      tag_name: ${{ steps.release.outputs.tag_name || steps.release-retry.outputs.tag_name }}
+      version: ${{ steps.release.outputs.version || steps.release-retry.outputs.version }}
+      sha: ${{ steps.release.outputs.sha || steps.release-retry.outputs.sha }}
     steps:
       # GitHub holds the CI of a pull request that the GITHUB_TOKEN opened until a person approves
       # it, while the daily release needs it to merge the release pull request. A token of the
@@ -48,8 +51,28 @@ jobs:
           private-key: ${{ secrets.RELEASE_APP_PRIVATE_KEY }}
       # Keeps a release pull request open against develop with the next version and its
       # CHANGELOG.md entry. Merging it tags the version and publishes a GitHub release.
-      - uses: googleapis/release-please-action@45996ed1f6d02564a971a2fa1b5860e934307cf7 # v5.0.0
+      # The GraphQL API of GitHub sometimes fails a query of release-please with "Something went
+      # wrong while executing your query", and the same query passes moments later. So a failed
+      # first call waits, then runs once more with the same inputs, and the job fails only when
+      # both fail: release-please picks up where the first call stopped, without releasing twice.
+      - name: Run release-please
+        uses: googleapis/release-please-action@45996ed1f6d02564a971a2fa1b5860e934307cf7 # v5.0.0
         id: release
+        continue-on-error: true
+        with:
+          token: ${{ steps.app-token.outputs.token || github.token }}
+          target-branch: develop
+          config-file: release-please-config.json
+          manifest-file: .release-please-manifest.json
+      - name: Wait before calling release-please again
+        if: steps.release.outcome == 'failure'
+        env:
+          RETRY_DELAY_SECONDS: 30
+        run: sleep "$RETRY_DELAY_SECONDS"
+      - name: Run release-please again
+        uses: googleapis/release-please-action@45996ed1f6d02564a971a2fa1b5860e934307cf7 # v5.0.0
+        id: release-retry
+        if: steps.release.outcome == 'failure'
         with:
           token: ${{ steps.app-token.outputs.token || github.token }}
           target-branch: develop
@@ -58,9 +81,10 @@ jobs:
 
   standalone-build:
     # Attaches to each new release a build of the site that opens from the disk, next to the
-    # source archives that GitHub adds itself
+    # source archives that GitHub adds itself. It runs even when the release-please job failed
+    # on the release pull request after creating the release, which no later run creates again.
     needs: release-please
-    if: needs.release-please.outputs.release_created == 'true'
+    if: ${{ !cancelled() && needs.release-please.outputs.release_created == 'true' }}
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
