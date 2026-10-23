@@ -18,6 +18,15 @@ export const SCREEN_HEIGHT_PX = 800;
 /** Path that no page uses, opened to check the not found page. */
 export const NOT_FOUND_ROUTE = '/browser-test-page-that-does-not-exist';
 
+/** HTTP status of the not found page, as Cloudflare Pages and `pnpm preview` serve it. */
+export const NOT_FOUND_STATUS = 404;
+
+/** Selector of the robots tag of a page, which tells search engines whether to index it. */
+export const ROBOTS_META_SELECTOR = 'meta[name="robots"]';
+
+/** Value of the robots tag of a page that search engines must not index, such as an error. */
+export const NO_INDEX_ROBOTS = 'noindex';
+
 /**
  * Paths of the pages written with capitals, with the language of their not found page: Cloudflare
  * Pages matches the files with case, so the app shows the not found page there too, and reads a
