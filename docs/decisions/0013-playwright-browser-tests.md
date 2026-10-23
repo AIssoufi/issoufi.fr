@@ -1,7 +1,7 @@
 # 0013. Test the built site in Chromium with Playwright
 
 - Date: 2026-10-18
-- Status: Accepted
+- Status: Accepted, superseded for WebKit by [0023](0023-phone-browser-tests-in-webkit.md)
 
 ## Context
 
