@@ -6,6 +6,16 @@ import {
   PULL_REQUEST_WORKFLOW_FILES,
 } from '../constants.mjs';
 import { approveHeldRuns, nameRun } from './held-runs.mjs';
+import {
+  BRANCH,
+  CREATED_AT,
+  REPOSITORY,
+  RUNS_URL,
+  SHA,
+  routesOf,
+  stubGitHub,
+  stubGitHubEnv,
+} from './testUtils.js';
 import { findKeyLines, listYamlFiles } from './yaml.mjs';
 
 const WORKFLOWS_DIR = '.github/workflows';
@@ -16,12 +26,7 @@ const TOP_LEVEL_COLUMN = 1;
 const TRIGGER_COLUMN = 3;
 // What separates the events written on the line of the `on` key: `on: [push, pull_request]`
 const INLINE_TRIGGERS_SEPARATOR = /[\s,[\]]+/;
-const SHA = '58ff9ea0c3f4e1b2a9d8c7b6a5f4e3d2c1b0a9f8';
-const REPOSITORY = 'AIssoufi/issoufi.fr';
-const BRANCH = 'release-please--branches--develop--components--issoufi-v3';
 const NAME = 'the release pull request #162';
-const CREATED_AT = '2026-10-19T04:07:00Z';
-const RUNS_URL = `https://github.com/${REPOSITORY}/actions/runs`;
 const TITLE_WORKFLOW_FILE = 'pull-request-title.yml';
 const TITLE_RUNS_ROUTE = `GET /actions/workflows/${TITLE_WORKFLOW_FILE}/runs`;
 const FORBIDDEN = { status: 403, body: { message: 'Resource not accessible by integration' } };
@@ -50,35 +55,10 @@ const apiRun = ({ id = 511, ...fields } = {}) => ({
 
 /** The routes of a held CI and a held title lint on the same head, which GitHub lets approve. */
 const heldRoutes = () => ({
-  'POST /actions/runs/501/approve': { status: 201 },
-  [TITLE_RUNS_ROUTE]: { body: { workflow_runs: [apiRun()] } },
-  'POST /actions/runs/511/approve': { status: 201 },
+  'POST /actions/runs/501/approve': [{ status: 201 }],
+  [TITLE_RUNS_ROUTE]: [{ body: { workflow_runs: [apiRun()] } }],
+  'POST /actions/runs/511/approve': [{ status: 201 }],
 });
-
-/**
- * Answers the requests from their routes, `<method> <path>` under the API of the repository,
- * query left out. An answer with `rejection` makes the request fail with it, as when the network
- * is down. A request without a route gets a 404.
- */
-const stubGitHub = routes => {
-  const requests = [];
-  const fetch = vi.fn(async (url, init = {}) => {
-    const path = new URL(url).pathname.replace(`/repos/${REPOSITORY}`, '');
-    const route = `${init.method ?? 'GET'} ${path}`;
-    requests.push({ route, url });
-
-    const answer = routes[route];
-    if (!answer) return new Response(JSON.stringify({ message: 'Not Found' }), { status: 404 });
-    const { status = 200, body, rejection } = answer;
-    if (rejection !== undefined) throw rejection;
-    return new Response(body === undefined ? null : JSON.stringify(body), { status });
-  });
-  vi.stubGlobal('fetch', fetch);
-  return requests;
-};
-
-/** The routes that were requested, in their order. */
-const routesOf = requests => requests.map(({ route }) => route);
 
 /** Approves the held runs of the release pull request, from the given run of its CI. */
 const approveFrom = ciRun => approveHeldRuns({ name: NAME, branch: BRANCH, ciRun });
@@ -95,9 +75,7 @@ describe('nameRun', () => {
 
 describe('approveHeldRuns', () => {
   beforeEach(() => {
-    vi.stubEnv('GITHUB_API_URL', 'https://api.github.com');
-    vi.stubEnv('GITHUB_REPOSITORY', REPOSITORY);
-    vi.stubEnv('GITHUB_TOKEN', 'token');
+    stubGitHubEnv();
     vi.spyOn(console, 'log').mockImplementation(() => {});
   });
 
@@ -146,7 +124,7 @@ describe('approveHeldRuns', () => {
       { workflow_runs: [apiRun({ status: 'in_progress', conclusion: null })] },
     ],
   ])('approves the held CI alone %s of the title lint', async (_case, titleRuns) => {
-    const requests = stubGitHub({ ...heldRoutes(), [TITLE_RUNS_ROUTE]: { body: titleRuns } });
+    const requests = stubGitHub({ ...heldRoutes(), [TITLE_RUNS_ROUTE]: [{ body: titleRuns }] });
 
     await expect(approveFrom(workflowRun())).resolves.toBeUndefined();
     expect(routesOf(requests)).toEqual(['POST /actions/runs/501/approve', TITLE_RUNS_ROUTE]);
@@ -154,7 +132,7 @@ describe('approveHeldRuns', () => {
 
   it('stops at the held CI that GitHub refuses to let it approve', async () => {
     const ciRun = workflowRun();
-    const requests = stubGitHub({ ...heldRoutes(), 'POST /actions/runs/501/approve': FORBIDDEN });
+    const requests = stubGitHub({ ...heldRoutes(), 'POST /actions/runs/501/approve': [FORBIDDEN] });
 
     await expect(approveFrom(ciRun)).resolves.toEqual({
       workflow: CI_WORKFLOW_FILE,
@@ -166,7 +144,7 @@ describe('approveHeldRuns', () => {
   });
 
   it('gives the held title lint that GitHub refuses to let it approve after the CI', async () => {
-    stubGitHub({ ...heldRoutes(), 'POST /actions/runs/511/approve': FORBIDDEN });
+    stubGitHub({ ...heldRoutes(), 'POST /actions/runs/511/approve': [FORBIDDEN] });
 
     await expect(approveFrom(workflowRun())).resolves.toEqual({
       workflow: TITLE_WORKFLOW_FILE,
@@ -177,7 +155,7 @@ describe('approveHeldRuns', () => {
   });
 
   it('writes a failed approval that is not an error as text', async () => {
-    stubGitHub({ ...heldRoutes(), 'POST /actions/runs/501/approve': { rejection: 'offline' } });
+    stubGitHub({ ...heldRoutes(), 'POST /actions/runs/501/approve': [{ rejection: 'offline' }] });
 
     await expect(approveFrom(workflowRun())).resolves.toMatchObject({ reason: 'offline' });
   });
@@ -185,7 +163,7 @@ describe('approveHeldRuns', () => {
   it('throws when the runs of the title lint cannot be listed', async () => {
     const requests = stubGitHub({
       ...heldRoutes(),
-      [TITLE_RUNS_ROUTE]: { status: 500, body: { message: 'Server Error' } },
+      [TITLE_RUNS_ROUTE]: [{ status: 500, body: { message: 'Server Error' } }],
     });
 
     await expect(approveFrom(workflowRun())).rejects.toThrow('The GitHub API answered 500');
