@@ -18,7 +18,7 @@ On every pull request, and on every push to `develop` and `main`, GitHub Actions
 
 1. formatting, lint and type-check, and a lint of the workflows;
 2. the unit tests with coverage;
-3. the build, its size, and the browser tests over three parallel jobs;
+3. the build, its size, and the browser tests over three parallel jobs in Chromium, with a fourth one that runs those of phones in WebKit;
 4. on pull requests, a check of the commit messages and of new dependencies, and a comparison of the screenshots of every page with the base branch, which only informs;
 5. the deployment and its smoke test, and on `main` a check that `http://issoufi.fr/`, `http://www.issoufi.fr/` and `https://www.issoufi.fr/` redirect to `https://issoufi.fr/` in one hop.
 
