@@ -1,81 +1,21 @@
 import { releaseVersionOfTheDay } from './daily-release.mjs';
 import {
   BRANCH,
-  CREATED_AT,
+  MERGE_SHA,
+  OTHER_SHA,
+  PULL_REQUEST_URL,
   REPOSITORY,
   RUNS_URL,
   SHA,
+  WAITS,
+  apiPullRequestState,
+  apiReleasePullRequest,
+  apiRun,
+  releaseRoutes,
   routesOf,
   stubGitHub,
   stubGitHubEnv,
 } from './testUtils.js';
-
-const OTHER_SHA = '9ff31f7aa1b2c3d4e5f60718293a4b5c6d7e8f90';
-const MERGE_SHA = '3c1b0a9f858ff9ea0c3f4e1b2a9d8c7b6a5f4e3d';
-const PULL_REQUEST_URL = `https://github.com/${REPOSITORY}/pull/162`;
-const WAITS = {
-  runLookup: { attempts: 3, delayMs: 0 },
-  runWait: { attempts: 3, delayMs: 0 },
-  mergeableWait: { attempts: 3, delayMs: 0 },
-};
-
-/** A workflow run, as the REST API writes it, by default the passed pull request run of the CI. */
-const apiRun = ({ id = 501, ...fields } = {}) => ({
-  id,
-  head_sha: SHA,
-  status: 'completed',
-  conclusion: 'success',
-  created_at: CREATED_AT,
-  html_url: `${RUNS_URL}/${id}`,
-  ...fields,
-});
-
-/** The release pull request, as the REST API lists it. */
-const apiReleasePullRequest = {
-  number: 162,
-  html_url: PULL_REQUEST_URL,
-  labels: [{ name: 'autorelease: pending' }],
-  head: { ref: BRANCH, sha: SHA, repo: { full_name: REPOSITORY } },
-};
-
-/** The release pull request, as the REST API gives it alone, with whether it can merge. */
-const apiPullRequestState = ({ mergeableState, sha = SHA }) => ({
-  number: 162,
-  head: { ref: BRANCH, sha },
-  mergeable_state: mergeableState,
-});
-
-/** The routes of a release that goes well, from pull request runs that already passed. */
-const releaseRoutes = () => ({
-  'GET /pulls': [{ body: [apiReleasePullRequest] }],
-  'GET /actions/workflows/ci.yml/runs': [{ body: { workflow_runs: [apiRun()] } }],
-  'GET /actions/workflows/pull-request-title.yml/runs': [
-    { body: { workflow_runs: [apiRun({ id: 511 })] } },
-  ],
-  'GET /actions/runs/501': [{ body: apiRun() }],
-  'GET /pulls/162': [{ body: apiPullRequestState({ mergeableState: 'clean' }) }],
-  'PUT /pulls/162/merge': [{ body: { sha: MERGE_SHA, merged: true } }],
-  'POST /actions/workflows/release.yml/dispatches': [
-    { body: { workflow_run_id: 601, html_url: `${RUNS_URL}/601` } },
-  ],
-  'POST /actions/workflows/ci.yml/dispatches': [
-    { body: { workflow_run_id: 602, html_url: `${RUNS_URL}/602` } },
-  ],
-  'GET /actions/runs/602': [{ body: apiRun({ id: 602, head_sha: MERGE_SHA }) }],
-  'GET /rules/branches/develop': [
-    {
-      body: [
-        {
-          type: 'required_status_checks',
-          parameters: { required_status_checks: [{ context: 'format' }, { context: 'lint' }] },
-        },
-      ],
-    },
-  ],
-  [`GET /commits/${SHA}/check-runs`]: [
-    { body: { check_runs: [{ name: 'lint', status: 'completed', conclusion: 'success' }] } },
-  ],
-});
 
 describe('releaseVersionOfTheDay', () => {
   beforeEach(() => {

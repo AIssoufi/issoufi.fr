@@ -12,6 +12,7 @@ import {
   REPOSITORY,
   RUNS_URL,
   SHA,
+  apiRun,
   routesOf,
   stubGitHub,
   stubGitHubEnv,
@@ -43,20 +44,12 @@ const workflowRun = ({ id = 501, ...fields } = {}) => ({
 });
 
 /** A run as the REST API writes it, by default the held run of the title lint. */
-const apiRun = ({ id = 511, ...fields } = {}) => ({
-  id,
-  head_sha: SHA,
-  status: 'completed',
-  conclusion: 'action_required',
-  created_at: CREATED_AT,
-  html_url: `${RUNS_URL}/${id}`,
-  ...fields,
-});
+const apiTitleRun = fields => apiRun({ id: 511, conclusion: 'action_required', ...fields });
 
 /** The routes of a held CI and a held title lint on the same head, which GitHub lets approve. */
 const heldRoutes = () => ({
   'POST /actions/runs/501/approve': [{ status: 201 }],
-  [TITLE_RUNS_ROUTE]: [{ body: { workflow_runs: [apiRun()] } }],
+  [TITLE_RUNS_ROUTE]: [{ body: { workflow_runs: [apiTitleRun()] } }],
   'POST /actions/runs/511/approve': [{ status: 201 }],
 });
 
@@ -118,10 +111,10 @@ describe('approveHeldRuns', () => {
     ['with a run that it cannot read', { workflow_runs: [{ id: 'odd' }] }],
     ['with an answer without runs', {}],
     ['with an empty answer', undefined],
-    ['with a run that passed', { workflow_runs: [apiRun({ conclusion: 'success' })] }],
+    ['with a run that passed', { workflow_runs: [apiTitleRun({ conclusion: 'success' })] }],
     [
       'with a run in progress',
-      { workflow_runs: [apiRun({ status: 'in_progress', conclusion: null })] },
+      { workflow_runs: [apiTitleRun({ status: 'in_progress', conclusion: null })] },
     ],
   ])('approves the held CI alone %s of the title lint', async (_case, titleRuns) => {
     const requests = stubGitHub({ ...heldRoutes(), [TITLE_RUNS_ROUTE]: [{ body: titleRuns }] });
