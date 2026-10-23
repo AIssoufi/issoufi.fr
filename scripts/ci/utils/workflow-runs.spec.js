@@ -18,12 +18,9 @@ import {
   waitForLatestRunToFinish,
   waitForRun,
 } from './workflow-runs.mjs';
-import { stubGitHub, stubGitHubEnv } from './testUtils.js';
+import { CREATED_AT, OTHER_SHA, SHA, stubGitHub, stubGitHubEnv } from './testUtils.js';
 
-const SHA = '58ff9ea0c3f4e1b2a9d8c7b6a5f4e3d2c1b0a9f8';
-const OTHER_SHA = '9ff31f7aa1b2c3d4e5f60718293a4b5c6d7e8f90';
 const RUN_URL = 'https://github.com/AIssoufi/issoufi.fr/actions/runs/123';
-const CREATED_AT = '2026-10-19T05:00:00Z';
 
 /** A run of the REST API answer, as GitHub writes it. */
 const apiRun = (fields = {}) => ({
