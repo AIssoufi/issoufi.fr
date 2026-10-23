@@ -8,6 +8,7 @@
 //   node scripts/ci/check-deploy-schedule-gap.mjs
 import { DEPLOY_RUNS_PAGE_SIZE, DEPLOY_WORKFLOW_FILE } from './constants.mjs';
 import { writeAnnotation } from './utils/annotations.mjs';
+import { getErrorMessage } from './utils/errors.mjs';
 import {
   fetchScheduledRuns,
   getScheduleGapWarning,
@@ -23,7 +24,7 @@ try {
   for (const warning of warnings) writeAnnotation({ level: 'warning', message: warning });
   if (warnings.length === 0) console.log(`${DEPLOY_WORKFLOW_FILE} keeps starting on its schedule.`);
 } catch (error) {
-  const reason = error instanceof Error ? error.message : error;
+  const reason = getErrorMessage(error);
   writeAnnotation({
     level: 'warning',
     message: `Could not read the scheduled runs of ${DEPLOY_WORKFLOW_FILE}: ${reason}`,

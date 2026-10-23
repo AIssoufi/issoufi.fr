@@ -18,6 +18,7 @@ import {
   VISUAL_SITE_DIR_VARIABLE,
 } from './constants.mjs';
 import { writeAnnotation } from './utils/annotations.mjs';
+import { getErrorMessage } from './utils/errors.mjs';
 import { appendJobSummary } from './utils/job-summary.mjs';
 import { listScreenResults, renderScreenshotSummary } from './utils/screenshots.mjs';
 
@@ -144,7 +145,7 @@ try {
   const hasFailedScreens = screens.some(({ outcome }) => outcome === 'failed');
   if (!hasScreens || hasFailedScreens) fail('A screen could not be compared: see the summary');
 } catch (error) {
-  writeAnnotation({ level: 'error', message: error instanceof Error ? error.message : error });
+  writeAnnotation({ level: 'error', message: getErrorMessage(error) });
   process.exitCode = 1;
 } finally {
   rmSync(workDir, { recursive: true, force: true });

@@ -10,6 +10,7 @@
 //   node scripts/ci/check-develop-ci.mjs
 import { DEVELOP_BRANCH } from './constants.mjs';
 import { writeAnnotation } from './utils/annotations.mjs';
+import { getErrorMessage } from './utils/errors.mjs';
 import { setStepOutput } from './utils/step-output.mjs';
 import { getCiVerdict, isCommitSha, waitForLatestRunToFinish } from './utils/workflow-runs.mjs';
 
@@ -35,6 +36,6 @@ try {
     process.exitCode = 1;
   }
 } catch (error) {
-  writeAnnotation({ level: 'error', message: error instanceof Error ? error.message : error });
+  writeAnnotation({ level: 'error', message: getErrorMessage(error) });
   process.exitCode = 1;
 }
