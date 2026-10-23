@@ -1,11 +1,12 @@
 // @ts-check
 import { HOME_PAGE_FILE, MISSING_INITIAL_LOAD_REASON } from '../constants.mjs';
-import { checkBundleBudgets, isBuildFile } from './bundle.mjs';
+import { checkBundleBudgets } from './bundle-budgets.mjs';
+import { isBuildFile } from './bundle-files.mjs';
 import { toList } from './lists.mjs';
 import { formatKilobytes, isPositiveNumber } from './numbers.mjs';
 
-/** @typedef {import('./bundle.mjs').BuildFile} BuildFile */
-/** @typedef {import('./bundle.mjs').CheckBundleBudgetsParams} CheckBundleBudgetsParams */
+/** @typedef {import('./bundle-files.mjs').BuildFile} BuildFile */
+/** @typedef {import('./bundle-budgets.mjs').CheckBundleBudgetsParams} CheckBundleBudgetsParams */
 
 /**
  * Writes the Markdown rows of scripts and style sheets of the build, with the size and the gzip
@@ -74,7 +75,7 @@ export const renderScriptsTable = ({
  * Parameters of {@link renderLargeFilesSection}.
  * @typedef {object} RenderLargeFilesSectionParams
  * @property {BuildFile[]} [largeFiles] - Files over the limit, from `findLargeFiles` of
- * `bundle.mjs`. Any value that is not an array counts as none.
+ * `bundle-large-files.mjs`. Any value that is not an array counts as none.
  * @property {number} largeFileBytes - Size limit used to find them, shown in the heading.
  */
 
@@ -85,7 +86,7 @@ export const renderScriptsTable = ({
  * @returns {string} The section, without a final line break, or an empty string when no file is
  * listed.
  * @throws {RangeError} When the limit is not a finite number above 0, even without files, like
- * `findLargeFiles` of `bundle.mjs`.
+ * `findLargeFiles` of `bundle-large-files.mjs`.
  * @example
  * renderLargeFilesSection({
  *   largeFiles: [{ path: 'chess.png', bytes: 928_988 }],
@@ -152,7 +153,7 @@ const renderBudgetVerdict = ({ name, totalGzipBytes, isOverBudget, budgetBytes }
  * @param {RenderBundleReportParams} params
  * @returns {string} The Markdown report.
  * @throws {RangeError} When a budget or the file size limit is not a finite number above 0, like
- * {@link checkBundleBudgets} and `findLargeFiles` of `bundle.mjs`.
+ * {@link checkBundleBudgets} and `findLargeFiles` of `bundle-large-files.mjs`.
  * @example
  * renderBundleReport({
  *   scripts: [{ path: 'assets/index.js', bytes: 403_180, gzipBytes: 131_860 }],
