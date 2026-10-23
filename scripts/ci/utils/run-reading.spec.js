@@ -1,4 +1,11 @@
-import { isHeldRun, readLatestRun, readRun, readRuns } from './run-reading.mjs';
+import {
+  isFinishedRun,
+  isHeldRun,
+  isRunningRun,
+  readLatestRun,
+  readRun,
+  readRuns,
+} from './run-reading.mjs';
 import { CREATED_AT, SHA } from './testUtils.js';
 
 const RUN_URL = 'https://github.com/AIssoufi/issoufi.fr/actions/runs/123';
@@ -84,6 +91,41 @@ describe('isHeldRun', () => {
   ])('leaves out %o', value => {
     expect(isHeldRun(value)).toBe(false);
   });
+});
+
+describe('isFinishedRun', () => {
+  it.each(['success', 'failure', 'cancelled', null])(
+    'spots a run completed with %o',
+    conclusion => {
+      expect(isFinishedRun(run({ conclusion }))).toBe(true);
+    },
+  );
+
+  it.each([
+    run({ conclusion: 'action_required' }),
+    run({ status: 'in_progress', conclusion: null }),
+    run({ status: 'queued', conclusion: null }),
+    undefined,
+    null,
+  ])('leaves out %o', value => {
+    expect(isFinishedRun(value)).toBe(false);
+  });
+});
+
+describe('isRunningRun', () => {
+  it.each(['queued', 'in_progress', 'waiting', 'pending', 'requested'])(
+    'spots a %s run',
+    status => {
+      expect(isRunningRun(run({ status, conclusion: null }))).toBe(true);
+    },
+  );
+
+  it.each(['success', 'failure', 'action_required', null])(
+    'leaves out a run completed with %o',
+    conclusion => {
+      expect(isRunningRun(run({ conclusion }))).toBe(false);
+    },
+  );
 });
 
 describe('readLatestRun', () => {

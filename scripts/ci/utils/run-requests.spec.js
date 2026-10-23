@@ -1,5 +1,6 @@
 import {
   approveRun,
+  assertRunId,
   fetchLatestRun,
   fetchRun,
   fetchWorkflowRuns,
@@ -85,6 +86,24 @@ describe('getWorkflowRunsUrl', () => {
   ])('returns undefined for %o', fields => {
     const params = { repository: 'owner/repo', branch: 'develop', sha: SHA, ...fields };
     expect(getWorkflowRunsUrl(params)).toBeUndefined();
+  });
+});
+
+describe('assertRunId', () => {
+  it.each([1, 123])('accepts the run %i', runId => {
+    expect(() => assertRunId(runId)).not.toThrow();
+  });
+
+  it.each([
+    [0, '"0"'],
+    [-1, '"-1"'],
+    [1.5, '"1.5"'],
+    [Number.NaN, '"NaN"'],
+    ['123', '"123"'],
+    [undefined, '""'],
+    [null, '""'],
+  ])('throws for the run %o', (runId, shownId) => {
+    expect(() => assertRunId(runId)).toThrow(`Invalid workflow run ${shownId}`);
   });
 });
 
