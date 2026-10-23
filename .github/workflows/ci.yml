@@ -106,6 +106,10 @@ jobs:
       # that names the later step using the token
       - if: ${{ !cancelled() }}
         run: node scripts/ci/check-checkout-credentials.mjs
+      # Dependabot updates @playwright/test in the lockfile, but not the tag of the image of
+      # Playwright that the WebKit job runs in, whose browsers then fail to launch
+      - if: ${{ !cancelled() }}
+        run: node scripts/ci/check-playwright-image.mjs
 
   # Lints the commits of a pull request. Its title has a workflow of its own,
   # pull-request-title.yml, which also runs on each edit of the pull request
@@ -225,7 +229,7 @@ jobs:
     container:
       # The tag names the version of @playwright/test in the lockfile, and the digest pins its
       # content. Dependabot updates neither: change both with that version (docs/testing.md), or
-      # the first launch of WebKit fails and names the image it needs
+      # check-playwright-image.mjs fails the workflows job and names the tag to write
       image: mcr.microsoft.com/playwright:v1.64.0-noble@sha256:06a9939e57531807f8d5fd76ce44b53165ffb7d7501d87ab10e285c20b1e971f
       # Not root but the user of the runner, who writes the workspace, as the docs of Playwright do
       options: --user 1001

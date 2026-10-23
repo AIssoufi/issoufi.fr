@@ -57,3 +57,5 @@ The generators are described in [Assets](assets.md#generated-files).
   To run the check locally: `node scripts/ci/check-action-pins.mjs`.
 - The same job fails on a checkout that keeps its git credentials without a comment naming the step that uses them ([Workflows](conventions.md#workflows)).
   To run the check locally: `node scripts/ci/check-checkout-credentials.mjs`.
+- The same job fails on an image of Playwright whose tag names another version than `@playwright/test` in the lockfile, since its browsers would not launch ([In WebKit](testing.md#in-webkit)).
+  To run the check locally: `node scripts/ci/check-playwright-image.mjs`.

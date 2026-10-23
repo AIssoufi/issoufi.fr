@@ -60,8 +60,19 @@ export const listYamlFiles = (directory = GITHUB_DIR) =>
  * Removes the quotes around a YAML scalar.
  * @param {string} value - Scalar as the file writes it, e.g. `'owner/repo@v1'`.
  * @returns {string} The text between the quotes, or the value itself when it has none.
+ * @example
+ * unquote("'@playwright/test'"); // '@playwright/test'
  */
-const unquote = value => value.replace(YAML_QUOTED_SCALAR_PATTERN, '$2');
+export const unquote = value => value.replace(YAML_QUOTED_SCALAR_PATTERN, '$2');
+
+/**
+ * Reads the indentation of a line of a YAML file.
+ * @param {string} line - Line of a YAML file.
+ * @returns {number} The number of spaces before its first character, or -1 for a blank line.
+ * @example
+ * readIndentation('    version: 1.64.0'); // 4
+ */
+export const readIndentation = line => line.search(NON_BLANK_CHARACTER_PATTERN);
 
 /**
  * Reads the text of a comment, without its `#` and the spaces around it.
@@ -106,7 +117,7 @@ export const findKeyLines = source => {
   let isEmptyItemAbove = false;
 
   text.split(TEXT_LINE_BREAK_PATTERN).forEach((line, index) => {
-    const indentation = line.search(NON_BLANK_CHARACTER_PATTERN);
+    const indentation = readIndentation(line);
     const isBlank = indentation === -1;
     const isInBlockScalar =
       blockScalarKeyColumn !== undefined && (isBlank || indentation > blockScalarKeyColumn);
