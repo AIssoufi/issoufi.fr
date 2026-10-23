@@ -1,6 +1,6 @@
 import { defineConfig } from '@playwright/test';
 
-import browserTestConfig, { PREVIEW_SERVER } from './playwright.config.ts';
+import browserTestConfig, { CHROMIUM_PROJECT, PREVIEW_SERVER } from './playwright.config.ts';
 
 /**
  * Environment variable naming the folder of the checkout whose build the screenshots show, which
@@ -17,14 +17,17 @@ const VISUAL_CACHE_DIR = 'node_modules/.cache/visual';
  * `pnpm test:visual` (`scripts/ci/compare-screenshots.mjs`): on the build of the base of the
  * change, to write the screenshots that `toHaveScreenshot` expects, then on the build of the
  * working tree, to compare them. It extends the configuration of the browser tests
- * (`playwright.config.ts`), its Chromium and its preview server, run in the folder of
- * {@link SITE_DIR_VARIABLE}. Nothing is stored in git: the expected screenshots live in
+ * (`playwright.config.ts`), its Chromium project alone and its preview server, run in the folder
+ * of {@link SITE_DIR_VARIABLE}. Nothing is stored in git: the expected screenshots live in
  * {@link VISUAL_CACHE_DIR} for the time of a run.
  * @see https://playwright.dev/docs/test-snapshots
  */
 export default defineConfig({
   ...browserTestConfig,
   testMatch: '**/*.visual.ts',
+  // The testMatch of the WebKit project would beat the one above and run the phone specs of the
+  // browser tests here, which take no screenshots
+  projects: [CHROMIUM_PROJECT],
   // A retry would hide a screen that does not render the same twice
   retries: 0,
   reporter: 'list',

@@ -7,6 +7,20 @@ import { getServerPorts } from './vite/utils.ts';
 /** Mode whose `.env` files `vite preview` reads by default, `.env.local` included. */
 const PREVIEW_MODE = 'production';
 
+/**
+ * Time a test of WebKit may take, twice the 30 s of Playwright: WebKit draws in software on the
+ * Linux of the CI, where a test that loads `/experiences` four times ran past those 30 s, against
+ * 4 s on a Mac.
+ */
+const WEBKIT_TEST_TIMEOUT_MS = 60_000;
+
+/**
+ * Times the CI runs a failed test of WebKit again: there, the `networkidle` wait of a page that had
+ * loaded whole never ended, once in some 200 tests. A test that WebKit really fails fails both
+ * runs, and the CI with it.
+ */
+const WEBKIT_CI_RETRIES = 1;
+
 const isCI = Boolean(process.env.CI);
 const { preview: port } = getServerPorts(
   loadEnv(PREVIEW_MODE, process.cwd(), ALL_ENV_VARIABLES_PREFIX),
@@ -26,11 +40,38 @@ export const PREVIEW_SERVER = {
   reuseExistingServer: false,
 };
 
+/** Project of every browser test, in the Chromium of a desktop computer. */
+export const CHROMIUM_PROJECT = { name: 'chromium', use: { ...devices['Desktop Chrome'] } };
+
 /**
- * Playwright configuration of the browser tests of `e2e/` (`pnpm test:browser`): Chromium only,
- * on the production build that `pnpm preview` serves on the port of the worktree (see
- * {@link getServerPorts}), so `pnpm build` must run first. A failed test saves a screenshot of the
- * whole page in `test-results/`.
+ * Project of the phone tests in WebKit, the engine of Safari, on an iPhone: the specs that check
+ * the layout, the menu and the touch targets of a phone, where Safari differs the most from
+ * Chromium. Each spec still sets the size of its screens.
+ */
+const WEBKIT_PROJECT = {
+  name: 'webkit',
+  testMatch: [
+    '**/axe.e2e.ts',
+    '**/horizontal-overflow.e2e.ts',
+    '**/mobile-menu.e2e.ts',
+    '**/no-script-navigation.e2e.ts',
+    '**/touch-targets.e2e.ts',
+  ],
+  timeout: WEBKIT_TEST_TIMEOUT_MS,
+  retries: isCI ? WEBKIT_CI_RETRIES : 0,
+  use: {
+    ...devices['iPhone 13'],
+    // The specs measure CSS pixels, and WebKit draws in software on the Linux of the CI, where the
+    // scale of 3 of an iPhone draws nine times as many pixels and ran past the timeouts
+    deviceScaleFactor: 1,
+  },
+};
+
+/**
+ * Playwright configuration of the browser tests of `e2e/` (`pnpm test:browser`): every spec in
+ * Chromium, and the phone specs in WebKit too, on the production build that `pnpm preview` serves
+ * on the port of the worktree (see {@link getServerPorts}), so `pnpm build` must run first. A
+ * failed test saves a screenshot of the whole page in `test-results/`.
  * @see https://playwright.dev/docs/test-configuration
  */
 export default defineConfig({
@@ -44,6 +85,6 @@ export default defineConfig({
     baseURL,
     screenshot: { mode: 'only-on-failure', fullPage: true },
   },
-  projects: [{ name: 'chromium', use: { ...devices['Desktop Chrome'] } }],
+  projects: [CHROMIUM_PROJECT, WEBKIT_PROJECT],
   webServer: PREVIEW_SERVER,
 });
