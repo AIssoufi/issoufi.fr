@@ -13,6 +13,7 @@
 - A test that logs an error fails, so the output stays clean.
 - Some specs build the whole site in memory, and check every generated page and header, with the page rendered in it.
 - The spec of a component whose render depends on the visitor renders it as the build does, then hydrates it, with `renderHydrated` (`src/hydrationTestUtils.tsx`). `src/prerender.spec.jsx` hydrates every page rendered at build time.
+- The specs of the daily release in `scripts/ci/utils/` (`daily-release`, `release-merge`, `release-publish`, `held-runs`) stub the GitHub API with `stubGitHubEnv` and `stubGitHub` (`scripts/ci/utils/testUtils.js`), as a new spec of a GitHub helper should, with the fixtures of the release pull request (`REPOSITORY`, `SHA`, `apiRun`, the routes of a release that goes well in `releaseRoutes`). The stub answers each route, `<method> <path>` under the API of the repository, from a queue whose last answer serves every next request, and returns the requests, whose routes `routesOf` lists in their order.
 
 ## Browser tests
 
