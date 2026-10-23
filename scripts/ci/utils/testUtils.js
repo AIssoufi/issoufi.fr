@@ -117,6 +117,8 @@ export const stubGitHubEnv = () => {
  * @property {string} route - Its route, `<method> <path>` under the API of the repository, query
  * left out, such as `GET /pulls/162`.
  * @property {string} url - Its whole address.
+ * @property {Record<string, string> | undefined} headers - Its headers, as the request gave them,
+ * `undefined` without any.
  * @property {unknown} body - Its body, read as JSON, `undefined` without one.
  */
 
@@ -136,7 +138,8 @@ export const stubGitHub = routes => {
   const fetch = vi.fn(async (url, init = {}) => {
     const path = new URL(url).pathname.replace(REPOSITORY_PATH, '');
     const route = `${init.method ?? 'GET'} ${path}`;
-    requests.push({ route, url, body: init.body ? JSON.parse(init.body) : undefined });
+    const { headers, body: requestBody } = init;
+    requests.push({ route, url, headers, body: requestBody ? JSON.parse(requestBody) : undefined });
 
     const answers = routes[route] ?? [];
     if (answers.length === 0) {

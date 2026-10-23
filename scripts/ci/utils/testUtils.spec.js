@@ -80,17 +80,33 @@ describe('stubGitHub', () => {
     await expect(fetch(`${API}/pulls`)).rejects.toBe('offline');
   });
 
-  it('records each request with its route, its address and its body read as JSON', async () => {
+  it('records each request with its route, its address, its headers and its body read as JSON', async () => {
     const requests = stubGitHub({});
+    const headers = { Authorization: 'Bearer token' };
 
-    await fetch(`${API}/pulls?state=open&base=develop`);
+    await fetch(`${API}/pulls?state=open&base=develop`, { headers });
     await fetch(`${API}/pulls/162/merge`, { method: 'PUT', body: '{"sha":"58ff9ea"}' });
     await fetch('https://api.github.com/rate_limit');
 
-    expect(requests).toEqual([
-      { route: 'GET /pulls', url: `${API}/pulls?state=open&base=develop`, body: undefined },
-      { route: 'PUT /pulls/162/merge', url: `${API}/pulls/162/merge`, body: { sha: '58ff9ea' } },
-      { route: 'GET /rate_limit', url: 'https://api.github.com/rate_limit', body: undefined },
+    expect(requests).toStrictEqual([
+      {
+        route: 'GET /pulls',
+        url: `${API}/pulls?state=open&base=develop`,
+        headers,
+        body: undefined,
+      },
+      {
+        route: 'PUT /pulls/162/merge',
+        url: `${API}/pulls/162/merge`,
+        headers: undefined,
+        body: { sha: '58ff9ea' },
+      },
+      {
+        route: 'GET /rate_limit',
+        url: 'https://api.github.com/rate_limit',
+        headers: undefined,
+        body: undefined,
+      },
     ]);
   });
 });
