@@ -10,6 +10,7 @@ import {
   readRequiredChecks,
   waitForMergeable,
 } from './mergeability.mjs';
+import { stubGitHub, stubGitHubEnv } from './testUtils.js';
 
 const SHA = '58ff9ea0c3f4e1b2a9d8c7b6a5f4e3d2c1b0a9f8';
 const OTHER_SHA = '9ff31f7aa1b2c3d4e5f60718293a4b5c6d7e8f90';
@@ -248,20 +249,11 @@ describe('describeMergeBlock', () => {
 });
 
 describe('the API calls on pull requests', () => {
-  /** Answers the requests in turn with the given JSON bodies, then repeats the last one. */
-  const stubFetch = (...bodies) => {
-    const fetch = vi.fn(async () => {
-      const body = bodies.length > 1 ? bodies.shift() : bodies[0];
-      return new Response(JSON.stringify(body), { status: 200 });
-    });
-    vi.stubGlobal('fetch', fetch);
-    return fetch;
-  };
+  /** Answers the reads of the pull request #162 in turn, then repeats the last answer. */
+  const stubPullRequest = (...answers) => stubGitHub({ 'GET /pulls/162': answers });
 
   beforeEach(() => {
-    vi.stubEnv('GITHUB_API_URL', 'https://api.github.com');
-    vi.stubEnv('GITHUB_REPOSITORY', 'AIssoufi/issoufi.fr');
-    vi.stubEnv('GITHUB_TOKEN', 'token');
+    stubGitHubEnv();
   });
 
   afterEach(() => {
@@ -272,74 +264,72 @@ describe('the API calls on pull requests', () => {
 
   describe('fetchPullRequestState', () => {
     it('reads whether a pull request can merge', async () => {
-      const fetch = stubFetch(apiPullRequest({ mergeableState: 'unknown' }));
+      const requests = stubPullRequest({ body: apiPullRequest({ mergeableState: 'unknown' }) });
       await expect(fetchPullRequestState({ number: 162 })).resolves.toEqual({
         sha: SHA,
         mergeableState: 'unknown',
       });
-      expect(fetch.mock.calls[0][0]).toBe(`${REPOSITORY_API_URL}/pulls/162`);
+      expect(requests[0].url).toBe(`${REPOSITORY_API_URL}/pulls/162`);
     });
 
     it.each([undefined, 0, 1.5, '162'])(
       'throws without asking the API for the pull request %o',
       async number => {
-        const fetch = stubFetch(apiPullRequest());
+        const requests = stubPullRequest({ body: apiPullRequest() });
         await expect(fetchPullRequestState({ number })).rejects.toThrow('Invalid pull request');
-        expect(fetch).not.toHaveBeenCalled();
+        expect(requests).toEqual([]);
       },
     );
   });
 
   describe('waitForMergeable', () => {
     it('reads the pull request until it can merge', async () => {
-      const fetch = stubFetch(
-        apiPullRequest({ mergeableState: 'unknown' }),
-        apiPullRequest({ mergeableState: 'blocked' }),
-        apiPullRequest({ mergeableState: 'clean' }),
+      const requests = stubPullRequest(
+        { body: apiPullRequest({ mergeableState: 'unknown' }) },
+        { body: apiPullRequest({ mergeableState: 'blocked' }) },
+        { body: apiPullRequest({ mergeableState: 'clean' }) },
       );
       await expect(waitForMergeable({ number: 162, sha: SHA, delayMs: 0 })).resolves.toEqual({
         sha: SHA,
         mergeableState: 'clean',
       });
-      expect(fetch).toHaveBeenCalledTimes(3);
+      expect(requests).toHaveLength(3);
     });
 
     it('gives the state as last read when it never can merge', async () => {
-      const fetch = stubFetch(apiPullRequest({ mergeableState: 'blocked' }));
+      const requests = stubPullRequest({ body: apiPullRequest({ mergeableState: 'blocked' }) });
       await expect(
         waitForMergeable({ number: 162, sha: SHA, attempts: 3, delayMs: 0 }),
       ).resolves.toEqual({ sha: SHA, mergeableState: 'blocked' });
-      expect(fetch).toHaveBeenCalledTimes(3);
+      expect(requests).toHaveLength(3);
     });
 
     it('stops at once when the head moved from the tested commit', async () => {
-      const fetch = stubFetch(apiPullRequest({ sha: OTHER_SHA, mergeableState: 'blocked' }));
+      const requests = stubPullRequest({
+        body: apiPullRequest({ sha: OTHER_SHA, mergeableState: 'blocked' }),
+      });
       await expect(waitForMergeable({ number: 162, sha: SHA, delayMs: 0 })).resolves.toEqual({
         sha: OTHER_SHA,
         mergeableState: 'blocked',
       });
-      expect(fetch).toHaveBeenCalledTimes(1);
+      expect(requests).toHaveLength(1);
     });
 
     it('waits between two reads', async () => {
       vi.useFakeTimers();
-      const fetch = stubFetch(apiPullRequest({ mergeableState: 'blocked' }), apiPullRequest());
+      const requests = stubPullRequest(
+        { body: apiPullRequest({ mergeableState: 'blocked' }) },
+        { body: apiPullRequest() },
+      );
       const promise = waitForMergeable({ number: 162, sha: SHA });
       await vi.advanceTimersByTimeAsync(9_999);
-      expect(fetch).toHaveBeenCalledTimes(1);
+      expect(requests).toHaveLength(1);
       await vi.advanceTimersByTimeAsync(1);
       await expect(promise).resolves.toEqual({ sha: SHA, mergeableState: 'clean' });
     });
 
     it('tries a failed read again', async () => {
-      const answers = [
-        new Response('{}', { status: 502 }),
-        new Response(JSON.stringify(apiPullRequest())),
-      ];
-      vi.stubGlobal(
-        'fetch',
-        vi.fn(async () => answers.shift()),
-      );
+      stubPullRequest({ status: 502, body: {} }, { body: apiPullRequest() });
       await expect(waitForMergeable({ number: 162, sha: SHA, delayMs: 0 })).resolves.toEqual({
         sha: SHA,
         mergeableState: 'clean',
@@ -347,21 +337,18 @@ describe('the API calls on pull requests', () => {
     });
 
     it('resolves to undefined when the pull request can never be read, or for no attempt', async () => {
-      const fetch = stubFetch({});
+      const requests = stubPullRequest({ body: {} });
       await expect(
         waitForMergeable({ number: 162, sha: SHA, attempts: 2, delayMs: 0 }),
       ).resolves.toBeUndefined();
       await expect(
         waitForMergeable({ number: 162, sha: SHA, attempts: 0, delayMs: 0 }),
       ).resolves.toBeUndefined();
-      expect(fetch).toHaveBeenCalledTimes(2);
+      expect(requests).toHaveLength(2);
     });
 
     it('throws the error of the last read when every read failed', async () => {
-      vi.stubGlobal(
-        'fetch',
-        vi.fn(async () => new Response('{}', { status: 500 })),
-      );
+      stubPullRequest({ status: 500, body: {} });
       await expect(
         waitForMergeable({ number: 162, sha: SHA, attempts: 2, delayMs: 0 }),
       ).rejects.toThrow('The GitHub API answered 500');
@@ -370,39 +357,40 @@ describe('the API calls on pull requests', () => {
     it.each([undefined, 0, '162'])(
       'throws at once without asking the API for the pull request %o',
       async number => {
-        const fetch = stubFetch(apiPullRequest());
+        const requests = stubPullRequest({ body: apiPullRequest() });
         await expect(waitForMergeable({ number, sha: SHA, delayMs: 0 })).rejects.toThrow(
           'Invalid pull request',
         );
-        expect(fetch).not.toHaveBeenCalled();
+        expect(requests).toEqual([]);
       },
     );
   });
 
   describe('fetchUnpassedChecks', () => {
-    /** Answers the rules of develop and the check runs of the commit, whatever their order. */
-    const stubChecks = ({ rules, checkRuns }) => {
-      const fetch = vi.fn(async url => {
-        const body = url.includes('/rules/branches/') ? rules : { check_runs: checkRuns };
-        return new Response(JSON.stringify(body), { status: 200 });
+    /** Answers the rules of develop and the check runs of the commit with the given answers. */
+    const stubChecks = ({ rules, checkRuns }) =>
+      stubGitHub({
+        'GET /rules/branches/develop': [rules],
+        [`GET /commits/${SHA}/check-runs`]: [checkRuns],
       });
-      vi.stubGlobal('fetch', fetch);
-      return fetch;
-    };
 
     it('names the required checks of the branch that the commit has not passed', async () => {
-      const fetch = stubChecks({
-        rules: [requiredChecksRule('format', 'lint', 'build')],
-        checkRuns: [
-          { name: 'lint', status: 'completed', conclusion: 'success' },
-          { name: 'build', status: 'completed', conclusion: 'failure' },
-        ],
+      const requests = stubChecks({
+        rules: { body: [requiredChecksRule('format', 'lint', 'build')] },
+        checkRuns: {
+          body: {
+            check_runs: [
+              { name: 'lint', status: 'completed', conclusion: 'success' },
+              { name: 'build', status: 'completed', conclusion: 'failure' },
+            ],
+          },
+        },
       });
       await expect(fetchUnpassedChecks({ branch: 'develop', sha: SHA })).resolves.toEqual([
         'format (missing)',
         'build (failure)',
       ]);
-      const urls = fetch.mock.calls.map(([url]) => url).sort();
+      const urls = requests.map(({ url }) => url).sort();
       expect(urls).toEqual([
         `${REPOSITORY_API_URL}/commits/${SHA}/check-runs?per_page=100`,
         `${REPOSITORY_API_URL}/rules/branches/develop`,
@@ -410,10 +398,7 @@ describe('the API calls on pull requests', () => {
     });
 
     it('throws when the API answers with an error', async () => {
-      vi.stubGlobal(
-        'fetch',
-        vi.fn(async () => new Response('{}', { status: 403 })),
-      );
+      stubChecks({ rules: { status: 403, body: {} }, checkRuns: { status: 403, body: {} } });
       await expect(fetchUnpassedChecks({ branch: 'develop', sha: SHA })).rejects.toThrow(
         'The GitHub API answered 403',
       );
@@ -424,11 +409,11 @@ describe('the API calls on pull requests', () => {
       [{ branch: '', sha: SHA }, `"${SHA}" against ""`],
       [{}, '"" against ""'],
     ])('throws without asking the API for %o', async (params, details) => {
-      const fetch = stubChecks({ rules: [], checkRuns: [] });
+      const requests = stubChecks({ rules: { body: [] }, checkRuns: { body: { check_runs: [] } } });
       await expect(fetchUnpassedChecks(params)).rejects.toThrow(
         `Cannot read the checks of ${details}`,
       );
-      expect(fetch).not.toHaveBeenCalled();
+      expect(requests).toEqual([]);
     });
   });
 });
