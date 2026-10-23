@@ -179,4 +179,16 @@ On 2026-10-22, the jobs that run Playwright in the CI take the system libraries 
 | Maximum                      | 588 s            | 6 s            |
 | Shards cancelled in the step | 3                | 0              |
 
-Decision: [0015](decisions/0015-render-at-build-time.md), [0016](decisions/0016-cloudflare-worker-deploy-trigger.md), [0017](decisions/0017-typescript-6.md), [0018](decisions/0018-pnpm-12.md), [0019](decisions/0019-locked-build-chain.md), [0020](decisions/0020-vitest-5.md), [0021](decisions/0021-knip.md), [0022](decisions/0022-chromium-libraries-from-runner-image.md).
+On 2026-10-23, the browser tests of phones run in WebKit too, the engine of Safari, on the device of an iPhone 13, in a job of the CI of their own beside the three Chromium shards ([#404](https://github.com/AIssoufi/issoufi.fr/issues/404)). Durations of the jobs of the CI, median of 10 runs of `develop` before, and of three attempts of a run of the change after, but for the WebKit job, in the one attempt that reached its tests, and its Playwright step, over the five runs that reached them. The WebKit job reads the apt mirror of Ubuntu on every run, which twice timed it out before its tests ([#412](https://github.com/AIssoufi/issoufi.fr/issues/412)).
+
+| Figure                            | Before  | After |
+| --------------------------------- | ------- | ----- |
+| Browser tests in WebKit           | 0       | 210   |
+| Shard 1/3                         | 214 s   | 192 s |
+| Shard 2/3                         | 175 s   | 175 s |
+| Shard 3/3                         | 172.5 s | 189 s |
+| WebKit job                        |         | 548 s |
+| Playwright step of a shard        | 4 s     | 5 s   |
+| Playwright step of the WebKit job |         | 47 s  |
+
+Decision: [0015](decisions/0015-render-at-build-time.md), [0016](decisions/0016-cloudflare-worker-deploy-trigger.md), [0017](decisions/0017-typescript-6.md), [0018](decisions/0018-pnpm-12.md), [0019](decisions/0019-locked-build-chain.md), [0020](decisions/0020-vitest-5.md), [0021](decisions/0021-knip.md), [0022](decisions/0022-chromium-libraries-from-runner-image.md), [0023](decisions/0023-phone-browser-tests-in-webkit.md).

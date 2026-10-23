@@ -1,10 +1,10 @@
 # Testing
 
-| Level              | Tools                          | Command                                |
-| ------------------ | ------------------------------ | -------------------------------------- |
-| Unit and component | Vitest, Testing Library, jsdom | `pnpm test`                            |
-| Browser            | Playwright, Chromium, axe-core | `pnpm build`, then `pnpm test:browser` |
-| Screenshots        | Playwright, Chromium           | `pnpm test:visual`                     |
+| Level              | Tools                                  | Command                                |
+| ------------------ | -------------------------------------- | -------------------------------------- |
+| Unit and component | Vitest, Testing Library, jsdom         | `pnpm test`                            |
+| Browser            | Playwright, Chromium, WebKit, axe-core | `pnpm build`, then `pnpm test:browser` |
+| Screenshots        | Playwright, Chromium                   | `pnpm test:visual`                     |
 
 ## Unit and component tests
 
@@ -17,8 +17,9 @@
 
 ## Browser tests
 
-jsdom computes no layout, so these tests run in Chromium, on the production build.
+jsdom computes no layout, so these tests run in Chromium, on the production build, and those of phones in WebKit too.
 In the CI, `.github/actions/playwright` installs the headless shell of Chromium, cached, and takes its system libraries from the image of the runner, falling back to the apt mirror only when the browser does not start ([decision 0022](decisions/0022-chromium-libraries-from-runner-image.md)).
+The WebKit job installs WebKit with the same action, which reads the apt mirror for the libraries that the image lacks ([decision 0023](decisions/0023-phone-browser-tests-in-webkit.md)).
 They run in both languages, on screens from small phones to large desktops:
 
 | Area          | What they check                                                                                                                                                   |
@@ -29,6 +30,16 @@ They run in both languages, on screens from small phones to large desktops:
 | Server        | each page in its language, the security headers and policy, no request to Google                                                                                  |
 | Hydration     | each page shows without JavaScript, then React takes it over with no error, for a visitor whose state differs from the build                                      |
 | No JavaScript | from each page, on a phone and a laptop, the header leads to every page of the navigation and to the other language; the projects page shows every project        |
+
+### In WebKit
+
+The `webkit` project of `playwright.config.ts` runs the specs of phones in WebKit, the engine of Safari, with the device of an iPhone 13: `axe.e2e.ts`, `horizontal-overflow.e2e.ts`, `mobile-menu.e2e.ts`, `no-script-navigation.e2e.ts` and `touch-targets.e2e.ts`.
+Each spec still sets the size of its screens. The `chromium` project runs every spec.
+
+- `pnpm test:browser` runs both projects; `pnpm test:browser --project=webkit` runs WebKit alone, and `--project=chromium` Chromium alone.
+- In the CI, the `browser-test (webkit)` job runs them on its own runner, beside the three Chromium shards, and the required `browser-test` check fails when it does not pass.
+- The two tests of `mobile-menu.e2e.ts` that scroll with a wheel or a finger through the DevTools protocol run in Chromium only, which alone has it; the others run in both browsers.
+- The screenshot comparison runs in Chromium only.
 
 ## Screenshot comparison
 
@@ -63,4 +74,5 @@ They run in both languages, on screens from small phones to large desktops:
 - **Animations**: wait for them to end before measuring a box (`waitForEndingAnimations`), or open the page with reduced motion. An element still sliding in stands elsewhere.
 - **Proof**: check that a new test fails without its fix, at every size it covers.
 - **Download priorities**: Chromium raises the priority of an image that shows on the screen while it downloads, which a local server answers first. Slow the network down (`SLOW_4G_NETWORK`), as `e2e/download-priorities.e2e.ts` does.
+- **WebKit**: as Safari on macOS, it leaves the links out of the order of Tab, so a test that moves the focus to a link presses `Alt+Tab` there (`NEXT_LINK_KEYS` in `e2e/mobile-menu.e2e.ts`). Playwright turns no mouse wheel in WebKit on a phone: scroll the page with `window.scrollTo`. WebKit has no DevTools protocol (`newCDPSession`): skip a test that uses it there, with its reason. WebKit draws in software on the Linux of the CI: the `webkit` project draws at a scale of 1 and gives a test 60 s everywhere, and in the CI runs a failed test once more, since its `networkidle` wait sometimes never ends ([#413](https://github.com/AIssoufi/issoufi.fr/issues/413)).
 - **Screenshots**: a screen that changes with no change of the code draws something that moves from a run to the next, such as the time, a random value or a late image. Fix it in `e2e/pages.visual.ts` rather than tolerate a difference.

@@ -15,7 +15,7 @@ A bilingual React app, built and maintained with a team of AI agents.
 ## Highlights
 
 - **Fast and accessible**: Lighthouse 100 in accessibility, best practices and SEO, 98 to 100 in performance.
-- **Tested in depth**: over 5,000 unit tests at 100 % coverage, and over 600 browser tests in Chromium, from phones to large screens. Each pull request compares the screenshots of every page with `develop`.
+- **Tested in depth**: over 5,000 unit tests at 100 % coverage, and over 600 browser tests in Chromium, from phones to large screens, with those of phones in WebKit too. Each pull request compares the screenshots of every page with `develop`.
 - **A page per route**: each page gets its own HTML file in each language, rendered at build time so it shows before any script runs, with its title, description, preview image and structured data, for search engines and link previews.
 - **Shipped every morning**: a Cloudflare Worker starts the workflow that releases `develop` and deploys it to production.
 - **Built with AI agents**: one Claude agent per ticket, each change reviewed by other agents.
@@ -62,7 +62,7 @@ pnpm build               # production build in dist/
 pnpm test:browser        # browser tests, after a build
 ```
 
-The browser tests need Chromium once: `pnpm exec playwright install --only-shell chromium`.
+The browser tests need Chromium and WebKit once: `pnpm exec playwright install --only-shell chromium webkit`.
 
 ## Documentation
 

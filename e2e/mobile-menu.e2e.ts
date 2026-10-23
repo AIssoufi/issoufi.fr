@@ -27,6 +27,26 @@ const TRANSLATIONS = { fr, en };
 /** Devices that scroll the page under the menu: the wheel of a mouse and a finger. */
 const SCROLL_GESTURE_SOURCES: readonly ScrollGestureSource[] = ['mouse', 'touch'];
 
+/**
+ * Why a test that scrolls with {@link scrollDownWithGesture} runs in Chromium only: WebKit has no
+ * DevTools protocol, and Playwright turns no mouse wheel in mobile WebKit.
+ */
+const DEVTOOLS_PROTOCOL_SKIP_REASON = 'scrolls through the DevTools protocol of Chromium';
+
+/**
+ * Key that moves the focus to the next link, in each browser: Safari, as WebKit on macOS and on
+ * the Linux of the CI, leaves the links out of the order of Tab, and reaches them with Alt and Tab,
+ * the Option and Tab of a Mac.
+ */
+const NEXT_LINK_KEYS = { chromium: 'Tab', firefox: 'Tab', webkit: 'Alt+Tab' } as const;
+
+/**
+ * Tells whether a browser lacks the DevTools protocol that {@link scrollDownWithGesture} needs.
+ * @param browserName - Name of the browser of the test, as Playwright gives it.
+ * @returns `true` in every browser but Chromium.
+ */
+const lacksDevToolsProtocol = (browserName: string): boolean => browserName !== 'chromium';
+
 /** Parameters of {@link openMenu}. */
 interface OpenMenuParams {
   /** Page of the test, opened on a route of the mobile layout. */
@@ -151,9 +171,7 @@ for (const language of LANGUAGES) {
   test.describe(`in ${language}, on a screen lower than the menu`, () => {
     test.use({ viewport: SHORTER_THAN_MENU_SCREEN });
 
-    test('the open mobile menu scrolls to show each of its links whole, but not the page', async ({
-      page,
-    }) => {
+    test('the open mobile menu scrolls to show each of its links whole', async ({ page }) => {
       await page.goto(route);
       const navigation = await openMenu({ page, translations });
       expect(await navigation.evaluate(isScrollable), 'menu higher than the screen').toBe(true);
@@ -168,8 +186,20 @@ for (const language of LANGUAGES) {
           `box of "${name}" once scrolled to, whole on the screen: ${JSON.stringify(box)}`,
         ).toBe(true);
       }
+    });
 
-      await navigation.evaluate(element => element.scrollTo(0, 0));
+    test('a wheel scroll over the open mobile menu scrolls it, but not the page', async ({
+      page,
+      browserName,
+    }) => {
+      test.skip(lacksDevToolsProtocol(browserName), DEVTOOLS_PROTOCOL_SKIP_REASON);
+      await page.goto(route);
+      const navigation = await openMenu({ page, translations });
+      expect(
+        await navigation.evaluate(element => element.scrollTop),
+        'menu opened at its top',
+      ).toBe(0);
+
       const session = await page.context().newCDPSession(page);
       await scrollDownWithGesture({ session, ...getGesturePoint(page), source: 'mouse' });
       expect(
@@ -187,7 +217,9 @@ for (const viewport of MOBILE_LAYOUT_SCREENS) {
 
     test('the page behind the open mobile menu stays still, and scrolls again from there once it closes', async ({
       page,
+      browserName,
     }) => {
+      test.skip(lacksDevToolsProtocol(browserName), DEVTOOLS_PROTOCOL_SKIP_REASON);
       await page.goto(LONG_PAGE_ROUTE);
       await expect(page.locator(PAGE_SELECTOR)).toBeVisible();
       await page.evaluate(top => window.scrollTo(0, top), MENU_OPENING_SCROLL_Y_PX);
@@ -224,7 +256,9 @@ for (const viewport of MOBILE_LAYOUT_SCREENS) {
 
     test('the language toggle stays usable over the open mobile menu, with Tab and a tap', async ({
       page,
+      browserName,
     }) => {
+      const nextLinkKey = NEXT_LINK_KEYS[browserName];
       await page.goto(LONG_PAGE_ROUTE);
       const burgerBox = await page.getByRole('button', { name: fr.burgerMenu.open }).boundingBox();
       const navigation = await openMenu({ page, translations: fr });
@@ -238,9 +272,9 @@ for (const viewport of MOBILE_LAYOUT_SCREENS) {
       const languageToggle = page.getByRole('group', { name: fr.langToggle.label });
       const englishLink = languageToggle.getByRole('link', { name: LANGUAGE_NAMES.en });
       await navigation.getByRole('link', { name: fr.cvLink.text }).focus();
-      await page.keyboard.press('Tab');
+      await page.keyboard.press(nextLinkKey);
       await expect(languageToggle.getByRole('link', { name: LANGUAGE_NAMES.fr })).toBeFocused();
-      await page.keyboard.press('Tab');
+      await page.keyboard.press(nextLinkKey);
       await expect(englishLink).toBeFocused();
 
       // A tap fails when something covers the link, as the menu did

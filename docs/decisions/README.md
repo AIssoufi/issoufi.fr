@@ -17,7 +17,7 @@ One Architecture Decision Record (ADR) per change of tool or of architecture: wh
 # NNNN. <Decision in a few words>
 
 - Date: YYYY-MM-DD (the merge day; for a record written later, the day of the commit)
-- Status: Accepted | Superseded by [NNNN](NNNN-short-title.md)
+- Status: Accepted | Superseded by [NNNN](NNNN-short-title.md) | Accepted, superseded for <part> by [NNNN](NNNN-short-title.md)
 
 ## Context
 
@@ -64,3 +64,4 @@ An ADR is not rewritten later: a new decision supersedes it, and the old one get
 | [0020](0020-vitest-5.md)                             | 2026-10-22 | Update Vitest to 5                                     |
 | [0021](0021-knip.md)                                 | 2026-10-22 | Report unused files and exports with knip              |
 | [0022](0022-chromium-libraries-from-runner-image.md) | 2026-10-22 | Take the libraries of Chromium from the runner image   |
+| [0023](0023-phone-browser-tests-in-webkit.md)        | 2026-10-23 | Run the phone browser tests in WebKit too              |

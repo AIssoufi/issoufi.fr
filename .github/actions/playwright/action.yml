@@ -1,8 +1,14 @@
 name: Playwright
 description: >-
-  Installs the headless shell of Chromium of the Playwright version in the lockfile, cached between
-  runs. The system libraries it needs come from the runner image, and from the apt mirror only when
-  the browser does not start without them. Run it after the setup action.
+  Installs a browser of the Playwright version in the lockfile, cached between runs: the headless
+  shell of Chromium by default, or WebKit. The system libraries it needs come from the runner
+  image, and from the apt mirror only when the browser does not start without them, as WebKit,
+  which the image lacks. Run it after the setup action.
+
+inputs:
+  browser:
+    description: Browser to install, by its name in Playwright, chromium or webkit
+    default: chromium
 
 runs:
   using: composite
@@ -14,22 +20,26 @@ runs:
     - uses: actions/cache@v6
       with:
         path: ~/.cache/ms-playwright
-        key: playwright-${{ runner.os }}-${{ steps.playwright.outputs.version }}
+        key: playwright-${{ runner.os }}-${{ inputs.browser }}-${{ steps.playwright.outputs.version }}
 
     # No --with-deps: the image of the runner ships Google Chrome, so it has every library that
     # Chromium links; apt would only add fonts and updates, from a mirror that sometimes takes
-    # minutes (decision 0022)
-    - run: pnpm exec playwright install --only-shell chromium
+    # minutes (decision 0022). --only-shell changes nothing for WebKit
+    - run: pnpm exec playwright install --only-shell "$BROWSER"
       shell: bash
+      env:
+        BROWSER: ${{ inputs.browser }}
 
     # Falls back to the apt mirror only when the browser does not start, as when a new image of the
-    # runner drops one of its libraries
+    # runner drops one of its libraries. WebKit needs libraries that the image lacks, so its job
+    # reads the mirror on every run (decision 0023)
     - run: |
         if ! node --input-type=module --eval "$LAUNCH_BROWSER"; then
-          pnpm exec playwright install-deps chromium-headless-shell
+          pnpm exec playwright install-deps "$BROWSER"
         fi
       shell: bash
       env:
+        BROWSER: ${{ inputs.browser }}
         LAUNCH_BROWSER: >-
-          import { chromium } from '@playwright/test';
-          await (await chromium.launch()).close();
+          import * as playwright from '@playwright/test';
+          await (await playwright[process.env.BROWSER].launch()).close();
