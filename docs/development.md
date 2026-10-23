@@ -53,3 +53,5 @@ The generators are described in [Assets](assets.md#generated-files).
   To run them locally: `brew install actionlint shellcheck`, then `actionlint`.
 - The same job fails on an action of a third party that a workflow or an action does not pin by the SHA of a commit ([Dependencies](deployment.md#dependencies)).
   To run the check locally: `node scripts/ci/check-action-pins.mjs`.
+- The same job fails on a checkout that keeps its git credentials without a comment naming the step that uses them ([Workflows](conventions.md#workflows)).
+  To run the check locally: `node scripts/ci/check-checkout-credentials.mjs`.
