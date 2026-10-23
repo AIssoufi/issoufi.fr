@@ -4,7 +4,10 @@ export const REPOSITORY = 'AIssoufi/issoufi.fr';
 /** Branch of the release pull request that release-please keeps open against develop. */
 export const BRANCH = 'release-please--branches--develop--components--issoufi-v3';
 
-/** Full SHA of the head commit of the release pull request. */
+/**
+ * Full SHA of the commit the specs work on, such as the head of the release pull request, the
+ * commit a workflow ran on or the deployed one.
+ */
 export const SHA = '58ff9ea0c3f4e1b2a9d8c7b6a5f4e3d2c1b0a9f8';
 
 /** Page under which GitHub shows each workflow run of the repository, by its id. */
@@ -13,7 +16,10 @@ export const RUNS_URL = `https://github.com/${REPOSITORY}/actions/runs`;
 /** When the workflow runs of the specs started, as the REST API writes it. */
 export const CREATED_AT = '2026-10-19T04:07:00Z';
 
-/** Full SHA of a newer head, which release-please pushed to the release pull request. */
+/**
+ * Full SHA of a commit other than {@link SHA}, such as a newer head that release-please pushed
+ * to the release pull request.
+ */
 export const OTHER_SHA = '9ff31f7aa1b2c3d4e5f60718293a4b5c6d7e8f90';
 
 /** Full SHA of the merge commit of the release pull request. */

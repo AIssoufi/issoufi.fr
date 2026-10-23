@@ -4,9 +4,8 @@ import {
   parseCommitLog,
   renderDeployReport,
 } from './deploy-report.mjs';
+import { OTHER_SHA, SHA } from './testUtils.js';
 
-const SHA = '58ff9ea0c3f4e1b2a9d8c7b6a5f4e3d2c1b0a9f8';
-const OTHER_SHA = '9ff31f7aa1b2c3d4e5f60718293a4b5c6d7e8f90';
 const REPOSITORY_URL = 'https://github.com/AIssoufi/issoufi.fr';
 const RUN_URL = `${REPOSITORY_URL}/actions/runs/123`;
 
