@@ -56,6 +56,37 @@ describe('stubGitHub', () => {
     expect(statuses).toEqual([500, 403, 200, 200]);
   });
 
+  it('answers a request from the route with its query before the one without', async () => {
+    const requests = stubGitHub({
+      'GET /pulls': [{ body: ['any'] }],
+      'GET /pulls?state=open': [{ body: ['open'] }],
+    });
+
+    const texts = [];
+    for (const query of ['?state=open', '?state=closed', '']) {
+      texts.push(await (await fetch(`${API}/pulls${query}`)).text());
+    }
+
+    expect(texts).toEqual(['["open"]', '["any"]', '["any"]']);
+    expect(routesOf(requests)).toEqual(['GET /pulls', 'GET /pulls', 'GET /pulls']);
+  });
+
+  it.each([
+    ['the same parameters in another order', '?base=develop&state=open'],
+    ['another one', '?state=closed'],
+    ['missing', ''],
+  ])('answers with a 404 a request whose query is %s', async (_case, query) => {
+    stubGitHub({ 'GET /pulls?state=open&base=develop': [{ body: ['open'] }] });
+
+    expect((await fetch(`${API}/pulls${query}`)).status).toBe(404);
+  });
+
+  it('answers with a 404 a request whose route with a query has no answer', async () => {
+    stubGitHub({ 'GET /pulls': [{ body: ['any'] }], 'GET /pulls?state=open': [] });
+
+    expect((await fetch(`${API}/pulls?state=open`)).status).toBe(404);
+  });
+
   it.each([
     ['without a route', {}],
     ['whose route has no answer', { 'GET /pulls': [] }],
