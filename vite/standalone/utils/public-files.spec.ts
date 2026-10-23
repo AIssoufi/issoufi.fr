@@ -3,7 +3,8 @@ import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
-import { listFileNames, toRelativePublicUrls } from './public-files.ts';
+import { HEADERS_FILE_NAME, REDIRECTS_FILE_NAME, ROBOTS_FILE_NAME } from '../../constants.ts';
+import { listFileNames, listStandalonePublicFiles, toRelativePublicUrls } from './public-files.ts';
 
 describe('listFileNames', () => {
   let dir = '';
@@ -49,6 +50,73 @@ describe('listFileNames', () => {
 
     it.each([undefined, null, '', 42, {}])('returns no name for the folder %j', value => {
       expect(listFileNames(value)).toEqual([]);
+    });
+  });
+});
+
+describe('listStandalonePublicFiles', () => {
+  let dir = '';
+
+  beforeEach(() => {
+    dir = mkdtempSync(join(tmpdir(), 'standalone-public-'));
+  });
+
+  afterEach(() => {
+    rmSync(dir, { recursive: true, force: true });
+  });
+
+  it('lists the files of the folder and of its subfolders, sorted', () => {
+    writeFileSync(join(dir, 'home.webp'), '');
+    writeFileSync(join(dir, 'CV - Adam Issoufi.pdf'), '');
+    mkdirSync(join(dir, 'fonts', 'nested'), { recursive: true });
+    writeFileSync(join(dir, 'fonts', 'montserrat.woff2'), '');
+    writeFileSync(join(dir, 'fonts', 'nested', 'lato.woff2'), '');
+
+    expect(listStandalonePublicFiles(dir)).toEqual([
+      'CV - Adam Issoufi.pdf',
+      'fonts/montserrat.woff2',
+      'fonts/nested/lato.woff2',
+      'home.webp',
+    ]);
+  });
+
+  it.each([ROBOTS_FILE_NAME, REDIRECTS_FILE_NAME, HEADERS_FILE_NAME, 'projects.html'])(
+    'leaves out %s, which only a web server or a crawler reads',
+    fileName => {
+      writeFileSync(join(dir, 'home.webp'), '');
+      writeFileSync(join(dir, fileName), '');
+
+      expect(listStandalonePublicFiles(dir)).toEqual(['home.webp']);
+    },
+  );
+
+  it(`keeps a ${REDIRECTS_FILE_NAME} in a subfolder, which Cloudflare Pages does not read`, () => {
+    mkdirSync(join(dir, 'docs'));
+    writeFileSync(join(dir, 'docs', REDIRECTS_FILE_NAME), '');
+
+    expect(listStandalonePublicFiles(dir)).toEqual([`docs/${REDIRECTS_FILE_NAME}`]);
+  });
+
+  it('lists no folder, even an empty one', () => {
+    mkdirSync(join(dir, 'fonts'));
+
+    expect(listStandalonePublicFiles(dir)).toEqual([]);
+  });
+
+  describe('edge cases', () => {
+    it('returns no file for a folder that does not exist', () => {
+      expect(listStandalonePublicFiles(join(dir, 'missing'))).toEqual([]);
+    });
+
+    it('returns no file for a file', () => {
+      const file = join(dir, 'home.webp');
+      writeFileSync(file, '');
+
+      expect(listStandalonePublicFiles(file)).toEqual([]);
+    });
+
+    it.each([undefined, null, '', 42, {}])('returns no file for the folder %j', value => {
+      expect(listStandalonePublicFiles(value)).toEqual([]);
     });
   });
 });

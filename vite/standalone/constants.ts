@@ -1,3 +1,6 @@
+import { SITEMAP_FILE_NAME } from '../../src/utils/sitemap.ts';
+import { HEADERS_FILE_NAME, REDIRECTS_FILE_NAME, ROBOTS_FILE_NAME } from '../constants.ts';
+
 /**
  * Folder of the standalone build, next to `dist`: the site in one HTML file that a visitor opens
  * from the disk. Gitignored, like `dist`.
@@ -24,6 +27,19 @@ export const HASH_ROUTER_MODULE = 'vite/standalone/react-router.ts';
 
 /** Folder of the code of the app, from the root of the project. */
 export const APP_DIR = 'src';
+
+/**
+ * Files at the root of the build that only a web server or a crawler reads, emitted by the
+ * plugins of `vite.config.ts` or copied from `public/`: the headers and the redirects of
+ * Cloudflare Pages, the sitemap and `robots.txt`. Opened from the disk, the standalone build has no
+ * server to read them, and no search engine crawls it.
+ */
+export const SERVER_ONLY_FILE_NAMES: readonly string[] = [
+  HEADERS_FILE_NAME,
+  REDIRECTS_FILE_NAME,
+  SITEMAP_FILE_NAME,
+  ROBOTS_FILE_NAME,
+];
 
 /** Name of an HTML file of the build. */
 export const HTML_FILE_PATTERN = /\.html$/;

@@ -71,6 +71,19 @@ export const ASSETS_DIR = 'assets';
 export const HEADERS_FILE_NAME = '_headers';
 
 /**
+ * Name of the file that sets the redirects of Cloudflare Pages, which reads it at the root of the
+ * build and does not serve it. A `public/_redirects` would reach the build as it is.
+ * @see https://developers.cloudflare.com/pages/configuration/redirects/
+ */
+export const REDIRECTS_FILE_NAME = '_redirects';
+
+/**
+ * File of `public/` that tells the crawlers of search engines what to read and where the sitemap
+ * is.
+ */
+export const ROBOTS_FILE_NAME = 'robots.txt';
+
+/**
  * How long a browser keeps a file of {@link ASSETS_DIR} without asking the server again: a year of
  * 365 days, the usual lifetime of a file that never changes.
  */
