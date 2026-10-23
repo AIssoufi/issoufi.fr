@@ -1,14 +1,8 @@
 import { LARGE_FILE_ADVICE, LARGE_IMAGE_ADVICE } from '../constants.mjs';
-import {
-  checkBundleBudgets,
-  checkScriptBudget,
-  findLargeFiles,
-  findUncountedPaths,
-  getCompressionAdvice,
-  isBudgetedScript,
-  isBuildFile,
-  splitInitialLoad,
-} from './bundle.mjs';
+import { checkBundleBudgets, checkScriptBudget } from './bundle-budgets.mjs';
+import { isBudgetedScript, isBuildFile } from './bundle-files.mjs';
+import { findUncountedPaths, splitInitialLoad } from './bundle-initial-load.mjs';
+import { findLargeFiles, getCompressionAdvice } from './bundle-large-files.mjs';
 
 describe('isBuildFile', () => {
   it.each([
