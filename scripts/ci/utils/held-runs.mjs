@@ -4,7 +4,7 @@ import {
   PULL_REQUEST_EVENT,
   PULL_REQUEST_WORKFLOW_FILES,
 } from '../constants.mjs';
-import { getErrorMessage } from './github-api.mjs';
+import { getErrorMessage } from './errors.mjs';
 import { approveRun, fetchLatestRun, isHeldRun } from './workflow-runs.mjs';
 
 /**

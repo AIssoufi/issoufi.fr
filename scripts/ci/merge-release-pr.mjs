@@ -11,11 +11,12 @@
 //   node scripts/ci/merge-release-pr.mjs
 import { writeAnnotation } from './utils/annotations.mjs';
 import { releaseVersionOfTheDay } from './utils/daily-release.mjs';
+import { getErrorMessage } from './utils/errors.mjs';
 
 try {
   writeAnnotation(await releaseVersionOfTheDay({ isDryRun: process.env.DRY_RUN === 'true' }));
 } catch (error) {
   // The deploy goes on: a release pull request left open is merged by the next run
-  const reason = error instanceof Error ? error.message : error;
+  const reason = getErrorMessage(error);
   writeAnnotation({ level: 'warning', message: `The daily release stopped: ${reason}` });
 }

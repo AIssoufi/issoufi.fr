@@ -22,6 +22,7 @@ import {
   parseCommitLog,
   renderDeployReport,
 } from './utils/deploy-report.mjs';
+import { getErrorMessage } from './utils/errors.mjs';
 import { appendJobSummary } from './utils/job-summary.mjs';
 import { fetchLatestRun, isCommitSha } from './utils/workflow-runs.mjs';
 
@@ -61,7 +62,7 @@ const findMainCiRunUrl = async () => {
       // The deploy is already pushed: the report links the list of runs rather than failing
       writeAnnotation({
         level: 'warning',
-        message: error instanceof Error ? error.message : error,
+        message: getErrorMessage(error),
       });
       break;
     }
