@@ -861,6 +861,12 @@ export const REACT_FIBER_KEY_PREFIX = '__reactFiber$';
 export const REPORTED_CONSOLE_TYPES: ReadonlySet<string> = new Set(['error', 'warning']);
 
 /**
+ * Text of the error that Chromium logs in the console for a resource served with the status 404,
+ * as the not found page is.
+ */
+export const NOT_FOUND_STATUS_MESSAGE_PATTERN = /status of 404\b/;
+
+/**
  * Months from the build to the clock of the visitor in the hydration test: over a year, so the
  * durations of the jobs, which the build counts up to its own month, read otherwise in the browser.
  */
