@@ -35,7 +35,8 @@ const NotFound = lazy(() => import('../pages/NotFound/index.ts').then(keepPendin
  * prefix of each other language (`/en/projects`); the texts follow the language of the URL (see
  * {@link UrlLanguage}). Every page but the home page
  * is loaded on its first visit; the header stays on screen meanwhile. Unknown paths render
- * {@link NotFound} at the requested URL, in the language of its prefix, without redirecting.
+ * {@link NotFound} at the requested URL, in the language of its prefix, without redirecting. The
+ * routes match with case, as Cloudflare Pages serves the files: `/Projects` is not found either.
  * Reloads the page once when a page was deployed again since it was opened (see
  * {@link useReloadOnStaleChunk}). A page that fails to render or to load shows an error with a
  * reload button below the header, which stays usable (see {@link RouteErrorBoundary}). After a
@@ -62,6 +63,7 @@ function App({ location }: AppProps) {
                   <Route
                     key={language}
                     path={localizePath({ path: ROOT_PATH, language })}
+                    caseSensitive
                   >
                     <Route
                       index
@@ -70,10 +72,12 @@ function App({ location }: AppProps) {
                     <Route
                       path="projects"
                       element={<Projects />}
+                      caseSensitive
                     />
                     <Route
                       path="experiences"
                       element={<Experiences />}
+                      caseSensitive
                     />
                     <Route
                       path="*"

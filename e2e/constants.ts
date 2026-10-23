@@ -19,6 +19,17 @@ export const SCREEN_HEIGHT_PX = 800;
 export const NOT_FOUND_ROUTE = '/browser-test-page-that-does-not-exist';
 
 /**
+ * Paths of the pages written with capitals, with the language of their not found page: Cloudflare
+ * Pages matches the files with case, so the app shows the not found page there too, and reads a
+ * language prefix with capitals as a path of the default language.
+ */
+export const CAPITALIZED_ROUTES: readonly { path: string; language: Language }[] = [
+  { path: '/Projects', language: 'fr' },
+  { path: '/en/Experiences', language: 'en' },
+  { path: '/EN/', language: 'fr' },
+];
+
+/**
  * Unknown path wider than any phone screen, as a link shared by mail can be: percent-encoded words,
  * which the not found page names decoded, then a word of 64 letters, with no space to wrap at.
  */

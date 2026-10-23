@@ -58,18 +58,18 @@ interface LocalizedPath {
 
 /**
  * Splits a URL path into its language and the path of the page in the default language. The
- * prefix is matched whatever its case, as the router matches the routes.
+ * prefix is matched with case, as the router matches the routes: `/EN/` is a path of the default
+ * language.
  */
 const splitLanguagePrefix = (pathname: unknown): LocalizedPath => {
   const path = toPathname(pathname);
   const [, firstSegment = '', ...pageSegments] = path.split(PATH_SEPARATOR);
-  const prefixLanguage = firstSegment.toLowerCase();
 
-  const isPrefixed = isLanguage(prefixLanguage) && prefixLanguage !== DEFAULT_LANGUAGE;
+  const isPrefixed = isLanguage(firstSegment) && firstSegment !== DEFAULT_LANGUAGE;
   if (!isPrefixed) return { language: DEFAULT_LANGUAGE, pagePath: path };
 
   return {
-    language: prefixLanguage,
+    language: firstSegment,
     pagePath: `${PATH_SEPARATOR}${pageSegments.join(PATH_SEPARATOR)}`,
   };
 };
@@ -78,13 +78,14 @@ const splitLanguagePrefix = (pathname: unknown): LocalizedPath => {
  * Reads the language of a URL path from its prefix (see {@link getLanguagePrefix}).
  *
  * @param pathname - Path of a URL, e.g. `location.pathname`.
- * @returns The language of the prefix, whatever its case, or the {@link DEFAULT_LANGUAGE} for a
- * path without one, a missing path and a value that is not a string.
+ * @returns The language of the prefix, or the {@link DEFAULT_LANGUAGE} for a path without one,
+ * a prefix with capitals, a missing path and a value that is not a string.
  *
  * @example
  * getPathLanguage('/en/projects'); // 'en'
  * getPathLanguage('/projects'); // 'fr'
  * getPathLanguage('/english'); // 'fr'
+ * getPathLanguage('/EN/projects'); // 'fr'
  */
 export const getPathLanguage = (pathname: unknown): Language =>
   splitLanguagePrefix(pathname).language;

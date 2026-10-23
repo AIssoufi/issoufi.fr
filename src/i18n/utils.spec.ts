@@ -58,10 +58,10 @@ describe('getPathLanguage', () => {
     },
   );
 
-  it.each(['/EN/projects', '/En/'])(
-    'reads English in %j, whatever the case, as the router does',
+  it.each(['/EN/projects', '/En/', '/eN', '/EN'])(
+    'reads the default language in %j, whose prefix has capitals, as the router does',
     pathname => {
-      expect(getPathLanguage(pathname)).toBe('en');
+      expect(getPathLanguage(pathname)).toBe('fr');
     },
   );
 
@@ -81,7 +81,7 @@ describe('removeLanguagePrefix', () => {
   it.each([
     ['/en/projects', '/projects'],
     ['/en/projects/', '/projects/'],
-    ['/EN/experiences', '/experiences'],
+    ['/en/Experiences', '/Experiences'],
     ['/en/page/inconnue', '/page/inconnue'],
   ])('turns %j into %j', (pathname, pagePath) => {
     expect(removeLanguagePrefix(pathname)).toBe(pagePath);
@@ -91,8 +91,8 @@ describe('removeLanguagePrefix', () => {
     expect(removeLanguagePrefix(pathname)).toBe('/');
   });
 
-  it.each(['/', '/projects', '/english', '/fr/projects'])(
-    'returns %j as it is, without a language prefix',
+  it.each(['/', '/projects', '/english', '/fr/projects', '/EN/experiences', '/En/'])(
+    'returns %j as it is, without a lowercase language prefix',
     pathname => {
       expect(removeLanguagePrefix(pathname)).toBe(pathname);
     },
