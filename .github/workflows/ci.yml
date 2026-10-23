@@ -215,12 +215,20 @@ jobs:
           retention-days: 14
 
   # Runs the phone specs in WebKit, the engine of Safari, on its own runner, so the Chromium shards
-  # keep their duration. Its job installs the system libraries of WebKit from the apt mirror
+  # keep their duration. It runs in the image of Playwright, which holds WebKit and its system
+  # libraries, so it reads no apt mirror (decision 0024)
   browser-test-webkit:
     needs: build
     name: browser-test (webkit)
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    container:
+      # The tag names the version of @playwright/test in the lockfile, and the digest pins its
+      # content. Dependabot updates neither: change both with that version (docs/testing.md), or
+      # the first launch of WebKit fails and names the image it needs
+      image: mcr.microsoft.com/playwright:v1.64.0-noble@sha256:06a9939e57531807f8d5fd76ce44b53165ffb7d7501d87ab10e285c20b1e971f
+      # Not root but the user of the runner, who writes the workspace, as the docs of Playwright do
+      options: --user 1001
     steps:
       - uses: actions/checkout@v7
         with:
@@ -230,9 +238,9 @@ jobs:
         with:
           name: dist
           path: dist
-      - uses: ./.github/actions/playwright
-        with:
-          browser: webkit
+      # No .github/actions/playwright: the image holds the browsers in /ms-playwright, and the cache
+      # of that action, saved on the runner, would restore them to /.cache, which that user cannot
+      # create
       - run: pnpm test:browser --project=webkit
       - if: failure()
         uses: actions/upload-artifact@v7
