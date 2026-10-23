@@ -148,7 +148,8 @@ for (const { width, height, isMobileLayout } of NO_SCRIPT_SCREENS) {
         page,
       }) => {
         await page.goto(LONG_PAGE_ROUTE);
-        await page.mouse.wheel(0, MENU_OPENING_SCROLL_Y_PX);
+        // Playwright turns no mouse wheel in mobile WebKit, so the test scrolls the page itself
+        await page.evaluate(top => window.scrollTo(0, top), MENU_OPENING_SCROLL_Y_PX);
         await expect.poll(() => page.evaluate(getPageScrollY)).toBe(MENU_OPENING_SCROLL_Y_PX);
         const openLink = page.getByRole('link', { name: fr.burgerMenu.open });
         const closeLink = page.getByRole('link', { name: fr.burgerMenu.close });
