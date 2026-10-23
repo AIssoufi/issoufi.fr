@@ -1,5 +1,32 @@
 # Changelog
 
+## [1.6.1](https://github.com/AIssoufi/issoufi.fr/compare/v1.6.0...v1.6.1) (2026-10-23)
+
+
+### Code Refactoring
+
+* **ci:** move getErrorMessage to a module of its own ([3eed244](https://github.com/AIssoufi/issoufi.fr/commit/3eed244742d6a3af72845c576a7795c76e6e2447))
+* **ci:** move the approval of held runs to their own module ([f2be9f9](https://github.com/AIssoufi/issoufi.fr/commit/f2be9f9894b8057d8c7156900a8cde043b8c1b90))
+* **ci:** read caught errors with getErrorMessage in six scripts ([7109766](https://github.com/AIssoufi/issoufi.fr/commit/7109766e6ed7f9deabe58940950c59f1b3d40081))
+* **ci:** share the YAML key reader of the action pin check ([2436f66](https://github.com/AIssoufi/issoufi.fr/commit/2436f66e854113b0512a23810b05d15b61dd9c58))
+* **ci:** split the daily release by topic ([4aa9985](https://github.com/AIssoufi/issoufi.fr/commit/4aa9985ad97b61612f4cc59d5b35ad4446fc7bd2))
+* **cv:** stop exporting two constants that only their own file uses ([b78c1f3](https://github.com/AIssoufi/issoufi.fr/commit/b78c1f32f3be795763242bb68a7e83dac3ef3791))
+* stop exporting the constants that only their own file reads ([8bdb6dc](https://github.com/AIssoufi/issoufi.fr/commit/8bdb6dc9cd0dbed5a2b7dc33234c94f052e69657))
+
+
+### Documentation
+
+* describe the check of the action pins ([0d091c1](https://github.com/AIssoufi/issoufi.fr/commit/0d091c124be459ae97756b84242c582dfa6f8b8a))
+* describe the mocks and assertions of Vitest 5 in the test pitfalls ([78b4d1c](https://github.com/AIssoufi/issoufi.fr/commit/78b4d1c63d357341f952ee8639549677a86dcd83))
+* describe the retry of release-please and the check of checkout credentials ([1253ab7](https://github.com/AIssoufi/issoufi.fr/commit/1253ab76236edfe0d3db2ee7bab18598e03199b1))
+* list pnpm knip in the scripts of the development guide ([18cc9e1](https://github.com/AIssoufi/issoufi.fr/commit/18cc9e16264f43e023507bd27b68e66634b53d82))
+* name the workflows whose held runs the daily release approves ([7bf17fa](https://github.com/AIssoufi/issoufi.fr/commit/7bf17fa7688ccb0cf6a78fd63659a76fedca70bb))
+* record the decision to report unused code with knip ([f3a2016](https://github.com/AIssoufi/issoufi.fr/commit/f3a201626e8d163ecad132e191207eae0b5db4de))
+* record the decision to take the libraries of Chromium from the runner image ([2ace00a](https://github.com/AIssoufi/issoufi.fr/commit/2ace00a41dbb7b235040c87ceb62ab32ac70b184))
+* record the update to Vitest 5 ([db17150](https://github.com/AIssoufi/issoufi.fr/commit/db17150eff462e4e36f049582426044c29a195fe))
+* refresh the README screenshot of the home page ([d86c127](https://github.com/AIssoufi/issoufi.fr/commit/d86c127c18c261c9c2ab0503c0cbb7332e3f156e))
+* run a spec of a child process once with forced colors ([a3189b8](https://github.com/AIssoufi/issoufi.fr/commit/a3189b81add92900a2309fec5be03bf6107d639f))
+
 ## [1.6.0](https://github.com/AIssoufi/issoufi.fr/compare/v1.5.0...v1.6.0) (2026-10-21)
 
 

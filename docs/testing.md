@@ -13,10 +13,12 @@
 - A test that logs an error fails, so the output stays clean.
 - Some specs build the whole site in memory, and check every generated page and header, with the page rendered in it.
 - The spec of a component whose render depends on the visitor renders it as the build does, then hydrates it, with `renderHydrated` (`src/hydrationTestUtils.tsx`). `src/prerender.spec.jsx` hydrates every page rendered at build time.
+- The specs of the GitHub helpers in `scripts/ci/utils/` stub the GitHub API with `stubGitHubEnv` and `stubGitHub` (`scripts/ci/utils/testUtils.js`), as a new spec of a GitHub helper should, with the fixtures of the release pull request (`REPOSITORY`, `SHA`, `apiRun`, the routes of a release that goes well in `releaseRoutes`); only `github-api.spec.js`, which tests the client itself, stubs `fetch` on its own. The stub answers each route, `<method> <path>` under the API of the repository, from a queue whose last answer serves every next request; a route written with the exact query of a request (`GET /runs?event=schedule`) answers it before the route without one. It returns the requests with their route, address, headers and body, and `routesOf` lists their routes in their order.
 
 ## Browser tests
 
 jsdom computes no layout, so these tests run in Chromium, on the production build.
+In the CI, `.github/actions/playwright` installs the headless shell of Chromium, cached, and takes its system libraries from the image of the runner, falling back to the apt mirror only when the browser does not start ([decision 0022](decisions/0022-chromium-libraries-from-runner-image.md)).
 They run in both languages, on screens from small phones to large desktops:
 
 | Area          | What they check                                                                                                                                                   |
@@ -50,8 +52,10 @@ They run in both languages, on screens from small phones to large desktops:
 - **Styles**: styled-components writes its rules to the CSSOM, not to the text of `<style>`. Read them with `listStyleRules` and `declaredStyle`, check with `mediaDeclaringStyle` that an effect applies under one media query and in no other, and build an expected value with `serializeCssValue`, since the CSSOM rewrites values (`0` as `0px`).
 - **What jsdom ignores**: media queries (but `all` and `screen`), pseudo-elements in `getComputedStyle`, and the focus of an element hidden by `display: none`. Read the declared rules instead.
 - **`:focus-visible`**: jsdom keeps its state for a whole file. Check what the focus shows, not the pseudo-class.
+- **Mocks**: Vitest clears the calls of every mock before each test (`clearMocks`, the default since Vitest 5). Assert the calls that the test makes, never those of a `beforeAll` or of the top of the file. Await every `resolves` and `rejects`: one left unawaited fails the test.
 - **`matchMedia`**: jsdom has none. Stub it with `stubMatchMedia`, and undo it with `vi.unstubAllGlobals()`.
 - **Hydration**: in production, React keeps an attribute of the build that differs from its own render, and says nothing. In a test, the development build of React logs it, which fails the test.
+- **Child processes**: the CI sets `FORCE_COLOR`, which colors the output of a script that a spec runs, such as commitlint. Give it `UNCOLORED_ENV` (`scripts/testUtils.js`) as its environment before reading its text: it leaves `FORCE_COLOR` out and sets `NO_COLOR=1`. Without it, the spec passes locally and fails in the CI, so run it once as the CI does: `FORCE_COLOR=1 pnpm test <spec>`.
 - **Render in Node.js**: React leaves the contexts of a render at build time set, in the same JavaScript realm. Run `await prerender(null)` before hydrating in the same file, as `src/prerender.spec.jsx` does.
 
 ### Playwright

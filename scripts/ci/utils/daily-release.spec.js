@@ -1,104 +1,25 @@
 import { releaseVersionOfTheDay } from './daily-release.mjs';
-
-const SHA = '58ff9ea0c3f4e1b2a9d8c7b6a5f4e3d2c1b0a9f8';
-const OTHER_SHA = '9ff31f7aa1b2c3d4e5f60718293a4b5c6d7e8f90';
-const MERGE_SHA = '3c1b0a9f858ff9ea0c3f4e1b2a9d8c7b6a5f4e3d';
-const REPOSITORY = 'AIssoufi/issoufi.fr';
-const BRANCH = 'release-please--branches--develop--components--issoufi-v3';
-const PULL_REQUEST_URL = `https://github.com/${REPOSITORY}/pull/162`;
-const RUNS_URL = `https://github.com/${REPOSITORY}/actions/runs`;
-const WAITS = {
-  runLookup: { attempts: 3, delayMs: 0 },
-  runWait: { attempts: 3, delayMs: 0 },
-  mergeableWait: { attempts: 3, delayMs: 0 },
-};
-
-/** A run of the CI, as the REST API writes it, by default the passed pull request run. */
-const apiRun = ({ id = 501, ...fields } = {}) => ({
-  id,
-  head_sha: SHA,
-  status: 'completed',
-  conclusion: 'success',
-  created_at: '2026-10-19T04:07:00Z',
-  html_url: `${RUNS_URL}/${id}`,
-  ...fields,
-});
-
-/** The release pull request, as the REST API lists it. */
-const apiReleasePullRequest = {
-  number: 162,
-  html_url: PULL_REQUEST_URL,
-  labels: [{ name: 'autorelease: pending' }],
-  head: { ref: BRANCH, sha: SHA, repo: { full_name: REPOSITORY } },
-};
-
-/** The release pull request, as the REST API gives it alone, with whether it can merge. */
-const apiPullRequestState = ({ mergeableState, sha = SHA }) => ({
-  number: 162,
-  head: { ref: BRANCH, sha },
-  mergeable_state: mergeableState,
-});
-
-/** The routes of a release that goes well, from a pull request run that already passed. */
-const releaseRoutes = () => ({
-  'GET /pulls': [{ body: [apiReleasePullRequest] }],
-  'GET /actions/workflows/ci.yml/runs': [{ body: { workflow_runs: [apiRun()] } }],
-  'GET /actions/runs/501': [{ body: apiRun() }],
-  'GET /pulls/162': [{ body: apiPullRequestState({ mergeableState: 'clean' }) }],
-  'PUT /pulls/162/merge': [{ body: { sha: MERGE_SHA, merged: true } }],
-  'POST /actions/workflows/release.yml/dispatches': [
-    { body: { workflow_run_id: 601, html_url: `${RUNS_URL}/601` } },
-  ],
-  'POST /actions/workflows/ci.yml/dispatches': [
-    { body: { workflow_run_id: 602, html_url: `${RUNS_URL}/602` } },
-  ],
-  'GET /actions/runs/602': [{ body: apiRun({ id: 602, head_sha: MERGE_SHA }) }],
-  'GET /rules/branches/develop': [
-    {
-      body: [
-        {
-          type: 'required_status_checks',
-          parameters: { required_status_checks: [{ context: 'format' }, { context: 'lint' }] },
-        },
-      ],
-    },
-  ],
-  [`GET /commits/${SHA}/check-runs`]: [
-    { body: { check_runs: [{ name: 'lint', status: 'completed', conclusion: 'success' }] } },
-  ],
-});
-
-/**
- * Answers the requests of the daily release from its routes, `<method> <path>` under the API of
- * the repository, query left out: each answer serves one request, and the last one all the next.
- * An answer with `rejection` makes the request fail with it, as when the network is down. A
- * request without a route gets a 404.
- */
-const stubGitHub = routes => {
-  const requests = [];
-  const fetch = vi.fn(async (url, init = {}) => {
-    const path = new URL(url).pathname.replace(`/repos/${REPOSITORY}`, '');
-    const route = `${init.method ?? 'GET'} ${path}`;
-    requests.push({ route, url, body: init.body ? JSON.parse(init.body) : undefined });
-
-    const answers = routes[route];
-    if (!answers) return new Response(JSON.stringify({ message: 'Not Found' }), { status: 404 });
-    const { status = 200, body, rejection } = answers.length > 1 ? answers.shift() : answers[0];
-    if (rejection !== undefined) throw rejection;
-    return new Response(body === undefined ? null : JSON.stringify(body), { status });
-  });
-  vi.stubGlobal('fetch', fetch);
-  return requests;
-};
-
-/** The routes that the release requested, in their order. */
-const routesOf = requests => requests.map(({ route }) => route);
+import {
+  BRANCH,
+  MERGE_SHA,
+  OTHER_SHA,
+  PULL_REQUEST_URL,
+  REPOSITORY,
+  RUNS_URL,
+  SHA,
+  WAITS,
+  apiPullRequestState,
+  apiReleasePullRequest,
+  apiRun,
+  releaseRoutes,
+  routesOf,
+  stubGitHub,
+  stubGitHubEnv,
+} from './testUtils.js';
 
 describe('releaseVersionOfTheDay', () => {
   beforeEach(() => {
-    vi.stubEnv('GITHUB_API_URL', 'https://api.github.com');
-    vi.stubEnv('GITHUB_REPOSITORY', REPOSITORY);
-    vi.stubEnv('GITHUB_TOKEN', 'token');
+    stubGitHubEnv();
     vi.spyOn(console, 'log').mockImplementation(() => {});
   });
 
@@ -147,14 +68,93 @@ describe('releaseVersionOfTheDay', () => {
     const requests = stubGitHub(routes);
 
     await expect(releaseVersionOfTheDay(WAITS)).resolves.toMatchObject({ level: 'notice' });
-    expect(routesOf(requests).slice(1, 6)).toEqual([
+    expect(routesOf(requests).slice(1, 7)).toEqual([
       'GET /actions/workflows/ci.yml/runs',
       'POST /actions/runs/501/approve',
+      'GET /actions/workflows/pull-request-title.yml/runs',
       'GET /actions/runs/501',
       'GET /actions/runs/501',
       'GET /actions/runs/501',
     ]);
     expect(routesOf(requests)).toContain('PUT /pulls/162/merge');
+  });
+
+  it('approves the held run of the title lint along with the CI, on the same head', async () => {
+    const routes = releaseRoutes();
+    routes['GET /actions/workflows/ci.yml/runs'] = [
+      { body: { workflow_runs: [apiRun({ conclusion: 'action_required' })] } },
+    ];
+    routes['GET /actions/workflows/pull-request-title.yml/runs'] = [
+      { body: { workflow_runs: [apiRun({ id: 511, conclusion: 'action_required' })] } },
+    ];
+    routes['POST /actions/runs/501/approve'] = [{ status: 201 }];
+    routes['POST /actions/runs/511/approve'] = [{ status: 201 }];
+    const requests = stubGitHub(routes);
+
+    await expect(releaseVersionOfTheDay(WAITS)).resolves.toMatchObject({ level: 'notice' });
+    expect(routesOf(requests).slice(1, 6)).toEqual([
+      'GET /actions/workflows/ci.yml/runs',
+      'POST /actions/runs/501/approve',
+      'GET /actions/workflows/pull-request-title.yml/runs',
+      'POST /actions/runs/511/approve',
+      'GET /actions/runs/501',
+    ]);
+    const titleRunsQuery = new URL(requests[3].url).searchParams;
+    expect(titleRunsQuery.get('event')).toBe('pull_request');
+    expect(titleRunsQuery.get('branch')).toBe(BRANCH);
+    expect(titleRunsQuery.get('head_sha')).toBe(SHA);
+    expect(console.log).toHaveBeenCalledWith(
+      `Approved the CI of the release pull request #162, which GitHub held: ${RUNS_URL}/501`,
+    );
+    expect(console.log).toHaveBeenCalledWith(
+      `Approved the pull-request-title.yml run of the release pull request #162, which GitHub held: ${RUNS_URL}/511`,
+    );
+    expect(routesOf(requests)).toContain('PUT /pulls/162/merge');
+  });
+
+  it('leaves the other runs alone when the CI is not held, as with the release App', async () => {
+    const requests = stubGitHub(releaseRoutes());
+
+    await expect(releaseVersionOfTheDay(WAITS)).resolves.toMatchObject({ level: 'notice' });
+    expect(routesOf(requests)).not.toContain('GET /actions/workflows/pull-request-title.yml/runs');
+    expect(routesOf(requests).filter(route => route.endsWith('/approve'))).toEqual([]);
+    expect(routesOf(requests)).toContain('PUT /pulls/162/merge');
+  });
+
+  it('warns with the link of the held title lint when its approval is refused', async () => {
+    const routes = releaseRoutes();
+    routes['GET /actions/workflows/ci.yml/runs'] = [
+      { body: { workflow_runs: [apiRun({ conclusion: 'action_required' })] } },
+    ];
+    routes['GET /actions/workflows/pull-request-title.yml/runs'] = [
+      { body: { workflow_runs: [apiRun({ id: 511, conclusion: 'action_required' })] } },
+    ];
+    routes['POST /actions/runs/501/approve'] = [{ status: 201 }];
+    routes['POST /actions/runs/511/approve'] = [
+      { status: 403, body: { message: 'Resource not accessible by integration' } },
+    ];
+    const requests = stubGitHub(routes);
+
+    await expect(releaseVersionOfTheDay(WAITS)).resolves.toEqual({
+      level: 'warning',
+      message: `No release today: GitHub holds the pull-request-title.yml run of the release pull request #162 until someone approves it, and refused to let this job do it (The GitHub API answered 403 to https://api.github.com/repos/${REPOSITORY}/actions/runs/511/approve: Resource not accessible by integration). Approve the run, then start deploy-production.yml by hand to release it: ${RUNS_URL}/511`,
+    });
+    expect(routesOf(requests)).not.toContain('PUT /pulls/162/merge');
+  });
+
+  it('throws when the runs of the title lint cannot be listed', async () => {
+    const routes = releaseRoutes();
+    routes['GET /actions/workflows/ci.yml/runs'] = [
+      { body: { workflow_runs: [apiRun({ conclusion: 'action_required' })] } },
+    ];
+    routes['GET /actions/workflows/pull-request-title.yml/runs'] = [
+      { status: 500, body: { message: 'Server Error' } },
+    ];
+    routes['POST /actions/runs/501/approve'] = [{ status: 201 }];
+    const requests = stubGitHub(routes);
+
+    await expect(releaseVersionOfTheDay(WAITS)).rejects.toThrow('The GitHub API answered 500');
+    expect(routesOf(requests)).not.toContain('PUT /pulls/162/merge');
   });
 
   it('warns with the link of the held CI when GitHub refuses to let the job approve it', async () => {

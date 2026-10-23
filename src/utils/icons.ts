@@ -41,6 +41,3 @@ export const APP_ICONS = {
    */
   maskable: { url: '/icon-maskable-512.png', type: 'image/png', sizePx: 512 },
 } as const satisfies Record<string, AppIcon>;
-
-/** Role of an icon of {@link APP_ICONS}, e.g. `maskable`. */
-export type AppIconRole = keyof typeof APP_ICONS;

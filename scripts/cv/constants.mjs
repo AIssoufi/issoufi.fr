@@ -16,7 +16,7 @@ export const CV_PAPER_FORMAT = 'A4';
  * Data of the CV that the site does not show: the contact details, the skills and the education,
  * relative to the project root. The site owner keeps it up to date.
  */
-export const CV_DATA_MODULE = '/scripts/cv/.data/cv.json';
+const CV_DATA_MODULE = '/scripts/cv/.data/cv.json';
 
 /**
  * Fingerprint of the content of the CV of each language, which `pnpm cv` writes with the PDFs,

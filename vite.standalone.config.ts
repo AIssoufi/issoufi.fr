@@ -1,5 +1,5 @@
 import { readFileSync } from 'node:fs';
-import { resolve } from 'node:path';
+import { join, resolve } from 'node:path';
 import { defineConfig, mergeConfig, normalizePath, type Plugin } from 'vite';
 
 import { FONT_FACES } from './src/theme/constants.ts';
@@ -26,7 +26,11 @@ import {
   removeFontPreloads,
   toFontDataUrls,
 } from './vite/standalone/utils/fonts.ts';
-import { listFileNames, toRelativePublicUrls } from './vite/standalone/utils/public-files.ts';
+import {
+  listFileNames,
+  listStandalonePublicFiles,
+  toRelativePublicUrls,
+} from './vite/standalone/utils/public-files.ts';
 import { removeManifestLinks } from './vite/standalone/utils/manifest.ts';
 import { isAppRouterImport } from './vite/standalone/utils/router.ts';
 import type { PageMetaApi } from './vite/types.ts';
@@ -76,6 +80,30 @@ const relativePublicUrls = (): Plugin => {
 };
 
 /**
+ * Vite plugin that puts the files of `public/` in the build, in place of Vite's copy of the whole
+ * folder (`build.copyPublicDir: false`), without those that only a web server or a crawler reads,
+ * such as `robots.txt` (see {@link listStandalonePublicFiles}). Vite copies `public/` on the disk,
+ * out of the bundle that the `standalone-page` plugin filters, so its server files would reach the
+ * build.
+ */
+const publicFiles = (): Plugin => {
+  let publicDir = '';
+
+  return {
+    name: 'standalone-public-files',
+    apply: 'build',
+    configResolved: config => {
+      publicDir = config.publicDir;
+    },
+    buildStart() {
+      listStandalonePublicFiles(publicDir).forEach(fileName =>
+        this.emitFile({ type: 'asset', fileName, source: readFileSync(join(publicDir, fileName)) }),
+      );
+    },
+  };
+};
+
+/**
  * Vite plugin that embeds the web fonts of the site in the page, so that it renders in them
  * offline, whatever the browser allows from `file://`: in the `<style>` that the `font-faces`
  * plugin of `vite.config.ts` adds to `index.html`, the URL of each font file of `FONT_FACES`
@@ -110,10 +138,11 @@ const embeddedFonts = (): Plugin => {
 /**
  * Vite plugin that makes `index.html` the only page of the build, and a page that needs no other
  * file to run. It removes the files that only a web server needs (`projects.html`, `404.html`…, the
- * web app manifests, `_headers`, `sitemap.xml`, see {@link isServerOnlyFile}) and the link of
- * `index.html` to its manifest (see {@link removeManifestLinks}), puts the code of the app in the
- * script tag of `index.html`, since browsers refuse to load module scripts from `file://` (see
- * {@link inlineScript}), without the preload markers of its inlined dynamic imports (see
+ * web app manifests, `_headers`, `sitemap.xml`, see {@link isServerOnlyFile}; the
+ * `standalone-public-files` plugin leaves out those of `public/`, such as `robots.txt`) and the
+ * link of `index.html` to its manifest (see {@link removeManifestLinks}), puts the code of the app
+ * in the script tag of `index.html`, since browsers refuse to load module scripts from `file://`
+ * (see {@link inlineScript}), without the preload markers of its inlined dynamic imports (see
  * {@link removePreloadMarkers}), and adds the `README.txt` that tells a visitor how to open it. The
  * app is rendered in the browser alone: the page holds none of it, since the routes read the hash
  * of the URL, which the pages that the `page-meta` plugin renders at build time know nothing of
@@ -178,9 +207,11 @@ const standalonePage = (): Plugin => {
 export default defineConfig(env =>
   mergeConfig(productionConfig(env), {
     base: './',
-    plugins: [hashRouter(), relativePublicUrls(), embeddedFonts(), standalonePage()],
+    plugins: [hashRouter(), relativePublicUrls(), publicFiles(), embeddedFonts(), standalonePage()],
     build: {
       outDir: STANDALONE_OUT_DIR,
+      // The standalone-public-files plugin copies the files of public/ that the page needs
+      copyPublicDir: false,
       // Nothing is left to preload once the whole app is in the page
       modulePreload: false,
       rolldownOptions: { output: { codeSplitting: false } },

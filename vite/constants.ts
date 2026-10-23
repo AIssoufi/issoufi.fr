@@ -71,6 +71,19 @@ export const ASSETS_DIR = 'assets';
 export const HEADERS_FILE_NAME = '_headers';
 
 /**
+ * Name of the file that sets the redirects of Cloudflare Pages, which reads it at the root of the
+ * build and does not serve it. A `public/_redirects` would reach the build as it is.
+ * @see https://developers.cloudflare.com/pages/configuration/redirects/
+ */
+export const REDIRECTS_FILE_NAME = '_redirects';
+
+/**
+ * File of `public/` that tells the crawlers of search engines what to read and where the sitemap
+ * is.
+ */
+export const ROBOTS_FILE_NAME = 'robots.txt';
+
+/**
  * How long a browser keeps a file of {@link ASSETS_DIR} without asking the server again: a year of
  * 365 days, the usual lifetime of a file that never changes.
  */
@@ -82,7 +95,7 @@ export const HASHED_ASSET_MAX_AGE_SECONDS = 31_536_000;
  * file of the site is served by its own origin, and the site sends nothing to another one.
  * @see https://developer.mozilla.org/docs/Web/HTTP/Guides/CSP
  */
-export const CONTENT_SECURITY_POLICY_DIRECTIVES: readonly string[] = [
+const CONTENT_SECURITY_POLICY_DIRECTIVES: readonly string[] = [
   "default-src 'self'",
   "script-src 'self'",
   // styled-components writes its rules in <style> elements, as the font-faces plugin of
@@ -208,13 +221,13 @@ export const NODE_MODULES_PATTERN = /[\\/]node_modules[\\/]/;
  * Tag that Rolldown gives to the modules that an entry imports statically, directly or not: those
  * of the first load of a page, as opposed to the modules that only the lazy pages import.
  */
-export const INITIAL_MODULE_TAG = '$initial';
+const INITIAL_MODULE_TAG = '$initial';
 
 /**
  * Fewest chunks that must use a module of the first load for it to go to the
  * {@link SHARED_CHUNK_NAME} chunk: the main chunk and at least one lazy page.
  */
-export const MIN_SHARED_MODULE_USERS = 2;
+const MIN_SHARED_MODULE_USERS = 2;
 
 /**
  * Groups of modules that the build puts in chunks of their own name, where Rolldown would name a

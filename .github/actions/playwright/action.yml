@@ -1,8 +1,8 @@
 name: Playwright
 description: >-
-  Installs the headless shell of Chromium of the Playwright version in the lockfile and the system
-  libraries it needs. Only the browser is cached between runs: the libraries are installed on every
-  run, and a cached browser is not downloaded again. Run it after the setup action.
+  Installs the headless shell of Chromium of the Playwright version in the lockfile, cached between
+  runs. The system libraries it needs come from the runner image, and from the apt mirror only when
+  the browser does not start without them. Run it after the setup action.
 
 runs:
   using: composite
@@ -16,5 +16,20 @@ runs:
         path: ~/.cache/ms-playwright
         key: playwright-${{ runner.os }}-${{ steps.playwright.outputs.version }}
 
-    - run: pnpm exec playwright install --with-deps --only-shell chromium
+    # No --with-deps: the image of the runner ships Google Chrome, so it has every library that
+    # Chromium links; apt would only add fonts and updates, from a mirror that sometimes takes
+    # minutes (decision 0022)
+    - run: pnpm exec playwright install --only-shell chromium
       shell: bash
+
+    # Falls back to the apt mirror only when the browser does not start, as when a new image of the
+    # runner drops one of its libraries
+    - run: |
+        if ! node --input-type=module --eval "$LAUNCH_BROWSER"; then
+          pnpm exec playwright install-deps chromium-headless-shell
+        fi
+      shell: bash
+      env:
+        LAUNCH_BROWSER: >-
+          import { chromium } from '@playwright/test';
+          await (await chromium.launch()).close();

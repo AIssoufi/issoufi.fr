@@ -253,11 +253,11 @@ const httpHeaders = (): Plugin => ({
 
 /**
  * Minimum test coverage, in percent, below which `pnpm test:coverage` fails: 100% of the lines,
- * statements, branches and functions, Vite and CI helpers included, as Vitest 4 measures them since
+ * statements, branches and functions, Vite and CI helpers included, as Vitest 5 measures them since
  * October 2026, so the CI keeps every line of a new change tested. Code that a test cannot reach
- * is removed when the types allow it, or else covered by a test that fakes the case. Vitest 4 maps
+ * is removed when the types allow it, or else covered by a test that fakes the case. Vitest maps
  * the V8 coverage onto the syntax tree and counts only the executable code, so its figures differ
- * from those of Vitest 3 for the same tests.
+ * from a major to the next for the same tests: Vitest 5 counts 11 statements fewer than Vitest 4.
  */
 const COVERAGE_THRESHOLDS_PERCENT = { lines: 100, statements: 100, branches: 100, functions: 100 };
 
@@ -329,6 +329,13 @@ export default defineConfig(({ mode }) => {
       environment: 'jsdom',
       setupFiles: ['./src/setupTests.ts'],
       testTimeout: TEST_TIMEOUT_MS,
+      // Each spec keeps its own worker and jsdom, the defaults, set here so that Vitest prints no
+      // hint to share them. With the vmThreads pool, each spec runs in a realm of its own, whose
+      // values the native code of Rolldown and instanceof refuse: 58 tests fail. With
+      // isolate: false, the specs see the state that the previous ones left: 33 files fail and the
+      // run never ends
+      pool: 'forks',
+      isolate: true,
       // styled-components inserts each rule into the CSSOM, as in production, rather than adding
       // its text to a <style>, which jsdom parses again whole on every change: a quadratic cost
       // that made the tests several times slower since jsdom 29

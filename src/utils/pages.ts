@@ -284,7 +284,7 @@ export const getPageUrl = ({ path, language }: GetPageUrlParams): string =>
   `${SITE_URL}${localizePath({ path, language })}`;
 
 /** `hreflang` of the version of a page shown to the visitors of no listed language. */
-export const DEFAULT_HREFLANG = 'x-default';
+const DEFAULT_HREFLANG = 'x-default';
 
 /** Translation of a page, as the HTML of the page and the sitemap link to it. */
 export interface PageAlternate {
@@ -322,7 +322,7 @@ export const getPageAlternates = (path: string): PageAlternate[] => [
  * serves the closest one up the folders of the path, so each language has its own, in the folder
  * of its prefix (see {@link getNotFoundFiles}).
  */
-export const NOT_FOUND_FILE_NAME = '404.html';
+const NOT_FOUND_FILE_NAME = '404.html';
 
 /** Folder of the page that {@link NOT_FOUND_FILE_NAME} shows, in `src/pages`. */
 export const NOT_FOUND_FOLDER = 'NotFound';

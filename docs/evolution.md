@@ -152,4 +152,31 @@ On 2026-10-22, the deploy runs the wrangler of the lockfile instead of the lates
 | Clean install              | 0.5 s                      | 0.5 s                      |
 | `pnpm audit` advisories    | 2 moderate                 | 2 moderate                 |
 
-Decision: [0015](decisions/0015-render-at-build-time.md), [0016](decisions/0016-cloudflare-worker-deploy-trigger.md), [0017](decisions/0017-typescript-6.md), [0018](decisions/0018-pnpm-12.md), [0019](decisions/0019-locked-build-chain.md).
+On 2026-10-22, Vitest and its coverage go from 4.1.11 to 5.0.4 ([#324](https://github.com/AIssoufi/issoufi.fr/issues/324)), with no change of the specs. The config sets the default pool and isolation explicitly, which silences the hints of Vitest 5 to share a worker or a jsdom between specs: both fail tests here.
+
+| Figure                       | Before (4.1.11) | After (5.0.4) |
+| ---------------------------- | --------------- | ------------- |
+| `pnpm test:coverage`, local  | 35.8 s          | 35.1 s        |
+| `pnpm test:coverage`, CI     | 103.0 s         | 132.5 s       |
+| Coverage of the four metrics | 100 %           | 100 %         |
+| `pnpm audit` advisories      | 2 moderate      | 0             |
+
+On 2026-10-22, knip 6.41.0 reports in the `lint` job of the CI the files that no entry point reaches, the exports that no module imports and the dependencies that nothing uses ([#357](https://github.com/AIssoufi/issoufi.fr/issues/357)). Twelve constants lose their `export` and an unused type goes. The duration of the CI is in the pull request.
+
+| Figure                  | Before (`3e91798`) | After  |
+| ----------------------- | ------------------ | ------ |
+| knip findings           | 26                 | 0      |
+| knip run, local         | 0.57 s             | 0.57 s |
+| Clean install           | 0.5 s              | 0.5 s  |
+| `pnpm audit` advisories | 0                  | 0      |
+
+On 2026-10-22, the jobs that run Playwright in the CI take the system libraries of Chromium from the image of the runner, instead of installing them from the apt mirror of Ubuntu on every run, which sometimes took minutes and timed out a shard of the browser tests ([#372](https://github.com/AIssoufi/issoufi.fr/issues/372)). Durations of the step of `.github/actions/playwright` in the CI.
+
+| Figure                       | Before (44 runs) | After (3 runs) |
+| ---------------------------- | ---------------- | -------------- |
+| Median                       | 17 s             | 5 s            |
+| 90th percentile              | 133 s            | 6 s            |
+| Maximum                      | 588 s            | 6 s            |
+| Shards cancelled in the step | 3                | 0              |
+
+Decision: [0015](decisions/0015-render-at-build-time.md), [0016](decisions/0016-cloudflare-worker-deploy-trigger.md), [0017](decisions/0017-typescript-6.md), [0018](decisions/0018-pnpm-12.md), [0019](decisions/0019-locked-build-chain.md), [0020](decisions/0020-vitest-5.md), [0021](decisions/0021-knip.md), [0022](decisions/0022-chromium-libraries-from-runner-image.md).

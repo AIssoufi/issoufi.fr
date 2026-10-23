@@ -11,7 +11,7 @@
 ## Daily release
 
 1. Each push to `develop` updates a release pull request, with the next version and its changelog.
-2. Every morning, the daily workflow waits for the CI of that pull request, which it tries to approve when GitHub holds it, then merges it.
+2. Every morning, the daily workflow waits for the CI of that pull request, then merges it. When GitHub holds its runs, the CI and the lint of its title, it tries to approve them first.
 3. The merge tags the version, and publishes a GitHub release with the standalone build attached.
 4. The production deploy that follows ships it.
 
@@ -23,5 +23,8 @@ Each release attaches `issoufi.fr-vX.Y.Z.zip`: the code of the site in one `inde
 
 - It opens from the disk with a double click, with no server, and works offline.
 - `pnpm build:standalone` builds it from the production config, with a hash router and relative URLs.
+- `standalone-build.yml` attaches it to each new release.
+- To add it to an existing release, run that workflow with its tag: `gh workflow run standalone-build.yml -f tag=vX.Y.Z`, or from the Actions tab.
 - The production build does not depend on it.
 - Write each URL of a file of `public/` as one whole string, so that this build can rewrite it.
+- It holds no file that only a server or a crawler reads: no other page, web app manifest, `_headers`, `_redirects`, `sitemap.xml` or `robots.txt`. It copies the files of `public/` itself, without those of `SERVER_ONLY_FILE_NAMES` (`vite/standalone/constants.ts`): add a new server file of `public/` to that list.

@@ -11,6 +11,7 @@
 //   node scripts/ci/check-deploy-schedule.mjs
 import { DEPLOY_RUNS_PAGE_SIZE, DEPLOY_WORKFLOW_FILE } from './constants.mjs';
 import { writeAnnotation } from './utils/annotations.mjs';
+import { getErrorMessage } from './utils/errors.mjs';
 import {
   fetchScheduledRuns,
   getScheduleGapWarning,
@@ -29,7 +30,7 @@ try {
   runs = await fetchScheduledRuns({ perPage: DEPLOY_RUNS_PAGE_SIZE });
 } catch (error) {
   // A scheduled run from 6:00 then goes on: deploying twice beats not deploying at all
-  const reason = error instanceof Error ? error.message : error;
+  const reason = getErrorMessage(error);
   writeAnnotation({
     level: 'warning',
     message: `Could not read the scheduled runs of ${DEPLOY_WORKFLOW_FILE}, so this run cannot tell whether another one already deployed today: ${reason}`,

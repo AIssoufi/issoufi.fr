@@ -21,6 +21,8 @@ jobs:
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
       - uses: ./.github/actions/setup
       - run: pnpm format:check
 
@@ -29,14 +31,21 @@ jobs:
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
       - uses: ./.github/actions/setup
       - run: pnpm lint
+      # Lists the files, exports and dependencies that nothing uses, even when ESLint failed
+      - if: ${{ !cancelled() }}
+        run: pnpm knip
 
   typecheck:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
       - uses: ./.github/actions/setup
       - run: pnpm typecheck
 
@@ -45,6 +54,8 @@ jobs:
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
       - uses: ./.github/actions/setup
       - run: pnpm test:coverage
       # The summary and the report also help to understand failed tests or thresholds
@@ -67,6 +78,8 @@ jobs:
       ACTIONLINT_SHA256: 8aca8db96f1b94770f1b0d72b6dddcb1ebb8123cb3712530b08cc387b349a3d8
     steps:
       - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
       - name: Install actionlint
         run: |
           archive="$RUNNER_TEMP/actionlint.tar.gz"
@@ -81,7 +94,21 @@ jobs:
       - run: |
           echo "::add-matcher::.github/actionlint-matcher.json"
           "$RUNNER_TEMP/actionlint" -color
+      - if: ${{ !cancelled() }}
+        uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+      # actionlint accepts an action of a third party referenced by a tag, which its owner can move
+      - if: ${{ !cancelled() }}
+        run: node scripts/ci/check-action-pins.mjs
+      # actions/checkout keeps the token of the job in the git config for every later step unless
+      # it sets persist-credentials: false. This check asks for false, or for true with a comment
+      # that names the later step using the token
+      - if: ${{ !cancelled() }}
+        run: node scripts/ci/check-checkout-credentials.mjs
 
+  # Lints the commits of a pull request. Its title has a workflow of its own,
+  # pull-request-title.yml, which also runs on each edit of the pull request
   commits:
     # Dependabot writes conventional subjects, but its bodies hold release notes with long lines
     if: github.event_name == 'pull_request' && github.event.pull_request.user.login != 'dependabot[bot]'
@@ -91,16 +118,12 @@ jobs:
       - uses: actions/checkout@v7
         with:
           fetch-depth: 0
+          persist-credentials: false
       - uses: ./.github/actions/setup
       - run: pnpm exec commitlint --from "$BASE_SHA" --to "$HEAD_SHA" --verbose
         env:
           BASE_SHA: ${{ github.event.pull_request.base.sha }}
           HEAD_SHA: ${{ github.event.pull_request.head.sha }}
-      # GitHub writes the title in the merge commit, where release-please reads it as a commit
-      - name: Lint the title of the pull request
-        run: printf '%s\n' "$TITLE" | pnpm exec commitlint --config scripts/commits/title.config.mjs --verbose
-        env:
-          TITLE: ${{ github.event.pull_request.title }}
 
   dependencies:
     # Fails when a pull request adds or upgrades to a dependency with a known vulnerability
@@ -125,6 +148,8 @@ jobs:
       actions: read
     steps:
       - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
       - uses: actions/setup-node@v7
         with:
           node-version-file: .nvmrc
@@ -138,6 +163,8 @@ jobs:
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
       - uses: ./.github/actions/setup
       - run: pnpm build
       - run: pnpm size
@@ -161,6 +188,8 @@ jobs:
         shard: [1, 2, 3]
     steps:
       - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
       - uses: ./.github/actions/setup
       # Tests the build that the deploy job uploads, served by pnpm preview
       - uses: actions/download-artifact@v8
@@ -213,6 +242,7 @@ jobs:
       - uses: actions/checkout@v7
         with:
           fetch-depth: 2
+          persist-credentials: false
       - uses: ./.github/actions/setup
       - uses: ./.github/actions/playwright
       - run: pnpm test:visual --base HEAD^1
@@ -261,6 +291,8 @@ jobs:
     steps:
       # Installs the wrangler of the lockfile
       - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
       - uses: ./.github/actions/setup
       - uses: actions/download-artifact@v8
         with:
@@ -285,6 +317,8 @@ jobs:
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
       - uses: actions/setup-node@v7
         with:
           node-version-file: .nvmrc

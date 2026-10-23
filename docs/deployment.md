@@ -22,6 +22,8 @@ On every pull request, and on every push to `develop` and `main`, GitHub Actions
 4. on pull requests, a check of the commit messages and of new dependencies, and a comparison of the screenshots of every page with the base branch, which only informs;
 5. the deployment and its smoke test, and on `main` a check that `http://issoufi.fr/`, `http://www.issoufi.fr/` and `https://www.issoufi.fr/` redirect to `https://issoufi.fr/` in one hop.
 
+The title of a pull request has a workflow of its own, [`pull-request-title.yml`](../.github/workflows/pull-request-title.yml), which lints it on each push and on each edit of the pull request: an edit starts no other check.
+
 ## Daily release and deploy
 
 Every morning between 6:00 and 7:00, Paris time, a Cloudflare Worker starts a workflow that:
@@ -37,6 +39,7 @@ Every morning between 6:00 and 7:00, Paris time, a Cloudflare Worker starts a wo
 - A warning says when someone has to act, such as after a day without any scheduled run.
 - _The Cloudflare trigger has not started…_, a warning of the CI of `develop` and of the deploy, means that the Worker started no run for 36 hours while GitHub's schedule still does, hours late: its token expired or the Worker is gone. Read its logs, then store a new token or deploy it again (_Deploy trigger_, below).
 - The deploy fetches `develop` again after the release: `actions/checkout` sets `origin/develop` back to the commit that started the run, which lacks the release merge.
+- [`release.yml`](../.github/workflows/release.yml) runs release-please on each push to `develop`, and again after the daily release merged the release pull request. The GraphQL API of GitHub sometimes fails one of its queries, which passes moments later: a failed call waits 30 seconds, then runs once more, and the job fails only when both fail.
 - A change merged into `develop` is online the next morning.
 - A monthly run rebuilds production, so that the years of experience written in the pages stay right.
 
@@ -52,6 +55,7 @@ Every morning between 6:00 and 7:00, Paris time, a Cloudflare Worker starts a wo
 - pnpm installs no version published less than 7 days ago.
 - The deploy runs the wrangler of the lockfile, the one `pnpm exec wrangler` runs locally.
 - The workflows reference each action of a third party by the SHA of its commit, its version in a comment, which Dependabot updates, since the owner of a tag can move it. The actions of GitHub keep their major tag.
+- The `workflows` job of the CI keeps it so: [`check-action-pins.mjs`](../scripts/ci/check-action-pins.mjs) reads each `uses:` key of the YAML files of `.github/`, and fails with an annotation on the line of one that is neither an action of GitHub (`actions/*`), nor an action of the repository (`./`), nor pinned by a 40-character SHA, or by its digest for a Docker image. It reads the keys written one per line, as Prettier and Dependabot write them, not those in quotes or in a flow mapping (`- { uses: … }`).
 
 ## Setup by the site owner
 
@@ -70,4 +74,4 @@ Done in the repository settings, never by a workflow or an agent:
 
   To try it: `pnpm exec wrangler dev --test-scheduled --config scripts/deploy-trigger/wrangler.jsonc`, with the token in `scripts/deploy-trigger/.dev.vars`, then open `http://localhost:8787/__scheduled`. Outside 6:00 to 7:00 in Paris, it only logs why it starts nothing.
 
-- **Release GitHub App**, optional: the `RELEASE_APP_CLIENT_ID` variable and the `RELEASE_APP_PRIVATE_KEY` secret. The CI of the release pull request then starts without approval ([steps in #268](https://github.com/AIssoufi/issoufi.fr/pull/268)).
+- **Release GitHub App**, optional: the `RELEASE_APP_CLIENT_ID` variable and the `RELEASE_APP_PRIVATE_KEY` secret. The runs of the release pull request then start without approval ([steps in #268](https://github.com/AIssoufi/issoufi.fr/pull/268)). Without the App, GitHub holds them, and the daily release approves those of the workflows that run on pull requests: `ci.yml` and `pull-request-title.yml`.
