@@ -8,6 +8,7 @@ import type { Language, Translations } from '../src/i18n/types.ts';
 import { localizePath } from '../src/i18n/utils.ts';
 import { PORTRAIT_PHOTO_MEDIA_QUERY, STATUS_PAGE_BACKGROUND_PHOTO } from '../src/utils/pages.ts';
 import {
+  CAPITALIZED_ROUTES,
   ERROR_MESSAGE_SELECTOR,
   ERROR_PAGE_SCREENS,
   MAX_ERROR_MESSAGE_CENTER_OFFSET_RATIO,
@@ -111,4 +112,21 @@ for (const language of LANGUAGES) {
       }
     });
   }
+}
+
+// The server answers these paths with the not found page, so the app must not show the page
+// that it would match without case, under the title of the not found page
+for (const { path: route, language } of CAPITALIZED_ROUTES) {
+  test(`the not found page shows at ${route}, in ${language}`, async ({ page }) => {
+    const translations = TRANSLATIONS[language];
+
+    await page.goto(route);
+
+    await expect(
+      page.getByRole('heading', { level: 1, name: translations.errors.notFound.title }),
+    ).toBeVisible();
+    await expect(page).toHaveTitle(translations.meta.notFound.title);
+    await expect(page.locator('html')).toHaveAttribute('lang', language);
+    await expect(page.locator(PAGE_SELECTOR)).toContainText(route);
+  });
 }
