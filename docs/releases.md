@@ -27,3 +27,4 @@ Each release attaches `issoufi.fr-vX.Y.Z.zip`: the code of the site in one `inde
 - To add it to an existing release, run that workflow with its tag: `gh workflow run standalone-build.yml -f tag=vX.Y.Z`, or from the Actions tab.
 - The production build does not depend on it.
 - Write each URL of a file of `public/` as one whole string, so that this build can rewrite it.
+- It holds no file that only a server or a crawler reads: no other page, web app manifest, `_headers`, `_redirects`, `sitemap.xml` or `robots.txt`. It copies the files of `public/` itself, without those of `SERVER_ONLY_FILE_NAMES` (`vite/standalone/constants.ts`): add a new server file of `public/` to that list.

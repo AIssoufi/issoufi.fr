@@ -9,7 +9,7 @@ import { HOME_PAGE } from './src/utils/pages.ts';
 import { APP_CONTAINER_ID } from './src/utils/prerender.ts';
 import { SITEMAP_FILE_NAME } from './src/utils/sitemap.ts';
 import { renderStructuredDataScript } from './src/utils/structuredData.ts';
-import { HEADERS_FILE_NAME } from './vite/constants.ts';
+import { HEADERS_FILE_NAME, ROBOTS_FILE_NAME } from './vite/constants.ts';
 import {
   HASH_ROUTER_MODULE,
   OPTIONAL_ESCAPE_PATTERN,
@@ -18,8 +18,9 @@ import {
   STANDALONE_PAGE_FILE_NAME,
   STANDALONE_README_FILE_NAME,
 } from './vite/standalone/constants.ts';
+import { isServerOnlyFile } from './vite/standalone/utils/bundle.ts';
 import { readFontDataUrl } from './vite/standalone/utils/fonts.ts';
-import { listFileNames } from './vite/standalone/utils/public-files.ts';
+import { listFileNames, listStandalonePublicFiles } from './vite/standalone/utils/public-files.ts';
 
 /** Longest time the standalone build may take in this test, coverage included. */
 const BUILD_TIMEOUT_MS = 60_000;
@@ -44,6 +45,9 @@ const APP_MODULE = normalizePath(resolve('src/App/App.tsx'));
 
 /** Host of each URL that the page names with `//`, with or without its scheme. */
 const URL_HOST_PATTERN = /\/\/([\w.-]+)/g;
+
+/** Slash that starts an absolute URL, e.g. of a font file of `public/`. */
+const LEADING_SLASH_PATTERN = /^\//;
 
 /** A link that preloads a font file, its attributes on one or several lines. */
 const FONT_PRELOAD_PATTERN = /<link(?=[^>]*\srel="preload")[^>]*\sas="font"[^>]*>/;
@@ -88,9 +92,18 @@ let output: OutputFile[] = [];
 /** Modules that the module of the app imports, as the build resolved them. */
 let appImports: readonly string[] = [];
 
-/** Records the modules that {@link APP_MODULE} imports, once the build has resolved them. */
-const recordAppImports = (): Plugin => ({
-  name: 'record-app-imports',
+/** Whether Vite copies the whole of `public/` into the build, as the resolved config says. */
+let copiesPublicDir: boolean | undefined;
+
+/**
+ * Records the modules that {@link APP_MODULE} imports, once the build has resolved them, and
+ * {@link copiesPublicDir}.
+ */
+const recordBuild = (): Plugin => ({
+  name: 'record-build',
+  configResolved: config => {
+    copiesPublicDir = config.build.copyPublicDir;
+  },
   buildEnd() {
     appImports = this.getModuleInfo(APP_MODULE)?.importedIds ?? [];
   },
@@ -103,7 +116,7 @@ beforeAll(async () => {
     configFile: 'vite.standalone.config.ts',
     configLoader: CONFIG_LOADER,
     logLevel: 'silent',
-    plugins: [recordAppImports()],
+    plugins: [recordBuild()],
     build: { write: false },
   });
   output = (Array.isArray(result) ? result[0] : (result as Rolldown.RolldownOutput)).output;
@@ -237,6 +250,26 @@ describe('standalone build', () => {
 
   it(`leaves out ${SITEMAP_FILE_NAME}, which no search engine reads from the disk`, () => {
     expect(output.map(file => file.fileName)).not.toContain(SITEMAP_FILE_NAME);
+  });
+
+  it(`leaves out ${ROBOTS_FILE_NAME}, which no crawler reads from the disk`, () => {
+    expect(listFileNames(resolve('public'))).toContain(ROBOTS_FILE_NAME);
+    expect(output.map(file => file.fileName)).not.toContain(ROBOTS_FILE_NAME);
+  });
+
+  it('holds no file that only a web server or a crawler reads', () => {
+    expect(output.map(file => file.fileName).filter(isServerOnlyFile)).toEqual([]);
+  });
+
+  it('copies the files of public/ itself, since Vite would copy its server files too', () => {
+    const fileNames = output.map(file => file.fileName);
+    const publicFiles = listStandalonePublicFiles(resolve('public'));
+    const fontFiles = FONT_FACES.map(({ url }) => url.replace(LEADING_SLASH_PATTERN, ''));
+
+    // Vite's copy of public/ never shows in this output, written in memory only
+    expect(copiesPublicDir).toBe(false);
+    expect(publicFiles).toEqual(expect.arrayContaining(['home.webp', ...fontFiles]));
+    expect(fileNames).toEqual(expect.arrayContaining(publicFiles));
   });
 
   it('tells how to open it in a README.txt', () => {
