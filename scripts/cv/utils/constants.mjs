@@ -78,7 +78,7 @@ export const DESCRIPTIVE_INFO_KEYS = ['Title', 'Author', 'Subject', 'Keywords'];
 export const MAILTO_PREFIX = 'mailto:';
 
 /** Prefix of the URL of a phone number. */
-export const TEL_PREFIX = 'tel:';
+const TEL_PREFIX = 'tel:';
 
 /**
  * A language code that the `lang` attribute accepts, such as `en` or `pt-BR`: a language of two or

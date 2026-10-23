@@ -17,10 +17,4 @@
     // The deploy job of ci.yml runs it through cloudflare/wrangler-action, which no script names
     "wrangler",
   ],
-  "ignoreIssues": {
-    // Both files hold an export that only its own file uses, left while the pull request #347
-    // changes scripts/cv/ (#370)
-    "scripts/cv/constants.mjs": ["exports"],
-    "scripts/cv/utils/constants.mjs": ["exports"],
-  },
 }
