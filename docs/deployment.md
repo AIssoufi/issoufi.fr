@@ -56,7 +56,7 @@ Every morning between 6:00 and 7:00, Paris time, a Cloudflare Worker starts a wo
 - The deploy runs the wrangler of the lockfile, the one `pnpm exec wrangler` runs locally.
 - The workflows reference each action of a third party by the SHA of its commit, its version in a comment, which Dependabot updates, since the owner of a tag can move it. The actions of GitHub keep their major tag.
 - The `workflows` job of the CI keeps it so: [`check-action-pins.mjs`](../scripts/ci/check-action-pins.mjs) reads each `uses:` key of the YAML files of `.github/`, and fails with an annotation on the line of one that is neither an action of GitHub (`actions/*`), nor an action of the repository (`./`), nor pinned by a 40-character SHA, or by its digest for a Docker image. It reads the keys written one per line, as Prettier and Dependabot write them, not those in quotes or in a flow mapping (`- { uses: … }`).
-- The image of Playwright in which the `browser-test (webkit)` job of the CI runs is pinned by its digest after its tag, which names the version of `@playwright/test`. Neither Dependabot nor `check-action-pins.mjs` reads it: a pull request that updates Playwright changes both ([In WebKit](testing.md#in-webkit)).
+- The image of Playwright in which the `browser-test (webkit)` job of the CI runs is pinned by its digest after its tag, which names the version of `@playwright/test`. Neither Dependabot nor `check-action-pins.mjs` reads it: a pull request that updates Playwright changes both ([In WebKit](testing.md#in-webkit)), or `check-playwright-image.mjs` fails the `workflows` job on a tag of another version than the lockfile.
 
 ## Setup by the site owner
 
