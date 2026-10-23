@@ -2,7 +2,37 @@ import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
-import { findKeyLines, listYamlFiles } from './yaml.mjs';
+import { findKeyLines, listYamlFiles, readIndentation, unquote } from './yaml.mjs';
+
+describe('unquote', () => {
+  it('removes the single or double quotes around a scalar', () => {
+    expect(unquote("'@playwright/test'")).toBe('@playwright/test');
+    expect(unquote('"owner/repo@v1"')).toBe('owner/repo@v1');
+    expect(unquote("''")).toBe('');
+  });
+
+  it('keeps a scalar without quotes, or whose quotes do not match or do not surround it', () => {
+    expect(unquote('owner/repo@v1')).toBe('owner/repo@v1');
+    expect(unquote('\'1.64.0"')).toBe('\'1.64.0"');
+    expect(unquote("it's")).toBe("it's");
+    expect(unquote("'")).toBe("'");
+    expect(unquote('')).toBe('');
+  });
+});
+
+describe('readIndentation', () => {
+  it('counts the spaces before the first character of a line', () => {
+    expect(readIndentation('importers:')).toBe(0);
+    expect(readIndentation('    version: 1.64.0')).toBe(4);
+    expect(readIndentation("      '@playwright/test':")).toBe(6);
+  });
+
+  it('reads -1 for an empty line or one of spaces only', () => {
+    expect(readIndentation('')).toBe(-1);
+    expect(readIndentation('    ')).toBe(-1);
+    expect(readIndentation('\r')).toBe(-1);
+  });
+});
 
 describe('listYamlFiles', () => {
   let directory;
