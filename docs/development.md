@@ -31,6 +31,7 @@ pnpm dev        # http://localhost:3000
 | `pnpm test:visual [--base]`   | Compare the screenshots of every page with `develop`    |
 | `pnpm typecheck`              | Type-check the app, the Node.js code and the scripts    |
 | `pnpm lint`                   | ESLint                                                  |
+| `pnpm knip`                   | Unused files, exports and dependencies                  |
 | `pnpm format`, `format:check` | Prettier                                                |
 | `pnpm size`                   | Check the size of the scripts, after a build            |
 | `pnpm smoke-test [url]`       | Check that a deployed site serves the files of `dist/`  |
