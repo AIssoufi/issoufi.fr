@@ -460,4 +460,44 @@ describe('NavMenu', () => {
 
     expect(screen.getByRole('navigation', { hidden: true })).not.toHaveAttribute('id');
   });
+
+  describe('on a path with capitals, which shows the not-found page', () => {
+    const englishItems = [
+      { name: 'Home', url: '/en/', end: true },
+      { name: 'Projects', url: '/en/projects' },
+    ];
+
+    /** The links of the menu, found even while the closed mobile menu hides them. */
+    const getItemLinks = () =>
+      screen
+        .getAllByRole('listitem', { hidden: true })
+        .map(item => within(item).getByRole('link', { hidden: true }));
+
+    it.each([
+      ['/Projects', items],
+      ['/PROJECTS', items],
+      ['/en/Projects', englishItems],
+      ['/En/projects', englishItems],
+      ['/EN/', englishItems],
+    ])('marks no link as current at %s', (path, pathItems) => {
+      renderNavMenu({ path, items: pathItems });
+
+      for (const link of getItemLinks()) {
+        expect(link).not.toHaveClass('active');
+        expect(link).not.toHaveAttribute('aria-current');
+      }
+    });
+
+    it.each([
+      ['/projects', items],
+      ['/en/projects', englishItems],
+    ])('still marks the link of %s as current, in lowercase', (path, pathItems) => {
+      renderNavMenu({ path, items: pathItems });
+      const [homeLink, projectsLink] = getItemLinks();
+
+      expect(projectsLink).toHaveClass('active');
+      expect(projectsLink).toHaveAttribute('aria-current', 'page');
+      expect(homeLink).not.toHaveAttribute('aria-current');
+    });
+  });
 });
