@@ -1,6 +1,6 @@
 // @ts-check
 import { DEVELOP_BRANCH, PULL_REQUEST_EVENT } from '../constants.mjs';
-import { getErrorMessage } from './github-api.mjs';
+import { getErrorMessage } from './errors.mjs';
 import { approveHeldRuns, nameRun } from './held-runs.mjs';
 import {
   describeMergeBlock,

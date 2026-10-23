@@ -151,12 +151,3 @@ export const requestRepositoryApi = async ({
   if (!url) throw new Error(`Cannot reach the GitHub API of the repository "${repository ?? ''}"`);
   return requestGitHub({ url, ...request });
 };
-
-/**
- * Reads the message of an error that a request threw.
- * @param {unknown} error - The error.
- * @returns {string} Its message, or its text when it is not an `Error`.
- * @example
- * getErrorMessage(new Error('The GitHub API answered 500')); // 'The GitHub API answered 500'
- */
-export const getErrorMessage = error => (error instanceof Error ? error.message : String(error));
