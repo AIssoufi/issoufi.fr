@@ -39,4 +39,6 @@ Started with a written brief, since they do not see the conversation of their ca
 
 ## Messages
 
-Agents talk through cmux messages, each starting with a keyword that says what the receiver must do: `QUESTION:`, `BLOCKED:`, `FINDING:`, `UPDATE:` and `DONE:` from a worker; `QUESTION:`, `REQUEST:`, `PROPOSAL:` and `REPORT:` from a master. A message carries its own context, since the receiver does not see the sender's conversation.
+Agents talk through cmux messages, each starting with a keyword that says what the receiver must do: `QUESTION:`, `BLOCKED:`, `FINDING:`, `UPDATE:` and `DONE:` from a worker; `QUESTION:`, `REQUEST:`, `PROPOSAL:`, `REPORT:` and `TURN:` from a master. A message carries its own context, since the receiver does not see the sender's conversation.
+
+A master that frees a worker slot, by a merge or by parking a worker that waits for its CI, runs `ticket.mjs next-turn`. The script sends `TURN: <ticket>` to the waiting masters, longest wait first, one per free slot, in each one's workspace, and journals each handoff as `slot.handoff`. The master that receives `TURN: <ticket>` starts that ticket at once; its start still checks the cap, since two masters may free and give slots at the same time. Only when the script woke no master does the master that freed the slot send `REPORT:` to the super master, with the pull request, the merge SHA (or, after a park, that the pull request waits for its CI) and its next ready ticket, so that the super master gives the slot.
