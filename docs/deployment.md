@@ -39,6 +39,7 @@ Every morning between 6:00 and 7:00, Paris time, a Cloudflare Worker starts a wo
 - A warning says when someone has to act, such as after a day without any scheduled run.
 - _The Cloudflare trigger has not started…_, a warning of the CI of `develop` and of the deploy, means that the Worker started no run for 36 hours while GitHub's schedule still does, hours late: its token expired or the Worker is gone. Read its logs, then store a new token or deploy it again (_Deploy trigger_, below).
 - The deploy fetches `develop` again after the release: `actions/checkout` sets `origin/develop` back to the commit that started the run, which lacks the release merge.
+- [`release.yml`](../.github/workflows/release.yml) runs release-please on each push to `develop`, and again after the daily release merged the release pull request. The GraphQL API of GitHub sometimes fails one of its queries, which passes moments later: a failed call waits 30 seconds, then runs once more, and the job fails only when both fail.
 - A change merged into `develop` is online the next morning.
 - A monthly run rebuilds production, so that the years of experience written in the pages stay right.
 
