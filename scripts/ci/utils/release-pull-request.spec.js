@@ -3,6 +3,7 @@ import {
   findReleasePullRequest,
   mergePullRequest,
 } from './release-pull-request.mjs';
+import { stubGitHub, stubGitHubEnv } from './testUtils.js';
 
 const SHA = '58ff9ea0c3f4e1b2a9d8c7b6a5f4e3d2c1b0a9f8';
 const MERGE_SHA = '9ff31f7aa1b2c3d4e5f60718293a4b5c6d7e8f90';
@@ -83,17 +84,8 @@ describe('findReleasePullRequest', () => {
 });
 
 describe('the API calls on pull requests', () => {
-  /** Answers every request with the given status and JSON body. */
-  const stubFetch = ({ status = 200, body = [apiPullRequest()] } = {}) => {
-    const fetch = vi.fn(async () => new Response(JSON.stringify(body), { status }));
-    vi.stubGlobal('fetch', fetch);
-    return fetch;
-  };
-
   beforeEach(() => {
-    vi.stubEnv('GITHUB_API_URL', 'https://api.github.com');
-    vi.stubEnv('GITHUB_REPOSITORY', REPOSITORY);
-    vi.stubEnv('GITHUB_TOKEN', 'token');
+    stubGitHubEnv();
   });
 
   afterEach(() => {
@@ -103,28 +95,34 @@ describe('the API calls on pull requests', () => {
 
   describe('fetchReleasePullRequest', () => {
     it('lists the open pull requests into develop and finds the release one', async () => {
-      const fetch = stubFetch();
+      const requests = stubGitHub({ 'GET /pulls': [{ body: [apiPullRequest()] }] });
       await expect(fetchReleasePullRequest()).resolves.toEqual(releasePullRequest);
-      expect(fetch.mock.calls[0][0]).toBe(`${PULLS_API_URL}?state=open&base=develop&per_page=100`);
+      expect(requests[0].url).toBe(`${PULLS_API_URL}?state=open&base=develop&per_page=100`);
     });
 
     it('checks the head against another repository', async () => {
-      const fetch = stubFetch({
-        body: [apiPullRequest({ head: { repo: { full_name: 'owner/repo' } } })],
+      const requests = stubGitHub({
+        'GET /repos/owner/repo/pulls': [
+          { body: [apiPullRequest({ head: { repo: { full_name: 'owner/repo' } } })] },
+        ],
       });
       await expect(fetchReleasePullRequest({ repository: 'owner/repo' })).resolves.toEqual(
         releasePullRequest,
       );
-      expect(fetch.mock.calls[0][0]).toContain('/repos/owner/repo/pulls?');
+      expect(requests[0].url).toContain('/repos/owner/repo/pulls?');
     });
 
     it('resolves to undefined when no release pull request is open', async () => {
-      stubFetch({ body: [] });
+      stubGitHub({ 'GET /pulls': [{ body: [] }] });
       await expect(fetchReleasePullRequest()).resolves.toBeUndefined();
     });
 
     it('throws when the API answers an error', async () => {
-      stubFetch({ status: 403, body: { message: 'Resource not accessible by integration' } });
+      stubGitHub({
+        'GET /pulls': [
+          { status: 403, body: { message: 'Resource not accessible by integration' } },
+        ],
+      });
       await expect(fetchReleasePullRequest()).rejects.toThrow(
         'The GitHub API answered 403 to https://api.github.com/repos/AIssoufi/issoufi.fr/pulls?',
       );
@@ -133,26 +131,32 @@ describe('the API calls on pull requests', () => {
 
   describe('mergePullRequest', () => {
     it('merges the tested head with a merge commit', async () => {
-      const fetch = stubFetch({ body: { sha: MERGE_SHA, merged: true, message: 'Merged' } });
+      const requests = stubGitHub({
+        'PUT /pulls/162/merge': [{ body: { sha: MERGE_SHA, merged: true, message: 'Merged' } }],
+      });
       await expect(mergePullRequest({ number: 162, sha: SHA })).resolves.toBe(MERGE_SHA);
-      const [url, init] = fetch.mock.calls[0];
+      const [{ route, url, body }] = requests;
       expect(url).toBe(`${PULLS_API_URL}/162/merge`);
-      expect(init.method).toBe('PUT');
-      expect(JSON.parse(init.body)).toEqual({ sha: SHA, merge_method: 'merge' });
+      expect(route).toBe('PUT /pulls/162/merge');
+      expect(body).toEqual({ sha: SHA, merge_method: 'merge' });
     });
 
     it.each([{}, { sha: '58ff9ea' }, null])(
       'resolves to undefined when the answer %o gives no merge commit',
       async body => {
-        stubFetch({ body });
+        stubGitHub({ 'PUT /pulls/162/merge': [{ body }] });
         await expect(mergePullRequest({ number: 162, sha: SHA })).resolves.toBeUndefined();
       },
     );
 
     it('throws when GitHub refuses the merge', async () => {
-      stubFetch({
-        status: 409,
-        body: { message: 'Head branch was modified. Review and try the merge again.' },
+      stubGitHub({
+        'PUT /pulls/162/merge': [
+          {
+            status: 409,
+            body: { message: 'Head branch was modified. Review and try the merge again.' },
+          },
+        ],
       });
       await expect(mergePullRequest({ number: 162, sha: SHA })).rejects.toThrow(
         `The GitHub API answered 409 to ${PULLS_API_URL}/162/merge: Head branch was modified.`,
@@ -166,11 +170,11 @@ describe('the API calls on pull requests', () => {
       [{ number: '162', sha: SHA }, `"162" at "${SHA}"`],
       [{}, '"" at ""'],
     ])('throws without asking the API for %o', async (params, details) => {
-      const fetch = stubFetch();
+      const requests = stubGitHub({ 'PUT /pulls/162/merge': [{ body: { sha: MERGE_SHA } }] });
       await expect(mergePullRequest(params)).rejects.toThrow(
         `Cannot merge the pull request ${details}`,
       );
-      expect(fetch).not.toHaveBeenCalled();
+      expect(requests).toEqual([]);
     });
   });
 });

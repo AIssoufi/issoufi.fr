@@ -117,14 +117,17 @@ export const stubGitHubEnv = () => {
  * @property {string} route - Its route, `<method> <path>` under the API of the repository, query
  * left out, such as `GET /pulls/162`.
  * @property {string} url - Its whole address.
+ * @property {Record<string, string> | undefined} headers - Its headers, as the request gave them,
+ * `undefined` without any.
  * @property {unknown} body - Its body, read as JSON, `undefined` without one.
  */
 
 /**
  * Stubs `fetch` with an API of GitHub that answers from routes, `<method> <path>` under the API of
  * the repository, query left out: each answer of a route serves one request, and the last one all
- * the next. A request without a route, or whose route has no answer, gets a 404. Undo it with
- * `vi.unstubAllGlobals()`.
+ * the next. A route written with the exact query of a request, parameters in their order, such as
+ * `GET /runs?event=schedule`, answers it before the route without one. A request without a route,
+ * or whose route has no answer, gets a 404. Undo it with `vi.unstubAllGlobals()`.
  * @param {Record<string, GitHubAnswer[]>} routes - Answers of each route, in their order. The
  * stub takes them out of the lists as it serves them.
  * @returns {GitHubRequest[]} The requests, in their order, filled as they arrive.
@@ -134,11 +137,12 @@ export const stubGitHubEnv = () => {
 export const stubGitHub = routes => {
   const requests = [];
   const fetch = vi.fn(async (url, init = {}) => {
-    const path = new URL(url).pathname.replace(REPOSITORY_PATH, '');
-    const route = `${init.method ?? 'GET'} ${path}`;
-    requests.push({ route, url, body: init.body ? JSON.parse(init.body) : undefined });
+    const { pathname, search } = new URL(url);
+    const route = `${init.method ?? 'GET'} ${pathname.replace(REPOSITORY_PATH, '')}`;
+    const { headers, body: requestBody } = init;
+    requests.push({ route, url, headers, body: requestBody ? JSON.parse(requestBody) : undefined });
 
-    const answers = routes[route] ?? [];
+    const answers = routes[`${route}${search}`] ?? routes[route] ?? [];
     if (answers.length === 0) {
       return new Response(JSON.stringify({ message: 'Not Found' }), { status: 404 });
     }

@@ -19,6 +19,7 @@ import {
   getUtcOffsetMinutes,
   mergeScheduledRuns,
 } from './schedule.mjs';
+import { stubGitHub, stubGitHubEnv } from './testUtils.js';
 
 describe('getUtcOffsetMinutes', () => {
   afterEach(() => {
@@ -193,28 +194,11 @@ describe('fetchScheduledRuns', () => {
     display_title: title,
   });
 
-  /** Answers the runs of each event, read from the query of the request. */
-  const stubFetch = ({ status = 200 } = {}) => {
-    const runsByEvent = {
-      schedule: [apiRun({ id: 1, createdAt: '2026-10-20T04:07:00Z' })],
-      workflow_dispatch: [
-        apiRun({ id: 3, createdAt: '2026-10-20T04:35:00Z', title: SCHEDULED_RUN_TITLE }),
-        apiRun({ id: 2, createdAt: '2026-10-20T04:10:00Z' }),
-      ],
-    };
-    const fetch = vi.fn(async url => {
-      const event = new URL(url).searchParams.get('event');
-      const body = { workflow_runs: runsByEvent[event] };
-      return new Response(JSON.stringify(body), { status });
-    });
-    vi.stubGlobal('fetch', fetch);
-    return fetch;
-  };
+  /** Route of the runs of deploy-production.yml. */
+  const RUNS_ROUTE = 'GET /actions/workflows/deploy-production.yml/runs';
 
   beforeEach(() => {
-    vi.stubEnv('GITHUB_API_URL', 'https://api.github.com');
-    vi.stubEnv('GITHUB_REPOSITORY', 'AIssoufi/issoufi.fr');
-    vi.stubEnv('GITHUB_TOKEN', 'token');
+    stubGitHubEnv();
   });
 
   afterEach(() => {
@@ -223,26 +207,45 @@ describe('fetchScheduledRuns', () => {
   });
 
   it('reads the runs of the crons and those of the trigger, newest first', async () => {
-    const fetch = stubFetch();
+    const requests = stubGitHub({
+      [`${RUNS_ROUTE}?event=schedule&per_page=20`]: [
+        { body: { workflow_runs: [apiRun({ id: 1, createdAt: '2026-10-20T04:07:00Z' })] } },
+      ],
+      [`${RUNS_ROUTE}?event=workflow_dispatch&per_page=20`]: [
+        {
+          body: {
+            workflow_runs: [
+              apiRun({ id: 3, createdAt: '2026-10-20T04:35:00Z', title: SCHEDULED_RUN_TITLE }),
+              apiRun({ id: 2, createdAt: '2026-10-20T04:10:00Z' }),
+            ],
+          },
+        },
+      ],
+    });
     const runs = await fetchScheduledRuns({ perPage: 20 });
     expect(runs.map(run => run.id)).toEqual([3, 1]);
-    expect(fetch.mock.calls.map(([url]) => url).sort()).toEqual([
+    expect(requests.map(({ url }) => url).sort()).toEqual([
       `${API_URL}/deploy-production.yml/runs?event=schedule&per_page=20`,
       `${API_URL}/deploy-production.yml/runs?event=workflow_dispatch&per_page=20`,
     ]);
   });
 
   it('reads another repository with another token', async () => {
-    const fetch = stubFetch();
+    const requests = stubGitHub({
+      'GET /repos/owner/repo/actions/workflows/deploy-production.yml/runs': [
+        { body: { workflow_runs: [] } },
+      ],
+    });
     await fetchScheduledRuns({ perPage: 5, repository: 'owner/repo', token: 'other' });
-    for (const [url, { headers }] of fetch.mock.calls) {
+    expect(requests).toHaveLength(2);
+    for (const { url, headers } of requests) {
       expect(url).toMatch(/^https:\/\/api\.github\.com\/repos\/owner\/repo\//);
       expect(headers.Authorization).toBe('Bearer other');
     }
   });
 
   it('throws when the API answers with an error', async () => {
-    stubFetch({ status: 500 });
+    stubGitHub({ [RUNS_ROUTE]: [{ status: 500, body: {} }] });
     await expect(fetchScheduledRuns({ perPage: 20 })).rejects.toThrow(
       'The GitHub API answered 500',
     );
