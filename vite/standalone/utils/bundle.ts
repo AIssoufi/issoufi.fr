@@ -1,13 +1,12 @@
 import type { Rolldown } from 'vite';
 
-import { SITEMAP_FILE_NAME } from '../../../src/utils/sitemap.ts';
-import { HEADERS_FILE_NAME } from '../../constants.ts';
 import {
   ESCAPED_INLINE_SCRIPT_BREAKER,
   HTML_FILE_PATTERN,
   INLINE_SCRIPT_BREAKER_PATTERN,
   NO_PRELOAD,
   PRELOAD_MARKER_PATTERN,
+  SERVER_ONLY_FILE_NAMES,
   STANDALONE_PAGE_FILE_NAME,
   WEB_MANIFEST_FILE_PATTERN,
 } from '../constants.ts';
@@ -16,19 +15,21 @@ import { escapeRegExp, isFileName } from './strings.ts';
 /**
  * Tells whether a file of the build is one that only a web server needs: every HTML page but
  * `index.html`, such as `projects.html` or `404.html`, the web app manifests, such as
- * `en/manifest.webmanifest`, the `_headers` of Cloudflare Pages and the sitemap at its root. Opened
- * from the disk, the standalone build shows every route from `index.html`, no browser installs it
- * as an app, no server reads its headers, and no search engine reads its sitemap.
+ * `en/manifest.webmanifest`, and the files of {@link SERVER_ONLY_FILE_NAMES} at its root, such as
+ * the `_headers` of Cloudflare Pages or `robots.txt`. Opened from the disk, the standalone build
+ * shows every route from `index.html`, no browser installs it as an app, no server reads its
+ * headers or its redirects, and no search engine crawls it.
  *
  * @param fileName - Path of the file in the build, e.g. `projects.html`.
- * @returns `true` for an HTML page other than `index.html`, for a web app manifest, for `_headers`
- * and for `sitemap.xml`, `false` otherwise, and when the name is missing or not a string.
+ * @returns `true` for an HTML page other than `index.html`, for a web app manifest and for a file
+ * of {@link SERVER_ONLY_FILE_NAMES}, `false` otherwise, and when the name is missing or not a
+ * string.
  *
  * @example
  * isServerOnlyFile('404.html'); // true
  * isServerOnlyFile('manifest.webmanifest'); // true
  * isServerOnlyFile('_headers'); // true
- * isServerOnlyFile('sitemap.xml'); // true
+ * isServerOnlyFile('robots.txt'); // true
  * isServerOnlyFile('index.html'); // false
  */
 export const isServerOnlyFile = (fileName?: unknown): boolean => {
@@ -37,9 +38,8 @@ export const isServerOnlyFile = (fileName?: unknown): boolean => {
   const isStandalonePage = fileName === STANDALONE_PAGE_FILE_NAME;
   const isServerOnlyPage = isHtmlFile && !isStandalonePage;
   const isWebManifest = isName && WEB_MANIFEST_FILE_PATTERN.test(fileName);
-  const isHeadersFile = fileName === HEADERS_FILE_NAME;
-  const isSitemap = fileName === SITEMAP_FILE_NAME;
-  return isServerOnlyPage || isWebManifest || isHeadersFile || isSitemap;
+  const isServerOnlyName = isName && SERVER_ONLY_FILE_NAMES.includes(fileName);
+  return isServerOnlyPage || isWebManifest || isServerOnlyName;
 };
 
 /**

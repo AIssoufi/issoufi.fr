@@ -1,7 +1,7 @@
 // @vitest-environment node
 import { SITEMAP_FILE_NAME } from '../../../src/utils/sitemap.ts';
-import { HEADERS_FILE_NAME } from '../../constants.ts';
-import { STANDALONE_PAGE_FILE_NAME } from '../constants.ts';
+import { HEADERS_FILE_NAME, REDIRECTS_FILE_NAME, ROBOTS_FILE_NAME } from '../../constants.ts';
+import { SERVER_ONLY_FILE_NAMES, STANDALONE_PAGE_FILE_NAME } from '../constants.ts';
 import { inlineScript, isEntryChunk, isServerOnlyFile, removePreloadMarkers } from './bundle.ts';
 
 describe('isServerOnlyFile', () => {
@@ -63,13 +63,45 @@ describe('isServerOnlyFile', () => {
     },
   );
 
+  it('is true for the redirects of Cloudflare Pages, at the root of the build', () => {
+    expect(isServerOnlyFile(REDIRECTS_FILE_NAME)).toBe(true);
+  });
+
+  it.each(['_redirects.txt', 'redirects', '_Redirects', 'nested/_redirects', ' _redirects'])(
+    'is false for %j, which Cloudflare Pages does not read as its redirects',
+    fileName => {
+      expect(isServerOnlyFile(fileName)).toBe(false);
+    },
+  );
+
+  it('is true for robots.txt, at the root of the build, which no crawler reads', () => {
+    expect(isServerOnlyFile(ROBOTS_FILE_NAME)).toBe(true);
+  });
+
+  it.each(['robots.txt.bak', 'robots', 'Robots.txt', 'en/robots.txt', ' robots.txt'])(
+    'is false for %j, which is not the robots.txt of the build',
+    fileName => {
+      expect(isServerOnlyFile(fileName)).toBe(false);
+    },
+  );
+
+  it.each(SERVER_ONLY_FILE_NAMES)('is true for %j, a file that only a server reads', fileName => {
+    expect(isServerOnlyFile(fileName)).toBe(true);
+  });
+
   describe('edge cases', () => {
-    it.each([undefined, null, 42, {}, ['projects.html'], ['_headers'], ['manifest.webmanifest']])(
-      'is false for %j',
-      fileName => {
-        expect(isServerOnlyFile(fileName)).toBe(false);
-      },
-    );
+    it.each([
+      undefined,
+      null,
+      42,
+      {},
+      ['projects.html'],
+      ['_headers'],
+      ['robots.txt'],
+      ['manifest.webmanifest'],
+    ])('is false for %j', fileName => {
+      expect(isServerOnlyFile(fileName)).toBe(false);
+    });
   });
 });
 
