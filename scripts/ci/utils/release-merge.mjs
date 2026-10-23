@@ -1,5 +1,6 @@
 // @ts-check
 import { DEVELOP_BRANCH, PULL_REQUEST_EVENT } from '../constants.mjs';
+import { shortenSha } from './commit-sha.mjs';
 import { getErrorMessage } from './errors.mjs';
 import { approveHeldRuns, nameRun } from './held-runs.mjs';
 import {
@@ -11,13 +12,9 @@ import {
   waitForMergeable,
 } from './mergeability.mjs';
 import { mergePullRequest } from './release-pull-request.mjs';
-import {
-  describeRunOutcome,
-  isHeldRun,
-  shortenSha,
-  waitForLatestRun,
-  waitForRun,
-} from './workflow-runs.mjs';
+import { describeRunOutcome } from './run-outcome.mjs';
+import { isHeldRun } from './run-reading.mjs';
+import { waitForLatestRun, waitForRun } from './run-waiting.mjs';
 
 /** @typedef {import('./daily-release.mjs').ReleaseReport} ReleaseReport */
 
@@ -77,9 +74,9 @@ const hasHeadMoved = async ({ number, sha }) => {
  * @property {import('./release-pull-request.mjs').ReleasePullRequest} pullRequest - The release
  * pull request, as just read.
  * @property {boolean} isDryRun - Whether to stop before the merge.
- * @property {import('./workflow-runs.mjs').RunLookupOptions} [runLookup] - How long to look for
+ * @property {import('./run-waiting.mjs').RunLookupOptions} [runLookup] - How long to look for
  * the run of its CI.
- * @property {import('./workflow-runs.mjs').RunWaitOptions} [runWait] - How long to wait for it.
+ * @property {import('./run-waiting.mjs').RunWaitOptions} [runWait] - How long to wait for it.
  * @property {import('./mergeability.mjs').MergeableWaitOptions} [mergeableWait] - How long to
  * wait for GitHub to say that it can merge.
  */

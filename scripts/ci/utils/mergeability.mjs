@@ -9,9 +9,9 @@ import {
   RUN_COMPLETED_STATUS,
   UNMERGEABLE_STATE_REASONS,
 } from '../constants.mjs';
+import { isCommitSha } from './commit-sha.mjs';
 import { requestRepositoryApi } from './github-api.mjs';
 import { isPositiveInteger } from './numbers.mjs';
-import { isCommitSha } from './workflow-runs.mjs';
 
 /**
  * Whether a pull request can merge, as {@link readPullRequestState} reads it.

@@ -1,6 +1,9 @@
 // @ts-check
 import { CI_WORKFLOW_FILE, DEVELOP_BRANCH, RELEASE_WORKFLOW_FILE } from '../constants.mjs';
-import { describeRunOutcome, dispatchWorkflow, shortenSha, waitForRun } from './workflow-runs.mjs';
+import { shortenSha } from './commit-sha.mjs';
+import { describeRunOutcome } from './run-outcome.mjs';
+import { waitForRun } from './run-waiting.mjs';
+import { dispatchWorkflow } from './workflow-dispatch.mjs';
 
 /** @typedef {import('./daily-release.mjs').ReleaseReport} ReleaseReport */
 
@@ -8,13 +11,13 @@ import { describeRunOutcome, dispatchWorkflow, shortenSha, waitForRun } from './
  * Parameters of {@link runCi}.
  * @typedef {object} RunCiParams
  * @property {string} branch - Branch to run the CI on.
- * @property {import('./workflow-runs.mjs').RunWaitOptions} [runWait] - How long to wait for it.
+ * @property {import('./run-waiting.mjs').RunWaitOptions} [runWait] - How long to wait for it.
  */
 
 /**
  * Starts the CI on a branch and waits for it to finish.
  * @param {RunCiParams} params
- * @returns {Promise<import('./workflow-runs.mjs').WorkflowRun | undefined>} The run, as last read.
+ * @returns {Promise<import('./run-reading.mjs').WorkflowRun | undefined>} The run, as last read.
  */
 const runCi = async ({ branch, runWait }) => {
   const { id, url } = await dispatchWorkflow({ workflow: CI_WORKFLOW_FILE, ref: branch });
@@ -27,7 +30,7 @@ const runCi = async ({ branch, runWait }) => {
  * @typedef {object} PublishReleaseParams
  * @property {string} name - The release pull request, as messages name it.
  * @property {string} [mergeSha] - Full SHA of its merge commit, when GitHub gave it.
- * @property {import('./workflow-runs.mjs').RunWaitOptions} [runWait] - How long to wait for the CI
+ * @property {import('./run-waiting.mjs').RunWaitOptions} [runWait] - How long to wait for the CI
  * of develop.
  */
 

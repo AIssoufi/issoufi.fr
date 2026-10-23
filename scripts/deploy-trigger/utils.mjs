@@ -7,7 +7,7 @@ import {
   DEVELOP_BRANCH,
 } from '../ci/constants.mjs';
 import { formatLocalTime, getLocalTime } from '../ci/utils/schedule.mjs';
-import { dispatchWorkflow } from '../ci/utils/workflow-runs.mjs';
+import { dispatchWorkflow } from '../ci/utils/workflow-dispatch.mjs';
 import {
   DEPLOY_REPOSITORY,
   DEPLOY_WINDOW_MINUTES,

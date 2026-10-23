@@ -24,7 +24,7 @@ const eventName = process.env.GITHUB_EVENT_NAME;
 const hasScheduledInput = process.env.SCHEDULED === 'true';
 const runId = Number(process.env.GITHUB_RUN_ID);
 
-/** @type {import('./utils/workflow-runs.mjs').WorkflowRun[] | undefined} */
+/** @type {import('./utils/run-reading.mjs').WorkflowRun[] | undefined} */
 let runs;
 try {
   runs = await fetchScheduledRuns({ perPage: DEPLOY_RUNS_PAGE_SIZE });

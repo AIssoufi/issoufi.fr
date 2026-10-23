@@ -5,7 +5,8 @@ import {
   PULL_REQUEST_WORKFLOW_FILES,
 } from '../constants.mjs';
 import { getErrorMessage } from './errors.mjs';
-import { approveRun, fetchLatestRun, isHeldRun } from './workflow-runs.mjs';
+import { isHeldRun } from './run-reading.mjs';
+import { approveRun, fetchLatestRun } from './run-requests.mjs';
 
 /**
  * Tells whether a workflow of the release pull request is the CI, whose run the daily release
@@ -43,7 +44,7 @@ const approveHeldRun = async runId => {
  * A held run of the release pull request that GitHub refused to let the daily release approve.
  * @typedef {object} RefusedApproval
  * @property {string} workflow - File name of the workflow of the run.
- * @property {import('./workflow-runs.mjs').WorkflowRun} run - The held run.
+ * @property {import('./run-reading.mjs').WorkflowRun} run - The held run.
  * @property {string} reason - Why GitHub refused, from {@link approveHeldRun}.
  */
 
@@ -52,7 +53,7 @@ const approveHeldRun = async runId => {
  * @typedef {object} ApproveHeldRunsParams
  * @property {string} name - The release pull request, as messages name it.
  * @property {string} branch - Branch of the release pull request.
- * @property {import('./workflow-runs.mjs').WorkflowRun} ciRun - The run of the CI that its pull
+ * @property {import('./run-reading.mjs').WorkflowRun} ciRun - The run of the CI that its pull
  * request event started on its head, which GitHub holds.
  */
 
