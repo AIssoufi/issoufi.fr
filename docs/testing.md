@@ -19,7 +19,7 @@
 
 jsdom computes no layout, so these tests run in Chromium, on the production build, and those of phones in WebKit too.
 In the CI, `.github/actions/playwright` installs the headless shell of Chromium, cached, and takes its system libraries from the image of the runner, falling back to the apt mirror only when the browser does not start ([decision 0022](decisions/0022-chromium-libraries-from-runner-image.md)).
-The WebKit job installs WebKit with the same action, which reads the apt mirror for the libraries that the image lacks ([decision 0023](decisions/0023-phone-browser-tests-in-webkit.md)).
+The WebKit job runs in the image of Playwright, pinned by its digest, which holds WebKit and the system libraries that the image of the runner lacks, so it reads no apt mirror ([decision 0024](decisions/0024-webkit-in-playwright-image.md)).
 They run in both languages, on screens from small phones to large desktops:
 
 | Area          | What they check                                                                                                                                                   |
@@ -38,6 +38,7 @@ Each spec still sets the size of its screens. The `chromium` project runs every 
 
 - `pnpm test:browser` runs both projects; `pnpm test:browser --project=webkit` runs WebKit alone, and `--project=chromium` Chromium alone.
 - In the CI, the `browser-test (webkit)` job runs them on its own runner, beside the three Chromium shards, and the required `browser-test` check fails when it does not pass.
+- That job runs in `mcr.microsoft.com/playwright`, whose tag names the version of `@playwright/test` in the lockfile. When that version changes, the pull request changes the tag and the digest of `container.image` in `.github/workflows/ci.yml` too: Dependabot updates neither, and WebKit does not launch in the image of another version, whose name its error gives. `curl -sSI -H 'Accept: application/vnd.oci.image.index.v1+json' https://mcr.microsoft.com/v2/playwright/manifests/v<version>-noble | grep -i '^docker-content-digest'` prints the digest of a tag.
 - The two tests of `mobile-menu.e2e.ts` that scroll with a wheel or a finger through the DevTools protocol run in Chromium only, which alone has it; the others run in both browsers.
 - The screenshot comparison runs in Chromium only.
 

@@ -191,4 +191,13 @@ On 2026-10-23, the browser tests of phones run in WebKit too, the engine of Safa
 | Playwright step of a shard        | 4 s     | 5 s   |
 | Playwright step of the WebKit job |         | 47 s  |
 
-Decision: [0015](decisions/0015-render-at-build-time.md), [0016](decisions/0016-cloudflare-worker-deploy-trigger.md), [0017](decisions/0017-typescript-6.md), [0018](decisions/0018-pnpm-12.md), [0019](decisions/0019-locked-build-chain.md), [0020](decisions/0020-vitest-5.md), [0021](decisions/0021-knip.md), [0022](decisions/0022-chromium-libraries-from-runner-image.md), [0023](decisions/0023-phone-browser-tests-in-webkit.md).
+On 2026-10-23, the WebKit job of the CI runs in the image of Playwright, pinned by its digest, which holds WebKit and its system libraries, instead of installing them from the apt mirror of Ubuntu on every run ([#412](https://github.com/AIssoufi/issoufi.fr/issues/412)). Medians of the WebKit job over the five runs of the previous step before, but for the job, in its one green run, and over five runs of a throwaway copy of the job after, beside a job that still read the mirror and timed out in four of them.
+
+| Figure                                  | Before | After  |
+| --------------------------------------- | ------ | ------ |
+| Playwright step, then pull of the image | 47 s   | 26 s   |
+| Start of the tests                      | 68 s   | 57 s   |
+| WebKit job                              | 548 s  | 467 s  |
+| Jobs cancelled before their tests       | 2 of 7 | 0 of 8 |
+
+Decision: [0015](decisions/0015-render-at-build-time.md), [0016](decisions/0016-cloudflare-worker-deploy-trigger.md), [0017](decisions/0017-typescript-6.md), [0018](decisions/0018-pnpm-12.md), [0019](decisions/0019-locked-build-chain.md), [0020](decisions/0020-vitest-5.md), [0021](decisions/0021-knip.md), [0022](decisions/0022-chromium-libraries-from-runner-image.md), [0023](decisions/0023-phone-browser-tests-in-webkit.md), [0024](decisions/0024-webkit-in-playwright-image.md).
