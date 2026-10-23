@@ -1,7 +1,7 @@
 # 0023. Run the phone browser tests in WebKit too
 
 - Date: 2026-10-23
-- Status: Accepted
+- Status: Accepted, superseded for the system libraries of WebKit by [0024](0024-webkit-in-playwright-image.md)
 
 ## Context
 
