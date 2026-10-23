@@ -3,13 +3,16 @@ import {
   findReleasePullRequest,
   mergePullRequest,
 } from './release-pull-request.mjs';
-import { stubGitHub, stubGitHubEnv } from './testUtils.js';
+import {
+  BRANCH,
+  MERGE_SHA,
+  PULL_REQUEST_URL,
+  REPOSITORY,
+  SHA,
+  stubGitHub,
+  stubGitHubEnv,
+} from './testUtils.js';
 
-const SHA = '58ff9ea0c3f4e1b2a9d8c7b6a5f4e3d2c1b0a9f8';
-const MERGE_SHA = '9ff31f7aa1b2c3d4e5f60718293a4b5c6d7e8f90';
-const REPOSITORY = 'AIssoufi/issoufi.fr';
-const BRANCH = 'release-please--branches--develop--components--issoufi-v3';
-const PULL_REQUEST_URL = `https://github.com/${REPOSITORY}/pull/162`;
 const PULLS_API_URL = `https://api.github.com/repos/${REPOSITORY}/pulls`;
 
 /** An open pull request of the REST API answer, by default the release pull request. */
