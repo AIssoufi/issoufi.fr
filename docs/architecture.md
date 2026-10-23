@@ -7,6 +7,7 @@ The build also writes one HTML file per page and language, so that search engine
 
 - Three pages: Home, Projects and Experiences, plus an error page for unknown paths.
 - French at the root (`/projects`), English under `/en/` (`/en/projects`).
+- The paths match with case, as Cloudflare serves the files: `/Projects`, `/en/Projects` and `/EN/` show the not found page, `/EN/` in French.
 - The language toggle opens the same page in the other language, and remembers the choice for the root URL.
 - The texts live in `src/i18n/fr/` and `en/`: the type-check refuses a text missing from either.
   Those of the app sit in `app.ts`; those of a lazy page in a file of their own (`projects.ts`, `experiences.ts`), which the `index.ts` of the page adds with `addTranslations` when its chunk loads.
