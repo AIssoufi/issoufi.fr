@@ -1,6 +1,6 @@
 /**
  * HTTP headers that Cloudflare Pages adds to its responses for the paths that match a pattern: a
- * block of the `_headers` file of the build, written by `renderHeaderRules` (`utils.ts`).
+ * block of the `_headers` file of the build, written by `renderHeaderRules` (`utils/headers.ts`).
  * @see https://developers.cloudflare.com/pages/configuration/headers/
  */
 export interface HeaderRule {
@@ -40,3 +40,22 @@ export interface FontFacesApi {
    */
   keepPublicUrls: () => void;
 }
+
+/** File of the build, as Rolldown passes it to `generateBundle`: the fields that find a chunk. */
+export interface BundleFile {
+  /** `chunk` for a script, `asset` for any other file. */
+  type?: string;
+  /** Path of the file in the build, e.g. `assets/Projects-1a2b3c.js`. */
+  fileName?: string;
+  /** Path of the main module of a chunk, `null` for a chunk of modules shared by others. */
+  facadeModuleId?: string | null;
+  /** Whether a chunk is an entry of the build, such as the main chunk that the template loads. */
+  isEntry?: boolean;
+  /** File names of the chunks that a chunk imports statically. */
+  imports?: readonly string[];
+  /** Paths of the files that an asset was emitted from, such as a font file of `public/`. */
+  originalFileNames?: readonly string[];
+}
+
+/** Files of the build, by file name, as Rolldown passes them to `generateBundle`. */
+export type BuildBundle = Record<string, BundleFile | null | undefined>;

@@ -9,12 +9,7 @@ import { HOME_PAGE } from './src/utils/pages.ts';
 import { APP_CONTAINER_ID } from './src/utils/prerender.ts';
 import { SITEMAP_FILE_NAME } from './src/utils/sitemap.ts';
 import { renderStructuredDataScript } from './src/utils/structuredData.ts';
-import {
-  ASSETS_DIR,
-  HEADERS_FILE_NAME,
-  REGEXP_SPECIAL_CHARACTERS,
-  ROBOTS_FILE_NAME,
-} from './vite/constants.ts';
+import { ASSETS_DIR, HEADERS_FILE_NAME, ROBOTS_FILE_NAME } from './vite/constants.ts';
 import {
   HASH_ROUTER_MODULE,
   OPTIONAL_ESCAPE_PATTERN,
@@ -25,6 +20,7 @@ import {
 import { isServerOnlyFile } from './vite/standalone/utils/bundle.ts';
 import { readFontDataUrl } from './vite/standalone/utils/fonts.ts';
 import { listFileNames, listStandalonePublicFiles } from './vite/standalone/utils/public-files.ts';
+import { escapeRegExp } from './vite/utils/strings.ts';
 
 /** Longest time the standalone build may take in this test, coverage included. */
 const BUILD_TIMEOUT_MS = 60_000;
@@ -82,7 +78,7 @@ interface HasQuotedUrlParams {
  * minifier the strings of the code between back quotes.
  */
 const hasQuotedUrl = ({ html, url }: HasQuotedUrlParams) => {
-  const escapedUrl = url.replace(REGEXP_SPECIAL_CHARACTERS, '\\$&');
+  const escapedUrl = escapeRegExp(url);
   const pattern = `${QUOTE_PATTERN}${escapedUrl}${OPTIONAL_ESCAPE_PATTERN}${QUOTE_PATTERN}`;
   return new RegExp(pattern).test(html);
 };

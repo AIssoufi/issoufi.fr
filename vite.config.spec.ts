@@ -49,7 +49,8 @@ import {
   VENDOR_CHUNK_NAME,
 } from './vite/constants.ts';
 import { NOT_FOUND_PAGES_PLUGIN_NAME } from './vite/preview/constants.ts';
-import { getFontFaceTags, renderHeaderRules } from './vite/utils.ts';
+import { getFontFaceTags } from './vite/utils/fonts.ts';
+import { renderHeaderRules } from './vite/utils/headers.ts';
 
 /** Longest time the production build may take in this test, coverage included. */
 const BUILD_TIMEOUT_MS = 60_000;
