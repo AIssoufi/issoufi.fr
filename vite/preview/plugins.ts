@@ -17,13 +17,9 @@ import {
   PAGE_REQUEST_METHODS,
 } from './constants.ts';
 import { getRedirectLocation, isCloudflareConfigFile } from './redirects.ts';
-import {
-  findExactFile,
-  getCacheControl,
-  getNotFoundPageFiles,
-  getRequestPathname,
-  getServedFiles,
-} from './utils.ts';
+import { findExactFile } from './utils/files.ts';
+import { getCacheControl } from './utils/headers.ts';
+import { getNotFoundPageFiles, getRequestPathname, getServedFiles } from './utils/paths.ts';
 
 /** Parameters of {@link createNotFoundMiddleware}. */
 interface CreateNotFoundMiddlewareParams {
