@@ -9,12 +9,16 @@ import { HOME_PAGE } from './src/utils/pages.ts';
 import { APP_CONTAINER_ID } from './src/utils/prerender.ts';
 import { SITEMAP_FILE_NAME } from './src/utils/sitemap.ts';
 import { renderStructuredDataScript } from './src/utils/structuredData.ts';
-import { ASSETS_DIR, HEADERS_FILE_NAME, ROBOTS_FILE_NAME } from './vite/constants.ts';
+import {
+  ASSETS_DIR,
+  HEADERS_FILE_NAME,
+  REGEXP_SPECIAL_CHARACTERS,
+  ROBOTS_FILE_NAME,
+} from './vite/constants.ts';
 import {
   HASH_ROUTER_MODULE,
   OPTIONAL_ESCAPE_PATTERN,
   QUOTE_PATTERN,
-  REGEXP_SPECIAL_CHARACTERS,
   STANDALONE_PAGE_FILE_NAME,
   STANDALONE_README_FILE_NAME,
 } from './vite/standalone/constants.ts';

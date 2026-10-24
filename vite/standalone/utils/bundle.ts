@@ -10,7 +10,8 @@ import {
   STANDALONE_PAGE_FILE_NAME,
   WEB_MANIFEST_FILE_PATTERN,
 } from '../constants.ts';
-import { escapeRegExp, isFileName } from './strings.ts';
+import { escapeRegExp } from '../../utils/strings.ts';
+import { isFileName } from './strings.ts';
 
 /**
  * Tells whether a file of the build is one that only a web server needs: every HTML page but

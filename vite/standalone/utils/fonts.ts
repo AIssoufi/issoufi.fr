@@ -10,7 +10,8 @@ import {
   PRELOAD_RELATION_PATTERN,
   QUOTE_PATTERN,
 } from '../constants.ts';
-import { escapeRegExp, isFileName } from './strings.ts';
+import { escapeRegExp } from '../../utils/strings.ts';
+import { isFileName } from './strings.ts';
 
 /** A font file of the site and its content, which the standalone build writes in its place. */
 export interface EmbeddedFont {

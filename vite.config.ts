@@ -40,7 +40,7 @@ import {
   PAGE_META_PLUGIN_NAME,
   SECURITY_HEADERS,
 } from './vite/constants.ts';
-import { notFoundPages } from './vite/preview/plugins.ts';
+import { cacheHeaders, notFoundPages } from './vite/preview/plugins.ts';
 import { minifyStyledCss, styledComponentIds } from './vite/prerender/plugins.ts';
 import { prerenderPagesInWorker } from './vite/prerender/utils/render.ts';
 import type { FontFacesApi, PageMetaApi } from './vite/types.ts';
@@ -327,9 +327,10 @@ const TEST_TIMEOUT_MS = 10_000;
  * a chunk per lazy page and named chunks for the libraries and the shared modules (see
  * {@link CODE_SPLITTING_GROUPS}), the dev and preview servers on the port of the worktree (see
  * {@link getServerPorts}), which fail when it is taken, the preview server with the security
- * headers and the not found pages of the site, with their status 404, as Cloudflare Pages serves
- * them (see {@link notFoundPages}), and the tests in jsdom with coverage. Node.js loads it as it
- * is, its types stripped (`--configLoader native` in the scripts of `package.json`): every
+ * headers, the not found pages of the site, with their status 404, as Cloudflare Pages serves
+ * them (see {@link notFoundPages}), and the cache policy of the `_headers` rules (see
+ * {@link cacheHeaders}), and the tests in jsdom with coverage. Node.js loads it as it is,
+ * its types stripped (`--configLoader native` in the scripts of `package.json`): every
  * relative import of the modules that it loads names its `.ts` file, and a JSON import says
  * `with { type: 'json' }`.
  * @see https://vitejs.dev/config/
@@ -351,6 +352,7 @@ export default defineConfig(({ mode }) => {
       webManifests(),
       httpHeaders(),
       notFoundPages(),
+      cacheHeaders(),
     ],
     define: BUILD_CONSTANTS,
     build: {

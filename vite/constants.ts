@@ -270,3 +270,6 @@ export const PAGE_META_PLUGIN_NAME = 'page-meta';
  * which the standalone build finds it to call its API (see `FontFacesApi`).
  */
 export const FONT_FACES_PLUGIN_NAME = 'font-faces';
+
+/** Characters that have a meaning in a regular expression. */
+export const REGEXP_SPECIAL_CHARACTERS = /[.*+?^${}()|[\]\\]/g;

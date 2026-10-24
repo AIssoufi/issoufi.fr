@@ -53,9 +53,6 @@ export const QUOTE_PATTERN = '["\'`]';
 /** Optional backslash before a quote, as in a JSON module that Vite turns into a string. */
 export const OPTIONAL_ESCAPE_PATTERN = '\\\\?';
 
-/** Characters that have a meaning in a regular expression. */
-export const REGEXP_SPECIAL_CHARACTERS = /[.*+?^${}()|[\]\\]/g;
-
 /** Trailing slashes of a folder path. */
 export const TRAILING_SLASHES_PATTERN = /\/+$/;
 
