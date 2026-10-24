@@ -7,6 +7,9 @@ export const frProjects = {
   showAll: 'Tout afficher ({{count}})',
   previousPage: 'Page précédente',
   nextPage: 'Page suivante',
+  // Polite status read after a page change, by the number of cards that the page shows
+  pageStatus_one: 'Projet {{first}} sur {{total}}',
+  pageStatus_other: 'Projets {{first}} à {{last}} sur {{total}}',
   like: 'Aimer {{name}}',
   // Texts of the cards, by the nameKey and typeKey of the projects of src/pages/Projects/.data.
   // Client names are proper nouns, written the same in every language

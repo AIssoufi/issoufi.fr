@@ -4,6 +4,7 @@ import { LANGUAGES } from '../src/i18n/constants.ts';
 import { FONT_FACES, LOGO_FONT_FACE } from '../src/theme/constants.ts';
 import { PAGES } from '../src/utils/pages.ts';
 import { PAGE_SELECTOR } from './constants.ts';
+import { waitForPageContent } from './loading.ts';
 import { getCheckedRoutes, isGoogleUrl } from './utils.ts';
 
 // The site serves its fonts itself: no page may send a request to Google, whose fonts every visit
@@ -21,13 +22,12 @@ for (const language of LANGUAGES) {
         await expect(page.locator('html')).toHaveAttribute('lang', language);
         // The pages loaded lazily request their chunk, then their images, once the header shows
         await expect(page.locator(PAGE_SELECTOR)).toBeVisible();
-        await page.waitForLoadState('networkidle');
-        const loadedFamilies = await page.evaluate(async () => {
-          await document.fonts.ready;
-          return [...document.fonts]
+        await page.evaluate(waitForPageContent);
+        const loadedFamilies = await page.evaluate(() =>
+          [...document.fonts]
             .filter(({ status }) => status === 'loaded')
-            .map(({ family }) => family.replace(/^["']|["']$/g, ''));
-        });
+            .map(({ family }) => family.replace(/^["']|["']$/g, '')),
+        );
 
         expect(requestedUrls.filter(isGoogleUrl), 'requests to Google').toEqual([]);
         // Every page shows text in each font of the pages

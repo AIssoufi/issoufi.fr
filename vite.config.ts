@@ -1,9 +1,13 @@
+import { readFileSync } from 'node:fs';
+import { basename, join } from 'node:path';
+
 import react from '@vitejs/plugin-react';
 import { defineConfig, loadEnv, type Plugin } from 'vite';
 import svgr from 'vite-plugin-svgr';
 
 import packageJson from './package.json' with { type: 'json' };
 import { DEFAULT_LANGUAGE } from './src/i18n/constants.ts';
+import { FONT_FACES } from './src/theme/constants.ts';
 import { getYearsOfExperience } from './src/utils/career.ts';
 import {
   addModulePreload,
@@ -31,31 +35,77 @@ import {
   ASSETS_DIR,
   BUILD_TARGET,
   CODE_SPLITTING_GROUPS,
+  FONT_FACES_PLUGIN_NAME,
   HEADERS_FILE_NAME,
   PAGE_META_PLUGIN_NAME,
   SECURITY_HEADERS,
 } from './vite/constants.ts';
+import { cacheHeaders, cloudflareRoutes, notFoundPages } from './vite/preview/plugins.ts';
 import { minifyStyledCss, styledComponentIds } from './vite/prerender/plugins.ts';
 import { prerenderPagesInWorker } from './vite/prerender/utils/render.ts';
-import type { PageMetaApi } from './vite/types.ts';
-import {
-  getChunkName,
-  getFontFaceTags,
-  getPageChunkFiles,
-  getServerPorts,
-  renderHeaderRules,
-} from './vite/utils.ts';
+import type { FontFacesApi, PageMetaApi } from './vite/types.ts';
+import { getAssetFileName } from './vite/utils/assets.ts';
+import { getChunkName, getPageChunkFiles } from './vite/utils/chunks.ts';
+import { getFontFaceTags } from './vite/utils/fonts.ts';
+import { renderHeaderRules } from './vite/utils/headers.ts';
+import { getServerPorts } from './vite/utils/ports.ts';
 
 /**
  * Vite plugin that adds the web fonts of the site to the head of `index.html`, in development as
  * in the build: a link that preloads each font file, then a `<style>` of their `@font-face` rules
- * (see {@link getFontFaceTags}). It runs before {@link pageMeta}, which emits every other page
- * from the same head.
+ * (see {@link getFontFaceTags}). The build copies each font file of `public/` into
+ * {@link ASSETS_DIR} under a hash of its content, which the pages load, so that browsers keep it a
+ * year without asking the server again (see `HEADER_RULES`), and fails when a file is missing. The
+ * dev server serves the files of `public/`, as the standalone build does, which embeds them (see
+ * {@link FontFacesApi}). It runs before {@link pageMeta}, which emits every other page from the
+ * same head.
  */
-const fontFaces = (): Plugin => ({
-  name: 'font-faces',
-  transformIndexHtml: () => getFontFaceTags(),
-});
+const fontFaces = (): Plugin<FontFacesApi> => {
+  let publicDir = '';
+  let base = '';
+  let isBuild = false;
+  let keepsPublicUrls = false;
+
+  const getFontFile = (url: string) => join(publicDir, url);
+  const isHashingFonts = () => isBuild && !keepsPublicUrls;
+
+  return {
+    name: FONT_FACES_PLUGIN_NAME,
+    api: {
+      keepPublicUrls: () => {
+        keepsPublicUrls = true;
+      },
+    },
+    configResolved: config => {
+      publicDir = config.publicDir;
+      base = config.base;
+      isBuild = config.command === 'build';
+    },
+    buildStart() {
+      if (!isHashingFonts()) return;
+
+      FONT_FACES.forEach(({ url }) => {
+        const fontFile = getFontFile(url);
+        this.emitFile({
+          type: 'asset',
+          name: basename(url),
+          originalFileName: fontFile,
+          source: readFileSync(fontFile),
+        });
+      });
+    },
+    transformIndexHtml(_html, { bundle }) {
+      if (!isHashingFonts()) return getFontFaceTags();
+
+      const getUrl = (url: string) => {
+        const fileName = getAssetFileName({ bundle, originalFileName: getFontFile(url) });
+        if (!fileName) this.error(`The build has no copy of the font file ${url}`);
+        return `${base}${fileName}`;
+      };
+      return getFontFaceTags({ getUrl });
+    },
+  };
+};
 
 /** Date of the build, whose month the durations of the pages that it renders count to. */
 const BUILD_DATE = new Date();
@@ -274,9 +324,13 @@ const TEST_TIMEOUT_MS = 10_000;
  * a chunk per lazy page and named chunks for the libraries and the shared modules (see
  * {@link CODE_SPLITTING_GROUPS}), the dev and preview servers on the port of the worktree (see
  * {@link getServerPorts}), which fail when it is taken, the preview server with the security
- * headers of the site, and the tests in jsdom with coverage. Node.js loads it as it is, its types
- * stripped (`--configLoader native` in the scripts of `package.json`): every relative import of
- * the modules that it loads names its `.ts` file, and a JSON import says `with { type: 'json' }`.
+ * headers, the redirects to the canonical path of each page and the hidden configuration files
+ * of Cloudflare Pages (see {@link cloudflareRoutes}), the not found pages of the site, with their
+ * status 404, as Cloudflare Pages serves them (see {@link notFoundPages}), and the cache policy
+ * of the `_headers` rules (see {@link cacheHeaders}), and the tests in jsdom with coverage.
+ * Node.js loads it as it is, its types stripped (`--configLoader native` in the scripts of
+ * `package.json`): every relative import of the modules that it loads names its `.ts` file, and a
+ * JSON import says `with { type: 'json' }`.
  * @see https://vitejs.dev/config/
  */
 export default defineConfig(({ mode }) => {
@@ -295,6 +349,9 @@ export default defineConfig(({ mode }) => {
       sitemap(),
       webManifests(),
       httpHeaders(),
+      cloudflareRoutes(),
+      notFoundPages(),
+      cacheHeaders(),
     ],
     define: BUILD_CONSTANTS,
     build: {

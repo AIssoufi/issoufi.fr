@@ -2,7 +2,7 @@ name: Playwright
 description: >-
   Installs the headless shell of Chromium of the Playwright version in the lockfile, cached between
   runs. The system libraries it needs come from the runner image, and from the apt mirror only when
-  the browser does not start without them. Run it after the setup action.
+  the browser does not start without them. Run it after the setup action, on the runner.
 
 runs:
   using: composite
@@ -23,7 +23,8 @@ runs:
       shell: bash
 
     # Falls back to the apt mirror only when the browser does not start, as when a new image of the
-    # runner drops one of its libraries
+    # runner drops one of its libraries. The WebKit job of the CI runs in the image of Playwright
+    # without this action (decision 0024)
     - run: |
         if ! node --input-type=module --eval "$LAUNCH_BROWSER"; then
           pnpm exec playwright install-deps chromium-headless-shell

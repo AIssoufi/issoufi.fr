@@ -17,13 +17,10 @@ import {
   SCRIPT_BUDGET_GZIP_BYTES,
 } from './constants.mjs';
 import { writeAnnotation } from './utils/annotations.mjs';
-import {
-  checkBundleBudgets,
-  findLargeFiles,
-  findUncountedPaths,
-  getCompressionAdvice,
-  isBudgetedScript,
-} from './utils/bundle.mjs';
+import { checkBundleBudgets } from './utils/bundle-budgets.mjs';
+import { isBudgetedScript } from './utils/bundle-files.mjs';
+import { findUncountedPaths } from './utils/bundle-initial-load.mjs';
+import { findLargeFiles, getCompressionAdvice } from './utils/bundle-large-files.mjs';
 import { renderBundleReport } from './utils/bundle-report.mjs';
 import { readInitialLoadPaths } from './utils/html.mjs';
 import { appendJobSummary } from './utils/job-summary.mjs';

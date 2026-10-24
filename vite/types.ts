@@ -1,6 +1,6 @@
 /**
  * HTTP headers that Cloudflare Pages adds to its responses for the paths that match a pattern: a
- * block of the `_headers` file of the build, written by `renderHeaderRules` (`utils.ts`).
+ * block of the `_headers` file of the build, written by `renderHeaderRules` (`utils/headers.ts`).
  * @see https://developers.cloudflare.com/pages/configuration/headers/
  */
 export interface HeaderRule {
@@ -26,3 +26,36 @@ export interface PageMetaApi {
    */
   skipPrerender: () => void;
 }
+
+/**
+ * API of the plugin of `vite.config.ts` that adds the web fonts to the head of every page
+ * (`FONT_FACES_PLUGIN_NAME`), which another config reaches through `config.plugins`.
+ */
+export interface FontFacesApi {
+  /**
+   * Makes the pages load the font files from `public/fonts/`, as the dev server does, instead of
+   * the copies that the build writes in `assets/` under a hash of their content, as in the
+   * standalone build, which embeds the files of `public/` in its page. To call before the build
+   * starts, as from `configResolved`.
+   */
+  keepPublicUrls: () => void;
+}
+
+/** File of the build, as Rolldown passes it to `generateBundle`: the fields that find a chunk. */
+export interface BundleFile {
+  /** `chunk` for a script, `asset` for any other file. */
+  type?: string;
+  /** Path of the file in the build, e.g. `assets/Projects-1a2b3c.js`. */
+  fileName?: string;
+  /** Path of the main module of a chunk, `null` for a chunk of modules shared by others. */
+  facadeModuleId?: string | null;
+  /** Whether a chunk is an entry of the build, such as the main chunk that the template loads. */
+  isEntry?: boolean;
+  /** File names of the chunks that a chunk imports statically. */
+  imports?: readonly string[];
+  /** Paths of the files that an asset was emitted from, such as a font file of `public/`. */
+  originalFileNames?: readonly string[];
+}
+
+/** Files of the build, by file name, as Rolldown passes them to `generateBundle`. */
+export type BuildBundle = Record<string, BundleFile | null | undefined>;

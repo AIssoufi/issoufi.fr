@@ -9,6 +9,8 @@ export const enProjects = {
   showAll: 'Show all ({{count}})',
   previousPage: 'Previous page',
   nextPage: 'Next page',
+  pageStatus_one: 'Project {{first}} of {{total}}',
+  pageStatus_other: 'Projects {{first}} to {{last}} of {{total}}',
   like: 'Like {{name}}',
   names: {
     chess: 'Chess game',

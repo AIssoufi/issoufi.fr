@@ -1,6 +1,6 @@
 // @vitest-environment node
 import { execFileSync } from 'node:child_process';
-import { resolve } from 'node:path';
+import { basename, extname, resolve } from 'node:path';
 import { build, normalizePath, type Plugin, type Rolldown } from 'vite';
 
 import { isGoogleHost } from './e2e/utils.ts';
@@ -9,18 +9,18 @@ import { HOME_PAGE } from './src/utils/pages.ts';
 import { APP_CONTAINER_ID } from './src/utils/prerender.ts';
 import { SITEMAP_FILE_NAME } from './src/utils/sitemap.ts';
 import { renderStructuredDataScript } from './src/utils/structuredData.ts';
-import { HEADERS_FILE_NAME, ROBOTS_FILE_NAME } from './vite/constants.ts';
+import { ASSETS_DIR, HEADERS_FILE_NAME, ROBOTS_FILE_NAME } from './vite/constants.ts';
 import {
   HASH_ROUTER_MODULE,
   OPTIONAL_ESCAPE_PATTERN,
   QUOTE_PATTERN,
-  REGEXP_SPECIAL_CHARACTERS,
   STANDALONE_PAGE_FILE_NAME,
   STANDALONE_README_FILE_NAME,
 } from './vite/standalone/constants.ts';
 import { isServerOnlyFile } from './vite/standalone/utils/bundle.ts';
 import { readFontDataUrl } from './vite/standalone/utils/fonts.ts';
 import { listFileNames, listStandalonePublicFiles } from './vite/standalone/utils/public-files.ts';
+import { escapeRegExp } from './vite/utils/strings.ts';
 
 /** Longest time the standalone build may take in this test, coverage included. */
 const BUILD_TIMEOUT_MS = 60_000;
@@ -78,7 +78,7 @@ interface HasQuotedUrlParams {
  * minifier the strings of the code between back quotes.
  */
 const hasQuotedUrl = ({ html, url }: HasQuotedUrlParams) => {
-  const escapedUrl = url.replace(REGEXP_SPECIAL_CHARACTERS, '\\$&');
+  const escapedUrl = escapeRegExp(url);
   const pattern = `${QUOTE_PATTERN}${escapedUrl}${OPTIONAL_ESCAPE_PATTERN}${QUOTE_PATTERN}`;
   return new RegExp(pattern).test(html);
 };
@@ -225,6 +225,15 @@ describe('standalone build', () => {
     expect(stripInlineScripts(getSource(STANDALONE_PAGE_FILE_NAME))).not.toMatch(
       FONT_PRELOAD_PATTERN,
     );
+  });
+
+  it(`copies no web font into ${ASSETS_DIR}/, unlike the production build, since the page holds them`, () => {
+    const fontNames = FONT_FACES.map(({ url }) => basename(url, extname(url)));
+    const isFontCopy = (fileName: string) =>
+      fontNames.some(name => fileName.startsWith(`${ASSETS_DIR}/${name}-`));
+
+    expect(fontNames.length).toBeGreaterThan(0);
+    expect(output.map(file => file.fileName).filter(isFontCopy)).toEqual([]);
   });
 
   it('names no host of Google, so it renders the same offline', () => {

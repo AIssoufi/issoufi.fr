@@ -2,8 +2,9 @@ import { existsSync, readdirSync, statSync } from 'node:fs';
 import { join, relative, sep } from 'node:path';
 
 import { OPTIONAL_ESCAPE_PATTERN, QUOTE_PATTERN } from '../constants.ts';
+import { escapeRegExp } from '../../utils/strings.ts';
 import { isServerOnlyFile } from './bundle.ts';
-import { escapeRegExp, isFileName } from './strings.ts';
+import { isFileName } from './strings.ts';
 
 /** Tells whether a value is the path of a folder that exists. */
 const isFolderPath = (dir?: unknown): dir is string =>

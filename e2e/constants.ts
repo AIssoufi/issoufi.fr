@@ -18,6 +18,26 @@ export const SCREEN_HEIGHT_PX = 800;
 /** Path that no page uses, opened to check the not found page. */
 export const NOT_FOUND_ROUTE = '/browser-test-page-that-does-not-exist';
 
+/** HTTP status of the not found page, as Cloudflare Pages and `pnpm preview` serve it. */
+export const NOT_FOUND_STATUS = 404;
+
+/** Selector of the robots tag of a page, which tells search engines whether to index it. */
+export const ROBOTS_META_SELECTOR = 'meta[name="robots"]';
+
+/** Value of the robots tag of a page that search engines must not index, such as an error. */
+export const NO_INDEX_ROBOTS = 'noindex';
+
+/**
+ * Paths of the pages written with capitals, with the language of their not found page: Cloudflare
+ * Pages matches the files with case, so the app shows the not found page there too, and reads a
+ * language prefix with capitals as a path of the default language.
+ */
+export const CAPITALIZED_ROUTES: readonly { path: string; language: Language }[] = [
+  { path: '/Projects', language: 'fr' },
+  { path: '/en/Experiences', language: 'en' },
+  { path: '/EN/', language: 'fr' },
+];
+
 /**
  * Unknown path wider than any phone screen, as a link shared by mail can be: percent-encoded words,
  * which the not found page names decoded, then a word of 64 letters, with no space to wrap at.
@@ -43,7 +63,7 @@ export const MAX_ERROR_MESSAGE_CENTER_OFFSET_RATIO = 0.1;
 
 /**
  * Chunks of the Projects page, which the test of the unexpected error keeps from loading, so the
- * page fails to load (see `getChunkName`, `vite/utils.ts`).
+ * page fails to load (see `getChunkName`, `vite/utils/chunks.ts`).
  */
 export const PROJECTS_CHUNK_PATTERN = '**/assets/Projects-*.js';
 
@@ -248,6 +268,32 @@ export const PHOTO_PRELOAD_INITIATOR_TYPE = 'link';
  * (`src/utils/pages.ts`), so the type-check fails when the route changes there.
  */
 export const PROJECTS_ROUTE: Page['path'] = '/projects';
+
+/** HTTP status of the redirect to the canonical path of a page, as Cloudflare Pages sends it. */
+export const REDIRECT_STATUS = 308;
+
+/** Name of the HTTP header of the URL of a redirect, in lower case as Playwright gives it. */
+export const LOCATION_HEADER = 'location';
+
+/**
+ * Paths that name a page by another path than its canonical one, with the location to which
+ * Cloudflare Pages and `pnpm preview` redirect them: the home page of a language with a trailing
+ * slash, the other pages without it nor their `.html`, and the query of the request kept.
+ */
+export const REDIRECTED_ROUTES: readonly { path: string; location: string }[] = [
+  { path: '/index.html', location: '/' },
+  { path: '/en', location: '/en/' },
+  { path: '/en/index.html?a=1', location: '/en/?a=1' },
+  { path: `${PROJECTS_ROUTE}/`, location: PROJECTS_ROUTE },
+  { path: `${PROJECTS_ROUTE}.html`, location: PROJECTS_ROUTE },
+  { path: `/en${TIMELINE_ROUTE}/?a=1`, location: `/en${TIMELINE_ROUTE}?a=1` },
+];
+
+/**
+ * Path of the headers file of Cloudflare Pages at the root of the build, which it reads and
+ * answers with the not found page of the default language.
+ */
+export const HEADERS_FILE_ROUTE = '/_headers';
 
 /**
  * Card of each project of the Projects page: an item of the list of cards of its section, which
@@ -848,6 +894,12 @@ export const REACT_FIBER_KEY_PREFIX = '__reactFiber$';
  * page of the build and its own render as an error, and logs other problems as warnings.
  */
 export const REPORTED_CONSOLE_TYPES: ReadonlySet<string> = new Set(['error', 'warning']);
+
+/**
+ * Text of the error that Chromium logs in the console for a resource served with the status 404,
+ * as the not found page is.
+ */
+export const NOT_FOUND_STATUS_MESSAGE_PATTERN = /status of 404\b/;
 
 /**
  * Months from the build to the clock of the visitor in the hydration test: over a year, so the

@@ -8,6 +8,7 @@ import {
   VISUAL_RANDOM_SEED,
   VISUAL_SCREENS,
 } from './constants.ts';
+import { waitForPageContent } from './loading.ts';
 import { loadAllImages, seedRandom } from './screenshots.ts';
 import { getCheckedRoutes } from './utils.ts';
 
@@ -33,10 +34,7 @@ for (const screen of VISUAL_SCREENS) {
           await expect(page.locator(PAGE_SELECTOR)).toBeVisible();
           await page.evaluate(loadAllImages);
           // The background photo, which no img shows, then the web fonts
-          await page.waitForLoadState('networkidle');
-          await page.evaluate(async () => {
-            await document.fonts.ready;
-          });
+          await page.evaluate(waitForPageContent);
 
           await expect(page).toHaveScreenshot({ fullPage: true });
         });

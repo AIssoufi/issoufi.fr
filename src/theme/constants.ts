@@ -27,14 +27,16 @@ export const FONT_MEDIA_TYPE = 'font/woff2';
 export const FONT_DISPLAY = 'swap';
 
 /**
- * Web fonts of the pages, which the site serves itself from `public/fonts/`, next to their
- * licenses (`*-OFL.txt`), so that no page requests Google. The files are the `latin` subsets that
- * Google Fonts served to Windows and Linux, byte for byte, with their hinting: macOS, iOS and
+ * Web fonts of the pages, which the site serves itself, from the files of `public/fonts/` next to
+ * their licenses (`*-OFL.txt`), so that no page requests Google. The files are the `latin` subsets
+ * that Google Fonts served to Windows and Linux, byte for byte, with their hinting: macOS, iOS and
  * Android ignore it, so every system draws the text as before. The `font-faces` plugin of
  * `vite.config.ts` declares them in the head of every page, and preloads their files, since every
- * page shows text in them. `pnpm og-image` reads the files as data URLs, and the standalone build
- * embeds them the same way: keep their names and their folder, which other scripts read. The
- * weights and styles describe the files, as Google Fonts declared them, not a design choice.
+ * page shows text in them: the build copies each file into `assets/` under a hash of its content,
+ * which the pages load, so that browsers keep it a year. `pnpm og-image` reads the files as data
+ * URLs, and the standalone build embeds them the same way: keep their names and their folder,
+ * which other scripts read. The weights and styles describe the files, as Google Fonts declared
+ * them, not a design choice.
  */
 export const FONT_FACES: readonly FontFaceDeclaration[] = [
   {

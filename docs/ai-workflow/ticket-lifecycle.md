@@ -35,7 +35,7 @@ The worker commits with Conventional Commits and a `Refs:` footer, runs the [rev
 
 ## 4. The merge
 
-The master checks the pull request on GitHub rather than trusting the message: a green CI, a mergeable branch, a diff that matches the ticket and a review verdict. It merges one pull request at a time, with a merge commit whose body is `Closes #<number>`, so that release-please does not list a change twice. Then it deletes the branch, tells the other workers that `develop` moved, and removes the finished worktree and workspace.
+The master checks the pull request on GitHub rather than trusting the message: a green CI, a mergeable branch, a diff that matches the ticket and a review verdict. It merges one pull request at a time, with a merge commit whose body is `Closes #<number>`, so that release-please does not list a change twice. Then it deletes the branch, tells the other workers that `develop` moved, and removes the finished worktree and workspace. After a merge, or after parking a worker that waits for its CI, it runs `ticket.mjs next-turn` to hand the freed slot to a waiting master ([messages](roles.md#messages)).
 
 ## 5. The deploy
 

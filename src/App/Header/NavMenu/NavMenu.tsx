@@ -59,7 +59,8 @@ const NO_ITEMS: Item[] = [];
  * on mobile, where the same items follow each other, centered: the links, the icons on one row,
  * then the CV link as a pill with a download icon. On a short screen, as on a phone held sideways,
  * the overlay is more compact, and it scrolls whenever its content is higher than the screen. Must
- * be rendered inside a router, because the links are `NavLink`s.
+ * be rendered inside a router, because the links are `NavLink`s. A link matches the path with its
+ * case, so a path with capitals, which shows the not-found page, highlights none.
  *
  * In a browser that runs no script, the mobile menu also opens while the fragment of the URL names
  * its `id` (`/projects#menu`), which the links of `BurgerMenu` lead to, so its links stay within
@@ -80,6 +81,8 @@ const NavMenu = ({ id, items = NO_ITEMS, onClick, mobileMenuIsOpen = false }: Na
             <NavLink
               to={item.url}
               end={item.end}
+              // A path with capitals shows the not-found page, which no link may mark as current
+              caseSensitive
               onClick={onClick}
               className={({ isActive }) => (isActive ? 'active' : '')}
             >

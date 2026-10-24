@@ -16,6 +16,7 @@ import {
   PROJECTS_ROUTE,
   SCREEN_HEIGHT_PX,
 } from './constants.ts';
+import { waitForPageContent } from './loading.ts';
 import { type CardBox, countWholeCards, filterWholeCards, groupCardsIntoRows } from './utils.ts';
 
 /** Texts of the Projects page in each language. */
@@ -118,10 +119,7 @@ const openSection = async ({ page, title, language = DEFAULT_LANGUAGE }: OpenSec
   // Measured before the chunk of the page is loaded, there would be no card to measure
   await expect(cards.first()).toBeVisible();
   // The web fonts that replace the fallback font change where the text of a card wraps
-  await page.waitForLoadState('networkidle');
-  await page.evaluate(async () => {
-    await document.fonts.ready;
-  });
+  await page.evaluate(waitForPageContent);
   return { section, list, cards };
 };
 

@@ -18,7 +18,7 @@ On every pull request, and on every push to `develop` and `main`, GitHub Actions
 
 1. formatting, lint and type-check, and a lint of the workflows;
 2. the unit tests with coverage;
-3. the build, its size, and the browser tests over three parallel jobs;
+3. the build, its size, and the browser tests over three parallel jobs in Chromium, with a fourth one that runs those of phones in WebKit;
 4. on pull requests, a check of the commit messages and of new dependencies, and a comparison of the screenshots of every page with the base branch, which only informs;
 5. the deployment and its smoke test, and on `main` a check that `http://issoufi.fr/`, `http://www.issoufi.fr/` and `https://www.issoufi.fr/` redirect to `https://issoufi.fr/` in one hop.
 
@@ -56,6 +56,8 @@ Every morning between 6:00 and 7:00, Paris time, a Cloudflare Worker starts a wo
 - The deploy runs the wrangler of the lockfile, the one `pnpm exec wrangler` runs locally.
 - The workflows reference each action of a third party by the SHA of its commit, its version in a comment, which Dependabot updates, since the owner of a tag can move it. The actions of GitHub keep their major tag.
 - The `workflows` job of the CI keeps it so: [`check-action-pins.mjs`](../scripts/ci/check-action-pins.mjs) reads each `uses:` key of the YAML files of `.github/`, and fails with an annotation on the line of one that is neither an action of GitHub (`actions/*`), nor an action of the repository (`./`), nor pinned by a 40-character SHA, or by its digest for a Docker image. It reads the keys written one per line, as Prettier and Dependabot write them, not those in quotes or in a flow mapping (`- { uses: … }`).
+- The same check reads the Docker image of the container of each job (`jobs.<job>.container`) and of each of its services (`jobs.<job>.services.<service>`), written as the value of that key or under its `image:` key, and fails on the line of one that does not end with its SHA-256 digest (`<image>:<tag>@sha256:<digest>`), with an annotation that names its job and its service, since the owner of a tag can change what it holds. A container or a service that names no image on the line of its key, nor on the line of its `image:` key, fails too, since the check cannot read it. Like the `uses:` keys, it reads the keys written in block style, not those of a flow mapping (`services: { … }`).
+- The image of Playwright in which the `browser-test (webkit)` job of the CI runs is pinned by its digest after its tag, which names the version of `@playwright/test`. Dependabot does not read it, and `check-action-pins.mjs` only requires its digest: a pull request that updates Playwright changes both ([In WebKit](testing.md#in-webkit)), or `check-playwright-image.mjs` fails the `workflows` job on a tag of another version than the lockfile.
 
 ## Setup by the site owner
 

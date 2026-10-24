@@ -6,7 +6,7 @@ One Architecture Decision Record (ADR) per change of tool or of architecture: wh
 
 - **Due**: a change of tool or of architecture, such as a framework, a build tool, a test runner, a package manager, a language, a host, or the way the site is rendered, deployed or released.
 - **Not due**: a version update of a tool already used, a library for one feature, or a choice inside the code (a helper, a component, a test).
-- The pull request that makes the change writes its ADR, with the next free number, and its step of [`docs/evolution.md`](../evolution.md).
+- The pull request that makes the change writes its ADR, with the next free number, and its step of [`docs/evolution.md`](../evolution.md), with a "Measured on YYYY-MM-DD." line before its table.
 - Its ticket measures the figures that the change moves before the first commit, on the base of the branch, then again on the final state, with the same command on the same machine.
 
 ## Template
@@ -17,7 +17,7 @@ One Architecture Decision Record (ADR) per change of tool or of architecture: wh
 # NNNN. <Decision in a few words>
 
 - Date: YYYY-MM-DD (the merge day; for a record written later, the day of the commit)
-- Status: Accepted | Superseded by [NNNN](NNNN-short-title.md)
+- Status: Accepted | Superseded by [NNNN](NNNN-short-title.md) | Accepted, superseded for <part> by [NNNN](NNNN-short-title.md)
 
 ## Context
 
@@ -64,3 +64,6 @@ An ADR is not rewritten later: a new decision supersedes it, and the old one get
 | [0020](0020-vitest-5.md)                             | 2026-10-22 | Update Vitest to 5                                     |
 | [0021](0021-knip.md)                                 | 2026-10-22 | Report unused files and exports with knip              |
 | [0022](0022-chromium-libraries-from-runner-image.md) | 2026-10-22 | Take the libraries of Chromium from the runner image   |
+| [0023](0023-phone-browser-tests-in-webkit.md)        | 2026-10-23 | Run the phone browser tests in WebKit too              |
+| [0024](0024-webkit-in-playwright-image.md)           | 2026-10-23 | Run the WebKit tests in the image of Playwright        |
+| [0025](0025-hashed-web-fonts.md)                     | 2026-10-24 | Serve the web fonts under hashed names, cached a year  |

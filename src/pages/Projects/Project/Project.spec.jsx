@@ -958,6 +958,149 @@ describe('Project', () => {
     expect(within(screen.getByRole('group')).getAllByRole('button')).toHaveLength(1);
   });
 
+  describe('page status', () => {
+    it('is empty on the first render, so that loading the page announces nothing', () => {
+      render(<Project projects={projects} />);
+
+      expect(screen.getByRole('status')).toBeEmptyDOMElement();
+    });
+
+    it('stays empty after a press of an arrow that has no page to go to', async () => {
+      render(<Project projects={projects} />);
+
+      await userEvent.click(pageButtons().previousButton);
+
+      expect(screen.getByRole('status')).toBeEmptyDOMElement();
+    });
+
+    it('announces the cards of the page after each page change, one card at a time', async () => {
+      showWholeCards(1);
+      render(<Project projects={projects} />);
+      const { previousButton, nextButton } = pageButtons();
+      const status = screen.getByRole('status');
+
+      await userEvent.click(nextButton);
+      expect(status).toHaveTextContent('Projets 2 à 4 sur 4');
+      await userEvent.click(nextButton);
+      expect(status).toHaveTextContent('Projets 3 à 4 sur 4');
+      await userEvent.click(nextButton);
+      expect(status).toHaveTextContent('Projet 4 sur 4');
+      // The last page has no next one: the status keeps it
+      await userEvent.click(nextButton);
+      expect(status).toHaveTextContent('Projet 4 sur 4');
+      await userEvent.click(previousButton);
+      expect(status).toHaveTextContent('Projets 3 à 4 sur 4');
+    });
+
+    it('announces the cards of the page after each page change, a row at a time', async () => {
+      showWholeCards(ROW_CARD_COUNT);
+      render(<Project projects={projects} />);
+      const { previousButton, nextButton } = pageButtons();
+      const status = screen.getByRole('status');
+
+      await userEvent.click(nextButton);
+      expect(status).toHaveTextContent('Projet 4 sur 4');
+      await userEvent.click(previousButton);
+      expect(status).toHaveTextContent('Projets 1 à 3 sur 4');
+    });
+
+    it('announces the cards of the page in English', async () => {
+      showWholeCards(1);
+      render(<Project projects={projects} />);
+      await act(() => i18n.changeLanguage('en'));
+      const nextButton = screen.getByRole('button', { name: 'Next page' });
+      const status = screen.getByRole('status');
+
+      await userEvent.click(nextButton);
+      expect(status).toHaveTextContent('Projects 2 to 4 of 4');
+      await userEvent.click(nextButton);
+      await userEvent.click(nextButton);
+      expect(status).toHaveTextContent('Project 4 of 4');
+    });
+
+    it('is empty while every card shows, and announces the page again after "Show less"', async () => {
+      showWholeCards(1);
+      render(<Project projects={projects} />);
+      const status = screen.getByRole('status');
+
+      await userEvent.click(pageButtons().nextButton);
+      await userEvent.click(screen.getByRole('button', { name: 'Tout afficher (4)' }));
+      expect(status).toBeEmptyDOMElement();
+
+      await userEvent.click(screen.getByRole('button', { name: 'Afficher moins' }));
+      expect(status).toHaveTextContent('Projets 2 à 4 sur 4');
+    });
+
+    it('gives each section its own status', async () => {
+      showWholeCards(1);
+      render(
+        <>
+          <Project projects={projects} />
+          <Project projects={projects} />
+        </>,
+      );
+      const [firstStatus, secondStatus] = screen.getAllByRole('status');
+
+      await userEvent.click(screen.getAllByRole('button', { name: NEXT_PAGE_NAME })[1]);
+
+      expect(firstStatus).toBeEmptyDOMElement();
+      expect(secondStatus).toHaveTextContent('Projets 2 à 4 sur 4');
+    });
+  });
+
+  describe('"Show all"', () => {
+    it('exposes whether the list is expanded, in both states', async () => {
+      render(<Project projects={projects} />);
+
+      expect(screen.getByRole('button', { name: 'Tout afficher (4)' })).toHaveAttribute(
+        'aria-expanded',
+        'false',
+      );
+
+      await userEvent.click(screen.getByRole('button', { name: 'Tout afficher (4)' }));
+
+      expect(screen.getByRole('button', { name: 'Afficher moins' })).toHaveAttribute(
+        'aria-expanded',
+        'true',
+      );
+    });
+
+    it('names the list of the cards that it shows, in both states', async () => {
+      render(<Project projects={projects} />);
+      const controlledList = () =>
+        document.getElementById(
+          screen
+            .getByRole('button', { name: /Tout afficher|Afficher moins/ })
+            .getAttribute('aria-controls'),
+        );
+
+      expect(controlledList()).toBe(gridOf('Chess'));
+
+      await userEvent.click(screen.getByRole('button', { name: 'Tout afficher (4)' }));
+
+      expect(controlledList()).toBe(gridOf('Chess'));
+    });
+
+    it('names the list of its own section when the page shows several', () => {
+      render(
+        <>
+          <Project projects={[projects[0]]} />
+          <Project projects={[projects[1]]} />
+        </>,
+      );
+      const [firstButton, secondButton] = screen.getAllByRole('button', {
+        name: 'Tout afficher (1)',
+      });
+
+      expect(document.getElementById(firstButton.getAttribute('aria-controls'))).toBe(
+        gridOf('Chess'),
+      );
+      expect(document.getElementById(secondButton.getAttribute('aria-controls'))).toBe(
+        gridOf('Calculator'),
+      );
+    });
+  });
+
   it('tilts a card toward the pointer, then flattens it when the pointer leaves', () => {
     render(<Project projects={projects} />);
     const card = cardOf('Chess');

@@ -1,5 +1,43 @@
 # Changelog
 
+## [1.6.2](https://github.com/AIssoufi/issoufi.fr/compare/v1.6.1...v1.6.2) (2026-10-24)
+
+
+### Bug Fixes
+
+* **app:** show the not found page for a path with capitals ([f1de8fe](https://github.com/AIssoufi/issoufi.fr/commit/f1de8fed60dc84964bcca63973cfc5695180409e))
+* **header:** keep the menu links inactive on a path with capitals ([4060aa1](https://github.com/AIssoufi/issoufi.fr/commit/4060aa1f094616475e23318e7f6357c4f35d50a0))
+
+
+### Performance
+
+* **fonts:** cache the web fonts for a year under hashed names ([432fe6d](https://github.com/AIssoufi/issoufi.fr/commit/432fe6df1456360f12433d25a3c60b66c42bc48e))
+
+
+### Code Refactoring
+
+* **ci:** export the quote and indentation readers of the YAML helpers ([5b60435](https://github.com/AIssoufi/issoufi.fr/commit/5b60435959a500c05aed59a9f6bb2bef585570fe))
+* **ci:** split the bundle helpers into one module per topic ([03d50d7](https://github.com/AIssoufi/issoufi.fr/commit/03d50d7bedf6ac7ea3167a2937f62045ae282106))
+* **vite:** move escapeRegExp up to the helpers shared by every Vite config ([c5bdf3e](https://github.com/AIssoufi/issoufi.fr/commit/c5bdf3edc2aac5b5619572ee2534be99c51ba3c9))
+* **vite:** split the config helpers into one module per topic ([da7c6c5](https://github.com/AIssoufi/issoufi.fr/commit/da7c6c5fbc2b02af2b732b04d228899b4c32492d))
+
+
+### Documentation
+
+* **ai-workflow:** describe the slot handoff between masters ([f7de321](https://github.com/AIssoufi/issoufi.fr/commit/f7de321d5be81ec2be11f924bc073238efdd7eb7))
+* **ai-workflow:** describe when a master parks a worker during its CI ([1480638](https://github.com/AIssoufi/issoufi.fr/commit/14806386368fda9a7b3440bb2d5f37726622bdcc))
+* **decisions:** ask for the date line of each step of the evolution ([0374473](https://github.com/AIssoufi/issoufi.fr/commit/03744730684aedd6c96a1e9fb2e9d0c1d748bf41))
+* **decisions:** record the hashed web fonts cached a year ([2459847](https://github.com/AIssoufi/issoufi.fr/commit/24598477eba083ff9c8dd30a07077770ee1434bc))
+* describe the check of the images of the jobs next to that of the actions ([bde8f5d](https://github.com/AIssoufi/issoufi.fr/commit/bde8f5d7d918c56483ecd930a31e7d2765bfb18a))
+* **evolution:** date the measures of each step ([53156e7](https://github.com/AIssoufi/issoufi.fr/commit/53156e77d791a89916fbe53fee49b1c7d4e5f27f))
+* record the phone browser tests in WebKit ([b297dbf](https://github.com/AIssoufi/issoufi.fr/commit/b297dbf95d065c4c097df7fc5190204f63be115b))
+* record the WebKit tests in the image of Playwright ([a1b42c5](https://github.com/AIssoufi/issoufi.fr/commit/a1b42c5d4fef35321f055ff71c586001c35cda43))
+* say what to do when the Playwright image check fails ([1adef09](https://github.com/AIssoufi/issoufi.fr/commit/1adef091d9f3d87fd9f294d4ba8d876f8c44f3d3))
+* **testing:** say how a browser test waits for the page to load ([2902034](https://github.com/AIssoufi/issoufi.fr/commit/2902034208370130dd9a4666d6e16845e5f18cb7))
+* **testing:** say that the preview serves the not found page as Cloudflare does ([e126404](https://github.com/AIssoufi/issoufi.fr/commit/e12640457aa7ab12affe1cbba1ca909650bdbbf8))
+* **testing:** say which cache policy pnpm preview sends ([2d23ded](https://github.com/AIssoufi/issoufi.fr/commit/2d23ded54d36096ea6d09019139875b3eb0d2220))
+* **testing:** say which redirects of Cloudflare pnpm preview answers ([57c8b6e](https://github.com/AIssoufi/issoufi.fr/commit/57c8b6e2e666f9bd8ec95b6a78b20900f6df30b3))
+
 ## [1.6.1](https://github.com/AIssoufi/issoufi.fr/compare/v1.6.0...v1.6.1) (2026-10-23)
 
 

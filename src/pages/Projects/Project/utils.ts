@@ -267,6 +267,45 @@ export function getPageProjects({ projects, pageStart }: GetPageProjectsParams):
   return projects.slice(start, start + ROW_CARD_COUNT);
 }
 
+/** Parameters of {@link getPageRange}. */
+interface GetPageRangeParams {
+  /** Total number of cards. */
+  total: number;
+  /** Index of the first card of the page. */
+  pageStart: number;
+}
+
+/** Positions of the cards that a page shows, counted from one, as a visitor counts them. */
+export interface PageRange {
+  /** Position of the first card of the page. */
+  first: number;
+  /** Position of the last card of the page. */
+  last: number;
+  /** Number of cards of the page. */
+  count: number;
+}
+
+/**
+ * Returns the positions of the cards that the row shows from a page, those of
+ * {@link getPageProjects}: {@link ROW_CARD_COUNT} cards from its first one, fewer on the last page.
+ *
+ * @returns `undefined` without cards, past the last one, or with a total that is not a whole
+ * number. A start that is not a whole number from zero, such as `-1`, `1.5` or `NaN`, gives the
+ * first page.
+ *
+ * @example
+ * getPageRange({ total: 4, pageStart: 1 }); // { first: 2, last: 4, count: 3 }
+ */
+export function getPageRange({ total, pageStart }: GetPageRangeParams): PageRange | undefined {
+  const start = isPageStart(pageStart) ? pageStart : 0;
+  const hasCardToShow = isPageStart(total) && start < total;
+  if (!hasCardToShow) return undefined;
+
+  const end = Math.min(start + ROW_CARD_COUNT, total);
+  // An index counts from zero, a position from one
+  return { first: start + 1, last: end, count: end - start };
+}
+
 /** Any white space character, which would split a URL of a `srcset` in two. */
 const WHITE_SPACE_PATTERN = /\s/;
 

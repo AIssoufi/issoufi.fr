@@ -130,6 +130,25 @@ describe('App', () => {
     },
   );
 
+  it.each([
+    ['/Projects', fr, 'fr'],
+    ['/EXPERIENCES', fr, 'fr'],
+    ['/en/Projects', en, 'en'],
+    ['/EN/', fr, 'fr'],
+    ['/En/experiences', fr, 'fr'],
+  ])(
+    'shows the not found page at %s, whose capitals the server does not serve either',
+    async (path, translations, language) => {
+      window.history.pushState({}, '', path);
+      render(<App />);
+
+      const title = translations.errors.notFound.title;
+      expect(await screen.findByRole('heading', { level: 1, name: title })).toBeInTheDocument();
+      expect(document.title).toBe(translations.meta.notFound.title);
+      expect(document.documentElement.lang).toBe(language);
+    },
+  );
+
   it('loads the other pages on navigation', async () => {
     const user = userEvent.setup();
     render(<App />);

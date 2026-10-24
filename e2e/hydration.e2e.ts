@@ -1,4 +1,4 @@
-import { expect, type Page, test } from '@playwright/test';
+import { type ConsoleMessage, expect, type Page, test } from '@playwright/test';
 
 import freelanceProjectsData from '../src/pages/Projects/.data/freelance-projects.json' with { type: 'json' };
 import personalProjectsData from '../src/pages/Projects/.data/personal-projects.json' with { type: 'json' };
@@ -11,6 +11,7 @@ import { getPageFiles, NOT_FOUND_FOLDER, NOT_FOUND_PATH } from '../src/utils/pag
 import { APP_CONTAINER_ID } from '../src/utils/prerender.ts';
 import {
   NOT_FOUND_ROUTE,
+  NOT_FOUND_STATUS_MESSAGE_PATTERN,
   PAGE_HEADINGS,
   PAGE_SELECTOR,
   PRERENDERED_ELEMENTS_PROPERTY,
@@ -19,9 +20,18 @@ import {
   REPORTED_CONSOLE_TYPES,
   VISITOR_MONTHS_AFTER_BUILD,
 } from './constants.ts';
+import { waitForPageContent } from './loading.ts';
 
 /** Translations of each language, to find each page by its heading. */
 const TRANSLATIONS = { fr, en };
+
+/** Parameters of {@link isNotFoundStatusMessage}. */
+interface IsNotFoundStatusMessageParams {
+  /** Message of the console to check. */
+  message: ConsoleMessage;
+  /** Page of the browser that logged it. */
+  page: Page;
+}
 
 const pageFiles = getPageFiles();
 
@@ -46,6 +56,13 @@ const visitAfterBuild = async (page: Page) => {
 };
 
 /**
+ * Tells whether a console message is the error that Chromium logs for a page served with the status
+ * 404, as the not found page is: the status of the page itself, not a problem of the page.
+ */
+const isNotFoundStatusMessage = ({ message, page }: IsNotFoundStatusMessageParams) =>
+  message.location().url === page.url() && NOT_FOUND_STATUS_MESSAGE_PATTERN.test(message.text());
+
+/**
  * Records what a page reports while it loads: the errors and warnings of its console, among which
  * React reports a mismatch between the page of the build and its own render, and the errors that
  * it throws.
@@ -53,7 +70,9 @@ const visitAfterBuild = async (page: Page) => {
 const recordProblems = (page: Page) => {
   const problems: string[] = [];
   page.on('console', message => {
-    if (REPORTED_CONSOLE_TYPES.has(message.type())) {
+    const isProblem =
+      REPORTED_CONSOLE_TYPES.has(message.type()) && !isNotFoundStatusMessage({ message, page });
+    if (isProblem) {
       problems.push(`${message.type()}: ${message.text()}`);
     }
   });
@@ -85,7 +104,7 @@ const waitForHydration = async (page: Page) => {
       Object.keys(document.querySelector(selector) ?? {}).some(key => key.startsWith(keyPrefix)),
     { selector: PAGE_SELECTOR, keyPrefix: REACT_FIBER_KEY_PREFIX },
   );
-  await page.waitForLoadState('networkidle');
+  await page.evaluate(waitForPageContent);
 };
 
 /** Reads the elements that the build rendered and that the page no longer holds. */
@@ -188,8 +207,8 @@ test.describe('pages with JavaScript off', () => {
     test(`the not found page in ${language} says that the page does not exist`, async ({
       page,
     }) => {
-      // The file that Cloudflare Pages serves at a path of no page, which vite preview serves at
-      // its own path only
+      // The file that Cloudflare Pages and vite preview serve at a path of no page, opened here at
+      // its own path
       await page.goto(localizePath({ path: NOT_FOUND_PATH, language }));
 
       await expect(page.getByRole('heading', { level: 1 })).toContainText(

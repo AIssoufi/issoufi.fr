@@ -106,6 +106,10 @@ jobs:
       # that names the later step using the token
       - if: ${{ !cancelled() }}
         run: node scripts/ci/check-checkout-credentials.mjs
+      # Dependabot updates @playwright/test in the lockfile, but not the tag of the image of
+      # Playwright that the WebKit job runs in, whose browsers then fail to launch
+      - if: ${{ !cancelled() }}
+        run: node scripts/ci/check-playwright-image.mjs
 
   # Lints the commits of a pull request. Its title has a workflow of its own,
   # pull-request-title.yml, which also runs on each edit of the pull request
@@ -174,8 +178,8 @@ jobs:
           path: dist/
           retention-days: 7
 
-  # Splits the Playwright tests over parallel jobs, each running a slice of them on its own runner,
-  # so the wall time stays well under the timeout as the suite grows
+  # Splits the Playwright tests in Chromium over parallel jobs, each running a slice of them on its
+  # own runner, so the wall time stays well under the timeout as the suite grows
   browser-test-shard:
     needs: build
     name: browser-test (${{ matrix.shard }}/${{ strategy.job-total }})
@@ -198,7 +202,7 @@ jobs:
           path: dist
       - uses: ./.github/actions/playwright
       # Playwright splits the tests in file order into slices of the same number of tests
-      - run: pnpm test:browser --shard="$SHARD"
+      - run: pnpm test:browser --project=chromium --shard="$SHARD"
         env:
           SHARD: ${{ matrix.shard }}/${{ strategy.job-total }}
       # Fails once Chromium prints the same CV twice with other bytes than its dates, which would
@@ -214,10 +218,46 @@ jobs:
           path: test-results/
           retention-days: 14
 
-  # The required check of both rulesets, which name it: it passes once every shard passed, and fails
-  # when one failed or was skipped, since a skipped required check would let a pull request merge
+  # Runs the phone specs in WebKit, the engine of Safari, on its own runner, so the Chromium shards
+  # keep their duration. It runs in the image of Playwright, which holds WebKit and its system
+  # libraries, so it reads no apt mirror (decision 0024)
+  browser-test-webkit:
+    needs: build
+    name: browser-test (webkit)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    container:
+      # The tag names the version of @playwright/test in the lockfile, and the digest pins its
+      # content. Dependabot updates neither: change both with that version (docs/testing.md), or
+      # check-playwright-image.mjs fails the workflows job and names the tag to write
+      image: mcr.microsoft.com/playwright:v1.64.0-noble@sha256:06a9939e57531807f8d5fd76ce44b53165ffb7d7501d87ab10e285c20b1e971f
+      # Not root but the user of the runner, who writes the workspace, as the docs of Playwright do
+      options: --user 1001
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: ./.github/actions/setup
+      - uses: actions/download-artifact@v8
+        with:
+          name: dist
+          path: dist
+      # No .github/actions/playwright: the image holds the browsers in /ms-playwright, and the cache
+      # of that action, saved on the runner, would restore them to /.cache, which that user cannot
+      # create
+      - run: pnpm test:browser --project=webkit
+      - if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: browser-test-results-webkit
+          path: test-results/
+          retention-days: 14
+
+  # The required check of both rulesets, which name it: it passes once every shard and the WebKit
+  # job passed, and fails when one failed or was skipped, since a skipped required check would let
+  # a pull request merge
   browser-test:
-    needs: browser-test-shard
+    needs: [browser-test-shard, browser-test-webkit]
     if: ${{ !cancelled() }}
     runs-on: ubuntu-latest
     timeout-minutes: 5
@@ -228,6 +268,12 @@ jobs:
           exit 1
         env:
           SHARDS_RESULT: ${{ needs.browser-test-shard.result }}
+      - if: needs.browser-test-webkit.result != 'success'
+        run: |
+          echo "::error::The browser tests did not pass in WebKit: its job ended with '${WEBKIT_RESULT}'."
+          exit 1
+        env:
+          WEBKIT_RESULT: ${{ needs.browser-test-webkit.result }}
 
   # Compares the screenshots of every page with those of the base of the pull request, at four
   # widths in each language, and lists the changed screens in the job summary (pnpm test:visual).

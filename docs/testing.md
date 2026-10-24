@@ -1,10 +1,10 @@
 # Testing
 
-| Level              | Tools                          | Command                                |
-| ------------------ | ------------------------------ | -------------------------------------- |
-| Unit and component | Vitest, Testing Library, jsdom | `pnpm test`                            |
-| Browser            | Playwright, Chromium, axe-core | `pnpm build`, then `pnpm test:browser` |
-| Screenshots        | Playwright, Chromium           | `pnpm test:visual`                     |
+| Level              | Tools                                  | Command                                |
+| ------------------ | -------------------------------------- | -------------------------------------- |
+| Unit and component | Vitest, Testing Library, jsdom         | `pnpm test`                            |
+| Browser            | Playwright, Chromium, WebKit, axe-core | `pnpm build`, then `pnpm test:browser` |
+| Screenshots        | Playwright, Chromium                   | `pnpm test:visual`                     |
 
 ## Unit and component tests
 
@@ -17,8 +17,10 @@
 
 ## Browser tests
 
-jsdom computes no layout, so these tests run in Chromium, on the production build.
+jsdom computes no layout, so these tests run in Chromium, on the production build, and those of phones in WebKit too.
+`pnpm preview` serves that build as Cloudflare Pages does, even on the disk of macOS, which ignores case: a path that names no file, case included, gets the closest not found page up its folders, `en/404.html` under `/en/` and `404.html` elsewhere, with the status 404 (`vite/preview/plugins.ts`), so the tests check the status and the `noindex` of the not found page. A file of the build gets the `Cache-Control` that the rules of `HEADER_RULES` give its path, the rules that the build writes to `_headers`, in place of the `no-cache` of Vite (`getCacheControl` in `vite/preview/utils.ts`): a browser keeps the hashed files of `assets/` a year, as on Cloudflare Pages, rather than revalidating them on each load of a test. WebKit still fetches the web font again on each page load. Before any file, it answers the routes that Cloudflare Pages answers itself (`cloudflareRoutes`, helpers in `vite/preview/redirects.ts`): a path that names a file of the build, case included, by another path than its canonical one gets a 308 to that path, relative and with the query of the request, carrying the security headers and no `Cache-Control` (`/en` to `/en/`, `/projects/` and `/projects.html` to `/projects`, `/index.html` to `/`), and `/_headers` and `/_redirects` get the not found page with the status 404, so a test never passes at a URL that production redirects (`e2e/redirects.e2e.ts`). It applies no rule of a `_redirects` file, nor the redirect of a path with a double slash (`/en//projects/`).
 In the CI, `.github/actions/playwright` installs the headless shell of Chromium, cached, and takes its system libraries from the image of the runner, falling back to the apt mirror only when the browser does not start ([decision 0022](decisions/0022-chromium-libraries-from-runner-image.md)).
+The WebKit job runs in the image of Playwright, pinned by its digest, which holds WebKit and the system libraries that the image of the runner lacks, so it reads no apt mirror ([decision 0024](decisions/0024-webkit-in-playwright-image.md)).
 They run in both languages, on screens from small phones to large desktops:
 
 | Area          | What they check                                                                                                                                                   |
@@ -26,9 +28,21 @@ They run in both languages, on screens from small phones to large desktops:
 | Layout        | no sideways scroll; the cards, the header, the menu and the home page hold their layout at every width; the buttons draw their text in the font of the site       |
 | Accessibility | contrast, names that hold their visible text, headings and what screen readers read, keyboard navigation, touch targets, text size, reduced motion, forced colors |
 | Images        | each screen downloads the right photo and screenshot sizes, and no screenshot of a hidden project card                                                            |
-| Server        | each page in its language, the security headers and policy, no request to Google                                                                                  |
+| Server        | each page in its language, the redirects to the canonical path of a page, the security headers and policy, no request to Google                                   |
 | Hydration     | each page shows without JavaScript, then React takes it over with no error, for a visitor whose state differs from the build                                      |
 | No JavaScript | from each page, on a phone and a laptop, the header leads to every page of the navigation and to the other language; the projects page shows every project        |
+
+### In WebKit
+
+The `webkit` project of `playwright.config.ts` runs the specs of phones in WebKit, the engine of Safari, with the device of an iPhone 13: `axe.e2e.ts`, `horizontal-overflow.e2e.ts`, `mobile-menu.e2e.ts`, `no-script-navigation.e2e.ts` and `touch-targets.e2e.ts`.
+Each spec still sets the size of its screens. The `chromium` project runs every spec.
+
+- `pnpm test:browser` runs both projects; `pnpm test:browser --project=webkit` runs WebKit alone, and `--project=chromium` Chromium alone.
+- In the CI, the `browser-test (webkit)` job runs them on its own runner, beside the three Chromium shards, and the required `browser-test` check fails when it does not pass.
+- That job runs in `mcr.microsoft.com/playwright`, whose tag names the version of `@playwright/test` in the lockfile. When that version changes, the pull request changes the tag and the digest of `container.image` in `.github/workflows/ci.yml` too: Dependabot updates neither, and WebKit does not launch in the image of another version, whose name its error gives. `curl -sSI -H 'Accept: application/vnd.oci.image.index.v1+json' https://mcr.microsoft.com/v2/playwright/manifests/v<version>-noble | grep -i '^docker-content-digest'` prints the digest of a tag.
+- The `workflows` job of the CI fails, with an annotation on the line of `container.image`, when that tag names another version than the lockfile. Write the tag that the annotation gives, keep its distribution (`-noble`), and replace the digest with the one that its `curl` command prints; never change the lockfile to match an older image. A failure on `pnpm-lock.yaml` means the lockfile lists no `@playwright/test` under `importers:`: run `pnpm install`. To run the check locally: `node scripts/ci/check-playwright-image.mjs`.
+- The two tests of `mobile-menu.e2e.ts` that scroll with a wheel or a finger through the DevTools protocol run in Chromium only, which alone has it; the others run in both browsers.
+- The screenshot comparison runs in Chromium only.
 
 ## Screenshot comparison
 
@@ -55,12 +69,14 @@ They run in both languages, on screens from small phones to large desktops:
 - **Mocks**: Vitest clears the calls of every mock before each test (`clearMocks`, the default since Vitest 5). Assert the calls that the test makes, never those of a `beforeAll` or of the top of the file. Await every `resolves` and `rejects`: one left unawaited fails the test.
 - **`matchMedia`**: jsdom has none. Stub it with `stubMatchMedia`, and undo it with `vi.unstubAllGlobals()`.
 - **Hydration**: in production, React keeps an attribute of the build that differs from its own render, and says nothing. In a test, the development build of React logs it, which fails the test.
-- **Child processes**: the CI sets `FORCE_COLOR`, which colors the output of a script that a spec runs, such as commitlint. Give it `UNCOLORED_ENV` (`scripts/testUtils.js`) as its environment before reading its text: it leaves `FORCE_COLOR` out and sets `NO_COLOR=1`. Without it, the spec passes locally and fails in the CI, so run it once as the CI does: `FORCE_COLOR=1 pnpm test <spec>`.
+- **Child processes**: the CI sets `FORCE_COLOR`, which colors the output of a script that a spec runs, such as commitlint. Give it `UNCOLORED_ENV` (`scripts/testUtils.js`) as its environment before reading its text: it leaves `FORCE_COLOR` out and sets `NO_COLOR=1`. Without it, the spec passes locally and fails in the CI, so run it once as the CI does: `FORCE_COLOR=1 pnpm test <spec>`. A spec that runs a Node.js script, such as a check of `scripts/ci/`, calls `runNodeScript({ script, cwd })` of the same file, which gives it that environment and resolves to `{ exitCode, log, errorLog }` instead of throwing.
 - **Render in Node.js**: React leaves the contexts of a render at build time set, in the same JavaScript realm. Run `await prerender(null)` before hydrating in the same file, as `src/prerender.spec.jsx` does.
 
 ### Playwright
 
 - **Animations**: wait for them to end before measuring a box (`waitForEndingAnimations`), or open the page with reduced motion. An element still sliding in stands elsewhere.
+- **Loading**: wait for what the page shows with `await page.evaluate(waitForPageContent)` (`e2e/loading.ts`): its images on the screen, its background photo, then its web fonts. Never wait for `networkidle`, which waits for requests that no test measures and, in WebKit, sometimes never ends ([#413](https://github.com/AIssoufi/issoufi.fr/issues/413)).
 - **Proof**: check that a new test fails without its fix, at every size it covers.
 - **Download priorities**: Chromium raises the priority of an image that shows on the screen while it downloads, which a local server answers first. Slow the network down (`SLOW_4G_NETWORK`), as `e2e/download-priorities.e2e.ts` does.
+- **WebKit**: as Safari on macOS, it leaves the links out of the order of Tab, so a test that moves the focus to a link presses `Alt+Tab` there (`NEXT_LINK_KEYS` in `e2e/mobile-menu.e2e.ts`). Playwright turns no mouse wheel in WebKit on a phone: scroll the page with `window.scrollTo`. WebKit has no DevTools protocol (`newCDPSession`): skip a test that uses it there, with its reason. WebKit draws in software on the Linux of the CI: the `webkit` project draws at a scale of 1 and gives a test 60 s everywhere, and in the CI runs a failed test once more, since its `networkidle` wait sometimes never ends ([#413](https://github.com/AIssoufi/issoufi.fr/issues/413)).
 - **Screenshots**: a screen that changes with no change of the code draws something that moves from a run to the next, such as the time, a random value or a late image. Fix it in `e2e/pages.visual.ts` rather than tolerate a difference.
