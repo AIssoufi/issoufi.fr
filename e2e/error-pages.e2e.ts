@@ -20,6 +20,7 @@ import {
   PROJECTS_ROUTE,
   ROBOTS_META_SELECTOR,
 } from './constants.ts';
+import { waitForPageContent } from './loading.ts';
 import { getBoxCenterDistanceY } from './utils.ts';
 
 /** Translations of each language, to find each error page by its title. */
@@ -80,7 +81,7 @@ for (const language of LANGUAGES) {
             page.getByRole('heading', { level: 1, name: getTitle(TRANSLATIONS[language]) }),
           ).toBeVisible();
           // The web fonts that replace the fallback font change the height of the message
-          await page.waitForLoadState('networkidle');
+          await page.evaluate(waitForPageContent);
           await page.evaluate(async () => {
             await document.fonts.ready;
           });

@@ -4,6 +4,7 @@ import { LANGUAGES } from '../src/i18n/constants.ts';
 import { localizePath } from '../src/i18n/utils.ts';
 import { PAGES } from '../src/utils/pages.ts';
 import { PAGE_SELECTOR, PHOTO_PRELOAD_INITIATOR_TYPE, PHOTO_SCREENS } from './constants.ts';
+import { waitForPageContent } from './loading.ts';
 
 /** URLs of both files of the background photo of every page. */
 const PHOTO_URLS: readonly string[] = PAGES.flatMap(({ backgroundPhoto: { url, portraitUrl } }) => [
@@ -34,7 +35,7 @@ for (const language of LANGUAGES) {
 
           await page.goto(route);
           await expect(page.locator(PAGE_SELECTOR)).toBeVisible();
-          await page.waitForLoadState('networkidle');
+          await page.evaluate(waitForPageContent);
           const initiatorType = await page.evaluate(url => {
             const [entry] = performance.getEntriesByName(new URL(url, location.href).href);
             return (entry as PerformanceResourceTiming | undefined)?.initiatorType;

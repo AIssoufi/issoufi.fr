@@ -20,6 +20,7 @@ import {
   REPORTED_CONSOLE_TYPES,
   VISITOR_MONTHS_AFTER_BUILD,
 } from './constants.ts';
+import { waitForPageContent } from './loading.ts';
 
 /** Translations of each language, to find each page by its heading. */
 const TRANSLATIONS = { fr, en };
@@ -103,7 +104,7 @@ const waitForHydration = async (page: Page) => {
       Object.keys(document.querySelector(selector) ?? {}).some(key => key.startsWith(keyPrefix)),
     { selector: PAGE_SELECTOR, keyPrefix: REACT_FIBER_KEY_PREFIX },
   );
-  await page.waitForLoadState('networkidle');
+  await page.evaluate(waitForPageContent);
 };
 
 /** Reads the elements that the build rendered and that the page no longer holds. */

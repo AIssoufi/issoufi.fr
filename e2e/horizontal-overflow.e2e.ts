@@ -9,6 +9,7 @@ import {
   SCREEN_HEIGHT_PX,
   SCREEN_WIDTHS_PX,
 } from './constants.ts';
+import { waitForPageContent } from './loading.ts';
 import { getCheckedRoutes } from './utils.ts';
 
 // jsdom computes no layout, so only a real browser sees a page wider than the screen
@@ -31,10 +32,7 @@ for (const language of LANGUAGES) {
           // Measured before its chunk is loaded, or if it failed to render, a page would pass
           await expect(page.locator(PAGE_SELECTOR)).toBeVisible();
           // Its images, then the web fonts that replace the fallback font, change its width
-          await page.waitForLoadState('networkidle');
-          await page.evaluate(async () => {
-            await document.fonts.ready;
-          });
+          await page.evaluate(waitForPageContent);
 
           const { scrollWidth, clientWidth } = await page.evaluate(() => {
             const { scrollWidth, clientWidth } = document.documentElement;
