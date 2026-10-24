@@ -34,7 +34,7 @@ They run in both languages, on screens from small phones to large desktops:
 
 ### In WebKit
 
-The `webkit` project of `playwright.config.ts` runs the specs of phones in WebKit, the engine of Safari, with the device of an iPhone 13: `axe.e2e.ts`, `font-cache.e2e.ts`, `horizontal-overflow.e2e.ts`, `mobile-menu.e2e.ts`, `no-script-navigation.e2e.ts` and `touch-targets.e2e.ts`.
+The `webkit` project of `playwright.config.ts` runs the specs of phones in WebKit, the engine of Safari, with the device of an iPhone 13: `axe.e2e.ts`, `horizontal-overflow.e2e.ts`, `mobile-menu.e2e.ts`, `no-script-navigation.e2e.ts` and `touch-targets.e2e.ts`. It also runs `redirects.e2e.ts` and `font-cache.e2e.ts`, which check no phone but how Safari handles the answers of the server: it follows the redirects of the preview as production answers them, and keeps the fonts in its cache, which a `Vary: Origin` in the answer made it drop.
 Each spec that depends on the size of the screen still sets it. The `chromium` project runs every spec.
 
 - `pnpm test:browser` runs both projects; `pnpm test:browser --project=webkit` runs WebKit alone, and `--project=chromium` Chromium alone.
