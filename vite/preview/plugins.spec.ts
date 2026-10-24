@@ -6,8 +6,19 @@ import { join } from 'node:path';
 
 import type { Connect, PreviewServer } from 'vite';
 
-import { NOT_FOUND_PAGE_MEDIA_TYPE, NOT_FOUND_PAGES_PLUGIN_NAME } from './constants.ts';
-import { createNotFoundMiddleware, notFoundPages } from './plugins.ts';
+import { HASHED_ASSET_MAX_AGE_SECONDS } from '../constants.ts';
+import type { HeaderRule } from '../types.ts';
+import {
+  CACHE_HEADERS_PLUGIN_NAME,
+  NOT_FOUND_PAGE_MEDIA_TYPE,
+  NOT_FOUND_PAGES_PLUGIN_NAME,
+} from './constants.ts';
+import {
+  cacheHeaders,
+  createCacheHeadersMiddleware,
+  createNotFoundMiddleware,
+  notFoundPages,
+} from './plugins.ts';
 
 /** Folder of the build in the fake project, as `build.outDir` names it. */
 const OUT_DIR = 'dist';
@@ -75,6 +86,30 @@ describe('with a build', () => {
   afterEach(() => {
     rmSync(projectDir, { recursive: true, force: true });
   });
+
+  /** Runs the hook of a plugin on a fake preview server, and returns the middleware it adds. */
+  const configurePreviewServer = ({
+    plugin = notFoundPages(),
+    outDir = OUT_DIR,
+    headers = HEADERS,
+  } = {}) => {
+    const { configurePreviewServer: hook } = plugin;
+    if (typeof hook !== 'function')
+      throw new Error('The plugin has no configurePreviewServer hook');
+    const use = vi.fn();
+    const server = {
+      config: {
+        root: projectDir,
+        environments: { client: { build: { outDir } } },
+        preview: { headers },
+      },
+      middlewares: { use },
+    };
+    // The hook reads no `this`, which only Vite would give it
+    void hook.call(undefined as never, server as unknown as PreviewServer);
+    expect(use).toHaveBeenCalledOnce();
+    return use.mock.calls[0][0] as Connect.NextHandleFunction;
+  };
 
   describe('createNotFoundMiddleware', () => {
     it.each([
@@ -195,26 +230,6 @@ describe('with a build', () => {
   });
 
   describe('notFoundPages', () => {
-    /** Runs the hook of the plugin on a fake preview server, and returns the middleware it adds. */
-    const configurePreviewServer = ({ outDir = OUT_DIR, headers = HEADERS } = {}) => {
-      const { configurePreviewServer: hook } = notFoundPages();
-      if (typeof hook !== 'function')
-        throw new Error('The plugin has no configurePreviewServer hook');
-      const use = vi.fn();
-      const server = {
-        config: {
-          root: projectDir,
-          environments: { client: { build: { outDir } } },
-          preview: { headers },
-        },
-        middlewares: { use },
-      };
-      // The hook reads no `this`, which only Vite would give it
-      void hook.call(undefined as never, server as unknown as PreviewServer);
-      expect(use).toHaveBeenCalledOnce();
-      return use.mock.calls[0][0] as Connect.NextHandleFunction;
-    };
-
     it('has a name', () => {
       expect(notFoundPages().name).toBe(NOT_FOUND_PAGES_PLUGIN_NAME);
     });
@@ -244,6 +259,138 @@ describe('with a build', () => {
       const middleware = configurePreviewServer({ outDir: 'build' });
 
       expect(serve({ middleware, url: '/nope' }).isPassed).toBe(true);
+    });
+  });
+
+  describe('createCacheHeadersMiddleware', () => {
+    /** Rules that give a policy to the pages and another to the files of `assets/`. */
+    const RULES: HeaderRule[] = [
+      { path: '/*', headers: { 'Cache-Control': 'public' } },
+      { path: '/assets/*', headers: { 'Cache-Control': 'immutable' } },
+    ];
+
+    it.each([
+      ['/assets/index-a1b2.js', 'public, immutable'],
+      ['/assets/index-a1b2.js?v=1', 'public, immutable'],
+      ['/projects', 'public'],
+      ['/projects.html', 'public'],
+      ['/en/', 'public'],
+      ['/', 'public'],
+    ])('gives %s, a file of the build, the policy %s', (url, cacheControl) => {
+      const middleware = createCacheHeadersMiddleware({ root, rules: RULES });
+
+      const answer = serve({ middleware, url });
+
+      expect(answer.isPassed).toBe(true);
+      expect(Object.fromEntries(answer.headers)).toEqual({ 'Cache-Control': cacheControl });
+      expect(answer.statusCode).toBe(200);
+      expect(answer.body).toBeUndefined();
+    });
+
+    it('gives the hashed files the policy of HEADER_RULES by default', () => {
+      const middleware = createCacheHeadersMiddleware({ root });
+
+      const answer = serve({ middleware, url: '/assets/index-a1b2.js', method: 'HEAD' });
+
+      expect(answer.headers.get('Cache-Control')).toBe(
+        `public, max-age=${HASHED_ASSET_MAX_AGE_SECONDS}, immutable`,
+      );
+      expect(serve({ middleware, url: '/projects' }).headers.size).toBe(0);
+    });
+
+    it.each(['/assets/nope.js', '/assets/INDEX-a1b2.js', '/Projects', '/nope', '/assets/'])(
+      'leaves %s, which names no file, to Vite unchanged',
+      url => {
+        const middleware = createCacheHeadersMiddleware({ root, rules: RULES });
+
+        const answer = serve({ middleware, url });
+
+        expect(answer.isPassed).toBe(true);
+        expect(answer.headers.size).toBe(0);
+      },
+    );
+
+    it('leaves a file that no rule gives a policy to Vite unchanged', () => {
+      const middleware = createCacheHeadersMiddleware({ root, rules: [RULES[1]] });
+
+      const answer = serve({ middleware, url: '/projects' });
+
+      expect(answer.isPassed).toBe(true);
+      expect(answer.headers.size).toBe(0);
+    });
+
+    it.each(['POST', 'PUT', 'DELETE', 'OPTIONS', ''])('leaves a %s request to Vite', method => {
+      const middleware = createCacheHeadersMiddleware({ root, rules: RULES });
+
+      const answer = serve({ middleware, url: '/assets/index-a1b2.js', method });
+
+      expect(answer.isPassed).toBe(true);
+      expect(answer.headers.size).toBe(0);
+    });
+
+    it.each([undefined, null, 404, '', '*', '/%E0%A4%A'])(
+      'leaves the URL %s, which names no path, to Vite',
+      url => {
+        const middleware = createCacheHeadersMiddleware({ root, rules: RULES });
+
+        const answer = serve({ middleware, url });
+
+        expect(answer.isPassed).toBe(true);
+        expect(answer.headers.size).toBe(0);
+      },
+    );
+
+    it('leaves a request without a method to Vite', () => {
+      const middleware = createCacheHeadersMiddleware({ root, rules: RULES });
+      const next = vi.fn();
+
+      middleware({ url: '/projects' } as IncomingMessage, {} as ServerResponse, next);
+
+      expect(next).toHaveBeenCalledOnce();
+    });
+
+    it('leaves every request to Vite unchanged without a build', () => {
+      const middleware = createCacheHeadersMiddleware({
+        root: join(projectDir, 'missing'),
+        rules: RULES,
+      });
+
+      const answer = serve({ middleware, url: '/assets/index-a1b2.js' });
+
+      expect(answer.isPassed).toBe(true);
+      expect(answer.headers.size).toBe(0);
+    });
+  });
+
+  describe('cacheHeaders', () => {
+    it('has a name', () => {
+      expect(cacheHeaders().name).toBe(CACHE_HEADERS_PLUGIN_NAME);
+    });
+
+    it('gives the files of the build of the client their policy', () => {
+      const middleware = configurePreviewServer({ plugin: cacheHeaders() });
+
+      const answer = serve({ middleware, url: '/assets/index-a1b2.js' });
+
+      expect(answer.isPassed).toBe(true);
+      expect(Object.fromEntries(answer.headers)).toEqual({
+        'Cache-Control': `public, max-age=${HASHED_ASSET_MAX_AGE_SECONDS}, immutable`,
+      });
+    });
+
+    it('reads an absolute build folder', () => {
+      const middleware = configurePreviewServer({ plugin: cacheHeaders(), outDir: root });
+
+      expect(serve({ middleware, url: '/assets/index-a1b2.js' }).headers.size).toBe(1);
+    });
+
+    it('leaves every request to Vite unchanged when the build folder is elsewhere', () => {
+      const middleware = configurePreviewServer({ plugin: cacheHeaders(), outDir: 'build' });
+
+      const answer = serve({ middleware, url: '/assets/index-a1b2.js' });
+
+      expect(answer.isPassed).toBe(true);
+      expect(answer.headers.size).toBe(0);
     });
   });
 });
