@@ -14,7 +14,7 @@ import {
   NOT_FOUND_PAGE_MEDIA_TYPE,
   NOT_FOUND_PAGES_PLUGIN_NAME,
   NOT_FOUND_STATUS,
-  PAGE_REQUEST_METHODS,
+  READ_REQUEST_METHODS,
 } from './constants.ts';
 import { getRedirectLocation, isCloudflareConfigFile } from './redirects.ts';
 import { findExactFile } from './utils/files.ts';
@@ -44,8 +44,8 @@ export const createNotFoundMiddleware =
   ({ root, headers = {} }: CreateNotFoundMiddlewareParams): Connect.NextHandleFunction =>
   (request, response, next) => {
     const pathname = getRequestPathname(request.url);
-    const isPageRequest = PAGE_REQUEST_METHODS.has(request.method ?? '');
-    if (!isPageRequest || pathname === undefined) return next();
+    const isReadRequest = READ_REQUEST_METHODS.has(request.method ?? '');
+    if (!isReadRequest || pathname === undefined) return next();
 
     const servedFile = findExactFile({ root, files: getServedFiles(pathname) });
     if (servedFile) return next();
@@ -102,8 +102,8 @@ export const createCacheHeadersMiddleware =
   ({ root, rules }: CreateCacheHeadersMiddlewareParams): Connect.NextHandleFunction =>
   (request, response, next) => {
     const pathname = getRequestPathname(request.url);
-    const isFileRequest = PAGE_REQUEST_METHODS.has(request.method ?? '');
-    if (!isFileRequest || pathname === undefined) return next();
+    const isReadRequest = READ_REQUEST_METHODS.has(request.method ?? '');
+    if (!isReadRequest || pathname === undefined) return next();
 
     const cacheControl = getCacheControl({ pathname, rules });
     if (cacheControl === undefined) return next();
@@ -176,8 +176,8 @@ export const createCloudflareRoutesMiddleware =
   ({ root, headers = {} }: CreateCloudflareRoutesMiddlewareParams): Connect.NextHandleFunction =>
   (request, response, next) => {
     const pathname = getRequestPathname(request.url);
-    const isPageRequest = PAGE_REQUEST_METHODS.has(request.method ?? '');
-    if (!isPageRequest || pathname === undefined) return next();
+    const isReadRequest = READ_REQUEST_METHODS.has(request.method ?? '');
+    if (!isReadRequest || pathname === undefined) return next();
 
     if (isCloudflareConfigFile(pathname)) {
       const notFoundPage = findExactFile({ root, files: getNotFoundPageFiles(pathname) });

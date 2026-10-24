@@ -15,8 +15,11 @@ export const PAGE_FILE_EXTENSION = '.html';
 /** Query and fragment of a request URL, which name no file. */
 export const URL_QUERY_AND_FRAGMENT_PATTERN = /[?#].*$/s;
 
-/** Methods of the requests that the preview answers with a page; the others reach Vite as is. */
-export const PAGE_REQUEST_METHODS: ReadonlySet<string> = new Set(['GET', 'HEAD']);
+/**
+ * Methods of the requests that read a file, which the middlewares of the preview answer or give
+ * headers; the others reach Vite as is.
+ */
+export const READ_REQUEST_METHODS: ReadonlySet<string> = new Set(['GET', 'HEAD']);
 
 /** HTTP status of the not found page, as Cloudflare Pages sends it. */
 export const NOT_FOUND_STATUS = 404;
