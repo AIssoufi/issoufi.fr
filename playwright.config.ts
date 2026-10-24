@@ -46,12 +46,14 @@ export const CHROMIUM_PROJECT = { name: 'chromium', use: { ...devices['Desktop C
 /**
  * Project of the phone tests in WebKit, the engine of Safari, on an iPhone: the specs that check
  * the layout, the menu and the touch targets of a phone, where Safari differs the most from
- * Chromium, and the redirects that it follows. Each spec still sets the size of its screens.
+ * Chromium, the redirects that it follows and the cache of its fonts. Each spec that depends on
+ * the size of the screen still sets it.
  */
 const WEBKIT_PROJECT = {
   name: 'webkit',
   testMatch: [
     '**/axe.e2e.ts',
+    '**/font-cache.e2e.ts',
     '**/horizontal-overflow.e2e.ts',
     '**/mobile-menu.e2e.ts',
     '**/no-script-navigation.e2e.ts',
