@@ -1,5 +1,5 @@
 import { readFileSync } from 'node:fs';
-import type { OutgoingHttpHeaders } from 'node:http';
+import type { OutgoingHttpHeaders, ServerResponse } from 'node:http';
 import { join, resolve } from 'node:path';
 
 import type { Connect, Plugin } from 'vite';
@@ -8,11 +8,15 @@ import type { HeaderRule } from '../types.ts';
 import {
   CACHE_CONTROL_HEADER,
   CACHE_HEADERS_PLUGIN_NAME,
+  CANONICAL_REDIRECT_STATUS,
+  CLOUDFLARE_ROUTES_PLUGIN_NAME,
+  LOCATION_HEADER,
   NOT_FOUND_PAGE_MEDIA_TYPE,
   NOT_FOUND_PAGES_PLUGIN_NAME,
   NOT_FOUND_STATUS,
   PAGE_REQUEST_METHODS,
 } from './constants.ts';
+import { getRedirectLocation, isCloudflareConfigFile } from './redirects.ts';
 import {
   findExactFile,
   getCacheControl,
@@ -128,5 +132,98 @@ export const cacheHeaders = (): Plugin => ({
     // The folder that Vite previews
     const buildRoot = resolve(root, environments.client.build.outDir);
     server.middlewares.use(createCacheHeadersMiddleware({ root: buildRoot }));
+  },
+});
+
+/** Parameters of {@link setResponseHeaders}. */
+interface SetResponseHeadersParams {
+  /** Response to give the headers. */
+  response: ServerResponse;
+  /** Headers to give it, by name; an `undefined` value is left out. */
+  headers: OutgoingHttpHeaders;
+}
+
+/** Gives a response the headers of the preview, which Vite gives only the files it serves. */
+const setResponseHeaders = ({ response, headers }: SetResponseHeadersParams) => {
+  Object.entries(headers).forEach(([name, value]) => {
+    if (value !== undefined) response.setHeader(name, value);
+  });
+};
+
+/** Parameters of {@link createCloudflareRoutesMiddleware}. */
+interface CreateCloudflareRoutesMiddlewareParams {
+  /** Absolute path of the build that the preview serves, `dist/`. */
+  root: string;
+  /** HTTP headers that the preview sends with every file, such as the security headers. */
+  headers?: OutgoingHttpHeaders;
+}
+
+/**
+ * Creates the middleware that answers, as Cloudflare Pages does, a `GET` or `HEAD` request that
+ * Cloudflare Pages answers before serving a file:
+ * - the path of one of its configuration files (see {@link isCloudflareConfigFile}) with the
+ *   closest not found page up its folders and the status 404, or no body when the build has none;
+ * - a path that names a file of the build, case included (see {@link getServedFiles}), other than
+ *   its canonical path, with a redirect 308 to that path and the query of the request (see
+ *   {@link getRedirectLocation}).
+ *
+ * Both answers carry the headers of the preview. Every other request reaches the next middleware.
+ *
+ * @example
+ * const middleware = createCloudflareRoutesMiddleware({
+ *   root: '/app/dist',
+ *   headers: SECURITY_HEADERS,
+ * });
+ * server.middlewares.use(middleware);
+ */
+export const createCloudflareRoutesMiddleware =
+  ({ root, headers = {} }: CreateCloudflareRoutesMiddlewareParams): Connect.NextHandleFunction =>
+  (request, response, next) => {
+    const pathname = getRequestPathname(request.url);
+    const isPageRequest = PAGE_REQUEST_METHODS.has(request.method ?? '');
+    if (!isPageRequest || pathname === undefined) return next();
+
+    if (isCloudflareConfigFile(pathname)) {
+      const notFoundPage = findExactFile({ root, files: getNotFoundPageFiles(pathname) });
+      response.statusCode = NOT_FOUND_STATUS;
+      setResponseHeaders({ response, headers });
+      if (!notFoundPage) return response.end();
+
+      response.setHeader('Content-Type', NOT_FOUND_PAGE_MEDIA_TYPE);
+      // Node.js sends no body for a HEAD request, only its length
+      return response.end(readFileSync(join(root, notFoundPage)));
+    }
+
+    const servedFile = findExactFile({ root, files: getServedFiles(pathname) });
+    const location =
+      servedFile === undefined
+        ? undefined
+        : getRedirectLocation({ pathname, file: servedFile, url: request.url });
+    if (location === undefined) return next();
+
+    response.statusCode = CANONICAL_REDIRECT_STATUS;
+    setResponseHeaders({ response, headers });
+    response.setHeader(LOCATION_HEADER, location);
+    response.end();
+  };
+
+/**
+ * Vite plugin that makes `vite preview` answer, as Cloudflare Pages does, the paths that it
+ * answers before serving a file (see {@link createCloudflareRoutesMiddleware}): `_headers` and
+ * `_redirects` with the not found page and the status 404, and the other paths of a page with a
+ * redirect 308 to its canonical path, where Vite would serve the page, or the home page through
+ * its single page fallback. The browser tests then follow the redirects that a visitor follows.
+ * It runs before the other middlewares, so a redirect carries no cache policy, as on Cloudflare
+ * Pages, and changes neither the build nor the dev server.
+ */
+export const cloudflareRoutes = (): Plugin => ({
+  name: CLOUDFLARE_ROUTES_PLUGIN_NAME,
+  configurePreviewServer: server => {
+    const { root, environments, preview } = server.config;
+    // The folder that Vite previews
+    const buildRoot = resolve(root, environments.client.build.outDir);
+    server.middlewares.use(
+      createCloudflareRoutesMiddleware({ root: buildRoot, headers: preview.headers }),
+    );
   },
 });
