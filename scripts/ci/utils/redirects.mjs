@@ -1,5 +1,15 @@
 // @ts-check
-import { MAX_REDIRECT_HOPS, REDIRECT_STATUSES } from '../constants.mjs';
+import {
+  DEFAULT_REDIRECT_STATUS,
+  LINE_BREAK_PATTERN,
+  MAX_REDIRECT_FIELD_COUNT,
+  MAX_REDIRECT_HOPS,
+  MIN_REDIRECT_FIELD_COUNT,
+  REDIRECT_COMMENT_MARK,
+  REDIRECT_FIELD_SEPARATOR_PATTERN,
+  REDIRECT_PATTERN_MARK_PATTERN,
+  REDIRECT_STATUSES,
+} from '../constants.mjs';
 import { toList } from './lists.mjs';
 
 /**
@@ -244,4 +254,105 @@ export const checkRedirect = async ({ url, expectedUrl }) => {
   } catch (error) {
     return [`${url}: request failed (${error instanceof Error ? error.message : error})`];
   }
+};
+
+/**
+ * Redirect of the `_redirects` file of Cloudflare Pages, read by {@link parseRedirectRules}.
+ * @typedef {object} RedirectRule
+ * @property {string} source - Path that redirects, e.g. `/code`.
+ * @property {string} target - Address or path that it redirects to.
+ * @property {number} status - Status of the redirect.
+ */
+
+/**
+ * Tells whether the fields of a line of `_redirects` make a redirect: a source path, a target,
+ * then a redirect status or none.
+ * @param {string[]} fields - Fields of the line, split on its spaces.
+ * @returns {boolean} False for fewer than two or more than three fields, a source that is not a
+ * path, or a status that is not one of {@link REDIRECT_STATUSES}, such as the 200 of a rewrite.
+ */
+const isRedirectLine = fields => {
+  const [source, target, status] = fields;
+  const hasFieldCount =
+    fields.length >= MIN_REDIRECT_FIELD_COUNT && fields.length <= MAX_REDIRECT_FIELD_COUNT;
+  const isSourcePath = typeof source === 'string' && source.startsWith('/');
+  const hasRedirectStatus = status === undefined || isRedirectStatus(Number(status));
+  return hasFieldCount && isSourcePath && Boolean(target) && hasRedirectStatus;
+};
+
+/**
+ * Tells whether a line of `_redirects`, trimmed, holds a rule: neither blank nor a comment.
+ * @param {string} line - Line of the file, without its spaces around.
+ * @returns {boolean} False for an empty line or a comment.
+ */
+const isRuleLine = line => line !== '' && !line.startsWith(REDIRECT_COMMENT_MARK);
+
+/**
+ * Reads the redirects of a `_redirects` file of Cloudflare Pages, one per line: its source path,
+ * its target, then its status, {@link DEFAULT_REDIRECT_STATUS} when the line gives none. Blank
+ * lines and comments are left out, and so is a line that is no redirect (see
+ * {@link isRedirectLine}).
+ * @param {unknown} text - Content of the file.
+ * @returns {RedirectRule[]} The redirects, in the order of the file, none when `text` is not a
+ * string.
+ * @example
+ * parseRedirectRules('# Short links\n/code https://github.com/AIssoufi/issoufi.fr 302\n');
+ * // [{ source: '/code', target: 'https://github.com/AIssoufi/issoufi.fr', status: 302 }]
+ */
+export const parseRedirectRules = text =>
+  (typeof text === 'string' ? text : '')
+    .split(LINE_BREAK_PATTERN)
+    .map(line => line.trim())
+    .filter(isRuleLine)
+    .map(line => line.split(REDIRECT_FIELD_SEPARATOR_PATTERN))
+    .filter(isRedirectLine)
+    .map(([source, target, status]) => ({
+      source,
+      target,
+      status: status === undefined ? DEFAULT_REDIRECT_STATUS : Number(status),
+    }));
+
+/**
+ * Parameters of {@link getRedirectChecks}.
+ * @typedef {object} GetRedirectChecksParams
+ * @property {RedirectRule[]} rules - Redirects of the build, from {@link parseRedirectRules}.
+ * @property {string} siteUrl - Address of the deployed site, against which the paths resolve.
+ */
+
+/**
+ * Turns the redirects of the build into the checks of {@link checkRedirect} on a deployed site:
+ * the address of each source on the site, and the address of its target, a path of the site
+ * resolved against it. A source that matches many paths, a splat or a placeholder, has no single
+ * address to request, so it gets no check.
+ * @param {GetRedirectChecksParams} params
+ * @returns {CheckRedirectParams[]} One check per redirect whose source is a single path and whose
+ * addresses are valid.
+ * @example
+ * getRedirectChecks({
+ *   rules: [{ source: '/code', target: 'https://github.com/AIssoufi/issoufi.fr', status: 302 }],
+ *   siteUrl: 'https://develop.issoufi-fr.pages.dev/',
+ * });
+ * // [{
+ * //   url: 'https://develop.issoufi-fr.pages.dev/code',
+ * //   expectedUrl: 'https://github.com/AIssoufi/issoufi.fr',
+ * // }]
+ */
+export const getRedirectChecks = ({ rules, siteUrl }) => {
+  /** @param {unknown} rule */
+  const isCheckableRule = rule => {
+    const { source, target } = /** @type {Partial<RedirectRule>} */ (rule ?? {});
+    const hasTexts = typeof source === 'string' && typeof target === 'string';
+    if (!hasTexts) return false;
+
+    const isSinglePath = !REDIRECT_PATTERN_MARK_PATTERN.test(source);
+    const canResolve = URL.canParse(source, siteUrl) && URL.canParse(target, siteUrl);
+    return isSinglePath && canResolve;
+  };
+
+  return toList(rules)
+    .filter(isCheckableRule)
+    .map(({ source, target }) => ({
+      url: new URL(source, siteUrl).href,
+      expectedUrl: new URL(target, siteUrl).href,
+    }));
 };

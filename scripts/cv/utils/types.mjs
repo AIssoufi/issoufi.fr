@@ -88,21 +88,6 @@
  */
 
 /**
- * A project of the Projects page, which the CV names only: its kind and its technologies, older
- * than the experiences, would take the space of the recent ones.
- * @typedef {object} CvProjectItem
- * @property {string} name - Name of the project, or of the client.
- * @property {string} url - URL of the project, `''` without one.
- */
-
-/**
- * A group of projects, personal or freelance.
- * @typedef {object} CvProjectGroup
- * @property {string} title - Title of the group, e.g. "Projets freelance".
- * @property {CvProjectItem[]} items - Projects of the group.
- */
-
-/**
  * A degree of the education.
  * @typedef {object} CvDegree
  * @property {string} degree - Name of the degree.
@@ -123,7 +108,7 @@
  * @typedef {object} CvContent
  * @property {string} language - Code of the language, e.g. `fr`.
  * @property {string} title - Title of the document, e.g.
- * "CV - ADAM Issoufi - Développeur full-stack JavaScript".
+ * "CV - ADAM Issoufi - Développeur Front-End Senior".
  * @property {string} subject - Subject of the document, in its information: the role and what
  * sets its author apart, which PDF readers show and recruiting tools index.
  * @property {string[]} keywords - Keywords of the document, in its information: terms that the
@@ -131,16 +116,17 @@
  * @property {string} labelSeparator - What separates a label from the text it introduces, e.g.
  * the no-break space, the colon and the space of French.
  * @property {string} name - Name of the site's author.
- * @property {string} jobTitle - Job title.
- * @property {TextSegment[]} passion - Line about UX and UI design, as on the home page. The CV
- * leaves out the line under it, which offers the services of a freelancer to clients.
+ * @property {string} jobTitle - Job title, from the data of the CV: more senior and more
+ * front-end than the one of the home page.
+ * @property {TextSegment[]} passion - Line about UX and UI design, as on the home page, which
+ * follows the job title on its line. The CV leaves out the line under it, which offers the
+ * services of a freelancer to clients.
  * @property {CvLink[]} contacts - Contact details, links or not: email, phone and city.
- * @property {CvLink[]} profiles - Links to the site and the LinkedIn profile of its owner, on
- * the line under the contact details.
+ * @property {CvLink[]} profiles - Links to the site and the LinkedIn profile of its owner, after
+ * the contact details on their line.
  * @property {CvProfile} profile - Profile that opens the CV, from the data of the CV.
  * @property {CvSection<CvSkillGroup>} skills - Skills by category, from the data of the CV.
  * @property {CvSection<CvExperience>} experiences - Experiences of the Experiences page.
- * @property {CvSection<CvProjectGroup>} projects - Freelance then personal projects.
  * @property {CvSection<CvDegree>} education - Degrees, from the data of the CV.
  */
 

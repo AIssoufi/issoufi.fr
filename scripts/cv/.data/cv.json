@@ -5,6 +5,7 @@
   },
   "languages": {
     "fr": {
+      "jobTitle": "Développeur Front-End Senior",
       "subject": "Développeur Front-End Senior, responsable d’un UI Kit React et TypeScript, développement avec des agents IA",
       "keywords": [
         "React",
@@ -24,16 +25,16 @@
       "phone": "06 95 75 86 32",
       "location": "Paris",
       "profileTitle": "Profil",
-      "summary": "Développeur front-end senior chez Sewan, responsable de l’UI Kit React et TypeScript de sa plateforme SaaS B2B\u00a0: 118\u00a0packages, socle des écrans de 15\u00a0équipes produit. Architecture front, design system, monorepo et DX. Je développe avec des agents IA, que j’outille en continu de skills, de rules et de sous-agents spécialisés, pour produire du bon code et pas seulement du code qui fonctionne.",
-      "proof": "Mon site issoufi.fr est développé par une flotte d’agents Claude Code que je dirige\u00a0: tickets, Git worktrees, agents de revue et CI.",
+      "summary": "Développeur front-end senior chez Sewan, responsable de l’UI Kit React et TypeScript de sa plateforme SaaS B2B\u00a0: 118\u00a0packages, socle des écrans de 15\u00a0équipes produit. Architecture front, design system, monorepo et DX.",
+      "proof": "Je développe avec des agents IA, que j’outille de skills, de rules et de sous-agents spécialisés\u00a0: mon site issoufi.fr est développé par une flotte d’agents Claude Code que je dirige.",
       "proofLinks": [
         {
           "label": "Code",
-          "url": "https://github.com/AIssoufi/issoufi.fr"
+          "url": "https://issoufi.fr/code"
         },
         {
           "label": "Méthode",
-          "url": "https://github.com/AIssoufi/issoufi.fr/tree/develop/docs/ai-workflow"
+          "url": "https://issoufi.fr/method"
         }
       ],
       "skillsTitle": "Compétences",
@@ -49,8 +50,7 @@
             "Redux.js",
             "i18next",
             "HTML",
-            "CSS",
-            "intégration de maquettes"
+            "CSS"
           ]
         },
         {
@@ -71,8 +71,7 @@
             "tests unitaires (Vitest, Jest)",
             "revue de code",
             "GitLab CI/CD",
-            "outillage (Vite, tsup, Webpack)",
-            "migration TypeScript"
+            "outillage (Vite, tsup, Webpack)"
           ]
         },
         {
@@ -81,23 +80,13 @@
             "agents de codage IA (Claude Code, Codex, OpenCode)",
             "sous-agents spécialisés",
             "modèle et effort choisis par tâche",
-            "skills et rules maintenues en continu",
+            "skills et rules",
             "Git worktree"
           ]
         },
         {
           "category": "Back-end et cloud",
-          "items": [
-            "Node.js",
-            "Express.js",
-            "API REST",
-            "AWS Lambda (serverless)",
-            "Swagger",
-            "Docker",
-            "Kubernetes",
-            "Google Cloud Platform",
-            "SQL"
-          ]
+          "items": ["Node.js", "Express.js", "API REST", "AWS Lambda (serverless)", "Docker", "SQL"]
         }
       ],
       "educationTitle": "Formation",
@@ -111,15 +100,11 @@
           "degree": "DUT Informatique",
           "period": "2014 – 2016",
           "school": "IUT de Nice"
-        },
-        {
-          "degree": "Classe préparatoire",
-          "period": "2013 – 2014",
-          "school": "Polytech Marseille"
         }
       ]
     },
     "en": {
+      "jobTitle": "Senior Front-End Developer",
       "subject": "Senior Front-End Developer, owner of a React and TypeScript UI Kit, development with AI agents",
       "keywords": [
         "React",
@@ -139,16 +124,16 @@
       "phone": "+33 6 95 75 86 32",
       "location": "Paris, France",
       "profileTitle": "Summary",
-      "summary": "Senior Frontend Engineer at Sewan, owner of the React and TypeScript UI Kit of its B2B SaaS platform: 118\u00a0packages, the foundation of the screens of 15\u00a0product teams. Frontend architecture, design system, monorepo and DX. I develop with AI agents, which I equip continuously with skills, rules and specialized sub-agents, to produce good code, not just code that works.",
-      "proof": "My site issoufi.fr is built by a fleet of Claude Code agents that I direct: tickets, Git worktrees, review agents and CI.",
+      "summary": "Senior Frontend Engineer at Sewan, owner of the React and TypeScript UI Kit of its B2B SaaS platform: 118\u00a0packages, the foundation of the screens of 15\u00a0product teams. Frontend architecture, design system, monorepo and DX.",
+      "proof": "I develop with AI agents, which I equip with skills, rules and specialized sub-agents: my site issoufi.fr is built by a fleet of Claude Code agents that I direct.",
       "proofLinks": [
         {
           "label": "Code",
-          "url": "https://github.com/AIssoufi/issoufi.fr"
+          "url": "https://issoufi.fr/code"
         },
         {
           "label": "Method",
-          "url": "https://github.com/AIssoufi/issoufi.fr/tree/develop/docs/ai-workflow"
+          "url": "https://issoufi.fr/method"
         }
       ],
       "skillsTitle": "Skills",
@@ -164,8 +149,7 @@
             "Redux.js",
             "i18next",
             "HTML",
-            "CSS",
-            "mockup integration"
+            "CSS"
           ]
         },
         {
@@ -186,8 +170,7 @@
             "unit testing (Vitest, Jest)",
             "code review",
             "GitLab CI/CD",
-            "tooling (Vite, tsup, Webpack)",
-            "TypeScript migration"
+            "tooling (Vite, tsup, Webpack)"
           ]
         },
         {
@@ -196,23 +179,13 @@
             "AI coding agents (Claude Code, Codex, OpenCode)",
             "specialized sub-agents",
             "model and effort chosen per task",
-            "skills and rules maintained continuously",
+            "skills and rules",
             "Git worktree"
           ]
         },
         {
           "category": "Backend and cloud",
-          "items": [
-            "Node.js",
-            "Express.js",
-            "REST API",
-            "AWS Lambda (serverless)",
-            "Swagger",
-            "Docker",
-            "Kubernetes",
-            "Google Cloud Platform",
-            "SQL"
-          ]
+          "items": ["Node.js", "Express.js", "REST API", "AWS Lambda (serverless)", "Docker", "SQL"]
         }
       ],
       "educationTitle": "Education",
@@ -226,11 +199,6 @@
           "degree": "Two-year technical degree in Computer Science (DUT)",
           "period": "2014 – 2016",
           "school": "IUT de Nice"
-        },
-        {
-          "degree": "Preparatory class for engineering schools",
-          "period": "2013 – 2014",
-          "school": "Polytech Marseille"
         }
       ]
     }

@@ -12,6 +12,10 @@ The site is static, hosted on Cloudflare Pages.
 
 Only a tested build goes online, and a smoke test then checks the deployed site.
 
+## Short links
+
+`public/_redirects` holds the redirects that Cloudflare Pages serves, in 302 so that a target can change: the CVs link to `issoufi.fr/code`, the repository, and `issoufi.fr/method`, the [AI workflow](ai-workflow/README.md). A short link has no language prefix, and its spec checks that no page nor file of the site uses its path. The smoke test requests each one on the deployed site and expects its target in one hop; a redirect whose source holds a splat (`*`) or a placeholder (`:name`) gets no check.
+
 ## Continuous integration
 
 On every pull request, and on every push to `develop` and `main`, GitHub Actions runs:
@@ -20,7 +24,7 @@ On every pull request, and on every push to `develop` and `main`, GitHub Actions
 2. the unit tests with coverage;
 3. the build, its size, and the browser tests over three parallel jobs in Chromium, with a fourth one that runs those of phones in WebKit;
 4. on pull requests, a check of the commit messages and of new dependencies, and a comparison of the screenshots of every page with the base branch, which only informs;
-5. the deployment and its smoke test, and on `main` a check that `http://issoufi.fr/`, `http://www.issoufi.fr/` and `https://www.issoufi.fr/` redirect to `https://issoufi.fr/` in one hop.
+5. the deployment and its smoke test, which also checks the [short links](#short-links), and on `main` a check that `http://issoufi.fr/`, `http://www.issoufi.fr/` and `https://www.issoufi.fr/` redirect to `https://issoufi.fr/` in one hop.
 
 The title of a pull request has a workflow of its own, [`pull-request-title.yml`](../.github/workflows/pull-request-title.yml), which lints it on each push and on each edit of the pull request: an edit starts no other check.
 

@@ -10,7 +10,6 @@ import { buildProfile, buildSkillGroups } from './profile.mjs';
 /** @typedef {import('./types.mjs').CvDegree} CvDegree */
 /** @typedef {import('./types.mjs').CvExperience} CvExperience */
 /** @typedef {import('./types.mjs').CvLink} CvLink */
-/** @typedef {import('./types.mjs').CvProjectItem} CvProjectItem */
 /** @typedef {import('./types.mjs').CvRole} CvRole */
 /** @typedef {import('./types.mjs').CvTextSegment} CvTextSegment */
 /** @typedef {import('./types.mjs').HomeTexts} HomeTexts */
@@ -60,20 +59,24 @@ const translateTexts = ({ translate, keys }) =>
   (Array.isArray(keys) ? keys : []).map(key => translate(key)).filter(isFilled);
 
 /**
- * Lists the bullet points that the CV writes for a role or a project: those of its `bulletKeys`
- * that its `cvBulletKeys` selects, so that a role longer on the site than the page budget of the
- * CV allows still fits, and the CV never writes a text that the site does not show.
- * @param {Record<string, any>} entry - Role or project of `.data/experiences.json`.
- * @returns {unknown} The keys of `bulletKeys`, in their order: all of them when `cvBulletKeys`
- * is not a list, none when `bulletKeys` is not a list but `cvBulletKeys` is.
+ * Parameters of {@link pickCvList}.
+ * @typedef {object} PickCvListParams
+ * @property {unknown} siteList - List that the site shows, e.g. the `bulletKeys` of a role.
+ * @property {unknown} cvList - Its version for the CV, e.g. the `cvBulletKeys` of the role.
  */
-const selectCvBulletKeys = ({ bulletKeys, cvBulletKeys }) => {
-  if (!Array.isArray(cvBulletKeys)) return bulletKeys;
 
-  /** @param {unknown} key - Key of `bulletKeys`. */
-  const isSelected = key => cvBulletKeys.includes(key);
-  return Array.isArray(bulletKeys) ? bulletKeys.filter(isSelected) : [];
-};
+/**
+ * Picks the list that the CV writes for a field of a role or a project: its `cv` version when
+ * the data gives one, so that the CV, which a recruiter reads in a few seconds, says less than the
+ * site, with fewer or shorter texts, and the site's list otherwise.
+ * @param {PickCvListParams} params
+ * @returns {unknown} `cvList` when it is a list, even an empty one, which leaves the field out of
+ * the CV; `siteList` otherwise.
+ * @example
+ * pickCvList({ siteList: ['exp.acme.b1', 'exp.acme.b2'], cvList: ['exp.acme.cvB1'] });
+ * // ['exp.acme.cvB1']
+ */
+const pickCvList = ({ siteList, cvList }) => (Array.isArray(cvList) ? cvList : siteList);
 
 /**
  * Parameters of {@link buildRole}.
@@ -83,7 +86,9 @@ const selectCvBulletKeys = ({ bulletKeys, cvBulletKeys }) => {
  */
 
 /**
- * Translates a role and its projects.
+ * Translates a role and its projects, with the `cv` version of a field when the role gives one:
+ * `cvIntro`, `cvBulletKeys`, `cvProjects` and `cvTechnologies` for a role, `cvBulletKeys` for a
+ * project.
  * @param {BuildRoleParams} params
  * @returns {CvRole} The role, as the CV writes it.
  */
@@ -92,16 +97,27 @@ const buildRole = ({ translate, role }) => ({
   titleLanguage: toLanguageCode(role.titleLanguage),
   start: translate(role.startKey),
   end: translate(role.endKey),
-  intro: translateSegments({ translate, segments: role.intro }),
-  bullets: translateTexts({ translate, keys: selectCvBulletKeys(role) }),
-  projects: toEntries(role.projects).map(project => ({
-    title: translate(project.titleKey),
-    state: translate(project.stateKey),
-    description: translateSegments({ translate, segments: project.description }),
-    bullets: translateTexts({ translate, keys: selectCvBulletKeys(project) }),
-    technologies: toTexts(project.technologies),
-  })),
-  technologies: toTexts(role.technologies),
+  intro: translateSegments({
+    translate,
+    segments: pickCvList({ siteList: role.intro, cvList: role.cvIntro }),
+  }),
+  bullets: translateTexts({
+    translate,
+    keys: pickCvList({ siteList: role.bulletKeys, cvList: role.cvBulletKeys }),
+  }),
+  projects: toEntries(pickCvList({ siteList: role.projects, cvList: role.cvProjects })).map(
+    project => ({
+      title: translate(project.titleKey),
+      state: translate(project.stateKey),
+      description: translateSegments({ translate, segments: project.description }),
+      bullets: translateTexts({
+        translate,
+        keys: pickCvList({ siteList: project.bulletKeys, cvList: project.cvBulletKeys }),
+      }),
+      technologies: toTexts(project.technologies),
+    }),
+  ),
+  technologies: toTexts(pickCvList({ siteList: role.technologies, cvList: role.cvTechnologies })),
 });
 
 /**
@@ -125,17 +141,6 @@ export const buildExperiences = ({ translate, experiences }) =>
       .join(DETAILS_SEPARATOR),
     roles: toEntries(experience.roles).map(role => buildRole({ translate, role })),
   }));
-
-/**
- * Turns the projects of the Projects page, already translated, into entries of the CV: their
- * names and their links.
- * @param {unknown} projects - Cards of `translateProjects` (`src/pages/Projects/utils.ts`).
- * @returns {CvProjectItem[]} The projects that have a name, none when `projects` is not a list.
- */
-export const buildProjectItems = projects =>
-  toEntries(projects)
-    .map(({ name, url }) => ({ name: toText(name), url: toLinkUrl(url) }))
-    .filter(({ name }) => isFilled(name));
 
 /**
  * Turns the degrees of the data of the CV into entries.
@@ -212,17 +217,15 @@ const buildProfiles = ({ siteUrl, siteDomain, linkedInUrl }) => {
  * `getHomeTexts`.
  * @property {any} cvData - Data of the CV, `scripts/cv/.data/cv.json`.
  * @property {unknown} experiences - Companies of `src/pages/Experiences/.data/experiences.json`.
- * @property {unknown} personalProjects - Personal projects, translated by `translateProjects`.
- * @property {unknown} freelanceProjects - Freelance projects, translated by `translateProjects`.
  * @property {string} siteUrl - URL of the home page of the site in that language.
  * @property {unknown} linkedInUrl - LinkedIn profile of the site owner.
  */
 
 /**
- * Gathers everything the CV of one language writes: the name and the job title of the home page,
- * the contact details and the links to the site and the profiles of its owner, the experiences
- * of the Experiences page, the projects of the Projects page, and the skills and the education
- * of the data of the CV, which the site does not show, with the subject and the keywords that its
+ * Gathers everything the CV of one language writes: the name and the line about design of the
+ * home page, the contact details and the links to the site and the profiles of its owner, the
+ * experiences of the Experiences page, and the job title, the skills and the education of the
+ * data of the CV, which the site does not show, with the subject and the keywords that its
  * document information gives.
  * @param {BuildCvContentParams} params
  * @returns {CvContent} The content, with empty texts where the data or a translation lacks one.
@@ -236,25 +239,23 @@ export const buildCvContent = ({
   homeTexts,
   cvData,
   experiences,
-  personalProjects,
-  freelanceProjects,
   siteUrl,
   linkedInUrl,
 }) => {
   const texts = isEntry(cvData?.languages?.[language]) ? cvData.languages[language] : {};
   const contact = isEntry(cvData?.contact) ? cvData.contact : {};
   const documentName = translate('cvLink.documentName');
+  // The CV gives its own job title, more senior and more front-end than the one of the home page
+  const jobTitle = toText(texts.jobTitle);
 
   return {
     language,
-    title: [documentName, homeTexts.name, homeTexts.jobTitle]
-      .filter(isFilled)
-      .join(PAGE_TITLE_SEPARATOR),
+    title: [documentName, homeTexts.name, jobTitle].filter(isFilled).join(PAGE_TITLE_SEPARATOR),
     subject: toText(texts.subject),
     keywords: toTexts(texts.keywords),
     labelSeparator: toText(texts.labelSeparator),
     name: homeTexts.name,
-    jobTitle: homeTexts.jobTitle,
+    jobTitle,
     passion: homeTexts.passion,
     contacts: buildContacts({ contact, texts }),
     profiles: buildProfiles({ siteUrl, siteDomain: homeTexts.site, linkedInUrl }),
@@ -263,13 +264,6 @@ export const buildCvContent = ({
     experiences: {
       title: translate('exp.pageTitle'),
       items: buildExperiences({ translate, experiences }),
-    },
-    projects: {
-      title: translate('projects.pageTitle'),
-      items: [
-        { title: translate('projects.freelance'), items: buildProjectItems(freelanceProjects) },
-        { title: translate('projects.personal'), items: buildProjectItems(personalProjects) },
-      ].filter(({ items }) => items.length > 0),
     },
     education: { title: toText(texts.educationTitle), items: buildDegrees(texts.education) },
   };

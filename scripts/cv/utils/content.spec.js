@@ -1,12 +1,9 @@
-import { buildCvContent, buildExperiences, buildProjectItems } from './content.mjs';
+import { buildCvContent, buildExperiences } from './content.mjs';
 
 /** Translations of a tiny site, by key. */
 const TEXTS = {
   'cvLink.documentName': 'CV',
   'exp.pageTitle': 'Expériences',
-  'projects.pageTitle': 'Projets',
-  'projects.freelance': 'Projets freelance',
-  'projects.personal': 'Projets personnels',
   'exp.acme.name': 'Acme',
   'exp.acme.contract': 'CDI',
   'exp.acme.city': 'Paris (75)',
@@ -18,6 +15,8 @@ const TEXTS = {
   'exp.acme.b1': 'Premier point',
   'exp.acme.b2': 'Deuxième point',
   'exp.acme.b3': 'Troisième point',
+  'exp.acme.cvIntro': 'Rocket, en bref',
+  'exp.acme.cvB1': 'Point du CV',
   'exp.acme.proj1Title': 'Fusée',
   'exp.acme.proj1State': 'En production',
 };
@@ -71,6 +70,7 @@ const CV_DATA = {
   },
   languages: {
     fr: {
+      jobTitle: 'Développeur Front-End Senior',
       subject: 'Développeur front-end senior',
       keywords: ['React', '', '  ', 42, null, 'TypeScript'],
       labelSeparator: ' : ',
@@ -104,10 +104,6 @@ const PARAMS = {
   homeTexts: HOME_TEXTS,
   cvData: CV_DATA,
   experiences: [ACME],
-  personalProjects: [{ id: 1, name: 'Calculatrice', type: 'Application web', tools: ['React.js'] }],
-  freelanceProjects: [
-    { id: 2, name: 'Study SARL', type: 'Site web', tools: ['PHP'], url: 'https://study.fr/' },
-  ],
   siteUrl: 'https://issoufi.fr/',
   linkedInUrl: 'https://www.linkedin.com/in/adam/',
 };
@@ -173,7 +169,7 @@ describe('buildExperiences', () => {
     expect(roles[0].technologies).toEqual(['React.js']);
   });
 
-  describe('the selection of bullet points for the CV', () => {
+  describe('the texts of the CV', () => {
     /** Bullet points of a role and of its project, built from the given lists of keys. */
     const buildBullets = ({ bulletKeys, cvBulletKeys }) => {
       const entry = { bulletKeys, cvBulletKeys };
@@ -184,32 +180,64 @@ describe('buildExperiences', () => {
       return { role: roles[0].bullets, project: roles[0].projects[0].bullets };
     };
 
-    const BULLET_KEYS = ['exp.acme.b1', 'exp.acme.b2', 'exp.acme.b3'];
+    /** The role of {@link ACME}, as the CV writes it with the given fields. */
+    const buildAcmeRole = fields => {
+      const [{ roles }] = buildExperiences({
+        translate,
+        experiences: [{ ...ACME, roles: [{ ...ACME.roles[0], ...fields }] }],
+      });
+      return roles[0];
+    };
 
-    it('writes the selected bullet points in the order of the site', () => {
+    const BULLET_KEYS = ['exp.acme.b1', 'exp.acme.b2', 'exp.acme.b3'];
+    const SITE_INTRO = [
+      { text: 'Développement de ', isStrong: false },
+      { text: 'Rocket', isStrong: true },
+    ];
+    const SITE_PROJECTS = [
+      {
+        title: 'Fusée',
+        state: 'En production',
+        description: [],
+        bullets: [],
+        technologies: ['Vite'],
+      },
+    ];
+    const NO_LISTS = [[undefined], [null], ['exp.acme.b1'], [{}]];
+
+    it('writes the bullet points of the CV in their own order', () => {
       expect(
         buildBullets({ bulletKeys: BULLET_KEYS, cvBulletKeys: ['exp.acme.b3', 'exp.acme.b1'] }),
       ).toEqual({
-        role: ['Premier point', 'Troisième point'],
-        project: ['Premier point', 'Troisième point'],
+        role: ['Troisième point', 'Premier point'],
+        project: ['Troisième point', 'Premier point'],
       });
     });
 
-    it('leaves out a selected key that the site does not show', () => {
+    it('writes a bullet point of the CV only, which the site does not show', () => {
       expect(
-        buildBullets({ bulletKeys: ['exp.acme.b1'], cvBulletKeys: ['exp.acme.b1', 'exp.acme.b2'] }),
+        buildBullets({ bulletKeys: BULLET_KEYS, cvBulletKeys: ['exp.acme.cvB1', 'exp.acme.b2'] }),
+      ).toEqual({
+        role: ['Point du CV', 'Deuxième point'],
+        project: ['Point du CV', 'Deuxième point'],
+      });
+    });
+
+    it('leaves out a bullet point of the CV without translation', () => {
+      expect(
+        buildBullets({ bulletKeys: BULLET_KEYS, cvBulletKeys: ['exp.unknown', 'exp.acme.b1'] }),
       ).toEqual({ role: ['Premier point'], project: ['Premier point'] });
     });
 
-    it('writes no bullet point for an empty selection', () => {
+    it('writes no bullet point for an empty list of the CV', () => {
       expect(buildBullets({ bulletKeys: BULLET_KEYS, cvBulletKeys: [] })).toEqual({
         role: [],
         project: [],
       });
     });
 
-    it.each([[undefined], [null], ['exp.acme.b1'], [{}]])(
-      'writes every bullet point of the site when the selection is %j, which is no list',
+    it.each(NO_LISTS)(
+      'writes every bullet point of the site when those of the CV are %j, which is no list',
       cvBulletKeys => {
         const bullets = ['Premier point', 'Deuxième point', 'Troisième point'];
         expect(buildBullets({ bulletKeys: BULLET_KEYS, cvBulletKeys })).toEqual({
@@ -220,11 +248,56 @@ describe('buildExperiences', () => {
     );
 
     it.each([[undefined], [null], ['exp.acme.b1']])(
-      'writes no bullet point for a selection among bullet points that are %j, which is no list',
+      'writes the bullet points of the CV when those of the site are %j, which is no list',
       bulletKeys => {
         expect(buildBullets({ bulletKeys, cvBulletKeys: ['exp.acme.b1'] })).toEqual({
-          role: [],
-          project: [],
+          role: ['Premier point'],
+          project: ['Premier point'],
+        });
+      },
+    );
+
+    it('writes the introduction of the CV instead of that of the site', () => {
+      const role = buildAcmeRole({
+        cvIntro: [{ key: 'exp.acme.cvIntro' }, { key: 'exp.acme.introStrong', isStrong: true }],
+      });
+
+      expect(role.intro).toEqual([
+        { text: 'Rocket, en bref', isStrong: false },
+        { text: 'Rocket', isStrong: true },
+      ]);
+    });
+
+    it('writes the projects of the CV instead of those of the site', () => {
+      const role = buildAcmeRole({ cvProjects: [{ titleKey: 'exp.acme.proj1Title' }] });
+
+      expect(role.projects).toEqual([
+        { title: 'Fusée', state: '', description: [], bullets: [], technologies: [] },
+      ]);
+    });
+
+    it('writes the technologies of the CV instead of those of the site', () => {
+      expect(buildAcmeRole({ cvTechnologies: ['React.js', ''] }).technologies).toEqual([
+        'React.js',
+      ]);
+    });
+
+    it('leaves the introduction, the projects and the technologies out for empty lists', () => {
+      const role = buildAcmeRole({ cvIntro: [], cvProjects: [], cvTechnologies: [] });
+
+      expect(role).toMatchObject({ intro: [], projects: [], technologies: [] });
+      expect(role.bullets).toEqual(['Premier point']);
+    });
+
+    it.each(NO_LISTS)(
+      'writes the introduction, the projects and the technologies of the site for %j',
+      value => {
+        const role = buildAcmeRole({ cvIntro: value, cvProjects: value, cvTechnologies: value });
+
+        expect(role).toMatchObject({
+          intro: SITE_INTRO,
+          projects: SITE_PROJECTS,
+          technologies: ['React.js', 'TypeScript'],
         });
       },
     );
@@ -279,44 +352,24 @@ describe('buildExperiences', () => {
   });
 });
 
-describe('buildProjectItems', () => {
-  it('keeps the name and the link of each project, without its kind or its technologies', () => {
-    expect(buildProjectItems(PARAMS.freelanceProjects)).toEqual([
-      { name: 'Study SARL', url: 'https://study.fr/' },
-    ]);
-  });
-
-  it('leaves out a project without name, and a link that is not a web address', () => {
-    const projects = [
-      { name: '', url: 'https://study.fr/' },
-      { name: '  ', url: 'https://study.fr/' },
-      { name: 42, url: 'https://study.fr/' },
-      { name: 'Puissance 4', url: 'javascript:alert(1)' },
-      { name: 'Calculatrice', url: 42 },
-    ];
-
-    expect(buildProjectItems(projects)).toEqual([
-      { name: 'Puissance 4', url: '' },
-      { name: 'Calculatrice', url: '' },
-    ]);
-  });
-
-  it.each([undefined, null, 'Study SARL', {}])('lists no project for %j', projects => {
-    expect(buildProjectItems(projects)).toEqual([]);
-  });
-});
-
 describe('buildCvContent', () => {
   it('names the document after the CV, its author and the job title', () => {
-    expect(buildCvContent(PARAMS).title).toBe(
-      'CV - ADAM Issoufi - Développeur full-stack JavaScript',
-    );
+    expect(buildCvContent(PARAMS).title).toBe('CV - ADAM Issoufi - Développeur Front-End Senior');
   });
 
-  it('leaves an empty job title out of the name of the document', () => {
-    const homeTexts = { ...HOME_TEXTS, jobTitle: '' };
+  it.each([undefined, null, 42, '', '  '])(
+    'leaves the job title %j out of the name of the document',
+    jobTitle => {
+      const cvData = { ...CV_DATA, languages: { fr: { ...CV_DATA.languages.fr, jobTitle } } };
 
-    expect(buildCvContent({ ...PARAMS, homeTexts }).title).toBe('CV - ADAM Issoufi');
+      expect(buildCvContent({ ...PARAMS, cvData }).title).toBe('CV - ADAM Issoufi');
+    },
+  );
+
+  it.each([undefined, null, 42])('gives no job title for %j', jobTitle => {
+    const cvData = { ...CV_DATA, languages: { fr: { ...CV_DATA.languages.fr, jobTitle } } };
+
+    expect(buildCvContent({ ...PARAMS, cvData }).jobTitle).toBe('');
   });
 
   it('gives the subject and the filled keywords of the data of the CV', () => {
@@ -340,15 +393,18 @@ describe('buildCvContent', () => {
     expect(content.keywords).toEqual([]);
   });
 
-  it('writes the texts of the home page in the header', () => {
+  it('writes the name and the line about design of the home page in the header', () => {
     const content = buildCvContent(PARAMS);
 
     expect(content).toMatchObject({
       language: 'fr',
       name: 'ADAM Issoufi',
-      jobTitle: 'Développeur full-stack JavaScript',
       passion: HOME_TEXTS.passion,
     });
+  });
+
+  it('writes the job title of the data of the CV, not the one of the home page', () => {
+    expect(buildCvContent(PARAMS).jobTitle).toBe('Développeur Front-End Senior');
   });
 
   it('leaves out the subtitle of the home page, which offers services to clients', () => {
@@ -380,7 +436,6 @@ describe('buildCvContent', () => {
     const content = buildCvContent(PARAMS);
 
     expect(content.experiences.title).toBe('Expériences');
-    expect(content.projects.title).toBe('Projets');
     expect(content.profile.title).toBe('Profil');
     expect(content.skills.title).toBe('Compétences');
     expect(content.education.title).toBe('Formation');
@@ -404,17 +459,8 @@ describe('buildCvContent', () => {
     });
   });
 
-  it('lists the freelance projects, then the personal ones', () => {
-    const { items } = buildCvContent(PARAMS).projects;
-
-    expect(items.map(({ title }) => title)).toEqual(['Projets freelance', 'Projets personnels']);
-    expect(items[1].items[0].name).toBe('Calculatrice');
-  });
-
-  it('leaves out a group of projects without project', () => {
-    const { items } = buildCvContent({ ...PARAMS, freelanceProjects: [] }).projects;
-
-    expect(items.map(({ title }) => title)).toEqual(['Projets personnels']);
+  it('leaves out the projects of the Projects page, older than the experiences', () => {
+    expect(buildCvContent(PARAMS)).not.toHaveProperty('projects');
   });
 
   it('keeps the skills and the degrees that are filled, a degree without its description', () => {
@@ -476,6 +522,6 @@ describe('buildCvContent', () => {
       translate: key => (key === 'cvLink.documentName' ? '' : translate(key)),
     });
 
-    expect(content.title).toBe('ADAM Issoufi - Développeur full-stack JavaScript');
+    expect(content.title).toBe('ADAM Issoufi - Développeur Front-End Senior');
   });
 });

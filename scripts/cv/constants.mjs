@@ -31,27 +31,25 @@ export const FINGERPRINT_ALGORITHM = 'sha256';
 /**
  * Modules of the site read by the script through Vite (`loadSiteModules`), with the translations
  * of `TRANSLATION_MODULES` (`scripts/utils/constants.mjs`): the design tokens, the origin and the
- * URLs of the site, the default language, the helpers that translate the JSON data, the URL of
- * the CV of each language and the LinkedIn profile. Paths are relative to the project root.
+ * URLs of the site, the default language, the helper that translates the keys of the JSON data,
+ * the URL of the CV of each language and the LinkedIn profile. Paths are relative to the project
+ * root.
  */
 export const SOURCE_MODULES = {
   theme: '/src/theme/theme.ts',
   pages: '/src/utils/pages.ts',
   i18nConstants: '/src/i18n/constants.ts',
   i18nUtils: '/src/i18n/utils.ts',
-  projectUtils: '/src/pages/Projects/utils.ts',
   cvLink: '/src/App/Header/NavMenu/CvLink/constants.ts',
   profiles: '/src/constants/profiles.ts',
 };
 
 /**
  * JSON data read through Vite like {@link SOURCE_MODULES}: the experiences of the Experiences
- * page, the projects of the Projects page, and the data of the CV ({@link CV_DATA_MODULE}).
+ * page and the data of the CV ({@link CV_DATA_MODULE}).
  */
 export const DATA_MODULES = {
   experiences: '/src/pages/Experiences/.data/experiences.json',
-  personalProjects: '/src/pages/Projects/.data/personal-projects.json',
-  freelanceProjects: '/src/pages/Projects/.data/freelance-projects.json',
   cv: CV_DATA_MODULE,
 };
 
@@ -155,17 +153,15 @@ export const CV_LAYOUT = {
   bodyFontSize: '9.5pt',
   /** Font size of the author's name. */
   nameFontSize: '22pt',
-  /** Font size of the job title. */
+  /** Font size of the job title and of the line about design that follows it. */
   jobTitleFontSize: '13pt',
-  /** Font size of the line about design. */
-  taglineFontSize: '10pt',
   /** Font size of the contact details. */
   contactFontSize: '9pt',
   /** Font size of the title of each section. */
   sectionTitleFontSize: '10.5pt',
   /** Font size of the name of a company. */
   companyFontSize: '11pt',
-  /** Font size of the title of a role, of a group of projects and of a degree. */
+  /** Font size of the title of a role, and of a degree. */
   roleFontSize: '10pt',
   /** Font size of the dates, the technologies and the details. */
   detailsFontSize: '8.5pt',
@@ -175,12 +171,29 @@ export const CV_LAYOUT = {
   sectionMarginTop: '3.5mm',
   /** Space under the title of each section. */
   sectionTitleMarginBottom: '2mm',
-  /** Thickness of the line under the header and under each section title. */
+  /** Thickness of the line under each section title. */
   ruleWidth: '0.6pt',
   /** Space between two companies. */
-  companyGap: '3mm',
-  /** Space between two roles, two projects or two entries. */
+  companyGap: '5mm',
+  /** Space around the name of a company, inside its tinted band: above and below, then aside. */
+  companyBandPadding: '0.8mm 2mm',
+  /** Thickness of the line on the left of the band of a company. */
+  companyBandRuleWidth: '2pt',
+  /**
+   * Space between two projects or two degrees, above the first role of a company, and above the
+   * contact details.
+   */
   itemGap: '1.5mm',
+  /** Space between two roles of a company, along their timeline. */
+  roleGap: '3mm',
+  /** Indent of a role past the timeline of its company. */
+  roleIndent: '4mm',
+  /** Thickness of the timeline that links the roles of a company, like the one of the site. */
+  roleLineWidth: '1.2pt',
+  /** Diameter of the dot that marks a role on the timeline of its company. */
+  roleDotSize: '2.4mm',
+  /** Thickness of the paper ring that parts the dot of a role from the timeline it sits on. */
+  roleDotRingWidth: '0.8pt',
   /** Space between the title of a block and its text. */
   blockGap: '0.6mm',
   /** Indent of a project under its role, past its line. */
@@ -205,6 +218,4 @@ export const CV_LAYOUT = {
   contactIconSize: '1.1em',
   /** Space between the icon of a contact detail and its text. */
   contactIconGap: '1.2mm',
-  /** Space between two columns. */
-  columnGap: '6mm',
 };
