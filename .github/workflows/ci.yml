@@ -182,6 +182,7 @@ jobs:
   # own runner, so the wall time stays well under the timeout as the suite grows
   browser-test-shard:
     needs: build
+    # The browser-test job finds the shards that failed by this name
     name: browser-test (${{ matrix.shard }}/${{ strategy.job-total }})
     runs-on: ubuntu-latest
     timeout-minutes: 10
@@ -271,36 +272,46 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     permissions:
-      # Reads the jobs of the run, to name the WebKit shards that did not pass
+      # Reads the jobs of the run, to name the shards that did not pass
       actions: read
     steps:
-      - if: needs.browser-test-shard.result != 'success'
-        run: |
-          echo "::error::The browser tests did not pass: their shards ended with '${SHARDS_RESULT}'."
-          exit 1
-        env:
-          SHARDS_RESULT: ${{ needs.browser-test-shard.result }}
       # needs gives one result for all the shards of a matrix, so this step reads which ones did
       # not pass in the jobs of this attempt of the run, which also lists the jobs that a rerun of
-      # the failed ones kept
-      - if: needs.browser-test-webkit.result != 'success'
+      # the failed ones kept, and prints an error for each browser whose shards did not all pass
+      - if: >-
+          needs.browser-test-shard.result != 'success'
+          || needs.browser-test-webkit.result != 'success'
         run: |
           run_path="repos/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
-          shards=$(gh api "${run_path}/attempts/${GITHUB_RUN_ATTEMPT}/jobs?per_page=100" \
-            --jq "$FAILED_SHARDS_FILTER") || shards=''
-          if [ -z "$shards" ]; then
-            shards="its shards ended with '${WEBKIT_RESULT}'"
-          fi
-          echo "::error::The browser tests did not pass in WebKit: ${shards}."
+          jobs=$(gh api "${run_path}/attempts/${GITHUB_RUN_ATTEMPT}/jobs?per_page=100") || jobs=''
+          # Names the shards of one browser that did not pass, or gives the result of all of them
+          # when the jobs of the run could not be read
+          report_failed_shards() {
+            local browser=$1 prefix=$2 result=$3 shards
+            if [ "$result" = success ]; then
+              return
+            fi
+            shards=$(jq -r --arg prefix "$prefix" "$FAILED_SHARDS_FILTER" <<< "$jobs") || shards=''
+            if [ -z "$shards" ]; then
+              shards="its shards ended with '${result}'"
+            fi
+            echo "::error::The browser tests did not pass in ${browser}: ${shards}."
+          }
+          report_failed_shards Chromium 'browser-test (' "$CHROMIUM_RESULT"
+          report_failed_shards WebKit 'browser-test (webkit ' "$WEBKIT_RESULT"
           exit 1
         env:
+          CHROMIUM_RESULT: ${{ needs.browser-test-shard.result }}
           WEBKIT_RESULT: ${{ needs.browser-test-webkit.result }}
           GH_TOKEN: ${{ github.token }}
-          # Names each WebKit shard that did not pass, e.g. "shard 2/3 ended with 'failure'"
+          # Names each shard that did not pass among the jobs named $prefix then "<i>/<total>)",
+          # e.g. "shard 2/3 ended with 'failure'"
           FAILED_SHARDS_FILTER: >-
-            "browser-test (webkit " as $prefix
-            | [.jobs[] | select((.name | startswith($prefix)) and .conclusion != "success")
-            | "shard \(.name | ltrimstr($prefix) | rtrimstr(")")) ended with '\(.conclusion)'"]
+            [.jobs[]
+            | select((.name | startswith($prefix)) and .conclusion != "success")
+            | (.name | ltrimstr($prefix) | rtrimstr(")")) as $shard
+            | select($shard | test("^[0-9]+/[0-9]+$"))
+            | "shard \($shard) ended with '\(.conclusion)'"]
             | join(", ")
 
   # Compares the screenshots of every page with those of the base of the pull request, at four
