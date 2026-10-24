@@ -322,7 +322,7 @@ export const getPageAlternates = (path: string): PageAlternate[] => [
  * serves the closest one up the folders of the path, so each language has its own, in the folder
  * of its prefix (see {@link getNotFoundFiles}).
  */
-const NOT_FOUND_FILE_NAME = '404.html';
+export const NOT_FOUND_FILE_NAME = '404.html';
 
 /** Folder of the page that {@link NOT_FOUND_FILE_NAME} shows, in `src/pages`. */
 export const NOT_FOUND_FOLDER = 'NotFound';

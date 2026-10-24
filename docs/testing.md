@@ -18,6 +18,7 @@
 ## Browser tests
 
 jsdom computes no layout, so these tests run in Chromium, on the production build, and those of phones in WebKit too.
+`pnpm preview` serves that build as Cloudflare Pages does, even on the disk of macOS, which ignores case: a path that names no file, case included, gets the closest not found page up its folders, `en/404.html` under `/en/` and `404.html` elsewhere, with the status 404 (`vite/preview/plugins.ts`), so the tests check the status and the `noindex` of the not found page. It applies no redirect, neither those of Cloudflare Pages (`/en` to `/en/`) nor those of a `_redirects` file.
 In the CI, `.github/actions/playwright` installs the headless shell of Chromium, cached, and takes its system libraries from the image of the runner, falling back to the apt mirror only when the browser does not start ([decision 0022](decisions/0022-chromium-libraries-from-runner-image.md)).
 The WebKit job runs in the image of Playwright, pinned by its digest, which holds WebKit and the system libraries that the image of the runner lacks, so it reads no apt mirror ([decision 0024](decisions/0024-webkit-in-playwright-image.md)).
 They run in both languages, on screens from small phones to large desktops:

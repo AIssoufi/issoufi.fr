@@ -12,10 +12,13 @@ import {
   ERROR_MESSAGE_SELECTOR,
   ERROR_PAGE_SCREENS,
   MAX_ERROR_MESSAGE_CENTER_OFFSET_RATIO,
+  NO_INDEX_ROBOTS,
   NOT_FOUND_ROUTE,
+  NOT_FOUND_STATUS,
   PAGE_SELECTOR,
   PROJECTS_CHUNK_PATTERN,
   PROJECTS_ROUTE,
+  ROBOTS_META_SELECTOR,
 } from './constants.ts';
 import { getBoxCenterDistanceY } from './utils.ts';
 
@@ -114,14 +117,32 @@ for (const language of LANGUAGES) {
   }
 }
 
+// The preview serves the not found page of each language as Cloudflare Pages does
+for (const language of LANGUAGES) {
+  test(`the not found page answers with the status 404 and noindex, in ${language}`, async ({
+    page,
+  }) => {
+    const translations = TRANSLATIONS[language];
+
+    const response = await page.goto(localizePath({ path: NOT_FOUND_ROUTE, language }));
+
+    expect(response?.status(), 'status of the page').toBe(NOT_FOUND_STATUS);
+    await expect(page.locator(ROBOTS_META_SELECTOR)).toHaveAttribute('content', NO_INDEX_ROBOTS);
+    await expect(page).toHaveTitle(translations.meta.notFound.title);
+    await expect(page.locator('html')).toHaveAttribute('lang', language);
+  });
+}
+
 // The server answers these paths with the not found page, so the app must not show the page
 // that it would match without case, under the title of the not found page
 for (const { path: route, language } of CAPITALIZED_ROUTES) {
   test(`the not found page shows at ${route}, in ${language}`, async ({ page }) => {
     const translations = TRANSLATIONS[language];
 
-    await page.goto(route);
+    const response = await page.goto(route);
 
+    expect(response?.status(), 'status of the page').toBe(NOT_FOUND_STATUS);
+    await expect(page.locator(ROBOTS_META_SELECTOR)).toHaveAttribute('content', NO_INDEX_ROBOTS);
     await expect(
       page.getByRole('heading', { level: 1, name: translations.errors.notFound.title }),
     ).toBeVisible();
