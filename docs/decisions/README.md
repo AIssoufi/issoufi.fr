@@ -6,7 +6,7 @@ One Architecture Decision Record (ADR) per change of tool or of architecture: wh
 
 - **Due**: a change of tool or of architecture, such as a framework, a build tool, a test runner, a package manager, a language, a host, or the way the site is rendered, deployed or released.
 - **Not due**: a version update of a tool already used, a library for one feature, or a choice inside the code (a helper, a component, a test).
-- The pull request that makes the change writes its ADR, with the next free number, and its step of [`docs/evolution.md`](../evolution.md).
+- The pull request that makes the change writes its ADR, with the next free number, and its step of [`docs/evolution.md`](../evolution.md), with a "Measured on YYYY-MM-DD." line before its table.
 - Its ticket measures the figures that the change moves before the first commit, on the base of the branch, then again on the final state, with the same command on the same machine.
 
 ## Template
