@@ -1,6 +1,6 @@
 import { readFileSync } from 'node:fs';
 import type { OutgoingHttpHeaders, ServerResponse } from 'node:http';
-import { join, resolve } from 'node:path';
+import { join } from 'node:path';
 
 import type { Connect, Plugin } from 'vite';
 
@@ -17,7 +17,7 @@ import {
   READ_REQUEST_METHODS,
 } from './constants.ts';
 import { getRedirectLocation, isCloudflareConfigFile } from './redirects.ts';
-import { findExactFile } from './utils/files.ts';
+import { findExactFile, getPreviewBuildRoot } from './utils/files.ts';
 import { getCacheControl } from './utils/headers.ts';
 import { getNotFoundPageFiles, getRequestPathname, getServedFiles } from './utils/paths.ts';
 
@@ -73,10 +73,9 @@ export const createNotFoundMiddleware =
 export const notFoundPages = (): Plugin => ({
   name: NOT_FOUND_PAGES_PLUGIN_NAME,
   configurePreviewServer: server => {
-    const { root, environments, preview } = server.config;
-    // The folder that Vite previews
-    const buildRoot = resolve(root, environments.client.build.outDir);
-    server.middlewares.use(createNotFoundMiddleware({ root: buildRoot, headers: preview.headers }));
+    const buildRoot = getPreviewBuildRoot(server);
+    const { headers } = server.config.preview;
+    server.middlewares.use(createNotFoundMiddleware({ root: buildRoot, headers }));
   },
 });
 
@@ -124,10 +123,7 @@ export const createCacheHeadersMiddleware =
 export const cacheHeaders = (): Plugin => ({
   name: CACHE_HEADERS_PLUGIN_NAME,
   configurePreviewServer: server => {
-    const { root, environments } = server.config;
-    // The folder that Vite previews
-    const buildRoot = resolve(root, environments.client.build.outDir);
-    server.middlewares.use(createCacheHeadersMiddleware({ root: buildRoot }));
+    server.middlewares.use(createCacheHeadersMiddleware({ root: getPreviewBuildRoot(server) }));
   },
 });
 
@@ -215,11 +211,8 @@ export const createCloudflareRoutesMiddleware =
 export const cloudflareRoutes = (): Plugin => ({
   name: CLOUDFLARE_ROUTES_PLUGIN_NAME,
   configurePreviewServer: server => {
-    const { root, environments, preview } = server.config;
-    // The folder that Vite previews
-    const buildRoot = resolve(root, environments.client.build.outDir);
-    server.middlewares.use(
-      createCloudflareRoutesMiddleware({ root: buildRoot, headers: preview.headers }),
-    );
+    const buildRoot = getPreviewBuildRoot(server);
+    const { headers } = server.config.preview;
+    server.middlewares.use(createCloudflareRoutesMiddleware({ root: buildRoot, headers }));
   },
 });

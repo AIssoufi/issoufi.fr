@@ -1,5 +1,7 @@
 import { type Dirent, readdirSync } from 'node:fs';
-import { join } from 'node:path';
+import { join, resolve } from 'node:path';
+
+import type { PreviewServer } from 'vite';
 
 import { PATH_SEPARATOR } from '../../../src/i18n/constants.ts';
 
@@ -79,3 +81,20 @@ interface FindExactFileParams extends ExactFileParams {
  */
 export const findExactFile = ({ root, files }: FindExactFileParams): string | undefined =>
   files.find(file => isExactFile({ root, file }));
+
+/**
+ * Reads the folder of the build that `vite preview` serves: the `build.outDir` of the client,
+ * from the root of the project unless it is absolute, as Vite resolves it.
+ *
+ * @param server - Preview server that Vite gives the `configurePreviewServer` hook of a plugin.
+ * @returns The absolute path of the build, e.g. `/app/dist`.
+ *
+ * @example
+ * configurePreviewServer: server => {
+ *   server.middlewares.use(createNotFoundMiddleware({ root: getPreviewBuildRoot(server) }));
+ * },
+ */
+export const getPreviewBuildRoot = (server: PreviewServer): string => {
+  const { root, environments } = server.config;
+  return resolve(root, environments.client.build.outDir);
+};

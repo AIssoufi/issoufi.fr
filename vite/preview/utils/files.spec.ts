@@ -3,7 +3,9 @@ import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
-import { findExactFile, isExactFile } from './files.ts';
+import type { PreviewServer } from 'vite';
+
+import { findExactFile, getPreviewBuildRoot, isExactFile } from './files.ts';
 import { getNotFoundPageFiles, getServedFiles } from './paths.ts';
 
 /** Files of the fake build, from its root. */
@@ -90,5 +92,31 @@ describe('with a build', () => {
     it('finds none in an empty list', () => {
       expect(findExactFile({ root, files: [] })).toBeUndefined();
     });
+  });
+});
+
+describe('getPreviewBuildRoot', () => {
+  /** Makes the fake preview server of a project whose client builds to that folder. */
+  const createServer = ({ root = '/app', outDir = 'dist' } = {}) =>
+    ({
+      config: { root, environments: { client: { build: { outDir } } } },
+    }) as unknown as PreviewServer;
+
+  it('reads the build folder of the client from the root of the project', () => {
+    expect(getPreviewBuildRoot(createServer())).toBe('/app/dist');
+    expect(getPreviewBuildRoot(createServer({ outDir: 'build/site' }))).toBe('/app/build/site');
+  });
+
+  it('keeps an absolute build folder', () => {
+    expect(getPreviewBuildRoot(createServer({ outDir: '/tmp/dist' }))).toBe('/tmp/dist');
+  });
+
+  it('normalizes the path of the build folder', () => {
+    expect(getPreviewBuildRoot(createServer({ outDir: '../dist/' }))).toBe('/dist');
+    expect(getPreviewBuildRoot(createServer({ outDir: './dist/./en/..' }))).toBe('/app/dist');
+  });
+
+  it('reads the root of the project for an empty build folder', () => {
+    expect(getPreviewBuildRoot(createServer({ outDir: '' }))).toBe('/app');
   });
 });
