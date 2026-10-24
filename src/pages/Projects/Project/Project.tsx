@@ -5,6 +5,7 @@ import LikeIcon from './icons/heart.svg?react';
 import NextIcon from './icons/next.svg?react';
 import PreviousIcon from './icons/previous.svg?react';
 
+import VisuallyHidden from '../../../components/VisuallyHidden/index.ts';
 import { isNonBlankString, listUniqueNonBlankStrings } from '../../../utils/strings.ts';
 import { ROW_CARD_COUNT, THUMBNAIL_SIZES } from './constants.ts';
 import { useCardTilt } from './hooks/useCardTilt/index.ts';
@@ -35,6 +36,7 @@ import {
   getLastPageStart,
   getNextPageStart,
   getPageProjects,
+  getPageRange,
   getPreviousPageStart,
   getProjectLinkUrl,
   getThumbnailSources,
@@ -88,17 +90,24 @@ const NO_PROJECTS: ProjectItemData[] = [];
  * screen, once the screen nears it and at a low priority, but the first one of a `priority`
  * section, at once and at a high priority, the only one of the page; hovering
  * or focusing an arrow downloads the thumbnails of the page it would show, so that they never
- * show empty.
+ * show empty. After each page change, a polite status that only screen readers read tells which
+ * cards the page shows ("Projects 2 to 4 of 4"); it is empty on the first render, so that loading
+ * the page announces nothing, and while every card shows. "Show all" exposes whether the list is
+ * expanded, and names it with `aria-controls`.
  */
 const Project = ({ title, projects = NO_PROJECTS, priority = false }: ProjectProps) => {
   const { t } = useTranslation();
   // Prefix of the element ids, unique to each section since a page shows several of them
   const sectionId = useId();
   const titleId = `${sectionId}-title`;
+  const listId = `${sectionId}-list`;
   // A blank title would leave an empty heading, and the controls labelled by it unnamed
   const hasTitle = typeof title === 'string' && title.trim() !== '';
   const [requestedPageStart, setPageStart] = useState(0);
   const [isShowingAll, setIsShowingAll] = useState(false);
+  // The status stays empty until the visitor changes the page, so that loading the page announces
+  // nothing
+  const [hasChangedPage, setHasChangedPage] = useState(false);
   const { likedIds, animatingIds, toggleLike } = useLikes();
   const { listRef, wholeCardCount } = useWholeCardCount({ maxCount: ROW_CARD_COUNT });
 
@@ -123,6 +132,10 @@ const Project = ({ title, projects = NO_PROJECTS, priority = false }: ProjectPro
   // Every card is rendered, so that the HTML of the build holds every project: those out of the
   // page are hidden, except where no script runs
   const shownProjects = new Set(isShowingAll ? projects : getPageProjects({ projects, pageStart }));
+  const pageRange = getPageRange({ total, pageStart });
+  // "Show all" leaves no page to announce, and its button tells that the list is expanded
+  const isAnnouncingPage = hasChangedPage && !isShowingAll && pageRange !== undefined;
+  const pageStatus = isAnnouncingPage ? t('projects.pageStatus', { ...pageRange, total }) : '';
 
   const preloadThumbnails = usePreloadThumbnails();
   const preloadNextPage = () =>
@@ -134,12 +147,14 @@ const Project = ({ title, projects = NO_PROJECTS, priority = false }: ProjectPro
     if (isLastPage) return;
 
     setPageStart(nextPageStart);
+    setHasChangedPage(true);
   };
 
   const handlePreviousPage = () => {
     if (isFirstPage) return;
 
     setPageStart(previousPageStart);
+    setHasChangedPage(true);
   };
 
   const cardTilt = useCardTilt();
@@ -179,6 +194,8 @@ const Project = ({ title, projects = NO_PROJECTS, priority = false }: ProjectPro
           )}
           <CtrlItem
             type="button"
+            aria-expanded={isShowingAll}
+            aria-controls={listId}
             onClick={() => setIsShowingAll(!isShowingAll)}
           >
             {isShowingAll ? t('projects.showLess') : t('projects.showAll', { count: total })}
@@ -186,6 +203,7 @@ const Project = ({ title, projects = NO_PROJECTS, priority = false }: ProjectPro
         </SectionControls>
       </SectionHeader>
       <ProjectGrid
+        id={listId}
         ref={listRef}
         $displayAll={isShowingAll}
       >
@@ -252,6 +270,11 @@ const Project = ({ title, projects = NO_PROJECTS, priority = false }: ProjectPro
           );
         })}
       </ProjectGrid>
+      {/* Rendered empty from the start, since screen readers only announce a change of a region
+          that they already know */}
+      <VisuallyHidden>
+        <span role="status">{pageStatus}</span>
+      </VisuallyHidden>
     </Section>
   );
 };
