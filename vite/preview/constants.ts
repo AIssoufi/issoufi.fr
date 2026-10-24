@@ -1,4 +1,16 @@
+import type { CorsOptions } from 'vite';
+
 import { HEADERS_FILE_NAME, REDIRECTS_FILE_NAME } from '../constants.ts';
+
+/**
+ * CORS headers of `vite preview`, as Cloudflare Pages sends them: `Access-Control-Allow-Origin: *`
+ * and no `Vary` header. The default of Vite adds `Vary: Origin` to every answer, and WebKit
+ * requests a web font for its preload with an `Origin` header, then for its `@font-face` without
+ * one: its memory cache drops a file when that header differs from the request it cached, so
+ * WebKit downloaded the font again at each load of a page.
+ * @see https://github.com/WebKit/WebKit/blob/main/Source/WebCore/loader/cache/CachedResourceLoader.cpp
+ */
+export const PREVIEW_CORS: CorsOptions = { origin: '*' };
 
 /**
  * File that a request for a folder of the build reads, as Cloudflare Pages serves it: `/en/`

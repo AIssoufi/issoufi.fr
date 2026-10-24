@@ -40,6 +40,7 @@ import {
   PAGE_META_PLUGIN_NAME,
   SECURITY_HEADERS,
 } from './vite/constants.ts';
+import { PREVIEW_CORS } from './vite/preview/constants.ts';
 import { cacheHeaders, cloudflareRoutes, notFoundPages } from './vite/preview/plugins.ts';
 import { minifyStyledCss, styledComponentIds } from './vite/prerender/plugins.ts';
 import { prerenderPagesInWorker } from './vite/prerender/utils/render.ts';
@@ -380,6 +381,7 @@ export default defineConfig(({ mode }) => {
       // The security headers of Cloudflare Pages, so the browser tests run under the same Content
       // Security Policy. The dev server sends none: its inline scripts reload the modules
       headers: SECURITY_HEADERS,
+      cors: PREVIEW_CORS,
     },
     test: {
       globals: true,
