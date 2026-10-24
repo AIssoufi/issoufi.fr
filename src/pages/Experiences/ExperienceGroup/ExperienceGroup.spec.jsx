@@ -7,7 +7,7 @@ import { getReadText } from '../../testUtils.js';
 import ExperienceGroup from './ExperienceGroup.tsx';
 
 /** Any duration text, in French or in English. */
-const DURATION_TEXT = /\d+ (an|ans|mois|years?|months?)|< 1 (mois|month)/;
+const DURATION_TEXT = /\d+ (an|ans|mois|years?|months?)/;
 
 describe('ExperienceGroup', () => {
   afterEach(async () => {

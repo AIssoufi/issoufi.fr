@@ -6,7 +6,7 @@ import { FULL_MOTION_QUERY, HOVER_POINTER_QUERY } from '../../../theme/constants
 import Experience from './Experience.tsx';
 
 /** Any duration text, in French or in English. */
-const DURATION_TEXT = /\d+ (an|ans|mois|years?|months?)|< 1 (mois|month)/;
+const DURATION_TEXT = /\d+ (an|ans|mois|years?|months?)/;
 
 describe('Experience', () => {
   afterEach(async () => {

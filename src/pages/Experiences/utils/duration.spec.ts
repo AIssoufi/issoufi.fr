@@ -217,14 +217,12 @@ describe('formatDuration', () => {
     ['fr', { years: 0, months: 1 }, '1 mois'],
     ['fr', { years: 0, months: 3 }, '3 mois'],
     ['fr', { years: 2, months: 1 }, '2 ans 1 mois'],
-    ['fr', { years: 0, months: 0 }, '< 1 mois'],
     ['en', { years: 1, months: 9 }, '1 year 9 months'],
     ['en', { years: 1, months: 0 }, '1 year'],
     ['en', { years: 2, months: 0 }, '2 years'],
     ['en', { years: 0, months: 1 }, '1 month'],
     ['en', { years: 0, months: 3 }, '3 months'],
     ['en', { years: 2, months: 1 }, '2 years 1 month'],
-    ['en', { years: 0, months: 0 }, '< 1 month'],
   ])('formats in %s %j as %j', (language, duration, expected) => {
     expect(formatDuration({ duration, t: i18n.getFixedT(language) })).toBe(expected);
   });
@@ -241,8 +239,15 @@ describe('formatDuration', () => {
       expect(formatDuration({ duration: { years: 1, months: -3 }, t })).toBe('1 year');
     });
 
-    it('formats a duration shorter than a month when no part is positive', () => {
-      expect(formatDuration({ duration: { years: -1, months: Number.NaN }, t })).toBe('< 1 month');
+    it.each([
+      ['fr', 'a zero', { years: 0, months: 0 }],
+      ['fr', 'a negative', { years: -1, months: -2 }],
+      ['fr', 'an invalid', { years: Number.NaN, months: Number.NaN }],
+      ['en', 'a zero', { years: 0, months: 0 }],
+      ['en', 'a negative', { years: -1, months: -2 }],
+      ['en', 'an invalid', { years: Number.NaN, months: Number.NaN }],
+    ])('returns an empty string in %s for %s duration', (language, _kind, duration) => {
+      expect(formatDuration({ duration, t: i18n.getFixedT(language) })).toBe('');
     });
   });
 });

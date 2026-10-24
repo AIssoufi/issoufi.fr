@@ -115,9 +115,10 @@ interface FormatDurationParams {
 /**
  * Formats a duration in the active language with the `exp.duration` plurals,
  * e.g. "1 an 9 mois" in French or "1 year 9 months" in English. Parts that are not positive
- * numbers are left out, and a duration shorter than a month gives "< 1 mois" or "< 1 month".
+ * numbers are left out.
  *
- * @returns The formatted duration, or an empty string when there is no duration.
+ * @returns The formatted duration, or an empty string when there is no duration or no part is a
+ * positive number (a zero, negative or invalid duration), so that callers render nothing.
  *
  * @example
  * formatDuration({ duration: { years: 1, months: 9 }, t }); // '1 year 9 months' in English
@@ -130,5 +131,5 @@ export function formatDuration({ duration, t }: FormatDurationParams): string {
   const parts: string[] = [];
   if (years > 0) parts.push(t('exp.duration.years', { count: years }));
   if (months > 0) parts.push(t('exp.duration.months', { count: months }));
-  return parts.join(' ') || t('exp.duration.lessThanAMonth');
+  return parts.join(' ');
 }

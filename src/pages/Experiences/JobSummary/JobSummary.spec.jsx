@@ -8,7 +8,7 @@ import { LOGO_SIZE_PX } from './constants.ts';
 import JobSummary from './JobSummary.tsx';
 
 /** Any duration text, in French or in English. */
-const DURATION_TEXT = /\d+ (an|ans|mois|years?|months?)|< 1 (mois|month)/;
+const DURATION_TEXT = /\d+ (an|ans|mois|years?|months?)/;
 
 /** Texts that must never reach the screen. */
 const BROKEN_TEXT = /undefined|null|NaN|Invalid Date/;
