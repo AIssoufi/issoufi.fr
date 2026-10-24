@@ -6,6 +6,7 @@ import {
   getLastPageStart,
   getNextPageStart,
   getPageProjects,
+  getPageRange,
   getPreviousPageStart,
   getProjectLinkUrl,
   getThumbnailSources,
@@ -328,6 +329,51 @@ describe('getPageProjects', () => {
 
     expect(projects.map(({ id }) => id)).toEqual([1, 2, 3, 4]);
   });
+});
+
+describe('getPageRange', () => {
+  it.each([
+    [5, 0, { first: 1, last: 3, count: 3 }],
+    [5, 1, { first: 2, last: 4, count: 3 }],
+    [4, 1, { first: 2, last: 4, count: 3 }],
+    [5, 3, { first: 4, last: 5, count: 2 }],
+    [4, 3, { first: 4, last: 4, count: 1 }],
+    [1, 0, { first: 1, last: 1, count: 1 }],
+  ])('gives the cards of %i from the card %i: %j', (total, pageStart, range) => {
+    expect(getPageRange({ total, pageStart })).toEqual(range);
+  });
+
+  it('gives the cards of getPageProjects', () => {
+    const projects = [1, 2, 3, 4, 5].map(id => ({ id }) as ProjectItemData);
+
+    [0, 1, 2, 3, 4].forEach(pageStart => {
+      const ids = getPageProjects({ projects, pageStart }).map(({ id }) => id);
+      const range = getPageRange({ total: projects.length, pageStart });
+
+      expect(range?.first).toBe(ids[0]);
+      expect(range?.last).toBe(ids.at(-1));
+      expect(range?.count).toBe(ids.length);
+    });
+  });
+
+  it.each([
+    [0, 0],
+    [4, 4],
+    [4, 9],
+  ])('gives none for %i cards from the card %i, which shows none', (total, pageStart) => {
+    expect(getPageRange({ total, pageStart })).toBeUndefined();
+  });
+
+  it.each([-1, 1.5, NaN, Infinity])('gives none for a total of %s', total => {
+    expect(getPageRange({ total, pageStart: 0 })).toBeUndefined();
+  });
+
+  it.each([-1, -4, 1.5, NaN, Infinity, -Infinity])(
+    'gives the first page from %s, which starts no page',
+    pageStart => {
+      expect(getPageRange({ total: 5, pageStart })).toEqual({ first: 1, last: 3, count: 3 });
+    },
+  );
 });
 
 describe('getThumbnailSources', () => {
