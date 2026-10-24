@@ -1,8 +1,72 @@
 import { OFFSCREEN_POINTER } from '../constants.ts';
-import { FRICTION, MIN_PARTICLE_RADIUS_PX, PARTICLE_AREA_PX2 } from './constants.ts';
-import { createParticles, getLinkStrength, stepParticle, wrapAround } from './utils.ts';
+import {
+  FRICTION,
+  MAX_PIXEL_RATIO,
+  MIN_PARTICLE_RADIUS_PX,
+  PARTICLE_AREA_PX2,
+} from './constants.ts';
+import {
+  createParticles,
+  getCanvasSize,
+  getLinkStrength,
+  stepParticle,
+  wrapAround,
+} from './utils.ts';
 
 const still = { x: 100, y: 100, vx: 0, vy: 0, size: 1 };
+/** Window of an iPhone 13, in CSS pixels. */
+const PHONE = { cssWidth: 390, cssHeight: 664 };
+
+describe('getCanvasSize', () => {
+  it('holds one canvas pixel per CSS pixel without a ratio', () => {
+    expect(getCanvasSize(PHONE)).toEqual({ width: 390, height: 664, scale: 1 });
+  });
+
+  it.each([
+    [1, 1],
+    [0.5, 0.5],
+    [1.5, 1.5],
+    [MAX_PIXEL_RATIO, MAX_PIXEL_RATIO],
+    [MAX_PIXEL_RATIO + 0.01, MAX_PIXEL_RATIO],
+    [3, MAX_PIXEL_RATIO],
+  ])('draws a ratio of %d at %d canvas pixels per CSS pixel', (pixelRatio, scale) => {
+    expect(getCanvasSize({ ...PHONE, pixelRatio })).toEqual({
+      width: 390 * scale,
+      height: 664 * scale,
+      scale,
+    });
+  });
+
+  it('rounds the buffer to whole canvas pixels', () => {
+    expect(getCanvasSize({ cssWidth: 333, cssHeight: 101, pixelRatio: 1.5 })).toEqual({
+      width: 500,
+      height: 152,
+      scale: 1.5,
+    });
+  });
+
+  it.each([0, -2, Number.NaN, Number.POSITIVE_INFINITY, undefined])(
+    'counts a ratio of %s as 1',
+    pixelRatio => {
+      expect(getCanvasSize({ ...PHONE, pixelRatio })).toEqual({
+        width: 390,
+        height: 664,
+        scale: 1,
+      });
+    },
+  );
+
+  it.each([0, -390, Number.NaN, Number.POSITIVE_INFINITY])(
+    'gives an empty buffer for a CSS length of %s',
+    cssLength => {
+      expect(getCanvasSize({ cssWidth: cssLength, cssHeight: cssLength, pixelRatio: 2 })).toEqual({
+        width: 0,
+        height: 0,
+        scale: 2,
+      });
+    },
+  );
+});
 
 describe('createParticles', () => {
   it('creates one particle per area unit, inside the canvas', () => {

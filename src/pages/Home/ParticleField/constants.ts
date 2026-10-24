@@ -1,5 +1,12 @@
 import { theme } from '../../../theme/index.ts';
 
+/**
+ * Largest number of canvas pixels per CSS pixel: a screen of a higher device pixel ratio, such as
+ * the 3 of a phone, draws at this one, so the dots stay sharp while the canvas holds 4 times the
+ * pixels of the window rather than 9.
+ */
+export const MAX_PIXEL_RATIO = 2;
+
 /** Window area per particle: one dot for every 11,000 px², so density stays constant. */
 export const PARTICLE_AREA_PX2 = 11000;
 /** Range of the initial speed on each axis, centered on 0, in pixels per frame. */

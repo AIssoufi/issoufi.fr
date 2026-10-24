@@ -17,7 +17,7 @@ import {
 } from './constants.ts';
 import { Canvas } from './ParticleField.styled.ts';
 import type { Particle } from './types.ts';
-import { createParticles, getLinkStrength, stepParticle } from './utils.ts';
+import { createParticles, getCanvasSize, getLinkStrength, stepParticle } from './utils.ts';
 
 const FULL_CIRCLE_RAD = Math.PI * 2;
 
@@ -38,7 +38,8 @@ interface DrawLinkParams {
 /**
  * Full-screen background canvas of drifting dots, linked by lines when they are close to each
  * other or to the cursor, and pushed away by the mouse. The number of dots follows the window
- * area. Runs an animation-frame loop and mouse and resize listeners while mounted, and removes
+ * area, and the canvas holds as many pixels as the screen shows, up to `MAX_PIXEL_RATIO` per
+ * CSS pixel. Runs an animation-frame loop and mouse and resize listeners while mounted, and removes
  * them on unmount. With reduced motion, the dots stand still and ignore the mouse: it draws them
  * once, and again for each new size of the window. Stays empty without 2D canvas support.
  */
@@ -55,6 +56,8 @@ export const ParticleField = () => {
 
     let particles: Particle[] = [];
     let frame = 0;
+    // Size of the window, in CSS pixels: the dots move in it, whatever the canvas buffer holds
+    let viewport = { width: 0, height: 0 };
 
     const drawLink = ({ from, to, strength, maxOpacity, maxWidth }: DrawLinkParams) => {
       context.beginPath();
@@ -67,7 +70,7 @@ export const ParticleField = () => {
 
     /** Draws the dots where they are, linked to each other and to the pointer when it is close. */
     const draw = (pointer: Point) => {
-      context.clearRect(0, 0, canvas.width, canvas.height);
+      context.clearRect(0, 0, viewport.width, viewport.height);
 
       // Index loops on purpose: this O(n²) pass runs on every frame and must not allocate
       for (let i = 0; i < particles.length; i++) {
@@ -115,18 +118,28 @@ export const ParticleField = () => {
     };
 
     const tick = () => {
-      const { width, height } = canvas;
       const pointer = pointerRef.current;
-      particles = particles.map(particle => stepParticle({ particle, pointer, width, height }));
+      particles = particles.map(particle => stepParticle({ particle, pointer, ...viewport }));
       draw(pointer);
 
       frame = requestAnimationFrame(tick);
     };
 
     const resize = () => {
-      canvas.width = window.innerWidth;
-      canvas.height = window.innerHeight;
-      particles = createParticles({ width: canvas.width, height: canvas.height });
+      viewport = { width: window.innerWidth, height: window.innerHeight };
+      const { width, height, scale } = getCanvasSize({
+        cssWidth: viewport.width,
+        cssHeight: viewport.height,
+        pixelRatio: window.devicePixelRatio,
+      });
+      canvas.width = width;
+      canvas.height = height;
+      // A canvas shows one of its pixels per CSS pixel unless given a CSS size
+      canvas.style.width = `${viewport.width}px`;
+      canvas.style.height = `${viewport.height}px`;
+      // Sizing the canvas resets its context: each CSS pixel drawn covers `scale` canvas pixels
+      context.setTransform(scale, 0, 0, scale, 0, 0);
+      particles = createParticles(viewport);
       // Resizing clears the canvas, which the next frame fills again, unless the dots stand still
       if (prefersReducedMotion) draw(OFFSCREEN_POINTER);
     };
