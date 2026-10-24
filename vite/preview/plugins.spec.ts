@@ -1,7 +1,6 @@
 // @vitest-environment node
-import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
-import type { IncomingMessage, OutgoingHttpHeaders, ServerResponse } from 'node:http';
-import { tmpdir } from 'node:os';
+import { rmSync } from 'node:fs';
+import type { IncomingMessage, ServerResponse } from 'node:http';
 import { join } from 'node:path';
 
 import type { Connect, PreviewServer } from 'vite';
@@ -23,69 +22,14 @@ import {
   createNotFoundMiddleware,
   notFoundPages,
 } from './plugins.ts';
-
-/** Folder of the build in the fake project, as `build.outDir` names it. */
-const OUT_DIR = 'dist';
-
-/** Contents of the files of the fake build, by their path from its root. */
-const BUILD_FILES: Record<string, string> = {
-  'index.html': '<title>Accueil</title>',
-  'projects.html': '<title>Projets</title>',
-  '404.html': '<title>Page introuvable</title>',
-  'en/index.html': '<title>Home</title>',
-  'en/404.html': '<title>Page not found</title>',
-  'assets/index-a1b2.js': 'console.log(1);',
-  _headers: '/*\n  X-Frame-Options: DENY\n',
-};
-
-const HEADERS: OutgoingHttpHeaders = {
-  'X-Content-Type-Options': 'nosniff',
-  'Content-Security-Policy': "default-src 'self'",
-};
-
-/** Parameters of {@link serve}. */
-interface ServeParams {
-  /** The middleware under test. */
-  middleware: Connect.NextHandleFunction;
-  /** URL of the request, as Node.js gives it. */
-  url?: unknown;
-  /** Method of the request. */
-  method?: string;
-}
-
-/** Runs a middleware on a fake request, and reads what it answered. */
-const serve = ({ middleware, url, method = 'GET' }: ServeParams) => {
-  const headers = new Map<string, unknown>();
-  const answer = { statusCode: 200, headers, body: undefined as unknown, isPassed: false };
-  const response = {
-    get statusCode() {
-      return answer.statusCode;
-    },
-    set statusCode(statusCode: number) {
-      answer.statusCode = statusCode;
-    },
-    setHeader: (name: string, value: unknown) => headers.set(name, value),
-    end: (body: unknown) => {
-      answer.body = body;
-    },
-  };
-  middleware({ url, method } as IncomingMessage, response as unknown as ServerResponse, () => {
-    answer.isPassed = true;
-  });
-  return answer;
-};
+import { BUILD_FILES, HEADERS, OUT_DIR, serve, writeBuild } from './previewTestUtils.ts';
 
 describe('with a build', () => {
   let projectDir = '';
   let root = '';
 
   beforeEach(() => {
-    projectDir = mkdtempSync(join(tmpdir(), 'preview-plugins-'));
-    root = join(projectDir, OUT_DIR);
-    Object.entries(BUILD_FILES).forEach(([file, content]) => {
-      mkdirSync(join(root, file, '..'), { recursive: true });
-      writeFileSync(join(root, file), content);
-    });
+    ({ projectDir, root } = writeBuild());
   });
 
   afterEach(() => {
