@@ -1,8 +1,8 @@
 // @ts-check
 // Constants of the YAML lines that `yaml.mjs` reads, besides the patterns that it takes from
 // `scripts/ci/constants.mjs`, of the checkout steps that `checkout-credentials.mjs` reads, and of
-// the image of Playwright that `playwright-image.mjs` reads, and of the lockfile of pnpm that
-// `pnpm-lockfile.mjs` reads.
+// the image of Playwright that `playwright-image.mjs` reads, of the images of the jobs that
+// `image-pins.mjs` reads, and of the lockfile of pnpm that `pnpm-lockfile.mjs` reads.
 
 /** `#` that starts a YAML comment, with the spaces around it, at the start of a text. */
 export const YAML_COMMENT_MARK_PATTERN = /^\s*#\s*/;
@@ -39,6 +39,21 @@ export const CREDENTIALS_KEPT_VALUE = 'true';
 
 /** Key of a job's container, or of a service, that names the Docker image it runs in. */
 export const IMAGE_KEY = 'image';
+
+/** Top-level key of a workflow under which each job stands. */
+export const JOBS_KEY = 'jobs';
+
+/** Key of a job that runs its steps in a Docker image, named by it or by its `image:` key. */
+export const CONTAINER_KEY = 'container';
+
+/** Key of a job under which each service container stands, named by it or by its `image:` key. */
+export const SERVICES_KEY = 'services';
+
+/** Number of keys that hold the `container:` key of a job: `jobs` and the job. */
+export const CONTAINER_KEY_DEPTH = 2;
+
+/** Number of keys that hold the key of a service: `jobs`, the job and `services`. */
+export const SERVICE_KEY_DEPTH = 3;
 
 /** Start of the image of Playwright, which holds its browsers and their system libraries. */
 export const PLAYWRIGHT_IMAGE_PREFIX = 'mcr.microsoft.com/playwright:';
