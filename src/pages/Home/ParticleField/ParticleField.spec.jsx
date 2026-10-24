@@ -6,6 +6,7 @@ import {
   CURSOR_LINK_MAX_OPACITY,
   CURSOR_LINK_MAX_WIDTH_PX,
   LINK_RGB,
+  MAX_PIXEL_RATIO,
   PARTICLE_AREA_PX2,
   REPEL_DISTANCE_PX,
 } from './constants.ts';
@@ -45,8 +46,12 @@ const fakeContext = () => ({
   fill: vi.fn(),
   lineTo: vi.fn(),
   moveTo: vi.fn(),
+  setTransform: vi.fn(),
   stroke: vi.fn(),
 });
+
+/** Window of an iPhone 13, in CSS pixels. */
+const PHONE_WINDOW = { width: 390, height: 664 };
 
 describe('ParticleField', () => {
   afterEach(() => {
@@ -71,6 +76,66 @@ describe('ParticleField', () => {
 
     await vi.waitFor(() => expect(context.clearRect).toHaveBeenCalled());
     unmount();
+  });
+
+  describe('canvas size', () => {
+    let context;
+
+    beforeEach(() => {
+      vi.useFakeTimers({ toFake: ['requestAnimationFrame', 'cancelAnimationFrame'] });
+      resizeWindow(PHONE_WINDOW);
+      context = fakeContext();
+      vi.spyOn(HTMLCanvasElement.prototype, 'getContext').mockReturnValue(context);
+    });
+
+    it.each([
+      ['without a device pixel ratio', undefined, 1],
+      ['at a device pixel ratio of 1', 1, 1],
+      ['at a device pixel ratio of 1.5', 1.5, 1.5],
+      ['at the cap for a device pixel ratio of 3', 3, MAX_PIXEL_RATIO],
+    ])('holds the canvas pixels of the window %s', (_name, pixelRatio, scale) => {
+      vi.stubGlobal('devicePixelRatio', pixelRatio);
+      const { container } = render(<ParticleField />);
+      const canvas = container.querySelector('canvas');
+
+      expect(canvas).toHaveProperty('width', PHONE_WINDOW.width * scale);
+      expect(canvas).toHaveProperty('height', PHONE_WINDOW.height * scale);
+      expect(canvas.style.width).toBe(`${PHONE_WINDOW.width}px`);
+      expect(canvas.style.height).toBe(`${PHONE_WINDOW.height}px`);
+      expect(context.setTransform).toHaveBeenLastCalledWith(scale, 0, 0, scale, 0, 0);
+    });
+
+    it('places and counts the dots in CSS pixels, whatever the ratio', () => {
+      vi.stubGlobal('devicePixelRatio', 3);
+      vi.spyOn(Math, 'random').mockReturnValue(0.5);
+      resizeWindow(ONE_DOT_WINDOW);
+      stubMatchMedia({ matches: true });
+      render(<ParticleField />);
+
+      expect(context.clearRect).toHaveBeenCalledWith(
+        0,
+        0,
+        ONE_DOT_WINDOW.width,
+        ONE_DOT_WINDOW.height,
+      );
+      expect(context.arc).toHaveBeenCalledOnce();
+      expect(context.arc).toHaveBeenCalledWith(DOT.x, DOT.y, expect.any(Number), 0, Math.PI * 2);
+    });
+
+    it('follows a zoom of the page, which changes the ratio and resizes the window', () => {
+      vi.stubGlobal('devicePixelRatio', 1);
+      const { container } = render(<ParticleField />);
+      const zoomedWindow = { width: PHONE_WINDOW.width / 2, height: PHONE_WINDOW.height / 2 };
+
+      vi.stubGlobal('devicePixelRatio', 2);
+      resizeWindow(zoomedWindow);
+      fireEvent(window, new Event('resize'));
+
+      const canvas = container.querySelector('canvas');
+      expect(canvas).toHaveProperty('width', PHONE_WINDOW.width);
+      expect(canvas.style.width).toBe(`${zoomedWindow.width}px`);
+      expect(context.setTransform).toHaveBeenLastCalledWith(2, 0, 0, 2, 0, 0);
+    });
   });
 
   describe('cursor links', () => {
