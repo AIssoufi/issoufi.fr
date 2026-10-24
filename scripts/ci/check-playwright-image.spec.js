@@ -1,10 +1,8 @@
-import { execFile } from 'node:child_process';
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
-import { promisify } from 'node:util';
 
-import { UNCOLORED_ENV } from '../testUtils.js';
+import { runNodeScript } from '../testUtils.js';
 
 // Runs check-playwright-image.mjs on the workflows and the lockfile of the repository, then on
 // files written for a test
@@ -12,8 +10,6 @@ import { UNCOLORED_ENV } from '../testUtils.js';
 const SCRIPT = join(process.cwd(), 'scripts', 'ci', 'check-playwright-image.mjs');
 
 const DIGEST = `sha256:${'0a'.repeat(32)}`;
-
-const runFile = promisify(execFile);
 
 /** Lines of a workflow whose WebKit job runs in the image of Playwright at a tag. */
 const workflowWithImage = tag => [
@@ -36,17 +32,6 @@ const lockfileWithVersion = version => [
   `        version: ${version}`,
 ];
 
-/** Runs the script from a folder, as the workflows job of ci.yml does from the project root. */
-const runScript = async ({ cwd = process.cwd() } = {}) => {
-  try {
-    const options = { cwd, env: UNCOLORED_ENV, encoding: 'utf8' };
-    const { stdout } = await runFile(process.execPath, [SCRIPT], options);
-    return { exitCode: 0, log: stdout };
-  } catch (error) {
-    return { exitCode: error.code, log: error.stdout, errorLog: error.stderr };
-  }
-};
-
 describe('check-playwright-image.mjs', () => {
   let directory;
 
@@ -66,7 +51,7 @@ describe('check-playwright-image.mjs', () => {
   });
 
   it('passes on the workflows and the lockfile of the repository', async () => {
-    const { exitCode, log } = await runScript();
+    const { exitCode, log } = await runNodeScript({ script: SCRIPT });
 
     expect(exitCode).toBe(0);
     expect(log).toMatch(
@@ -82,7 +67,7 @@ describe('check-playwright-image.mjs', () => {
     writeProjectFile({ file: '.github/dependabot.yml', lines: ['version: 2'] });
     writeProjectFile({ file: 'pnpm-lock.yaml', lines: lockfileWithVersion('1.64.0') });
 
-    const { exitCode, log } = await runScript({ cwd: directory });
+    const { exitCode, log } = await runNodeScript({ script: SCRIPT, cwd: directory });
 
     expect(exitCode).toBe(0);
     expect(log).toBe(
@@ -98,7 +83,7 @@ describe('check-playwright-image.mjs', () => {
     });
     writeProjectFile({ file: 'pnpm-lock.yaml', lines: lockfileWithVersion('1.64.0') });
 
-    const { exitCode, log } = await runScript({ cwd: directory });
+    const { exitCode, log } = await runNodeScript({ script: SCRIPT, cwd: directory });
 
     expect(exitCode).toBe(1);
     expect(log.trim().split('\n')).toEqual([
@@ -115,7 +100,7 @@ describe('check-playwright-image.mjs', () => {
     });
     writeProjectFile({ file: 'pnpm-lock.yaml', lines: ["lockfileVersion: '9.0'", 'importers:'] });
 
-    const { exitCode, log } = await runScript({ cwd: directory });
+    const { exitCode, log } = await runNodeScript({ script: SCRIPT, cwd: directory });
 
     expect(exitCode).toBe(1);
     expect(log).toBe(
@@ -132,7 +117,7 @@ describe('check-playwright-image.mjs', () => {
     });
     writeProjectFile({ file: 'pnpm-lock.yaml', lines: lockfileWithVersion('1.64.0') });
 
-    const { exitCode, log } = await runScript({ cwd: directory });
+    const { exitCode, log } = await runNodeScript({ script: SCRIPT, cwd: directory });
 
     expect(exitCode).toBe(1);
     expect(log).toMatch(
@@ -146,7 +131,7 @@ describe('check-playwright-image.mjs', () => {
       lines: workflowWithImage('v1.64.0-noble'),
     });
 
-    const { exitCode, errorLog } = await runScript({ cwd: directory });
+    const { exitCode, errorLog } = await runNodeScript({ script: SCRIPT, cwd: directory });
 
     expect(exitCode).toBe(1);
     expect(errorLog).toContain('ENOENT');
@@ -156,7 +141,7 @@ describe('check-playwright-image.mjs', () => {
   it('fails when the project has no .github folder', async () => {
     writeProjectFile({ file: 'pnpm-lock.yaml', lines: lockfileWithVersion('1.64.0') });
 
-    const { exitCode, errorLog } = await runScript({ cwd: directory });
+    const { exitCode, errorLog } = await runNodeScript({ script: SCRIPT, cwd: directory });
 
     expect(exitCode).toBe(1);
     expect(errorLog).toContain('ENOENT');
