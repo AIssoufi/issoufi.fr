@@ -2,7 +2,7 @@ import { defineConfig, devices } from '@playwright/test';
 import { loadEnv } from 'vite';
 
 import { ALL_ENV_VARIABLES_PREFIX } from './vite/constants.ts';
-import { getServerPorts } from './vite/utils.ts';
+import { getServerPorts } from './vite/utils/ports.ts';
 
 /** Mode whose `.env` files `vite preview` reads by default, `.env.local` included. */
 const PREVIEW_MODE = 'production';

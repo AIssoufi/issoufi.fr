@@ -63,7 +63,7 @@ export const MAX_ERROR_MESSAGE_CENTER_OFFSET_RATIO = 0.1;
 
 /**
  * Chunks of the Projects page, which the test of the unexpected error keeps from loading, so the
- * page fails to load (see `getChunkName`, `vite/utils.ts`).
+ * page fails to load (see `getChunkName`, `vite/utils/chunks.ts`).
  */
 export const PROJECTS_CHUNK_PATTERN = '**/assets/Projects-*.js';
 

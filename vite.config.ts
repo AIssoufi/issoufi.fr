@@ -44,14 +44,11 @@ import { cacheHeaders, notFoundPages } from './vite/preview/plugins.ts';
 import { minifyStyledCss, styledComponentIds } from './vite/prerender/plugins.ts';
 import { prerenderPagesInWorker } from './vite/prerender/utils/render.ts';
 import type { FontFacesApi, PageMetaApi } from './vite/types.ts';
-import {
-  getAssetFileName,
-  getChunkName,
-  getFontFaceTags,
-  getPageChunkFiles,
-  getServerPorts,
-  renderHeaderRules,
-} from './vite/utils.ts';
+import { getAssetFileName } from './vite/utils/assets.ts';
+import { getChunkName, getPageChunkFiles } from './vite/utils/chunks.ts';
+import { getFontFaceTags } from './vite/utils/fonts.ts';
+import { renderHeaderRules } from './vite/utils/headers.ts';
+import { getServerPorts } from './vite/utils/ports.ts';
 
 /**
  * Vite plugin that adds the web fonts of the site to the head of `index.html`, in development as
