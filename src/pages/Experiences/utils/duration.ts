@@ -59,18 +59,20 @@ interface ComputeDurationParams {
 }
 
 /**
- * Computes the time between two month-year dates in whole years and remaining months.
- * Days are ignored, so two dates in the same month give `{ years: 0, months: 0 }`.
+ * Computes the time between two month-year dates in whole years and remaining months, from the
+ * first day of the start month to the last day of the end month, as LinkedIn counts it: both
+ * months count, so two dates in the same month give `{ years: 0, months: 1 }`. Days are ignored,
+ * and a "today" keyword counts the month of `today` as a whole.
  *
  * @returns The duration, or `null` when a date is missing or invalid, a "today" keyword included
- * when `today` is an invalid date, or when the end is before the start, so that callers can simply
- * render nothing.
+ * when `today` is an invalid date, or when the end month is before the start month, so that
+ * callers can simply render nothing.
  *
  * @example
- * computeDuration({ startDate: 'juin 2021', endDate: 'mars 2023' }); // { years: 1, months: 9 }
+ * computeDuration({ startDate: 'juin 2021', endDate: 'mars 2023' }); // { years: 1, months: 10 }
  * computeDuration({ startDate: 'foo 2021', endDate: 'mars 2023' }); // null
- * computeDuration({ startDate: 'juin 2021', endDate: 'Present', today: new Date(2023, 2, 1) });
- * // { years: 1, months: 9 }
+ * computeDuration({ startDate: 'juin 2021', endDate: 'Present', today: new Date(2023, 2, 15) });
+ * // { years: 1, months: 10 }
  */
 export function computeDuration({
   startDate,
@@ -89,11 +91,13 @@ export function computeDuration({
   const end = toDate(endDate);
   if (start === null || end === null) return null;
 
-  const isEndBeforeStart = end < start;
+  const monthsBetweenFirstDays =
+    (end.getFullYear() - start.getFullYear()) * MONTHS_PER_YEAR + end.getMonth() - start.getMonth();
+  const isEndBeforeStart = monthsBetweenFirstDays < 0;
   if (isEndBeforeStart) return null;
 
-  const totalMonths =
-    (end.getFullYear() - start.getFullYear()) * MONTHS_PER_YEAR + end.getMonth() - start.getMonth();
+  // The end month counts as a whole, up to its last day
+  const totalMonths = monthsBetweenFirstDays + 1;
   return {
     years: Math.floor(totalMonths / MONTHS_PER_YEAR),
     months: totalMonths % MONTHS_PER_YEAR,
@@ -111,9 +115,10 @@ interface FormatDurationParams {
 /**
  * Formats a duration in the active language with the `exp.duration` plurals,
  * e.g. "1 an 9 mois" in French or "1 year 9 months" in English. Parts that are not positive
- * numbers are left out, and a duration shorter than a month gives "< 1 mois" or "< 1 month".
+ * numbers are left out.
  *
- * @returns The formatted duration, or an empty string when there is no duration.
+ * @returns The formatted duration, or an empty string when there is no duration or no part is a
+ * positive number (a zero, negative or invalid duration), so that callers render nothing.
  *
  * @example
  * formatDuration({ duration: { years: 1, months: 9 }, t }); // '1 year 9 months' in English
@@ -126,5 +131,5 @@ export function formatDuration({ duration, t }: FormatDurationParams): string {
   const parts: string[] = [];
   if (years > 0) parts.push(t('exp.duration.years', { count: years }));
   if (months > 0) parts.push(t('exp.duration.months', { count: months }));
-  return parts.join(' ') || t('exp.duration.lessThanAMonth');
+  return parts.join(' ');
 }

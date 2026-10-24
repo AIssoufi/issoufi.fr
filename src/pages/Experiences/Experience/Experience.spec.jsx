@@ -6,7 +6,7 @@ import { FULL_MOTION_QUERY, HOVER_POINTER_QUERY } from '../../../theme/constants
 import Experience from './Experience.tsx';
 
 /** Any duration text, in French or in English. */
-const DURATION_TEXT = /\d+ (an|ans|mois|years?|months?)|< 1 (mois|month)/;
+const DURATION_TEXT = /\d+ (an|ans|mois|years?|months?)/;
 
 describe('Experience', () => {
   afterEach(async () => {
@@ -66,7 +66,7 @@ describe('Experience', () => {
 
     expect(screen.getByRole('heading', { level: 3, name: 'Full-Stack Engineer' })).toBeVisible();
     expect(screen.getByText('Wibilong · CDI · Paris (75)')).toBeInTheDocument();
-    expect(screen.getByText('1 an 9 mois')).toBeInTheDocument();
+    expect(screen.getByText('1 an 10 mois')).toBeInTheDocument();
     expect(document.querySelector('img')).toHaveAttribute('src', '/wibilong.webp');
     expect(screen.getByText('Description du poste')).toBeInTheDocument();
   });
@@ -106,11 +106,11 @@ describe('Experience', () => {
         endDate="juin 2021"
       />,
     );
-    expect(screen.getByText('1 an 9 mois')).toBeInTheDocument();
+    expect(screen.getByText('1 an 10 mois')).toBeInTheDocument();
 
     await act(() => i18n.changeLanguage('en'));
 
-    expect(screen.getByText('1 year 9 months')).toBeInTheDocument();
+    expect(screen.getByText('1 year 10 months')).toBeInTheDocument();
   });
 
   it('omits the duration when a date is missing', () => {

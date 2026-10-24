@@ -8,7 +8,6 @@ export const enExperiences = {
     years_other: '{{count}} years',
     months_one: '{{count}} month',
     months_other: '{{count}} months',
-    lessThanAMonth: '< 1 month',
   },
   periodTo: 'to',
   sewan: {
