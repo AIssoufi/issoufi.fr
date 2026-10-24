@@ -14,13 +14,6 @@ const PREVIEW_MODE = 'production';
  */
 const WEBKIT_TEST_TIMEOUT_MS = 60_000;
 
-/**
- * Times the CI runs a failed test of WebKit again: there, the `networkidle` wait of a page that had
- * loaded whole never ended, once in some 200 tests. A test that WebKit really fails fails both
- * runs, and the CI with it.
- */
-const WEBKIT_CI_RETRIES = 1;
-
 const isCI = Boolean(process.env.CI);
 const { preview: port } = getServerPorts(
   loadEnv(PREVIEW_MODE, process.cwd(), ALL_ENV_VARIABLES_PREFIX),
@@ -61,7 +54,6 @@ const WEBKIT_PROJECT = {
     '**/touch-targets.e2e.ts',
   ],
   timeout: WEBKIT_TEST_TIMEOUT_MS,
-  retries: isCI ? WEBKIT_CI_RETRIES : 0,
   use: {
     ...devices['iPhone 13'],
     // The specs measure CSS pixels, and WebKit draws in software on the Linux of the CI, where the
