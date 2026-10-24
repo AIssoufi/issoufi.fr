@@ -3,7 +3,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useIsHydrated } from '../../../../../hooks/useIsHydrated/index.ts';
 import { LIKE_ANIMATION_MS } from '../../constants.ts';
 import { getStoredLikedIds, storeLike } from '../../storage.ts';
-import { setLike } from '../../utils.ts';
+import { setLike } from '../../utils/likes.ts';
 
 /** Value returned by {@link useLikes}. */
 interface UseLikesResult {

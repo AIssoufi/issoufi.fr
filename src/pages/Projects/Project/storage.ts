@@ -1,5 +1,5 @@
 import { LIKED_PROJECTS_STORAGE_KEY } from './constants.ts';
-import { parseLikedIds, setLike } from './utils.ts';
+import { parseLikedIds, setLike } from './utils/likes.ts';
 
 /**
  * Returns the ids of the projects that the visitor liked on a previous visit, in either language,

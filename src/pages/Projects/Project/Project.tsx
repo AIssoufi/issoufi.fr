@@ -32,15 +32,15 @@ import {
   Thumbnail,
 } from './Project.styled.ts';
 import type { ProjectItemData } from './types.ts';
+import { getProjectLinkUrl } from './utils/link.ts';
 import {
   getLastPageStart,
   getNextPageStart,
   getPageProjects,
   getPageRange,
   getPreviousPageStart,
-  getProjectLinkUrl,
-  getThumbnailSources,
-} from './utils.ts';
+} from './utils/paging.ts';
+import { getThumbnailSources } from './utils/thumbnails.ts';
 
 /** Props of {@link Project}. */
 interface ProjectProps {

@@ -1,18 +1,17 @@
 import { ROW_CARD_COUNT } from './constants.ts';
 import type { ProjectItemData } from './types.ts';
+import { parseLikedIds, setLike } from './utils/likes.ts';
+import { getProjectLinkUrl } from './utils/link.ts';
 import {
-  countWholeCards,
-  getCardTilt,
   getLastPageStart,
   getNextPageStart,
   getPageProjects,
   getPageRange,
   getPreviousPageStart,
-  getProjectLinkUrl,
-  getThumbnailSources,
-  parseLikedIds,
-  setLike,
-} from './utils.ts';
+} from './utils/paging.ts';
+import { countWholeCards } from './utils/row.ts';
+import { getThumbnailSources } from './utils/thumbnails.ts';
+import { getCardTilt } from './utils/tilt.ts';
 
 describe('getLastPageStart', () => {
   it.each([

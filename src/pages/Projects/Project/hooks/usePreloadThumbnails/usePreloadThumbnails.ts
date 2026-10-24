@@ -2,7 +2,7 @@ import { useCallback, useRef } from 'react';
 
 import { THUMBNAIL_SIZES } from '../../constants.ts';
 import type { ProjectItemData } from '../../types.ts';
-import { getThumbnailSources } from '../../utils.ts';
+import { getThumbnailSources } from '../../utils/thumbnails.ts';
 
 /**
  * Downloads the thumbnails of projects before their cards show them, as those of the page that an
