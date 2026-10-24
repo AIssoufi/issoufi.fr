@@ -13,6 +13,7 @@ import {
   PROJECTS_ROUTE,
   SLOW_4G_NETWORK,
 } from './constants.ts';
+import { waitForPageContent } from './loading.ts';
 import { recordDownloadPriorities } from './priorities.ts';
 
 /** Selector of the tags of the HTML of a page that load the scripts of the app. */
@@ -56,8 +57,8 @@ interface OpenPageParams {
 }
 
 /**
- * Opens a page on the slow 4G network of a phone, and waits until it has downloaded everything, its
- * lazy images included.
+ * Opens a page on the slow 4G network of a phone, and waits until it has downloaded what it shows:
+ * its images, its background photo and its web fonts.
  *
  * @returns The last priority of each file that it downloaded, by its path.
  */
@@ -67,7 +68,7 @@ const openPage = async ({ page, route }: OpenPageParams) => {
   await session.send('Network.emulateNetworkConditions', SLOW_4G_NETWORK);
   await page.goto(route);
   await expect(page.locator(PAGE_SELECTOR)).toBeVisible();
-  await page.waitForLoadState('networkidle');
+  await page.evaluate(waitForPageContent);
   return priorities;
 };
 

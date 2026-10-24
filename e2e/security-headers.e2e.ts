@@ -4,6 +4,7 @@ import { LANGUAGES } from '../src/i18n/constants.ts';
 import { PAGES } from '../src/utils/pages.ts';
 import { SECURITY_HEADERS } from '../vite/constants.ts';
 import { PAGE_SELECTOR, REPORT_POLICY_VIOLATION_FUNCTION } from './constants.ts';
+import { waitForPageContent } from './loading.ts';
 import { getCheckedRoutes, isSecurityPolicyMessage } from './utils.ts';
 
 /** What a page reports of a resource or inline code that its Content Security Policy blocked. */
@@ -52,10 +53,7 @@ for (const language of LANGUAGES) {
         await expect(page.locator('html')).toHaveAttribute('lang', language);
         // The pages loaded lazily request their chunk, then their images, once the header shows
         await expect(page.locator(PAGE_SELECTOR)).toBeVisible();
-        await page.waitForLoadState('networkidle');
-        await page.evaluate(async () => {
-          await document.fonts.ready;
-        });
+        await page.evaluate(waitForPageContent);
 
         const headers = response?.headers() ?? {};
         Object.entries(SECURITY_HEADERS).forEach(([name, value]) => {

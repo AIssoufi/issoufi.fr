@@ -14,6 +14,7 @@ import {
   SCREEN_HEIGHT_PX,
   STILLNESS_DELAY_MS,
 } from './constants.ts';
+import { waitForPageContent } from './loading.ts';
 import { getCheckedRoutes } from './utils.ts';
 
 /** Desktop width of the screen of the control test, without reduced motion. */
@@ -31,10 +32,7 @@ interface OpenPageParams {
 const openPage = async ({ page, route }: OpenPageParams) => {
   await page.goto(route);
   await expect(page.locator(PAGE_SELECTOR)).toBeVisible();
-  await page.waitForLoadState('networkidle');
-  await page.evaluate(async () => {
-    await document.fonts.ready;
-  });
+  await page.evaluate(waitForPageContent);
 };
 
 /** Describes the animations and transitions of the page that last longer than an instant. */
