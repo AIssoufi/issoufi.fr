@@ -1,6 +1,4 @@
-import { readFileSync } from 'node:fs';
-import type { OutgoingHttpHeaders, ServerResponse } from 'node:http';
-import { join, resolve } from 'node:path';
+import type { OutgoingHttpHeaders } from 'node:http';
 
 import type { Connect, Plugin } from 'vite';
 
@@ -11,19 +9,14 @@ import {
   CANONICAL_REDIRECT_STATUS,
   CLOUDFLARE_ROUTES_PLUGIN_NAME,
   LOCATION_HEADER,
-  NOT_FOUND_PAGE_MEDIA_TYPE,
   NOT_FOUND_PAGES_PLUGIN_NAME,
-  NOT_FOUND_STATUS,
-  PAGE_REQUEST_METHODS,
+  READ_REQUEST_METHODS,
 } from './constants.ts';
 import { getRedirectLocation, isCloudflareConfigFile } from './redirects.ts';
-import {
-  findExactFile,
-  getCacheControl,
-  getNotFoundPageFiles,
-  getRequestPathname,
-  getServedFiles,
-} from './utils.ts';
+import { findExactFile, getPreviewBuildRoot } from './utils/files.ts';
+import { getCacheControl } from './utils/headers.ts';
+import { getNotFoundPageFiles, getRequestPathname, getServedFiles } from './utils/paths.ts';
+import { sendNotFoundResponse, setResponseHeaders } from './utils/responses.ts';
 
 /** Parameters of {@link createNotFoundMiddleware}. */
 interface CreateNotFoundMiddlewareParams {
@@ -48,8 +41,8 @@ export const createNotFoundMiddleware =
   ({ root, headers = {} }: CreateNotFoundMiddlewareParams): Connect.NextHandleFunction =>
   (request, response, next) => {
     const pathname = getRequestPathname(request.url);
-    const isPageRequest = PAGE_REQUEST_METHODS.has(request.method ?? '');
-    if (!isPageRequest || pathname === undefined) return next();
+    const isReadRequest = READ_REQUEST_METHODS.has(request.method ?? '');
+    if (!isReadRequest || pathname === undefined) return next();
 
     const servedFile = findExactFile({ root, files: getServedFiles(pathname) });
     if (servedFile) return next();
@@ -57,13 +50,7 @@ export const createNotFoundMiddleware =
     const notFoundPage = findExactFile({ root, files: getNotFoundPageFiles(pathname) });
     if (!notFoundPage) return next();
 
-    response.statusCode = NOT_FOUND_STATUS;
-    Object.entries(headers).forEach(([name, value]) => {
-      if (value !== undefined) response.setHeader(name, value);
-    });
-    response.setHeader('Content-Type', NOT_FOUND_PAGE_MEDIA_TYPE);
-    // Node.js sends no body for a HEAD request, only its length
-    response.end(readFileSync(join(root, notFoundPage)));
+    sendNotFoundResponse({ response, root, notFoundPage, headers });
   };
 
 /**
@@ -77,10 +64,9 @@ export const createNotFoundMiddleware =
 export const notFoundPages = (): Plugin => ({
   name: NOT_FOUND_PAGES_PLUGIN_NAME,
   configurePreviewServer: server => {
-    const { root, environments, preview } = server.config;
-    // The folder that Vite previews
-    const buildRoot = resolve(root, environments.client.build.outDir);
-    server.middlewares.use(createNotFoundMiddleware({ root: buildRoot, headers: preview.headers }));
+    const buildRoot = getPreviewBuildRoot(server);
+    const { headers } = server.config.preview;
+    server.middlewares.use(createNotFoundMiddleware({ root: buildRoot, headers }));
   },
 });
 
@@ -106,8 +92,8 @@ export const createCacheHeadersMiddleware =
   ({ root, rules }: CreateCacheHeadersMiddlewareParams): Connect.NextHandleFunction =>
   (request, response, next) => {
     const pathname = getRequestPathname(request.url);
-    const isFileRequest = PAGE_REQUEST_METHODS.has(request.method ?? '');
-    if (!isFileRequest || pathname === undefined) return next();
+    const isReadRequest = READ_REQUEST_METHODS.has(request.method ?? '');
+    if (!isReadRequest || pathname === undefined) return next();
 
     const cacheControl = getCacheControl({ pathname, rules });
     if (cacheControl === undefined) return next();
@@ -128,27 +114,9 @@ export const createCacheHeadersMiddleware =
 export const cacheHeaders = (): Plugin => ({
   name: CACHE_HEADERS_PLUGIN_NAME,
   configurePreviewServer: server => {
-    const { root, environments } = server.config;
-    // The folder that Vite previews
-    const buildRoot = resolve(root, environments.client.build.outDir);
-    server.middlewares.use(createCacheHeadersMiddleware({ root: buildRoot }));
+    server.middlewares.use(createCacheHeadersMiddleware({ root: getPreviewBuildRoot(server) }));
   },
 });
-
-/** Parameters of {@link setResponseHeaders}. */
-interface SetResponseHeadersParams {
-  /** Response to give the headers. */
-  response: ServerResponse;
-  /** Headers to give it, by name; an `undefined` value is left out. */
-  headers: OutgoingHttpHeaders;
-}
-
-/** Gives a response the headers of the preview, which Vite gives only the files it serves. */
-const setResponseHeaders = ({ response, headers }: SetResponseHeadersParams) => {
-  Object.entries(headers).forEach(([name, value]) => {
-    if (value !== undefined) response.setHeader(name, value);
-  });
-};
 
 /** Parameters of {@link createCloudflareRoutesMiddleware}. */
 interface CreateCloudflareRoutesMiddlewareParams {
@@ -180,18 +148,12 @@ export const createCloudflareRoutesMiddleware =
   ({ root, headers = {} }: CreateCloudflareRoutesMiddlewareParams): Connect.NextHandleFunction =>
   (request, response, next) => {
     const pathname = getRequestPathname(request.url);
-    const isPageRequest = PAGE_REQUEST_METHODS.has(request.method ?? '');
-    if (!isPageRequest || pathname === undefined) return next();
+    const isReadRequest = READ_REQUEST_METHODS.has(request.method ?? '');
+    if (!isReadRequest || pathname === undefined) return next();
 
     if (isCloudflareConfigFile(pathname)) {
       const notFoundPage = findExactFile({ root, files: getNotFoundPageFiles(pathname) });
-      response.statusCode = NOT_FOUND_STATUS;
-      setResponseHeaders({ response, headers });
-      if (!notFoundPage) return response.end();
-
-      response.setHeader('Content-Type', NOT_FOUND_PAGE_MEDIA_TYPE);
-      // Node.js sends no body for a HEAD request, only its length
-      return response.end(readFileSync(join(root, notFoundPage)));
+      return sendNotFoundResponse({ response, root, notFoundPage, headers });
     }
 
     const servedFile = findExactFile({ root, files: getServedFiles(pathname) });
@@ -219,11 +181,8 @@ export const createCloudflareRoutesMiddleware =
 export const cloudflareRoutes = (): Plugin => ({
   name: CLOUDFLARE_ROUTES_PLUGIN_NAME,
   configurePreviewServer: server => {
-    const { root, environments, preview } = server.config;
-    // The folder that Vite previews
-    const buildRoot = resolve(root, environments.client.build.outDir);
-    server.middlewares.use(
-      createCloudflareRoutesMiddleware({ root: buildRoot, headers: preview.headers }),
-    );
+    const buildRoot = getPreviewBuildRoot(server);
+    const { headers } = server.config.preview;
+    server.middlewares.use(createCloudflareRoutesMiddleware({ root: buildRoot, headers }));
   },
 });
