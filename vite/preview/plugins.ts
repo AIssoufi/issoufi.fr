@@ -1,6 +1,4 @@
-import { readFileSync } from 'node:fs';
-import type { OutgoingHttpHeaders, ServerResponse } from 'node:http';
-import { join } from 'node:path';
+import type { OutgoingHttpHeaders } from 'node:http';
 
 import type { Connect, Plugin } from 'vite';
 
@@ -11,15 +9,14 @@ import {
   CANONICAL_REDIRECT_STATUS,
   CLOUDFLARE_ROUTES_PLUGIN_NAME,
   LOCATION_HEADER,
-  NOT_FOUND_PAGE_MEDIA_TYPE,
   NOT_FOUND_PAGES_PLUGIN_NAME,
-  NOT_FOUND_STATUS,
   READ_REQUEST_METHODS,
 } from './constants.ts';
 import { getRedirectLocation, isCloudflareConfigFile } from './redirects.ts';
 import { findExactFile, getPreviewBuildRoot } from './utils/files.ts';
 import { getCacheControl } from './utils/headers.ts';
 import { getNotFoundPageFiles, getRequestPathname, getServedFiles } from './utils/paths.ts';
+import { sendNotFoundResponse, setResponseHeaders } from './utils/responses.ts';
 
 /** Parameters of {@link createNotFoundMiddleware}. */
 interface CreateNotFoundMiddlewareParams {
@@ -53,13 +50,7 @@ export const createNotFoundMiddleware =
     const notFoundPage = findExactFile({ root, files: getNotFoundPageFiles(pathname) });
     if (!notFoundPage) return next();
 
-    response.statusCode = NOT_FOUND_STATUS;
-    Object.entries(headers).forEach(([name, value]) => {
-      if (value !== undefined) response.setHeader(name, value);
-    });
-    response.setHeader('Content-Type', NOT_FOUND_PAGE_MEDIA_TYPE);
-    // Node.js sends no body for a HEAD request, only its length
-    response.end(readFileSync(join(root, notFoundPage)));
+    sendNotFoundResponse({ response, root, notFoundPage, headers });
   };
 
 /**
@@ -127,21 +118,6 @@ export const cacheHeaders = (): Plugin => ({
   },
 });
 
-/** Parameters of {@link setResponseHeaders}. */
-interface SetResponseHeadersParams {
-  /** Response to give the headers. */
-  response: ServerResponse;
-  /** Headers to give it, by name; an `undefined` value is left out. */
-  headers: OutgoingHttpHeaders;
-}
-
-/** Gives a response the headers of the preview, which Vite gives only the files it serves. */
-const setResponseHeaders = ({ response, headers }: SetResponseHeadersParams) => {
-  Object.entries(headers).forEach(([name, value]) => {
-    if (value !== undefined) response.setHeader(name, value);
-  });
-};
-
 /** Parameters of {@link createCloudflareRoutesMiddleware}. */
 interface CreateCloudflareRoutesMiddlewareParams {
   /** Absolute path of the build that the preview serves, `dist/`. */
@@ -177,13 +153,7 @@ export const createCloudflareRoutesMiddleware =
 
     if (isCloudflareConfigFile(pathname)) {
       const notFoundPage = findExactFile({ root, files: getNotFoundPageFiles(pathname) });
-      response.statusCode = NOT_FOUND_STATUS;
-      setResponseHeaders({ response, headers });
-      if (!notFoundPage) return response.end();
-
-      response.setHeader('Content-Type', NOT_FOUND_PAGE_MEDIA_TYPE);
-      // Node.js sends no body for a HEAD request, only its length
-      return response.end(readFileSync(join(root, notFoundPage)));
+      return sendNotFoundResponse({ response, root, notFoundPage, headers });
     }
 
     const servedFile = findExactFile({ root, files: getServedFiles(pathname) });
