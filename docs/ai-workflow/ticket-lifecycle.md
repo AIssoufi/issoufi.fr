@@ -31,11 +31,11 @@ The master starts the worker with `ticket.mjs start <ticket> --agent` (`ticket-w
 
 ## 3. A pull request
 
-The worker commits with Conventional Commits and a `Refs:` footer, runs the [reviews](reviews.md), rebases on `develop` (never a merge), and opens the pull request against `develop`, with `Closes #<number>`, its test plan and the review verdict. It waits for the CI and fixes it, then sends `DONE:`.
+The worker commits with Conventional Commits and a `Refs:` footer, runs the [reviews](reviews.md), rebases on `develop` (never a merge), and opens the pull request against `develop`, with `Closes #<number>`, its test plan and the review verdict. It sends `UPDATE: CI running`, waits for the CI and fixes it, then sends `DONE:`; a worker that its master parked for its CI sends no `DONE:` when its CI is green, since its master merges that head itself ([messages](roles.md#messages)).
 
 ## 4. The merge
 
-The master checks the pull request on GitHub rather than trusting the message: a green CI, a mergeable branch, a diff that matches the ticket and a review verdict. It merges one pull request at a time, with a merge commit whose body is `Closes #<number>`, so that release-please does not list a change twice. Then it deletes the branch, tells the other workers that `develop` moved, and removes the finished worktree and workspace. After a merge, or after parking a worker that waits for its CI, it runs `ticket.mjs next-turn` to hand the freed slot to a waiting master ([messages](roles.md#messages)).
+The master checks the pull request on GitHub rather than trusting the message: a green CI, a mergeable branch, a diff that matches the ticket and a review verdict. It merges one pull request at a time, with a merge commit whose body is `Closes #<number>`, so that release-please does not list a change twice. Then it deletes the branch, tells the other workers that `develop` moved, and removes the finished worktree and workspace. After the merge of a running worker's pull request, or after parking a worker that waits for its CI, it runs `ticket.mjs next-turn` to hand the freed slot to a waiting master; the later merge of that parked worker's pull request frees no slot ([messages](roles.md#messages)).
 
 ## 5. The deploy
 
