@@ -91,6 +91,27 @@ for (const width of FORCED_COLORS_SCREEN_WIDTHS_PX) {
 
     const hasMobileMenu = (MOBILE_SCREEN_WIDTHS_PX as readonly number[]).includes(width);
 
+    // The palette draws every link of the menu in one color: the weight of the current one still
+    // marks it
+    if (hasMobileMenu) {
+      test('the open mobile menu still marks the link of the current page', async ({ page }) => {
+        await page.goto(PROJECTS_ROUTE);
+        await page.getByRole('button', { name: fr.burgerMenu.open }).click();
+        const navigation = page.getByRole('navigation');
+        const linkOf = (name: string) => navigation.getByRole('link', { name, exact: true });
+        const weightOf = (name: string) =>
+          linkOf(name).evaluate(element => getComputedStyle(element).fontWeight);
+        await expect(linkOf(fr.nav.projects)).toHaveAttribute('aria-current', 'page');
+        const currentWeight = await weightOf(fr.nav.projects);
+
+        for (const name of [fr.nav.home, fr.nav.experience]) {
+          expect(await weightOf(name), `weight of "${name}" beside the current link`).not.toBe(
+            currentWeight,
+          );
+        }
+      });
+    }
+
     // A light contrast theme gives the page and the buttons a light background, on which an icon
     // drawn in the white of the site vanishes
     for (const colorScheme of FORCED_COLORS_SCHEMES) {
