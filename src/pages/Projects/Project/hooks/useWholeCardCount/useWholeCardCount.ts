@@ -2,7 +2,7 @@ import { type RefCallback, useCallback, useState, useSyncExternalStore } from 'r
 
 import { ROW_CARD_COUNT } from '../../constants.ts';
 import type { RowMeasures } from '../../types.ts';
-import { countWholeCards } from '../../utils.ts';
+import { countWholeCards } from '../../utils/row.ts';
 
 /** Parameters of {@link useWholeCardCount}. */
 interface UseWholeCardCountParams {

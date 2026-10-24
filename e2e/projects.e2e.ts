@@ -8,7 +8,7 @@ import type { Language, Translations } from '../src/i18n/types.ts';
 import { localizePath } from '../src/i18n/utils.ts';
 import freelanceProjectsData from '../src/pages/Projects/.data/freelance-projects.json' with { type: 'json' };
 import personalProjectsData from '../src/pages/Projects/.data/personal-projects.json' with { type: 'json' };
-import { getProjectLinkUrl } from '../src/pages/Projects/Project/utils.ts';
+import { getProjectLinkUrl } from '../src/pages/Projects/Project/utils/link.ts';
 import type { ProjectData } from '../src/pages/Projects/types.ts';
 import { listUniqueNonBlankStrings } from '../src/utils/strings.ts';
 import { countBrowserNodes, listBrowserHeadingLevels, listBrowserTexts } from './accessibility.ts';

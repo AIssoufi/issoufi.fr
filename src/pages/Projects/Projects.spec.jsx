@@ -11,7 +11,7 @@ import { getPage } from '../../utils/pages.ts';
 import { readPublicWebpSize } from '../../publicFileTestUtils.ts';
 import { INTERACTIVE_SELECTOR, readBackgroundImages } from '../testUtils.js';
 import { MAX_THUMBNAIL_ASPECT_RATIO, THUMBNAIL_FILE_WIDTHS_PX } from './Project/constants.ts';
-import { getThumbnailSources } from './Project/utils.ts';
+import { getThumbnailSources } from './Project/utils/thumbnails.ts';
 import freelanceProjectsData from './.data/freelance-projects.json';
 import personalProjectsData from './.data/personal-projects.json';
 import { Projects } from './Projects.tsx';
