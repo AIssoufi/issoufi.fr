@@ -269,6 +269,32 @@ export const PHOTO_PRELOAD_INITIATOR_TYPE = 'link';
  */
 export const PROJECTS_ROUTE: Page['path'] = '/projects';
 
+/** HTTP status of the redirect to the canonical path of a page, as Cloudflare Pages sends it. */
+export const REDIRECT_STATUS = 308;
+
+/** Name of the HTTP header of the URL of a redirect, in lower case as Playwright gives it. */
+export const LOCATION_HEADER = 'location';
+
+/**
+ * Paths that name a page by another path than its canonical one, with the location to which
+ * Cloudflare Pages and `pnpm preview` redirect them: the home page of a language with a trailing
+ * slash, the other pages without it nor their `.html`, and the query of the request kept.
+ */
+export const REDIRECTED_ROUTES: readonly { path: string; location: string }[] = [
+  { path: '/index.html', location: '/' },
+  { path: '/en', location: '/en/' },
+  { path: '/en/index.html?a=1', location: '/en/?a=1' },
+  { path: `${PROJECTS_ROUTE}/`, location: PROJECTS_ROUTE },
+  { path: `${PROJECTS_ROUTE}.html`, location: PROJECTS_ROUTE },
+  { path: `/en${TIMELINE_ROUTE}/?a=1`, location: `/en${TIMELINE_ROUTE}?a=1` },
+];
+
+/**
+ * Path of the headers file of Cloudflare Pages at the root of the build, which it reads and
+ * answers with the not found page of the default language.
+ */
+export const HEADERS_FILE_ROUTE = '/_headers';
+
 /**
  * Card of each project of the Projects page: an item of the list of cards of its section, which
  * holds the list of its tools.
