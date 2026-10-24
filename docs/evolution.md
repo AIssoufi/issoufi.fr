@@ -200,4 +200,13 @@ On 2026-10-23, the WebKit job of the CI runs in the image of Playwright, pinned 
 | WebKit job                              | 548 s  | 467 s  |
 | Jobs cancelled before their tests       | 2 of 7 | 0 of 8 |
 
-Decision: [0015](decisions/0015-render-at-build-time.md), [0016](decisions/0016-cloudflare-worker-deploy-trigger.md), [0017](decisions/0017-typescript-6.md), [0018](decisions/0018-pnpm-12.md), [0019](decisions/0019-locked-build-chain.md), [0020](decisions/0020-vitest-5.md), [0021](decisions/0021-knip.md), [0022](decisions/0022-chromium-libraries-from-runner-image.md), [0023](decisions/0023-phone-browser-tests-in-webkit.md), [0024](decisions/0024-webkit-in-playwright-image.md).
+On 2026-10-24, the build copies the web font of the pages into `assets/` under a hash of its content, which the pages preload and declare, so that Cloudflare serves it with the one-year immutable cache of `/assets/*` instead of `max-age=0` ([#426](https://github.com/AIssoufi/issoufi.fr/issues/426)). The file stays in `public/fonts/` for the scripts. Font requests of ten loads of `/experiences` in WebKit, in one browser context; `pnpm preview` sends `no-cache` for every file, before and after.
+
+| Figure                        | Before                               | After                                 |
+| ----------------------------- | ------------------------------------ | ------------------------------------- |
+| `Cache-Control` in production | `public, max-age=0, must-revalidate` | `public, max-age=31536000, immutable` |
+| Requests in `pnpm preview`    | 15                                   | 15                                    |
+| Requests in production        | 10                                   | not measured: after the deploy        |
+| Font files in `dist/`         | 58,720 bytes                         | 96,676 bytes                          |
+
+Decision: [0015](decisions/0015-render-at-build-time.md), [0016](decisions/0016-cloudflare-worker-deploy-trigger.md), [0017](decisions/0017-typescript-6.md), [0018](decisions/0018-pnpm-12.md), [0019](decisions/0019-locked-build-chain.md), [0020](decisions/0020-vitest-5.md), [0021](decisions/0021-knip.md), [0022](decisions/0022-chromium-libraries-from-runner-image.md), [0023](decisions/0023-phone-browser-tests-in-webkit.md), [0024](decisions/0024-webkit-in-playwright-image.md), [0025](decisions/0025-hashed-web-fonts.md).

@@ -4,7 +4,7 @@ import { defineConfig, mergeConfig, normalizePath, type Plugin } from 'vite';
 
 import { FONT_FACES } from './src/theme/constants.ts';
 import productionConfig from './vite.config.ts';
-import { PAGE_META_PLUGIN_NAME } from './vite/constants.ts';
+import { FONT_FACES_PLUGIN_NAME, PAGE_META_PLUGIN_NAME } from './vite/constants.ts';
 import {
   APP_DIR,
   HASH_ROUTER_MODULE,
@@ -33,7 +33,7 @@ import {
 } from './vite/standalone/utils/public-files.ts';
 import { removeManifestLinks } from './vite/standalone/utils/manifest.ts';
 import { isAppRouterImport } from './vite/standalone/utils/router.ts';
-import type { PageMetaApi } from './vite/types.ts';
+import type { FontFacesApi, PageMetaApi } from './vite/types.ts';
 
 /**
  * Vite plugin that routes the app on the hash of the URL (`index.html#/projects`): the imports of
@@ -108,8 +108,9 @@ const publicFiles = (): Plugin => {
  * offline, whatever the browser allows from `file://`: in the `<style>` that the `font-faces`
  * plugin of `vite.config.ts` adds to `index.html`, the URL of each font file of `FONT_FACES`
  * (`src/theme/constants.ts`) becomes a data URL (see {@link toFontDataUrls}), and the links that
- * preload them go (see {@link removeFontPreloads}). The build fails when a font file is missing
- * from `public/`.
+ * preload them go (see {@link removeFontPreloads}). That plugin keeps the URLs of the files of
+ * `public/` for it, without copying them into `assets/` (see {@link FontFacesApi}). The build
+ * fails when a font file is missing from `public/`.
  */
 const embeddedFonts = (): Plugin => {
   let fonts: EmbeddedFont[] = [];
@@ -121,6 +122,10 @@ const embeddedFonts = (): Plugin => {
         url,
         dataUrl: readFontDataUrl({ publicDir: config.publicDir, url }),
       }));
+      const fontFacesPlugin: Plugin<FontFacesApi> | undefined = config.plugins.find(
+        ({ name }) => name === FONT_FACES_PLUGIN_NAME,
+      );
+      fontFacesPlugin?.api?.keepPublicUrls();
     },
     buildStart() {
       const missingUrls = findMissingFontUrls(fonts);
