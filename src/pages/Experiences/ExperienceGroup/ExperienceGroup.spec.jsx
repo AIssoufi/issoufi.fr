@@ -59,7 +59,7 @@ describe('ExperienceGroup', () => {
 
     expect(screen.getByText('Lead Frontend Engineer')).toBeInTheDocument();
     expect(screen.getByText('Sewan Groupe · CDI · Paris (75)')).toBeInTheDocument();
-    expect(screen.getByText('2 ans')).toBeInTheDocument();
+    expect(screen.getByText('2 ans 1 mois')).toBeInTheDocument();
     expect(document.querySelector('img')).toHaveAttribute('src', '/sewan.webp');
     expect(screen.getByText("Owner de l'UI Kit")).toBeInTheDocument();
   });
@@ -201,11 +201,11 @@ describe('ExperienceGroup', () => {
         />
       </ExperienceGroup>,
     );
-    expect(screen.getByText('1 an 3 mois')).toBeInTheDocument();
+    expect(screen.getByText('1 an 4 mois')).toBeInTheDocument();
 
     await act(() => i18n.changeLanguage('en'));
 
-    expect(screen.getByText('1 year 3 months')).toBeInTheDocument();
+    expect(screen.getByText('1 year 4 months')).toBeInTheDocument();
   });
 
   it.each(['fr', 'en'])(
