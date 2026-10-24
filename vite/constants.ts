@@ -161,11 +161,11 @@ export const NO_INDEX_HEADERS: Readonly<Record<string, string>> = { 'X-Robots-Ta
  * {@link PAGES_PROJECT_HOST} the {@link NO_INDEX_HEADERS} too: its rule names that host, so the
  * responses of `issoufi.fr` and of the branch previews do not match it. The files of
  * {@link ASSETS_DIR} have a hash of their content in their name, so a new content gets a new URL:
- * browsers keep them a year without revalidating them (`immutable`). Every other file keeps the
- * default cache policy of Cloudflare Pages, which revalidates it: the HTML pages, `robots.txt` and
- * `sitemap.xml`, whose URL never changes, and the files copied from `public/`, whose name stays
- * the same when their content changes, the web fonts of `public/fonts/` included, since other
- * scripts read them there.
+ * browsers keep them a year without revalidating them (`immutable`), the copies of the web fonts
+ * that the pages load included. Every other file keeps the default cache policy of Cloudflare
+ * Pages, which revalidates it: the HTML pages, `robots.txt` and `sitemap.xml`, whose URL never
+ * changes, and the files copied from `public/`, whose name stays the same when their content
+ * changes, such as the font files of `public/fonts/`, which other scripts read there.
  */
 export const HEADER_RULES: readonly HeaderRule[] = [
   { path: '/*', headers: SECURITY_HEADERS },
@@ -264,3 +264,9 @@ export const PAGE_ENTRY_FILE = 'index.ts';
  * standalone build finds it to call its API (see `PageMetaApi`).
  */
 export const PAGE_META_PLUGIN_NAME = 'page-meta';
+
+/**
+ * Name of the plugin of `vite.config.ts` that adds the web fonts to the head of every page, by
+ * which the standalone build finds it to call its API (see `FontFacesApi`).
+ */
+export const FONT_FACES_PLUGIN_NAME = 'font-faces';

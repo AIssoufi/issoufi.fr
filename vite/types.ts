@@ -26,3 +26,17 @@ export interface PageMetaApi {
    */
   skipPrerender: () => void;
 }
+
+/**
+ * API of the plugin of `vite.config.ts` that adds the web fonts to the head of every page
+ * (`FONT_FACES_PLUGIN_NAME`), which another config reaches through `config.plugins`.
+ */
+export interface FontFacesApi {
+  /**
+   * Makes the pages load the font files from `public/fonts/`, as the dev server does, instead of
+   * the copies that the build writes in `assets/` under a hash of their content, as in the
+   * standalone build, which embeds the files of `public/` in its page. To call before the build
+   * starts, as from `configResolved`.
+   */
+  keepPublicUrls: () => void;
+}
