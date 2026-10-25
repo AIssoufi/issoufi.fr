@@ -182,6 +182,7 @@ jobs:
   # own runner, so the wall time stays well under the timeout as the suite grows
   browser-test-shard:
     needs: build
+    # The browser-test job finds the shards that failed by this name
     name: browser-test (${{ matrix.shard }}/${{ strategy.job-total }})
     runs-on: ubuntu-latest
     timeout-minutes: 10
@@ -218,14 +219,21 @@ jobs:
           path: test-results/
           retention-days: 14
 
-  # Runs the phone specs in WebKit, the engine of Safari, on its own runner, so the Chromium shards
-  # keep their duration. It runs in the image of Playwright, which holds WebKit and its system
-  # libraries, so it reads no apt mirror (decision 0024)
+  # Runs the phone specs in WebKit, the engine of Safari, on runners of their own, so the Chromium
+  # shards keep their duration, and splits them in shards too, so that they take no longer. They
+  # run in the image of Playwright, which holds WebKit and its system libraries, so they read no
+  # apt mirror (decision 0024)
   browser-test-webkit:
     needs: build
-    name: browser-test (webkit)
+    # The browser-test job finds the shards that failed by this name
+    name: browser-test (webkit ${{ matrix.shard }}/${{ strategy.job-total }})
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    strategy:
+      # Every shard runs to its end, as the Chromium ones do
+      fail-fast: false
+      matrix:
+        shard: [1, 2, 3]
     container:
       # The tag names the version of @playwright/test in the lockfile, and the digest pins its
       # content. Dependabot updates neither: change both with that version (docs/testing.md), or
@@ -245,35 +253,66 @@ jobs:
       # No .github/actions/playwright: the image holds the browsers in /ms-playwright, and the cache
       # of that action, saved on the runner, would restore them to /.cache, which that user cannot
       # create
-      - run: pnpm test:browser --project=webkit
+      - run: pnpm test:browser --project=webkit --shard="$SHARD"
+        env:
+          SHARD: ${{ matrix.shard }}/${{ strategy.job-total }}
       - if: failure()
         uses: actions/upload-artifact@v7
         with:
-          name: browser-test-results-webkit
+          name: browser-test-results-webkit-${{ matrix.shard }}
           path: test-results/
           retention-days: 14
 
-  # The required check of both rulesets, which name it: it passes once every shard and the WebKit
-  # job passed, and fails when one failed or was skipped, since a skipped required check would let
-  # a pull request merge
+  # The required check of both rulesets, which name it: it passes once every Chromium and WebKit
+  # shard passed, and fails when one failed or was skipped, since a skipped required check would
+  # let a pull request merge
   browser-test:
     needs: [browser-test-shard, browser-test-webkit]
     if: ${{ !cancelled() }}
     runs-on: ubuntu-latest
     timeout-minutes: 5
+    permissions:
+      # Reads the jobs of the run, to name the shards that did not pass
+      actions: read
     steps:
-      - if: needs.browser-test-shard.result != 'success'
+      # needs gives one result for all the shards of a matrix, so this step reads which ones did
+      # not pass in the jobs of this attempt of the run, which also lists the jobs that a rerun of
+      # the failed ones kept, and prints an error for each browser whose shards did not all pass
+      - if: >-
+          needs.browser-test-shard.result != 'success'
+          || needs.browser-test-webkit.result != 'success'
         run: |
-          echo "::error::The browser tests did not pass: their shards ended with '${SHARDS_RESULT}'."
+          run_path="repos/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
+          jobs=$(gh api "${run_path}/attempts/${GITHUB_RUN_ATTEMPT}/jobs?per_page=100") || jobs=''
+          # Names the shards of one browser that did not pass, or gives the result of all of them
+          # when the jobs of the run could not be read
+          report_failed_shards() {
+            local browser=$1 prefix=$2 result=$3 shards
+            if [ "$result" = success ]; then
+              return
+            fi
+            shards=$(jq -r --arg prefix "$prefix" "$FAILED_SHARDS_FILTER" <<< "$jobs") || shards=''
+            if [ -z "$shards" ]; then
+              shards="its shards ended with '${result}'"
+            fi
+            echo "::error::The browser tests did not pass in ${browser}: ${shards}."
+          }
+          report_failed_shards Chromium 'browser-test (' "$CHROMIUM_RESULT"
+          report_failed_shards WebKit 'browser-test (webkit ' "$WEBKIT_RESULT"
           exit 1
         env:
-          SHARDS_RESULT: ${{ needs.browser-test-shard.result }}
-      - if: needs.browser-test-webkit.result != 'success'
-        run: |
-          echo "::error::The browser tests did not pass in WebKit: its job ended with '${WEBKIT_RESULT}'."
-          exit 1
-        env:
+          CHROMIUM_RESULT: ${{ needs.browser-test-shard.result }}
           WEBKIT_RESULT: ${{ needs.browser-test-webkit.result }}
+          GH_TOKEN: ${{ github.token }}
+          # Names each shard that did not pass among the jobs named $prefix then "<i>/<total>)",
+          # e.g. "shard 2/3 ended with 'failure'"
+          FAILED_SHARDS_FILTER: >-
+            [.jobs[]
+            | select((.name | startswith($prefix)) and .conclusion != "success")
+            | (.name | ltrimstr($prefix) | rtrimstr(")")) as $shard
+            | select($shard | test("^[0-9]+/[0-9]+$"))
+            | "shard \($shard) ended with '\(.conclusion)'"]
+            | join(", ")
 
   # Compares the screenshots of every page with those of the base of the pull request, at four
   # widths in each language, and lists the changed screens in the job summary (pnpm test:visual).

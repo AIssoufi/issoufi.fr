@@ -9,7 +9,7 @@ import freelanceProjectsData from '../src/pages/Projects/.data/freelance-project
 import personalProjectsData from '../src/pages/Projects/.data/personal-projects.json' with { type: 'json' };
 import { ROW_CARD_COUNT } from '../src/pages/Projects/Project/constants.ts';
 import type { ProjectItemData } from '../src/pages/Projects/Project/types.ts';
-import { getThumbnailSources } from '../src/pages/Projects/Project/utils.ts';
+import { getThumbnailSources } from '../src/pages/Projects/Project/utils/thumbnails.ts';
 import {
   MAX_CARD_OFFSET_PX,
   PROJECT_CARD_SCREEN_WIDTHS_PX,

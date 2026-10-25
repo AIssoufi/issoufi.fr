@@ -1,4 +1,4 @@
-// @vitest-environment node
+// @vitest-environment jsdom
 import { existsSync, readFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import ts from 'typescript';
@@ -65,17 +65,11 @@ const BUILD_TIMEOUT_MS = 60_000;
  */
 const CONFIG_LOADER = 'bundle';
 
-/** URL of each `modulepreload` link of an HTML page. */
-const MODULE_PRELOAD_HREF_PATTERN = /<link rel="modulepreload"[^>]*\shref="([^"]*)"/g;
-
-/** Tag that loads a script of the app: a module script, or a link that preloads a module. */
-const APP_SCRIPT_TAG_PATTERN = /<(?:script type="module"|link rel="modulepreload")[^>]*>/g;
+/** Element that loads a script of the app: a module script, or a link that preloads a module. */
+const APP_SCRIPT_SELECTOR = 'script[type="module"], link[rel="modulepreload"]';
 
 /** Host of each URL that a file names with `//`, with or without its scheme. */
 const URL_HOST_PATTERN = /\/\/([\w.-]+)/g;
-
-/** Link tag of an HTML page, from `<link` to `>`, its attributes on one or several lines. */
-const LINK_TAG_PATTERN = /<link\b[^>]*>/g;
 
 /**
  * Name of a file of the assets folder: a name, then the 8 characters of the hash of its content
@@ -137,6 +131,51 @@ const isAsset = (file: OutputFile): file is Rolldown.OutputAsset => file.type ==
 const getSource = (fileName: string) =>
   String(output.filter(isAsset).find(file => file.fileName === fileName)?.source ?? '');
 
+/** Documents parsed by {@link parseHtml}, by their HTML, which several tests read. */
+const parsedDocuments = new Map<string, Document>();
+
+/** Parses an HTML page as a browser does, once per HTML, into a document to query. */
+const parseHtml = (html: string) => {
+  const parsed = parsedDocuments.get(html) ?? new DOMParser().parseFromString(html, 'text/html');
+  parsedDocuments.set(html, parsed);
+  return parsed;
+};
+
+/** Parses an HTML page of the build, an empty document when the build has none. */
+const readPage = (fileName: string) => parseHtml(getSource(fileName));
+
+/**
+ * Writes an element as the parser of {@link parseHtml} writes it back, to compare a tag written
+ * by hand, such as `<link rel="icon" href="/favicon.ico">`, with an element of a page.
+ */
+const toElementHtml = (tag: string) => {
+  const template = document.createElement('template');
+  template.innerHTML = tag;
+  return template.content.firstElementChild?.outerHTML;
+};
+
+/** Parameters of the helpers that query a document or one of its elements. */
+interface QueryParams {
+  /** Document of a page, or one of its elements such as its head. */
+  root: ParentNode;
+  /** CSS selector of the elements, e.g. `link[rel="icon"]`. */
+  selector: string;
+}
+
+/** Lists the HTML of each element of a selector in a document or one of its elements. */
+const getElementsHtml = ({ root, selector }: QueryParams) =>
+  [...root.querySelectorAll(selector)].map(element => element.outerHTML);
+
+/** Parameters of {@link getAttributeValues}. */
+interface GetAttributeValuesParams extends QueryParams {
+  /** Name of the attribute, e.g. `href`. */
+  name: string;
+}
+
+/** Lists the value of an attribute of each element of a selector, in their order. */
+const getAttributeValues = ({ root, selector, name }: GetAttributeValuesParams) =>
+  [...root.querySelectorAll(selector)].map(element => element.getAttribute(name));
+
 /**
  * Reads the template that names a file of the build, such as `assets/[name]-[hash].js`: the one of
  * the assets, of the entry chunks or of the other chunks, written by a function or not.
@@ -155,9 +194,9 @@ const getFileNameTemplate = (file: OutputFile) => {
   return typeof template === 'function' ? template(file) : template;
 };
 
-/** Lists the URLs of the scripts that an HTML page preloads. */
-const getPreloadedUrls = (html: string) =>
-  [...html.matchAll(MODULE_PRELOAD_HREF_PATTERN)].map(([, href]) => href);
+/** Lists the URLs of the scripts that an HTML page, or a part of it, preloads. */
+const getPreloadedUrls = (root: ParentNode) =>
+  getAttributeValues({ root, selector: 'link[rel="modulepreload"]', name: 'href' });
 
 /** URLs of the chunks built from a page folder. */
 const getPageChunkUrls = () =>
@@ -176,7 +215,7 @@ const getPageChunkUrl = (folder: string) => {
 /** Lists the page chunks that an HTML page preloads. */
 const getPreloadedPageChunks = (html: string) => {
   const pageChunkUrls = getPageChunkUrls();
-  return getPreloadedUrls(html).filter(href => pageChunkUrls.includes(href));
+  return getPreloadedUrls(parseHtml(html)).filter(href => pageChunkUrls.includes(href ?? ''));
 };
 
 /** Parameters of {@link getStaticImportUrls}. */
@@ -238,8 +277,8 @@ interface GetOwnPreloadedUrlsParams {
 
 /** Lists, sorted, the URLs that a page preloads and the home page does not. */
 const getOwnPreloadedUrls = ({ html, homeHtml }: GetOwnPreloadedUrlsParams) => {
-  const templateUrls = getPreloadedUrls(homeHtml);
-  return getPreloadedUrls(html)
+  const templateUrls = getPreloadedUrls(parseHtml(homeHtml));
+  return getPreloadedUrls(parseHtml(html))
     .filter(href => !templateUrls.includes(href))
     .sort();
 };
@@ -277,20 +316,18 @@ const findGoogleHosts = (code: string) =>
 
 /** Parameters of {@link getPreloads}. */
 interface GetPreloadsParams {
-  /** HTML of a page, or a part of it such as its head. */
-  html: string;
+  /** Document of a page, or one of its elements such as its head. */
+  root: ParentNode;
   /** Kind of file that the links preload, their `as` attribute, e.g. `font`. */
   as: string;
 }
 
-/** Lists the link tags of an HTML page that preload a kind of file, each on one line. */
-const getPreloads = ({ html, as }: GetPreloadsParams) =>
-  (html.match(LINK_TAG_PATTERN) ?? [])
-    .map(tag => tag.replace(/\s+/g, ' '))
-    .filter(tag => tag.includes('rel="preload"') && tag.includes(`as="${as}"`));
+/** Lists the HTML of the links of a page that preload a kind of file, in their order. */
+const getPreloads = ({ root, as }: GetPreloadsParams) =>
+  getElementsHtml({ root, selector: `link[rel="preload"][as="${as}"]` });
 
-/** Lists the link tags of an HTML page that preload a font, each on one line. */
-const getFontPreloads = (html: string) => getPreloads({ html, as: 'font' });
+/** Lists the HTML of the links of a page that preload a font, in their order. */
+const getFontPreloads = (root: ParentNode) => getPreloads({ root, as: 'font' });
 
 /** Path of a font file of `public/`, from its URL in `FONT_FACES`. */
 const getPublicFontFile = (url: string) => join(resolve('public'), url);
@@ -330,43 +367,38 @@ const transformFontFacesHtml = async (command: 'build' | 'serve') => {
 
 /** Parameters of {@link getLinks}. */
 interface GetLinksParams {
-  /** HTML of a page, or a part of it such as its head. */
-  html: string;
+  /** Document of a page, or one of its elements such as its head. */
+  root: ParentNode;
   /** Relation of the links, their `rel` attribute, e.g. `icon`. */
   rel: string;
 }
 
-/** Lists the link tags of an HTML page of a relation, each on one line. */
-const getLinks = ({ html, rel }: GetLinksParams) =>
-  (html.match(LINK_TAG_PATTERN) ?? [])
-    .map(tag => tag.replace(/\s+/g, ' '))
-    .filter(tag => tag.includes(` rel="${rel}"`));
+/** Lists the HTML of the links of a page of a relation, in their order. */
+const getLinks = ({ root, rel }: GetLinksParams) =>
+  getElementsHtml({ root, selector: `link[rel="${rel}"]` });
 
-/** Lists the URL of each link of an HTML page of a relation. */
-const getLinkUrls = (params: GetLinksParams) =>
-  getLinks(params).map(tag => tag.match(/\shref="([^"]*)"/)?.[1]);
+/** Lists the URL of each link of a page of a relation. */
+const getLinkUrls = ({ root, rel }: GetLinksParams) =>
+  getAttributeValues({ root, selector: `link[rel="${rel}"]`, name: 'href' });
 
 /** Translations of each language, to read the titles the pages must have. */
 const TRANSLATIONS = { fr, en };
 
-/** Reads the language of an HTML page, in its `<html lang>`. */
-const getHtmlLanguage = (html: string) => html.match(/<html lang="([^"]*)">/)?.[1];
+/** Reads the language of a page, in its `<html lang>`. */
+const getHtmlLanguage = (page: Document) => page.documentElement.getAttribute('lang') ?? undefined;
 
-/** Reads the title of an HTML page. */
-const getTitle = (html: string) => html.match(/<title>([^<]*)<\/title>/)?.[1];
+/** Reads the text of the title of a page, its entities decoded and its spaces kept. */
+const getTitle = (page: Document) => page.querySelector('title')?.textContent;
 
-/** Reads the URL of the link preview image of an HTML page, in its `og:image`. */
-const getOgImage = (html: string) => html.match(/property="og:image"\s+content="([^"]*)"/)?.[1];
-
-/** Canonical link of an HTML page, on any number of lines. Its first group captures the URL. */
-const CANONICAL_URL_PATTERN = /<link\s+rel="canonical"\s+href="([^"]*)"/;
+/** Reads the URL of the link preview image of a page, in its `og:image`. */
+const getOgImage = (page: Document) =>
+  page.querySelector('meta[property="og:image"]')?.getAttribute('content') ?? undefined;
 
 /**
- * Link to a translation, in the head of an HTML page or in a `url` of the sitemap (`xhtml:link`).
- * Its groups capture the `hreflang` and the URL.
+ * Link to a translation in a `url` of the sitemap. Its groups capture the `hreflang` and the URL.
  */
-const ALTERNATE_LINK_PATTERN =
-  /<(?:xhtml:)?link rel="alternate" hreflang="([^"]*)" href="([^"]*)"/g;
+const SITEMAP_ALTERNATE_LINK_PATTERN =
+  /<xhtml:link rel="alternate" hreflang="([^"]*)" href="([^"]*)"/g;
 
 /** `url` element of the sitemap, from its opening to its closing tag. */
 const SITEMAP_URL_PATTERN = /<url>[\s\S]*?<\/url>/g;
@@ -374,12 +406,23 @@ const SITEMAP_URL_PATTERN = /<url>[\s\S]*?<\/url>/g;
 /** Location of a `url` of the sitemap. Its first group captures the URL. */
 const SITEMAP_LOCATION_PATTERN = /<loc>([^<]*)<\/loc>/g;
 
-/** Reads the canonical URL of an HTML page. */
-const getCanonicalUrl = (html: string) => html.match(CANONICAL_URL_PATTERN)?.[1];
+/** Reads the canonical URL of a page. */
+const getCanonicalUrl = (page: Document) =>
+  page.querySelector('link[rel="canonical"]')?.getAttribute('href') ?? undefined;
 
-/** Lists the `hreflang` and the URL of each link to a translation, of a page or a sitemap URL. */
-const getAlternateLinks = (markup: string) =>
-  [...markup.matchAll(ALTERNATE_LINK_PATTERN)].map(([, hreflang, href]) => [hreflang, href]);
+/** Lists the `hreflang` and the URL of each link of a page to a translation. */
+const getAlternateLinks = (page: Document) =>
+  [...page.querySelectorAll('link[rel="alternate"][hreflang]')].map(link => [
+    link.getAttribute('hreflang'),
+    link.getAttribute('href'),
+  ]);
+
+/** Lists the `hreflang` and the URL of each link to a translation of a `url` of the sitemap. */
+const getSitemapAlternateLinks = (sitemapUrl: string) =>
+  [...sitemapUrl.matchAll(SITEMAP_ALTERNATE_LINK_PATTERN)].map(([, hreflang, href]) => [
+    hreflang,
+    href,
+  ]);
 
 /** Lists the locations of the URLs of the sitemap, in its order. */
 const getSitemapLocations = (sitemap: string) =>
@@ -397,28 +440,22 @@ interface GetSitemapUrlEntryParams {
 const getSitemapUrlEntry = ({ sitemap, location }: GetSitemapUrlEntryParams) =>
   sitemap.match(SITEMAP_URL_PATTERN)?.find(url => url.includes(`<loc>${location}</loc>`)) ?? '';
 
-/** Script tag of an HTML page, from `<script` to `>`, its attributes on one or several lines. */
-const SCRIPT_TAG_PATTERN = /<script\b[^>]*>/g;
+/** `type` of a script element of structured data, which browsers do not run. */
+const DATA_BLOCK_TYPE = 'application/ld+json';
 
-/** `src` attribute of a tag, naming a file. */
-const SOURCE_ATTRIBUTE_PATTERN = /\ssrc="[^"]+"/;
+/** Selector of the script elements of structured data in a page. */
+const STRUCTURED_DATA_SCRIPT_SELECTOR = `script[type="${DATA_BLOCK_TYPE}"]`;
 
-/** `type` attribute of a script element of structured data, which browsers do not run. */
-const DATA_BLOCK_TYPE_PATTERN = /\stype="application\/ld\+json"/;
-
-/** Tells whether a script tag runs inline code: it has no file to run, and holds no data block. */
-const isInlineScriptTag = (tag: string) => {
-  const hasSourceFile = SOURCE_ATTRIBUTE_PATTERN.test(tag);
-  const isDataBlock = DATA_BLOCK_TYPE_PATTERN.test(tag);
+/** Tells whether a script element runs inline code: it has no file to run, and holds no data. */
+const isInlineScript = (script: Element) => {
+  const hasSourceFile = Boolean(script.getAttribute('src'));
+  const isDataBlock = script.getAttribute('type') === DATA_BLOCK_TYPE;
   return !hasSourceFile && !isDataBlock;
 };
 
-/** Lists the script tags of an HTML page that run inline code. */
-const getInlineScriptTags = (html: string) =>
-  (html.match(SCRIPT_TAG_PATTERN) ?? []).filter(isInlineScriptTag);
-
-/** Script element of structured data in an HTML page. Its first group captures its JSON. */
-const STRUCTURED_DATA_SCRIPT_PATTERN = /<script type="application\/ld\+json">([^<]*)<\/script>/g;
+/** Lists the HTML of the script elements of a page that run inline code. */
+const getInlineScripts = (page: Document) =>
+  [...page.querySelectorAll('script')].filter(isInlineScript).map(script => script.outerHTML);
 
 /** Vocabulary that the structured data of every page must name in its `@context`. */
 const SCHEMA_ORG_URL = 'https://schema.org';
@@ -438,10 +475,11 @@ interface StructuredDataNode {
   mainEntity?: StructuredDataNode;
 }
 
-/** Reads the structured data that each script element of an HTML page declares, parsed. */
-const readStructuredData = (html: string) =>
-  [...html.matchAll(STRUCTURED_DATA_SCRIPT_PATTERN)].map(
-    ([, json]) => JSON.parse(json) as { '@context'?: string; '@graph'?: StructuredDataNode[] },
+/** Reads the structured data that each script element of a page declares, parsed. */
+const readStructuredData = (page: Document) =>
+  [...page.querySelectorAll(STRUCTURED_DATA_SCRIPT_SELECTOR)].map(
+    ({ textContent }) =>
+      JSON.parse(textContent) as { '@context'?: string; '@graph'?: StructuredDataNode[] },
   );
 
 /** Parameters of {@link findNodes}. */
@@ -557,7 +595,7 @@ describe('chunks of the build', () => {
   });
 
   it(`preloads the ${VENDOR_CHUNK_NAME} and ${SHARED_CHUNK_NAME} chunks from the home page, so the size report counts them`, () => {
-    const preloadedUrls = getPreloadedUrls(getSource(HOME_PAGE.fileName));
+    const preloadedUrls = getPreloadedUrls(readPage(HOME_PAGE.fileName));
 
     [VENDOR_CHUNK_NAME, SHARED_CHUNK_NAME].forEach(name => {
       expect(preloadedUrls).toContain(`/${findNamedChunk(name)?.fileName}`);
@@ -594,25 +632,25 @@ describe('pages generated by the build', () => {
   it.each(pageFiles.map(({ fileName, page, language }) => ({ fileName, page, language })))(
     'writes $fileName in $language, with its title',
     ({ fileName, page, language }) => {
-      const html = getSource(fileName);
+      const pageDocument = readPage(fileName);
 
-      expect(getHtmlLanguage(html)).toBe(language);
-      expect(getTitle(html)).toBe(TRANSLATIONS[language].meta[page.meta].title);
-      expect(getOgImage(html)).toBe(getOgImageUrl(language));
+      expect(getHtmlLanguage(pageDocument)).toBe(language);
+      expect(getTitle(pageDocument)).toBe(TRANSLATIONS[language].meta[page.meta].title);
+      expect(getOgImage(pageDocument)).toBe(getOgImageUrl(language));
     },
   );
 
   it.each(pageFiles.map(({ fileName, language }) => ({ fileName, language })))(
     'declares in $fileName valid structured data of schema.org, at its canonical URL, in $language',
     ({ fileName, language }) => {
-      const html = getSource(fileName);
-      const structuredData = readStructuredData(html);
+      const page = readPage(fileName);
+      const structuredData = readStructuredData(page);
       const [{ '@context': context, '@graph': nodes } = {}] = structuredData;
 
       expect(structuredData).toHaveLength(1);
       expect(context).toBe(SCHEMA_ORG_URL);
       expect(findNodes({ nodes, types: PAGE_NODE_TYPES })).toEqual([
-        expect.objectContaining({ url: getCanonicalUrl(html), inLanguage: language }),
+        expect.objectContaining({ url: getCanonicalUrl(page), inLanguage: language }),
       ]);
     },
   );
@@ -620,13 +658,13 @@ describe('pages generated by the build', () => {
   it.each(homePages.map(({ fileName, language }) => ({ fileName, language })))(
     'declares in $fileName the site and its owner, in $language',
     ({ fileName, language }) => {
-      const html = getSource(fileName);
-      const [{ '@graph': nodes } = {}] = readStructuredData(html);
+      const page = readPage(fileName);
+      const [{ '@graph': nodes } = {}] = readStructuredData(page);
       const [profilePage] = findNodes({ nodes, types: ['ProfilePage'] });
 
       expect(findNodes({ nodes, types: ['WebSite'] })).toEqual([
         expect.objectContaining({
-          url: getCanonicalUrl(html),
+          url: getCanonicalUrl(page),
           name: TRANSLATIONS[language].meta.siteName,
           inLanguage: language,
         }),
@@ -645,18 +683,20 @@ describe('pages generated by the build', () => {
     'declares no structured data in the not found page $fileName, which has no address',
     ({ fileName }) => {
       expect(getSource(fileName)).toContain('</head>');
-      expect(readStructuredData(getSource(fileName))).toEqual([]);
+      expect(readStructuredData(readPage(fileName))).toEqual([]);
     },
   );
 
   it.each(notFoundFiles)(
     'writes the not found page $fileName in $language',
     ({ fileName, language }) => {
-      const html = getSource(fileName);
+      const page = readPage(fileName);
 
-      expect(getHtmlLanguage(html)).toBe(language);
-      expect(getTitle(html)).toBe(TRANSLATIONS[language].meta.notFound.title);
-      expect(html).toContain('<meta name="robots" content="noindex" />');
+      expect(getHtmlLanguage(page)).toBe(language);
+      expect(getTitle(page)).toBe(TRANSLATIONS[language].meta.notFound.title);
+      expect(getElementsHtml({ root: page.head, selector: 'meta[name="robots"]' })).toEqual([
+        toElementHtml('<meta name="robots" content="noindex" />'),
+      ]);
     },
   );
 
@@ -682,11 +722,7 @@ describe('pages generated by the build', () => {
   );
 
   it.each(generatedPages)('$fileName preloads its chunk in its head', ({ fileName, folder }) => {
-    const html = getSource(fileName);
-    const linkPosition = html.indexOf(`href="${getPageChunkUrl(folder)}"`);
-
-    expect(linkPosition).toBeGreaterThan(html.indexOf('<head>'));
-    expect(linkPosition).toBeLessThan(html.indexOf('</head>'));
+    expect(getPreloadedUrls(readPage(fileName).head)).toContain(getPageChunkUrl(folder));
   });
 
   describe.each([
@@ -701,16 +737,14 @@ describe('pages generated by the build', () => {
       photo: STATUS_PAGE_BACKGROUND_PHOTO,
     })),
   ])('$fileName', ({ fileName, language, photo }) => {
-    const getHead = () => {
-      const html = getSource(fileName);
-      return html.slice(html.indexOf('<head>'), html.indexOf('</head>'));
-    };
+    const getHead = () => readPage(fileName).head;
 
     it(`preloads each web font of the site, from its copy in ${ASSETS_DIR}/, in its head`, () => {
       expect(getFontPreloads(getHead())).toEqual(
-        FONT_FACES.map(
-          ({ url }) =>
+        FONT_FACES.map(({ url }) =>
+          toElementHtml(
             `<link rel="preload" href="${getFontAssetUrl(url)}" as="font" type="font/woff2" crossorigin>`,
+          ),
         ),
       );
     });
@@ -718,48 +752,58 @@ describe('pages generated by the build', () => {
     // Its rendered style requests the photo, at the high priority of an image on the screen, which
     // the font and the largest image of the first paint would share their bandwidth with
     it('preloads its background photo at a low priority, in the version of each screen', () => {
-      expect(getPreloads({ html: getSource(fileName), as: 'image' })).toEqual([
-        `<link rel="preload" as="image" href="${photo.portraitUrl}" media="${PORTRAIT_PHOTO_MEDIA_QUERY.replaceAll('<', '&lt;')}" fetchpriority="low" />`,
-        `<link rel="preload" as="image" href="${photo.url}" media="${LANDSCAPE_PHOTO_MEDIA_QUERY.replaceAll('<', '&lt;')}" fetchpriority="low" />`,
+      expect(getPreloads({ root: readPage(fileName), as: 'image' })).toEqual([
+        toElementHtml(
+          `<link rel="preload" as="image" href="${photo.portraitUrl}" media="${PORTRAIT_PHOTO_MEDIA_QUERY.replaceAll('<', '&lt;')}" fetchpriority="low" />`,
+        ),
+        toElementHtml(
+          `<link rel="preload" as="image" href="${photo.url}" media="${LANDSCAPE_PHOTO_MEDIA_QUERY.replaceAll('<', '&lt;')}" fetchpriority="low" />`,
+        ),
       ]);
     });
 
     it('downloads the scripts of the app at a low priority, since they only hydrate it', () => {
-      const scriptTags = getHead().match(APP_SCRIPT_TAG_PATTERN) ?? [];
+      const scripts = getElementsHtml({ root: getHead(), selector: APP_SCRIPT_SELECTOR });
 
-      expect(scriptTags.length).toBeGreaterThan(0);
-      scriptTags.forEach(tag => expect(tag).toContain(' fetchpriority="low"'));
-      expect(getSource(fileName).match(APP_SCRIPT_TAG_PATTERN)).toEqual(scriptTags);
+      expect(scripts.length).toBeGreaterThan(0);
+      scripts.forEach(script => expect(script).toContain(' fetchpriority="low"'));
+      expect(getElementsHtml({ root: readPage(fileName), selector: APP_SCRIPT_SELECTOR })).toEqual(
+        scripts,
+      );
     });
 
     it('declares the web fonts in a style of its head, which no component changes', () => {
-      expect(getHead()).toContain(`<style>${renderFontFaces({ getUrl: getFontAssetUrl })}</style>`);
+      expect(getElementsHtml({ root: getHead(), selector: 'style' })).toContain(
+        toElementHtml(`<style>${renderFontFaces({ getUrl: getFontAssetUrl })}</style>`),
+      );
     });
 
     it('runs no inline script, which its Content Security Policy would block', () => {
-      expect(getSource(fileName)).toMatch(SCRIPT_TAG_PATTERN);
-      expect(getInlineScriptTags(getSource(fileName))).toEqual([]);
+      expect(readPage(fileName).scripts.length).toBeGreaterThan(0);
+      expect(getInlineScripts(readPage(fileName))).toEqual([]);
     });
 
     it('links the SVG favicon, after the ICO one of the older browsers, in its head', () => {
       const { url, sizePx } = APP_ICONS.legacyFavicon;
-      expect(getLinks({ html: getHead(), rel: 'icon' })).toEqual([
-        `<link rel="icon" href="${url}" sizes="${sizePx}x${sizePx}" />`,
-        `<link rel="icon" href="${APP_ICONS.favicon.url}" type="${APP_ICONS.favicon.type}" />`,
+      expect(getLinks({ root: getHead(), rel: 'icon' })).toEqual([
+        toElementHtml(`<link rel="icon" href="${url}" sizes="${sizePx}x${sizePx}" />`),
+        toElementHtml(
+          `<link rel="icon" href="${APP_ICONS.favicon.url}" type="${APP_ICONS.favicon.type}" />`,
+        ),
       ]);
     });
 
     it('links the Apple touch icon, which iOS puts on its home screen, in its head', () => {
-      expect(getLinkUrls({ html: getHead(), rel: 'apple-touch-icon' })).toEqual([
+      expect(getLinkUrls({ root: getHead(), rel: 'apple-touch-icon' })).toEqual([
         APP_ICONS.appleTouch.url,
       ]);
     });
 
     it(`links the web app manifest of ${language} only, in its head`, () => {
-      expect(getLinkUrls({ html: getSource(fileName), rel: 'manifest' })).toEqual([
+      expect(getLinkUrls({ root: readPage(fileName), rel: 'manifest' })).toEqual([
         getWebManifestUrl(language),
       ]);
-      expect(getLinkUrls({ html: getHead(), rel: 'manifest' })).toHaveLength(1);
+      expect(getLinkUrls({ root: getHead(), rel: 'manifest' })).toHaveLength(1);
     });
   });
 
@@ -784,28 +828,11 @@ describe('pages generated by the build', () => {
   );
 });
 
-/**
- * Container of the app in a page of the build, the last element of its body: its attributes, then
- * the markup that the build rendered in it.
- */
-const APP_CONTAINER_PATTERN = new RegExp(
-  `<div id="${APP_CONTAINER_ID}"([^>]*)>([\\s\\S]*)</div>\\s*</body>`,
-);
+/** Style elements that styled-components renders for a page, with its rules. */
+const STYLED_STYLE_SELECTOR = 'style[data-styled="true"]';
 
-/** Content of the first `h1` of a markup, tags included. */
-const HEADING_PATTERN = /<h1\b[^>]*>([\s\S]*?)<\/h1>/;
-
-/** Tag or comment of a markup, which its text leaves out. */
-const TAG_PATTERN = /<[^>]*>/g;
-
-/** URL of each link of a markup. */
-const LINK_HREF_PATTERN = /<a\b[^>]*\shref="([^"]*)"/g;
-
-/** Classes of each element of a markup. */
-const CLASS_ATTRIBUTE_PATTERN = /\sclass="([^"]*)"/g;
-
-/** Style that styled-components renders for a page, with its rules. */
-const STYLED_STYLE_PATTERN = /<style data-styled="true"[^>]*>([\s\S]*?)<\/style>/g;
+/** Space characters of a text, which a browser shows as one space. */
+const SPACES_PATTERN = /\s+/g;
 
 /**
  * Rule by which styled-components names the classes of a styled component in a style, for the
@@ -822,50 +849,41 @@ const NON_COMPONENT_ID_PATTERN = /^sc-(global|keyframes)-/;
 /** Id of a styled component that a chunk of the build gives it: its first group. */
 const CHUNK_COMPONENT_ID_PATTERN = /componentId:\s*["'`](sc-[^"'`]*)["'`]/g;
 
-/** HTML entities that React writes in a text, by the character that they stand for. */
-const HTML_ENTITIES: Record<string, string> = {
-  '&amp;': '&',
-  '&#x27;': "'",
-  '&quot;': '"',
-  '&lt;': '<',
-  '&gt;': '>',
-};
+/** Reads a text as a browser shows it, its spaces collapsed. */
+const collapseSpaces = (text = '') => text.replace(SPACES_PATTERN, ' ');
 
-/** Reads the text of a markup, as a browser shows it: no tags, entities read, spaces collapsed. */
-const getText = (markup = '') =>
-  markup
-    .replace(TAG_PATTERN, '')
-    .replace(/&[#\w]+;/g, entity => HTML_ENTITIES[entity] ?? entity)
-    .replace(/\s+/g, ' ');
+/** Reads the text of an element as a browser shows it, its spaces collapsed. */
+const getText = (element?: Element | null) => collapseSpaces(element?.textContent);
 
-/** Reads the container of the app in a page of the build: its attributes and its markup. */
+/**
+ * Reads the container of the app in a page of the build, the last element of its body: its
+ * attributes besides its id, as name and value, and the container itself, missing when the last
+ * element of the body is not the container.
+ */
 const readAppContainer = (fileName: string) => {
-  const [, attributes = '', markup = ''] = getSource(fileName).match(APP_CONTAINER_PATTERN) ?? [];
-  return { attributes, markup };
+  const lastElement = readPage(fileName).body.lastElementChild;
+  const isAppContainer = lastElement?.id === APP_CONTAINER_ID;
+  const container = isAppContainer ? lastElement : undefined;
+  const attributes = [...(container?.attributes ?? [])]
+    .filter(({ name }) => name !== 'id')
+    .map(({ name, value }) => [name, value]);
+  return { attributes, container };
 };
 
-/** Parameters of {@link countTags}. */
-interface CountTagsParams {
-  /** HTML markup. */
-  markup: string;
-  /** Name of the elements, such as `h1`. */
-  name: string;
-}
-
-/** Counts the elements of a name in a markup. */
-const countTags = ({ markup, name }: CountTagsParams) =>
-  markup.match(new RegExp(`<${name}[\\s>]`, 'g'))?.length ?? 0;
-
-/** Reads the classes of the elements of a markup, once each. */
-const getClassNames = (markup: string) => [
+/** Lists the classes of the elements inside an element, once each. */
+const getClassNames = (element?: Element) => [
   ...new Set(
-    [...markup.matchAll(CLASS_ATTRIBUTE_PATTERN)].flatMap(([, value]) => value.split(' ')),
+    [...(element?.querySelectorAll('[class]') ?? [])].flatMap(({ classList }) => [...classList]),
   ),
 ];
 
+/** Lists the rules of each style of styled-components in a head. */
+const getStyledStyles = (head: ParentNode) =>
+  [...head.querySelectorAll(STYLED_STYLE_SELECTOR)].map(({ textContent }) => textContent);
+
 /** Reads the classes that the styles of styled-components in a head name, by styled component. */
-const getStyledGroups = (head: string) =>
-  [...head.matchAll(STYLED_STYLE_PATTERN)].flatMap(([, rules]) =>
+const getStyledGroups = (head: ParentNode) =>
+  getStyledStyles(head).flatMap(rules =>
     [...rules.matchAll(STYLED_GROUP_PATTERN)].map(([, id, names]) => ({
       id,
       classNames: names.split(',').filter(Boolean),
@@ -895,23 +913,22 @@ describe('pages rendered at build time', () => {
       folder: NOT_FOUND_FOLDER,
     })),
   ])('$fileName', ({ fileName, language, folder }) => {
-    const getHead = () => {
-      const html = getSource(fileName);
-      return html.slice(html.indexOf('<head>'), html.indexOf('</head>'));
-    };
+    const getHead = () => readPage(fileName).head;
 
     it(`shows the ${folder} page with its one h1, in ${language}, before any script runs`, () => {
-      const { markup } = readAppContainer(fileName);
-      const heading = getText(markup.match(HEADING_PATTERN)?.[1]);
+      const { container } = readAppContainer(fileName);
+      const heading = getText(container?.querySelector('h1'));
 
-      expect(countTags({ markup, name: 'main' })).toBe(1);
-      expect(countTags({ markup, name: 'h1' })).toBe(1);
-      expect(heading).toContain(getText(PAGE_HEADINGS[folder](TRANSLATIONS[language])));
+      expect(container?.querySelectorAll('main')).toHaveLength(1);
+      expect(container?.querySelectorAll('h1')).toHaveLength(1);
+      expect(heading).toContain(collapseSpaces(PAGE_HEADINGS[folder](TRANSLATIONS[language])));
     });
 
     it(`links every page of the site in ${language}`, () => {
-      const { markup } = readAppContainer(fileName);
-      const hrefs = [...markup.matchAll(LINK_HREF_PATTERN)].map(([, href]) => href);
+      const { container } = readAppContainer(fileName);
+      const hrefs = container
+        ? getAttributeValues({ root: container, selector: 'a[href]', name: 'href' })
+        : [];
       const languagePaths = pageFiles
         .filter(file => file.language === language)
         .map(({ path }) => path);
@@ -920,18 +937,19 @@ describe('pages rendered at build time', () => {
     });
 
     it('holds no script, template or link in the page, which the policy or React would refuse', () => {
-      const { markup } = readAppContainer(fileName);
+      const { container } = readAppContainer(fileName);
 
-      expect(markup).not.toMatch(/<(script|template|link)\b/);
+      expect(container).toBeDefined();
+      expect(container?.querySelector('script, template, link')).toBeNull();
     });
 
     it('styles the page from its head, with the classes of its elements', () => {
-      const pageClassNames = getClassNames(readAppContainer(fileName).markup);
+      const pageClassNames = getClassNames(readAppContainer(fileName).container);
       const componentGroups = getStyledGroups(getHead()).filter(
         ({ id }) => !NON_COMPONENT_ID_PATTERN.test(id),
       );
 
-      expect(getHead().match(STYLED_STYLE_PATTERN)).toHaveLength(1);
+      expect(getStyledStyles(getHead())).toHaveLength(1);
       expect(componentGroups.length).toBeGreaterThan(0);
       componentGroups.forEach(({ id, classNames }) => {
         expect(id).toMatch(COMPONENT_ID_PATTERN);
@@ -940,7 +958,7 @@ describe('pages rendered at build time', () => {
     });
 
     it('names the styled components as the scripts of the build do, which hydrate the page', () => {
-      const componentIds = getClassNames(readAppContainer(fileName).markup).filter(name =>
+      const componentIds = getClassNames(readAppContainer(fileName).container).filter(name =>
         name.startsWith('sc-'),
       );
 
@@ -953,19 +971,20 @@ describe('pages rendered at build time', () => {
   it.each(pageFiles.map(({ fileName, path }) => ({ fileName, path })))(
     'names in $fileName the path $path, so the browser hydrates the page there only',
     ({ fileName, path }) => {
-      expect(readAppContainer(fileName).attributes).toBe(
-        ` ${PRERENDERED_PATH_ATTRIBUTE}="${path}"`,
-      );
+      expect(readAppContainer(fileName).attributes).toEqual([[PRERENDERED_PATH_ATTRIBUTE, path]]);
     },
   );
 
   it.each(notFoundFiles)(
     'names no path in the not found page $fileName, which the browser renders again at its URL',
     ({ fileName, language }) => {
-      const { attributes, markup } = readAppContainer(fileName);
+      const { attributes, container } = readAppContainer(fileName);
 
-      expect(attributes).toBe('');
-      expect(getText(markup)).toContain(TRANSLATIONS[language].errors.notFound.messageWithoutPath);
+      expect(container).toBeDefined();
+      expect(attributes).toEqual([]);
+      expect(getText(container)).toContain(
+        TRANSLATIONS[language].errors.notFound.messageWithoutPath,
+      );
     },
   );
 
@@ -1047,7 +1066,7 @@ describe('sitemap generated by the build', () => {
   });
 
   it('lists the canonical URL of every page of the build, in every language', () => {
-    const canonicalUrls = pageFiles.map(({ fileName }) => getCanonicalUrl(getSource(fileName)));
+    const canonicalUrls = pageFiles.map(({ fileName }) => getCanonicalUrl(readPage(fileName)));
 
     expect(canonicalUrls).not.toContain(undefined);
     expect(getSitemapLocations(getSource(SITEMAP_FILE_NAME))).toEqual(canonicalUrls);
@@ -1056,14 +1075,14 @@ describe('sitemap generated by the build', () => {
   it.each(pageFiles)(
     'links $fileName to the same translations as its HTML file',
     ({ fileName }) => {
-      const html = getSource(fileName);
+      const page = readPage(fileName);
       const sitemapUrl = getSitemapUrlEntry({
         sitemap: getSource(SITEMAP_FILE_NAME),
-        location: getCanonicalUrl(html) ?? '',
+        location: getCanonicalUrl(page) ?? '',
       });
 
-      expect(getAlternateLinks(html)).toHaveLength(LANGUAGES.length + 1);
-      expect(getAlternateLinks(sitemapUrl)).toEqual(getAlternateLinks(html));
+      expect(getAlternateLinks(page)).toHaveLength(LANGUAGES.length + 1);
+      expect(getSitemapAlternateLinks(sitemapUrl)).toEqual(getAlternateLinks(page));
     },
   );
 });
@@ -1137,6 +1156,17 @@ describe('HTTP headers generated by the build', () => {
     );
 
     expect(config.preview.headers).toEqual(SECURITY_HEADERS);
+  });
+
+  it('lets any origin read the files of vite preview, with no Vary header, as Cloudflare does', async () => {
+    const config = await resolveConfig(
+      { configFile: 'vite.config.ts', configLoader: CONFIG_LOADER, logLevel: 'silent' },
+      'serve',
+      'production',
+    );
+
+    // The cors middleware of Vite sends `Vary: Origin` for any origin but `*`
+    expect(config.preview.cors).toEqual({ origin: '*' });
   });
 
   it('serves the not found pages from vite preview with the status 404, as Cloudflare does', async () => {

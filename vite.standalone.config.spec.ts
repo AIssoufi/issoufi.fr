@@ -1,4 +1,4 @@
-// @vitest-environment node
+// @vitest-environment jsdom
 import { execFileSync } from 'node:child_process';
 import { basename, extname, resolve } from 'node:path';
 import { build, normalizePath, type Plugin, type Rolldown } from 'vite';
@@ -49,20 +49,11 @@ const URL_HOST_PATTERN = /\/\/([\w.-]+)/g;
 /** Slash that starts an absolute URL, e.g. of a font file of `public/`. */
 const LEADING_SLASH_PATTERN = /^\//;
 
-/** A link that preloads a font file, its attributes on one or several lines. */
-const FONT_PRELOAD_PATTERN = /<link(?=[^>]*\srel="preload")[^>]*\sas="font"[^>]*>/;
+/** A link that preloads a font file. */
+const FONT_PRELOAD_SELECTOR = 'link[rel="preload"][as="font"]';
 
-/** A script tag that loads a file, or a link that preloads one. */
-const EXTERNAL_SCRIPT_PATTERN = /<script[^>]*\ssrc=|<link[^>]*rel="modulepreload"/;
-
-/**
- * Code of an inline script, up to its closing tag: `inlineScript` escapes any closing tag
- * written in the code, so the first one ends the script.
- */
-const INLINE_SCRIPT_CODE_PATTERN = /(<script[^>]*>)[\s\S]*?(<\/script>)/g;
-
-/** HTML of a page without the code of its inline scripts, which may name tags in strings. */
-const stripInlineScripts = (html: string) => html.replace(INLINE_SCRIPT_CODE_PATTERN, '$1$2');
+/** A script element that loads a file, or a link that preloads one. */
+const EXTERNAL_SCRIPT_SELECTOR = 'script[src], link[rel="modulepreload"]';
 
 /** Parameters of {@link hasQuotedUrl}. */
 interface HasQuotedUrlParams {
@@ -133,6 +124,17 @@ const isAsset = (file: OutputFile): file is Rolldown.OutputAsset => file.type ==
 const getSource = (fileName: string) =>
   String(output.filter(isAsset).find(file => file.fileName === fileName)?.source ?? '');
 
+/**
+ * Parses the page of the build as a browser does, an empty document when the build has none. The
+ * parser reads the code of an inline script as text, so a tag written in a string of the code is
+ * no element of the page.
+ */
+const readPage = () =>
+  new DOMParser().parseFromString(getSource(STANDALONE_PAGE_FILE_NAME), 'text/html');
+
+/** Tells whether a script element holds code, rather than loading a file or nothing. */
+const hasCode = ({ textContent }: Element) => textContent.trim() !== '';
+
 describe('standalone build', () => {
   it('has a config that Node.js loads, as `pnpm build:standalone` does', () => {
     const importConfig = () =>
@@ -155,17 +157,17 @@ describe('standalone build', () => {
     expect(
       output.map(file => file.fileName).filter(fileName => /\.(js|css)$/.test(fileName)),
     ).toEqual([]);
-    expect(html).toMatch(/<script type="module"[^>]*>\S/);
+    expect([...readPage().querySelectorAll('script[type="module"]')].some(hasCode)).toBe(true);
     // A marker left by Vite would make each lazy page throw when it loads
     expect(html).not.toContain('__VITE_PRELOAD__');
-    expect(stripInlineScripts(html)).not.toMatch(EXTERNAL_SCRIPT_PATTERN);
+    expect(readPage().querySelector(EXTERNAL_SCRIPT_SELECTOR)).toBeNull();
   });
 
   it('fills the metadata of the home page', () => {
     const html = getSource(STANDALONE_PAGE_FILE_NAME);
 
     expect(html).not.toContain('%PAGE_');
-    expect(html).toMatch(/<title>[^<]+<\/title>/);
+    expect(readPage().querySelector('title')?.textContent).toMatch(/./);
   });
 
   it('keeps the structured data of the home page, apart from the script of the app', () => {
@@ -175,10 +177,12 @@ describe('standalone build', () => {
   });
 
   it('leaves the container of the app empty, for the app to render at the hash of the URL', () => {
-    const html = getSource(STANDALONE_PAGE_FILE_NAME);
+    const page = readPage();
 
-    expect(html).toContain(`<div id="${APP_CONTAINER_ID}"></div>`);
-    expect(html).not.toContain('<style data-styled');
+    expect(page.getElementById(APP_CONTAINER_ID)?.outerHTML).toBe(
+      `<div id="${APP_CONTAINER_ID}"></div>`,
+    );
+    expect(page.querySelector('style[data-styled]')).toBeNull();
   });
 
   it('routes the app on the hash of the URL', () => {
@@ -222,9 +226,7 @@ describe('standalone build', () => {
   });
 
   it('preloads no font, since the page holds them', () => {
-    expect(stripInlineScripts(getSource(STANDALONE_PAGE_FILE_NAME))).not.toMatch(
-      FONT_PRELOAD_PATTERN,
-    );
+    expect(readPage().querySelector(FONT_PRELOAD_SELECTOR)).toBeNull();
   });
 
   it(`copies no web font into ${ASSETS_DIR}/, unlike the production build, since the page holds them`, () => {
@@ -248,9 +250,7 @@ describe('standalone build', () => {
     expect(output.map(file => file.fileName).filter(name => name.endsWith('.webmanifest'))).toEqual(
       [],
     );
-    expect(stripInlineScripts(getSource(STANDALONE_PAGE_FILE_NAME))).not.toContain(
-      'rel="manifest"',
-    );
+    expect(readPage().querySelector('[rel="manifest"]')).toBeNull();
   });
 
   it(`leaves out the ${HEADERS_FILE_NAME} of Cloudflare Pages, which no server reads from the disk`, () => {

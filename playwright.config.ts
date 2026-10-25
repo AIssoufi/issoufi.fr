@@ -14,13 +14,6 @@ const PREVIEW_MODE = 'production';
  */
 const WEBKIT_TEST_TIMEOUT_MS = 60_000;
 
-/**
- * Times the CI runs a failed test of WebKit again: there, the `networkidle` wait of a page that had
- * loaded whole never ended, once in some 200 tests. A test that WebKit really fails fails both
- * runs, and the CI with it.
- */
-const WEBKIT_CI_RETRIES = 1;
-
 const isCI = Boolean(process.env.CI);
 const { preview: port } = getServerPorts(
   loadEnv(PREVIEW_MODE, process.cwd(), ALL_ENV_VARIABLES_PREFIX),
@@ -46,12 +39,14 @@ export const CHROMIUM_PROJECT = { name: 'chromium', use: { ...devices['Desktop C
 /**
  * Project of the phone tests in WebKit, the engine of Safari, on an iPhone: the specs that check
  * the layout, the menu and the touch targets of a phone, where Safari differs the most from
- * Chromium, and the redirects that it follows. Each spec still sets the size of its screens.
+ * Chromium, the redirects that it follows and the cache of its fonts. Each spec that depends on
+ * the size of the screen still sets it.
  */
 const WEBKIT_PROJECT = {
   name: 'webkit',
   testMatch: [
     '**/axe.e2e.ts',
+    '**/font-cache.e2e.ts',
     '**/horizontal-overflow.e2e.ts',
     '**/mobile-menu.e2e.ts',
     '**/no-script-navigation.e2e.ts',
@@ -59,7 +54,6 @@ const WEBKIT_PROJECT = {
     '**/touch-targets.e2e.ts',
   ],
   timeout: WEBKIT_TEST_TIMEOUT_MS,
-  retries: isCI ? WEBKIT_CI_RETRIES : 0,
   use: {
     ...devices['iPhone 13'],
     // The specs measure CSS pixels, and WebKit draws in software on the Linux of the CI, where the

@@ -8,7 +8,7 @@ import { LOGO_SIZE_PX } from './constants.ts';
 import JobSummary from './JobSummary.tsx';
 
 /** Any duration text, in French or in English. */
-const DURATION_TEXT = /\d+ (an|ans|mois|years?|months?)|< 1 (mois|month)/;
+const DURATION_TEXT = /\d+ (an|ans|mois|years?|months?)/;
 
 /** Texts that must never reach the screen. */
 const BROKEN_TEXT = /undefined|null|NaN|Invalid Date/;
@@ -92,7 +92,7 @@ describe('JobSummary', () => {
     expect(screen.getByRole('heading', { level: 3 })).toHaveTextContent('Full-Stack Engineer');
     expect(screen.getByText('Wibilong · CDI · Paris (75)')).toBeInTheDocument();
     expect(getReadText(getPeriod('sept. 2019'))).toBe('sept. 2019 à juin 2021');
-    expect(screen.getByText('1 an 9 mois')).toBeInTheDocument();
+    expect(screen.getByText('1 an 10 mois')).toBeInTheDocument();
     expect(document.querySelector('img')).toHaveAttribute('src', '/wibilong.webp');
   });
 
@@ -250,7 +250,7 @@ describe('JobSummary', () => {
       const timing = period.parentElement;
 
       expect(timing.children).toHaveLength(2);
-      expect(timing.lastElementChild).toHaveTextContent('1 an 9 mois');
+      expect(timing.lastElementChild).toHaveTextContent('1 an 10 mois');
       expect(timing).toHaveStyle({ display: 'flex', flexWrap: 'wrap' });
     });
 
@@ -294,11 +294,22 @@ describe('JobSummary', () => {
           endDate="juin 2021"
         />,
       );
-      expect(screen.getByText('1 an 9 mois')).toBeInTheDocument();
+      expect(screen.getByText('1 an 10 mois')).toBeInTheDocument();
 
       await act(() => i18n.changeLanguage('en'));
 
-      expect(screen.getByText('1 year 9 months')).toBeInTheDocument();
+      expect(screen.getByText('1 year 10 months')).toBeInTheDocument();
+    });
+
+    it('counts one month for a job that starts and ends in the same month', () => {
+      render(
+        <JobSummary
+          startDate="mai 2017"
+          endDate="mai 2017"
+        />,
+      );
+
+      expect(screen.getByText('1 mois')).toBeInTheDocument();
     });
 
     it.each([
