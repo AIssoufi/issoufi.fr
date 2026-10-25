@@ -1,5 +1,34 @@
 # Changelog
 
+## [1.6.3](https://github.com/AIssoufi/issoufi.fr/compare/v1.6.2...v1.6.3) (2026-10-24)
+
+
+### Bug Fixes
+
+* **experiences:** count the end month in job durations ([b7167e3](https://github.com/AIssoufi/issoufi.fr/commit/b7167e3e96ef5e2d4d5cfde916327d408c86bf66))
+
+
+### Code Refactoring
+
+* **experiences:** drop the less-than-a-month duration text ([1ae69d4](https://github.com/AIssoufi/issoufi.fr/commit/1ae69d48076545122b116cdde9be8c18863acac1))
+* **projects:** split the Project page helpers by topic ([e501c7b](https://github.com/AIssoufi/issoufi.fr/commit/e501c7b02ae1b2730c0b40437c819f10e6540ae3))
+* **vite:** move the cache headers middleware of the preview to its own module ([7d14430](https://github.com/AIssoufi/issoufi.fr/commit/7d144303eec37e22d2ef92db93923357c3b6ed77))
+* **vite:** move the Cloudflare routes middleware of the preview to its own module ([99dd8bd](https://github.com/AIssoufi/issoufi.fr/commit/99dd8bdf36cea03b50e5f0303ba97ea9b50a28f1))
+* **vite:** move the not found middleware of the preview to its own module ([6ebf7d3](https://github.com/AIssoufi/issoufi.fr/commit/6ebf7d373b76b801b10131d5ee6a17cde1426915))
+* **vite:** read the build root of the preview in one helper ([6022cf9](https://github.com/AIssoufi/issoufi.fr/commit/6022cf9faa7ce7693e1905ed5cafab3b535271a8))
+* **vite:** rename PAGE_REQUEST_METHODS to READ_REQUEST_METHODS ([fc07a8d](https://github.com/AIssoufi/issoufi.fr/commit/fc07a8df81001dc7fe109c50d01e6ba000431a04))
+* **vite:** split the preview helpers into one module per topic ([f5f1bc8](https://github.com/AIssoufi/issoufi.fr/commit/f5f1bc8c45b3b1804676f0c22ed73cfd3d4c9b35))
+* **vite:** write the not found response of the preview in one helper ([c01fa78](https://github.com/AIssoufi/issoufi.fr/commit/c01fa788a988c808a2ea4d16fb85869532f07f43))
+
+
+### Documentation
+
+* **ai-workflow:** describe the current slot handoff ([d855e9a](https://github.com/AIssoufi/issoufi.fr/commit/d855e9ac0097195c97fd976dde492f8b375579a0))
+* **decisions:** note in ADR 0023 the end of the CI retry of the WebKit tests ([b702265](https://github.com/AIssoufi/issoufi.fr/commit/b702265dcb4040de59500db4edb28d9e31396862))
+* describe the three WebKit shards of the CI ([b70e18f](https://github.com/AIssoufi/issoufi.fr/commit/b70e18f253e9088e4576c890b695f3a6566a156d))
+* **testing:** list every spec of the WebKit project ([e6c9a2b](https://github.com/AIssoufi/issoufi.fr/commit/e6c9a2bfe7c64f98b1b85cede79e90e3ffd03bea))
+* **testing:** point to the module of the not found middleware of the preview ([a0cf219](https://github.com/AIssoufi/issoufi.fr/commit/a0cf21933dec487f7165f48ed7cac129f6fba0c9))
+
 ## [1.6.2](https://github.com/AIssoufi/issoufi.fr/compare/v1.6.1...v1.6.2) (2026-10-24)
 
 
