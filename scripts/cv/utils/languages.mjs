@@ -17,8 +17,6 @@ import { buildCvContent } from './content.mjs';
  * @property {Record<string, any>} translations - Translations of each language, by its code.
  * @property {(params: { t: TFunction, key?: unknown }) => string} translateKey - `translateKey`
  * of `src/i18n/utils.ts`.
- * @property {(params: { projects?: any, t: TFunction }) => unknown} translateProjects -
- * `translateProjects` of `src/pages/Projects/utils.ts`.
  * @property {(params: { path: string, language: any }) => string} getPageUrl - `getPageUrl` of
  * `src/utils/pages.ts`.
  * @property {string} homePath - Path of the home page, whose URL in each language the CV links
@@ -27,9 +25,6 @@ import { buildCvContent } from './content.mjs';
  * @property {string} linkedInUrl - LinkedIn profile of the site owner, `LINKEDIN_PROFILE_URL`.
  * @property {any} cvData - Data of the CV, `scripts/cv/.data/cv.json`.
  * @property {any} experiences - Companies of `src/pages/Experiences/.data/experiences.json`.
- * @property {any} personalProjects - Projects of `src/pages/Projects/.data/personal-projects.json`.
- * @property {any} freelanceProjects - Projects of
- * `src/pages/Projects/.data/freelance-projects.json`.
  */
 
 /**
@@ -40,22 +35,19 @@ import { buildCvContent } from './content.mjs';
  * @returns {Promise<CvContent[]>} The content of each CV, in the order of `languages`.
  * @example
  * const [french, english] = await buildCvContents({ languages: LANGUAGES, … });
- * english.jobTitle; // 'Full-stack JavaScript Developer'
+ * english.jobTitle; // 'Senior Front-End Developer'
  */
 export const buildCvContents = ({
   languages,
   defaultLanguage,
   translations,
   translateKey,
-  translateProjects,
   getPageUrl,
   homePath,
   siteUrl,
   linkedInUrl,
   cvData,
   experiences,
-  personalProjects,
-  freelanceProjects,
 }) =>
   Promise.all(
     languages.map(async language => {
@@ -77,8 +69,6 @@ export const buildCvContents = ({
         homeTexts: getHomeTexts({ translations: translations[language], siteUrl }),
         cvData,
         experiences: experiences?.experiences,
-        personalProjects: translateProjects({ projects: personalProjects?.projects, t }),
-        freelanceProjects: translateProjects({ projects: freelanceProjects?.projects, t }),
         siteUrl: getPageUrl({ path: homePath, language }),
         linkedInUrl,
       });

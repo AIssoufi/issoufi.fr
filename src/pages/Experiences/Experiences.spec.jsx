@@ -31,6 +31,27 @@ const listTranslationKeys = value => {
   );
 };
 
+/** Names of the fields of the data that the CV reads instead of the page, e.g. `cvBulletKeys`. */
+const CV_FIELD_PATTERN = /^cv[A-Z]/;
+
+/** Keys of the texts that the CV writes and the page never shows, e.g. `exp.sewanCore.cvB1`. */
+const CV_ONLY_KEY_PATTERN = /\.cv[A-Z0-9][^.]*$/;
+
+/** Whether a field of the data is one the page reads, not one of the CV. */
+const isPageField = ([name]) => !CV_FIELD_PATTERN.test(name);
+
+/** Copies a value of the data without the fields that the CV reads instead of the page. */
+const omitCvFields = value => {
+  if (Array.isArray(value)) return value.map(omitCvFields);
+  if (typeof value !== 'object' || value === null) return value;
+
+  return Object.fromEntries(
+    Object.entries(value)
+      .filter(isPageField)
+      .map(([name, child]) => [name, omitCvFields(child)]),
+  );
+};
+
 /** Keys of the exp translations that the page reads itself rather than through its data. */
 const PAGE_TEXT_KEYS = ['exp.pageTitle', 'exp.periodTo'];
 
@@ -353,11 +374,17 @@ describe('Experiences', () => {
       });
     });
 
-    it('selects for the CV only bullet points that the page shows', () => {
-      const entries = [...ROLES, ...ROLES.flatMap(({ projects = [] }) => projects)];
-      entries.forEach(({ bulletKeys = [], cvBulletKeys = [] }) =>
-        cvBulletKeys.forEach(key => expect(bulletKeys, key).toContain(key)),
-      );
+    it('writes in the CV the texts of the page, or its own ones whose key starts with cv', () => {
+      const pageKeys = new Set(listTranslationKeys(omitCvFields(experiences)));
+      const cvKeys = translationKeys.filter(key => !pageKeys.has(key));
+
+      cvKeys.forEach(key => expect(key).toMatch(CV_ONLY_KEY_PATTERN));
+    });
+
+    it('shows on the page no text written for the CV only', () => {
+      const pageKeys = listTranslationKeys(omitCvFields(experiences));
+
+      pageKeys.forEach(key => expect(key).not.toMatch(CV_ONLY_KEY_PATTERN));
     });
 
     it('gives every company its own id', () => {

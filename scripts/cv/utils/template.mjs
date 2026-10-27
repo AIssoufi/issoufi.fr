@@ -8,8 +8,6 @@ import { DETAILS_SEPARATOR, PERIOD_SEPARATOR, SKILLS_SEPARATOR } from '../consta
 /** @typedef {import('./types.mjs').CvIconName} CvIconName */
 /** @typedef {import('./types.mjs').CvLink} CvLink */
 /** @typedef {import('./types.mjs').CvProject} CvProject */
-/** @typedef {import('./types.mjs').CvProjectGroup} CvProjectGroup */
-/** @typedef {import('./types.mjs').CvProjectItem} CvProjectItem */
 /** @typedef {import('./types.mjs').CvProfile} CvProfile */
 /** @typedef {import('./types.mjs').CvRole} CvRole */
 /** @typedef {import('./types.mjs').CvDegree} CvDegree */
@@ -227,27 +225,6 @@ const renderExperience = ({ company, details, roles }) => {
 };
 
 /**
- * Writes the name of a project of the Projects page, a link when it has a URL, in an entry that the
- * styles keep on one line.
- * @param {CvProjectItem} project - Project to write.
- * @returns {string} Its name.
- */
-const renderProjectName = ({ name, url }) => {
-  const text = url ? `<a href="${escapeHtml(url)}">${escapeHtml(name)}</a>` : escapeHtml(name);
-  return `<span class="entry">${text}</span>`;
-};
-
-/**
- * Writes a group of projects, their names on one line.
- * @param {CvProjectGroup} group - Group to write.
- * @returns {string} Its block.
- */
-const renderProjectGroup = ({ title, items }) => `<div class="group">
-      <h3 class="group-title">${escapeHtml(title)}</h3>
-      <p class="entries">${items.map(renderProjectName).join(escapeHtml(DETAILS_SEPARATOR))}</p>
-    </div>`;
-
-/**
  * Writes a degree of the education, with its years and its school.
  * @param {CvDegree} degree - Degree to write.
  * @returns {string} Its block.
@@ -273,10 +250,11 @@ const renderDegree = ({ degree, period, school }) => {
  */
 
 /**
- * Builds the HTML page that Chromium prints to make the CV: the name, the job title and the
- * contact details, then the profile, the skills and the experiences, which a reader looks for
- * first, then the projects next to the education, with the headings of a document, so that the
- * PDF, tagged, reads in that order. Every text is escaped.
+ * Builds the HTML page that Chromium prints to make the CV: the name, the job title followed by
+ * the line about design, on one line, and the contact details followed by the links to the site
+ * and the profiles, on one line too, then the profile, the skills and the experiences, which a
+ * reader looks for first, then the education, with the headings of a document, so that the PDF,
+ * tagged, reads in that order. Every text is escaped.
  * @param {RenderCvHtmlParams} params
  * @returns {string} A complete HTML document, in the language of the content.
  * @example
@@ -284,9 +262,16 @@ const renderDegree = ({ degree, period, school }) => {
  * await page.pdf({ preferCSSPageSize: true, tagged: true });
  */
 export const renderCvHtml = ({ content, styles, fontFaces, icons = {} }) => {
-  const { profile, skills, experiences, projects, education, labelSeparator } = content;
+  const { profile, skills, experiences, education, labelSeparator } = content;
   /** @param {CvLink} contact */
   const renderHeaderContact = contact => renderContact({ contact, icons });
+  // One line, which the profiles end, under the full width of the header
+  const headerLinks = [...content.contacts, ...content.profiles];
+  const tagline = renderElement({
+    tag: 'span',
+    className: 'tagline',
+    html: renderSegments(content.passion),
+  });
 
   return `<!doctype html>
 <html lang="${escapeHtml(content.language)}">
@@ -300,10 +285,8 @@ export const renderCvHtml = ({ content, styles, fontFaces, icons = {} }) => {
   <body>
     <header class="header">
       <h1 class="name">${escapeHtml(content.name)}</h1>
-      <p class="job-title">${escapeHtml(content.jobTitle)}</p>
-      ${renderElement({ tag: 'p', className: 'tagline', html: renderSegments(content.passion) })}
-      <ul class="contacts">${content.contacts.map(renderHeaderContact).join('')}</ul>
-      <ul class="contacts">${content.profiles.map(renderHeaderContact).join('')}</ul>
+      <p class="job-title">${[escapeHtml(content.jobTitle), tagline].filter(Boolean).join(' ')}</p>
+      <ul class="contacts">${headerLinks.map(renderHeaderContact).join('')}</ul>
     </header>
     <main>
       ${renderProfile({ profile, separator: labelSeparator })}
@@ -312,16 +295,10 @@ export const renderCvHtml = ({ content, styles, fontFaces, icons = {} }) => {
         <h2 class="section-title">${escapeHtml(experiences.title)}</h2>
         ${experiences.items.map(renderExperience).join('')}
       </section>
-      <div class="columns">
-        <section class="section">
-          <h2 class="section-title">${escapeHtml(projects.title)}</h2>
-          ${projects.items.map(renderProjectGroup).join('')}
-        </section>
-        <section class="section">
-          <h2 class="section-title">${escapeHtml(education.title)}</h2>
-          ${education.items.map(renderDegree).join('')}
-        </section>
-      </div>
+      <section class="section">
+        <h2 class="section-title">${escapeHtml(education.title)}</h2>
+        ${education.items.map(renderDegree).join('')}
+      </section>
     </main>
   </body>
 </html>

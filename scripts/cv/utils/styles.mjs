@@ -14,9 +14,9 @@ import { CV_LAYOUT, CV_PAPER_FORMAT } from '../constants.mjs';
 /**
  * Builds the style sheet of the CV from the design tokens of the site and the print sizes of
  * {@link CV_LAYOUT}: a sober A4 layout, dark text on white paper with the plum of the site for the
- * name, the section titles, the icons of the contact details and the links, in one column but for
- * the projects, next to the education. Ligatures are turned off, so a search for "fi" finds the
- * text in every PDF reader. A missing token shows as `undefined` in it.
+ * name, the section titles, the bands of the companies, the icons of the contact details and the
+ * links, in one column. Ligatures are turned off, so a search for "fi" finds the text in every PDF
+ * reader. A missing token shows as `undefined` in it.
  * @param {CvTheme} theme - Design tokens of the site.
  * @returns {string} The CSS of the page.
  * @example
@@ -78,9 +78,9 @@ export const renderCvStyles = theme => {
         color: ${ink};
         font-weight: ${fontWeights.bold};
       }
+      /* No line under the header: the title of the first section has its own. */
       .header {
         padding-bottom: ${CV_LAYOUT.headerMarginBottom};
-        border-bottom: ${CV_LAYOUT.ruleWidth} solid ${colors['accent-soft']};
       }
       .name {
         color: ${colors.accent};
@@ -94,20 +94,16 @@ export const renderCvStyles = theme => {
         font-size: ${CV_LAYOUT.jobTitleFontSize};
         font-weight: ${fontWeights.medium};
       }
-      .tagline {
-        font-size: ${CV_LAYOUT.taglineFontSize};
-      }
+      /* The contact details spread over the full width of the header, on one line. */
       .contacts {
         display: flex;
         flex-wrap: wrap;
+        justify-content: space-between;
         column-gap: ${CV_LAYOUT.contactGap};
         margin-top: ${CV_LAYOUT.itemGap};
         list-style: none;
         font-size: ${CV_LAYOUT.contactFontSize};
         font-weight: ${fontWeights.medium};
-      }
-      .contacts + .contacts {
-        margin-top: 0;
       }
       .contacts li {
         display: flex;
@@ -138,13 +134,18 @@ export const renderCvStyles = theme => {
       }
       .company-name,
       .role-title,
-      .group-title,
       .degree {
         color: ${ink};
         font-size: ${CV_LAYOUT.roleFontSize};
         font-weight: ${fontWeights.bold};
       }
+      /* A tinted band opens each company, so that the eye sees where the next one starts, even at
+         the top of a page, where a rule between two companies would hang alone. */
       .company-name {
+        padding: ${CV_LAYOUT.companyBandPadding};
+        border-left: ${CV_LAYOUT.companyBandRuleWidth} solid ${colors.accent};
+        background-color: ${colors['accent-a10']};
+        color: ${colors.accent};
         font-size: ${CV_LAYOUT.companyFontSize};
       }
       .details,
@@ -155,10 +156,40 @@ export const renderCvStyles = theme => {
         font-weight: ${fontWeights.medium};
       }
       /* A role that fits on a page stays on one, so that a parser that reads page by page never
-         parts its bullet points from its title. */
+         parts its bullet points from its title. Its line sits half a dot inside the page, whose
+         margin Chromium does not print. */
       .role {
         margin-top: ${CV_LAYOUT.itemGap};
+        margin-left: calc(${CV_LAYOUT.roleDotSize} / 2 - ${CV_LAYOUT.roleLineWidth} / 2);
+        padding-left: ${CV_LAYOUT.roleIndent};
+        border-left: ${CV_LAYOUT.roleLineWidth} solid ${colors['accent-a30']};
         break-inside: avoid;
+      }
+      /* The roles of a company are the steps of a timeline, as on the Experiences page: the space
+         between two of them is padding, so that the line runs on from one dot to the next. */
+      .role + .role {
+        margin-top: 0;
+        padding-top: ${CV_LAYOUT.roleGap};
+      }
+      /* The dot of a role, centered on the line, before its title. Its margins add up to no width,
+         so the title starts where its text would: its size holds its ring, since the reset of the
+         box sizing above does not reach pseudo-elements. */
+      .role-title::before {
+        content: '';
+        display: inline-block;
+        box-sizing: border-box;
+        width: ${CV_LAYOUT.roleDotSize};
+        height: ${CV_LAYOUT.roleDotSize};
+        margin-left: calc(
+          -${CV_LAYOUT.roleIndent} - ${CV_LAYOUT.roleLineWidth} / 2 - ${CV_LAYOUT.roleDotSize} / 2
+        );
+        margin-right: calc(
+          ${CV_LAYOUT.roleIndent} + ${CV_LAYOUT.roleLineWidth} / 2 - ${CV_LAYOUT.roleDotSize} / 2
+        );
+        border: ${CV_LAYOUT.roleDotRingWidth} solid ${paper};
+        border-radius: 50%;
+        background-color: ${colors.accent};
+        vertical-align: middle;
       }
       .role-header {
         display: flex;
@@ -178,9 +209,11 @@ export const renderCvStyles = theme => {
       .bullets {
         list-style: none;
       }
+      /* The long lines of the profile and the skills are justified. The shorter ones of the
+         experiences stay aligned on the left, since justifying them would stretch their spaces,
+         and a hyphenated word would reach the text of the PDF cut in two. */
       .summary,
-      .text,
-      .bullets li,
+      .summary + .text,
       .skills li {
         text-align: justify;
       }
@@ -233,24 +266,8 @@ export const renderCvStyles = theme => {
         column-gap: ${CV_LAYOUT.contactGap};
         margin-top: ${CV_LAYOUT.blockGap};
       }
-      .group + .group {
-        margin-top: ${CV_LAYOUT.itemGap};
-      }
-      .columns {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        column-gap: ${CV_LAYOUT.columnGap};
-        break-inside: avoid;
-      }
       .degree-entry + .degree-entry {
         margin-top: ${CV_LAYOUT.itemGap};
-      }
-      .entries {
-        margin-top: ${CV_LAYOUT.blockGap};
-      }
-      /* A line of projects breaks between two names, never inside one. */
-      .entry {
-        white-space: nowrap;
       }
       .degree-entry {
         break-inside: avoid;

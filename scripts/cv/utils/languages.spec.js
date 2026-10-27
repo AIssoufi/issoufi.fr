@@ -11,18 +11,11 @@ describe('buildCvContents', () => {
   it('writes each CV with the texts of its language', async () => {
     const [french, english] = await buildCvContents(CV_SOURCES);
 
-    expect(french.jobTitle).toBe('Développeur full-stack JavaScript');
-    expect(english.jobTitle).toBe('Full-stack JavaScript Developer');
+    expect(french.jobTitle).toBe('Développeur Front-End Senior');
+    expect(english.jobTitle).toBe('Senior Front-End Developer');
     expect(french.experiences.title).toBe('Expériences');
     expect(english.experiences.title).toBe('Experience');
     expect(english.experiences.items[0].details).toBe('Permanent\u00a0· Paris\u00a0(75)');
-  });
-
-  it('translates the projects of the Projects page in each language', async () => {
-    const [french, english] = await buildCvContents(CV_SOURCES);
-
-    expect(french.projects.items[1].items[0].name).toBe('Jeu d’échecs');
-    expect(english.projects.items[1].items[0].name).toBe('Chess game');
   });
 
   it('links each CV to the home page of its language', async () => {
@@ -61,14 +54,4 @@ describe('buildCvContents', () => {
       expect(french.experiences.items).toEqual([]);
     },
   );
-
-  it.each([undefined, null, {}])('lists no project for the data %j', async projectData => {
-    const [french] = await buildCvContents({
-      ...CV_SOURCES,
-      personalProjects: projectData,
-      freelanceProjects: projectData,
-    });
-
-    expect(french.projects.items).toEqual([]);
-  });
 });
