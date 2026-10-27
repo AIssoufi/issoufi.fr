@@ -2,6 +2,7 @@ import type { Point } from '../types.ts';
 import {
   FRICTION,
   INITIAL_SPEED_RANGE_PX,
+  MAX_PIXEL_RATIO,
   MIN_PARTICLE_RADIUS_PX,
   PARTICLE_AREA_PX2,
   PARTICLE_RADIUS_RANGE_PX,
@@ -10,11 +11,57 @@ import {
 } from './constants.ts';
 import type { Particle } from './types.ts';
 
+/** Size of the drawing buffer of a canvas, and the scale from CSS pixels to its pixels. */
+interface CanvasSize {
+  /** Width of the buffer, in whole canvas pixels. */
+  width: number;
+  /** Height of the buffer, in whole canvas pixels. */
+  height: number;
+  /** Canvas pixels per CSS pixel, on each axis, to pass to `setTransform`. */
+  scale: number;
+}
+
+/** Parameters of {@link getCanvasSize}. */
+interface GetCanvasSizeParams {
+  /** Width of the canvas on the screen, in CSS pixels. */
+  cssWidth: number;
+  /** Height of the canvas on the screen, in CSS pixels. */
+  cssHeight: number;
+  /** Device pixels per CSS pixel, as `window.devicePixelRatio` gives it. @default 1 */
+  pixelRatio?: number;
+}
+
+/**
+ * Sizes the drawing buffer of a canvas for the screen: its CSS size times the device pixel ratio,
+ * capped at {@link MAX_PIXEL_RATIO}, so that the screen does not stretch it. A ratio that is not a
+ * positive finite number counts as 1, and a CSS length that is not one gives an empty canvas.
+ *
+ * @returns The size of the buffer, in whole canvas pixels, and the scale from CSS pixels to them.
+ *
+ * @example
+ * getCanvasSize({ cssWidth: 390, cssHeight: 664, pixelRatio: 3 });
+ * // { width: 780, height: 1328, scale: 2 }
+ */
+export function getCanvasSize({
+  cssWidth,
+  cssHeight,
+  pixelRatio = 1,
+}: GetCanvasSizeParams): CanvasSize {
+  const isValidRatio = Number.isFinite(pixelRatio) && pixelRatio > 0;
+  const scale = isValidRatio ? Math.min(pixelRatio, MAX_PIXEL_RATIO) : 1;
+  const toCanvasPixels = (cssLength: number) => {
+    const isValidLength = Number.isFinite(cssLength) && cssLength > 0;
+    return isValidLength ? Math.round(cssLength * scale) : 0;
+  };
+
+  return { width: toCanvasPixels(cssWidth), height: toCanvasPixels(cssHeight), scale };
+}
+
 /** Parameters of {@link createParticles}. */
 interface CreateParticlesParams {
-  /** Canvas width, in pixels. */
+  /** Width of the canvas on the screen, in CSS pixels. */
   width: number;
-  /** Canvas height, in pixels. */
+  /** Height of the canvas on the screen, in CSS pixels. */
   height: number;
   /** Random number generator between 0 and 1, injectable for tests. @default Math.random */
   random?: () => number;
@@ -60,9 +107,9 @@ interface StepParticleParams {
   particle: Particle;
   /** Mouse position, or far offscreen when the mouse is outside the window. */
   pointer: Point;
-  /** Canvas width, in pixels. */
+  /** Width of the canvas on the screen, in CSS pixels. */
   width: number;
-  /** Canvas height, in pixels. */
+  /** Height of the canvas on the screen, in CSS pixels. */
   height: number;
 }
 
