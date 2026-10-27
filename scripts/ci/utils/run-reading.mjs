@@ -90,12 +90,12 @@ export const isFinishedRun = run => run?.status === RUN_COMPLETED_STATUS && !isH
 /**
  * Tells whether a run is still going: queued, waiting or in progress. A run held for approval
  * reads as completed, so it is not: nothing happens until someone approves it.
- * @param {WorkflowRun} run - The run, from {@link readRun}.
- * @returns {boolean} False once the run is completed, whatever its conclusion.
+ * @param {WorkflowRun | undefined} run - The run, from {@link readRun}.
+ * @returns {boolean} False once the run is completed, whatever its conclusion, and without a run.
  * @example
  * isRunningRun({ ...run, status: 'in_progress', conclusion: null }); // true
  */
-export const isRunningRun = run => run.status !== RUN_COMPLETED_STATUS;
+export const isRunningRun = run => run !== undefined && run.status !== RUN_COMPLETED_STATUS;
 
 /**
  * Reads the latest run from the answer of the endpoint that lists the runs of a workflow, newest

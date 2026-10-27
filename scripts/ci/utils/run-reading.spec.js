@@ -126,6 +126,10 @@ describe('isRunningRun', () => {
       expect(isRunningRun(run({ conclusion }))).toBe(false);
     },
   );
+
+  it('returns false without a run', () => {
+    expect(isRunningRun(undefined)).toBe(false);
+  });
 });
 
 describe('readLatestRun', () => {
