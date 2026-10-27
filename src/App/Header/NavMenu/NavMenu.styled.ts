@@ -124,6 +124,13 @@ export const NavItem = styled.li`
     ${fingerTarget}
   }
 
+  /* The link of the current page, in the mobile menu as in the bar. Its weight still marks it in
+     forced colors mode, which draws every link in the same color */
+  > a.active {
+    color: ${th.color('accent-foreground')};
+    font-weight: ${th.fontWeight('semibold')};
+  }
+
   /* As high as a finger target, its link in the middle, so that the targets of two links never
      overlap */
   @media (max-height: ${th('screenHeights.short')}) {
@@ -168,11 +175,6 @@ export const NavItem = styled.li`
 
     > a.active::before {
       display: block;
-    }
-
-    > a.active {
-      color: ${th.color('accent-foreground')};
-      font-weight: ${th.fontWeight('semibold')};
     }
   }
 
