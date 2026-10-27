@@ -16,6 +16,7 @@ import {
   MAIN_CI_RUN_LOOKUP_DELAY_MS,
 } from './constants.mjs';
 import { writeAnnotation } from './utils/annotations.mjs';
+import { isCommitSha } from './utils/commit-sha.mjs';
 import {
   getMainCiRunsUrl,
   getRepositoryUrl,
@@ -24,7 +25,7 @@ import {
 } from './utils/deploy-report.mjs';
 import { getErrorMessage } from './utils/errors.mjs';
 import { appendJobSummary } from './utils/job-summary.mjs';
-import { fetchLatestRun, isCommitSha } from './utils/workflow-runs.mjs';
+import { fetchLatestRun } from './utils/run-requests.mjs';
 
 const { MAIN_SHA: mainSha, DEPLOY_SHA: deploySha, MERGE_SHA: mergeSha } = process.env;
 const isDryRun = process.env.DRY_RUN === 'true';

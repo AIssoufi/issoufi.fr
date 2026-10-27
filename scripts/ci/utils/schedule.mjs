@@ -14,9 +14,9 @@ import {
   SCHEDULED_RUN_TITLE,
   UTC_OFFSET_NAME_PATTERN,
 } from '../constants.mjs';
-import { fetchWorkflowRuns } from './workflow-runs.mjs';
+import { fetchWorkflowRuns } from './run-requests.mjs';
 
-/** @typedef {import('./workflow-runs.mjs').WorkflowRun} WorkflowRun */
+/** @typedef {import('./run-reading.mjs').WorkflowRun} WorkflowRun */
 
 /**
  * Parameters of {@link getUtcOffsetMinutes}.
@@ -141,7 +141,7 @@ export const mergeScheduledRuns = ({ cronRuns = [], manualRuns = [] } = {}) =>
  * Parameters of {@link fetchScheduledRuns}: the number of runs to read for each event, and the
  * API and token, which {@link fetchWorkflowRuns} reads from the variables of GitHub Actions by
  * default.
- * @typedef {Omit<import('./workflow-runs.mjs').FetchWorkflowRunsParams, 'workflow' | 'event'>}
+ * @typedef {Omit<import('./run-requests.mjs').FetchWorkflowRunsParams, 'workflow' | 'event'>}
  *   FetchScheduledRunsParams
  */
 

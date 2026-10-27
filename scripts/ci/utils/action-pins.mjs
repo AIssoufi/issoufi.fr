@@ -7,7 +7,7 @@ import {
   LOCAL_ACTION_PREFIX,
   USES_KEY,
 } from '../constants.mjs';
-import { isCommitSha } from './workflow-runs.mjs';
+import { isCommitSha } from './commit-sha.mjs';
 import { findKeyLines } from './yaml.mjs';
 
 /**

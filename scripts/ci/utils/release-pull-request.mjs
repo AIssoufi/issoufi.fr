@@ -6,9 +6,9 @@ import {
   RELEASE_MERGE_METHOD,
   RELEASE_PENDING_LABEL,
 } from '../constants.mjs';
+import { isCommitSha } from './commit-sha.mjs';
 import { requestRepositoryApi } from './github-api.mjs';
 import { isPositiveInteger } from './numbers.mjs';
-import { isCommitSha } from './workflow-runs.mjs';
 
 /**
  * The release pull request that release-please keeps open, as {@link findReleasePullRequest}
