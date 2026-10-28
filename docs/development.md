@@ -35,7 +35,7 @@ pnpm dev        # http://localhost:3000
 | `pnpm knip`                   | Unused files, exports and dependencies                  |
 | `pnpm format`, `format:check` | Prettier                                                |
 | `pnpm size`                   | Check the size of the scripts, after a build            |
-| `pnpm smoke-test [url]`       | Check that a deployed site serves the files of `dist/`  |
+| `pnpm smoke-test [url]`       | Check the files and redirects of `dist/` once deployed  |
 | `pnpm build:standalone`       | Build the site that opens from the disk                 |
 | `pnpm og-image`, `pnpm icons` | Regenerate the link previews, the icons and the logo    |
 | `pnpm cv`, `pnpm cv:check`    | Regenerate the CVs, or only check that they still match |

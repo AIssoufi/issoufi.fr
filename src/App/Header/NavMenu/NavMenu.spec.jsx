@@ -2,7 +2,14 @@ import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router';
 
-import { declaredStyle, mediaDeclaringStyle, serializeCssValue } from '../../../styleTestUtils.js';
+import {
+  blendColors,
+  declaredStyle,
+  getContrastRatio,
+  MIN_TEXT_CONTRAST_RATIO,
+  mediaDeclaringStyle,
+  serializeCssValue,
+} from '../../../styleTestUtils.js';
 import { theme } from '../../../theme/index.ts';
 import {
   CONTROL_HOVER_SCALE,
@@ -419,6 +426,54 @@ describe('NavMenu', () => {
 
     expect(screen.getByText('Projets').closest('a')).toHaveClass('active');
     expect(screen.getByText('Accueil').closest('a')).not.toHaveClass('active');
+  });
+
+  describe('link of the current page', () => {
+    /** Value that the navigation declares for a property of the link of the current page. */
+    const currentLinkStyle = ({ property }) => {
+      const [firstItem] = screen.getAllByRole('listitem', { hidden: true });
+      return declaredStyle({ element: firstItem, property, pseudo: ' > a.active' });
+    };
+
+    it('stands out in the accent of the texts and semibold in the open mobile menu, as in the bar', () => {
+      renderNavMenu({ path: '/projects', items, mobileMenuIsOpen: true });
+      const [firstItem] = screen.getAllByRole('listitem', { hidden: true });
+
+      expect(currentLinkStyle({ property: 'color' })).toBe(
+        serializeCssValue({ property: 'color', value: theme.colors['accent-foreground'] }),
+      );
+      expect(currentLinkStyle({ property: 'font-weight' })).toBe(
+        String(theme.fontWeights.semibold),
+      );
+      // The other links keep the light weight of their item
+      expect(declaredStyle({ element: firstItem, property: 'font-weight' })).toBe(
+        String(theme.fontWeights.light),
+      );
+      // The bar of the desktop reads the same values, which no media query changes
+      for (const property of ['color', 'font-weight']) {
+        expect(
+          mediaDeclaringStyle({ element: firstItem, property, pseudo: ' > a.active' }),
+        ).toEqual(['']);
+      }
+    });
+
+    it.each([
+      ['white', '#ffffff'],
+      ['black', '#000000'],
+    ])('keeps 4.5:1 on the open mobile menu over a %s page', (_page, pageColor) => {
+      renderNavMenu({ path: '/projects', items, mobileMenuIsOpen: true });
+      const menuColor = blendColors({
+        foreground: theme.colors['overlay-mobile-menu'],
+        background: pageColor,
+      });
+
+      expect(
+        getContrastRatio({
+          foreground: currentLinkStyle({ property: 'color' }),
+          background: menuColor,
+        }),
+      ).toBeGreaterThanOrEqual(MIN_TEXT_CONTRAST_RATIO);
+    });
   });
 
   it('lists the links with an explicit list role, which Safari drops from lists without bullets', () => {

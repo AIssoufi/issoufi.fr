@@ -2,7 +2,8 @@
 // Checks that a deployed site serves the pages of the local build: every page of dist/ and of its
 // language folders at its route with a 200, and the not found page of each folder with a 404, each
 // with the title and canonical URL of the build, then robots.txt and sitemap.xml unchanged at its
-// root, and the web app manifest of each language unchanged, as application/manifest+json.
+// root, the web app manifest of each language unchanged, as application/manifest+json, and each
+// redirect of the _redirects file of the build, such as the short links of the CVs, in one hop.
 // Retries for a while, since a new deployment can take a moment to spread. Without a site URL, it
 // checks the production site, SITE_URL of constants.mjs.
 // Usage: node scripts/ci/smoke-test.mjs [site URL]
@@ -10,7 +11,12 @@ import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { setTimeout as sleep } from 'node:timers/promises';
 
-import { DIST_DIR, SMOKE_TEST_ATTEMPTS, SMOKE_TEST_RETRY_DELAY_MS } from './constants.mjs';
+import {
+  DIST_DIR,
+  REDIRECTS_FILE,
+  SMOKE_TEST_ATTEMPTS,
+  SMOKE_TEST_RETRY_DELAY_MS,
+} from './constants.mjs';
 import { writeAnnotation } from './utils/annotations.mjs';
 import { appendJobSummary } from './utils/job-summary.mjs';
 import {
@@ -21,6 +27,7 @@ import {
   renderSmokeTestReport,
   resolveSiteUrl,
 } from './utils/pages.mjs';
+import { checkRedirect, getRedirectChecks, parseRedirectRules } from './utils/redirects.mjs';
 
 /** @typedef {import('./utils/pages.mjs').PageCheck} PageCheck */
 
@@ -44,6 +51,13 @@ const buildFileNames = readdirSync(DIST_DIR, { recursive: true }).map(String);
 // The pages of the other languages are in the folders of their prefix, such as en/
 const pages = getPageChecks(buildFileNames);
 const files = getFileChecks(buildFileNames);
+const redirectsFilePath = join(DIST_DIR, REDIRECTS_FILE);
+const redirects = existsSync(redirectsFilePath)
+  ? getRedirectChecks({
+      rules: parseRedirectRules(readFileSync(redirectsFilePath, 'utf8')),
+      siteUrl,
+    })
+  : [];
 
 // Without pages, the smoke test would pass after checking nothing
 const hasPages = pages.length > 0;
@@ -86,7 +100,10 @@ const checkRoute = async ({ check, compare }) => {
   }
 };
 
-/** @returns {Promise<string[]>} The problems found on every page and file, empty when all pass. */
+/**
+ * @returns {Promise<string[]>} The problems found on every page, file and redirect, empty when all
+ * pass.
+ */
 const checkSite = async () => {
   const results = await Promise.all([
     ...pages.map(page =>
@@ -103,6 +120,7 @@ const checkSite = async () => {
           compareFile({ check, status, servedText: served, builtText: built, contentType }),
       }),
     ),
+    ...redirects.map(checkRedirect),
   ]);
   return results.flat();
 };
@@ -120,7 +138,7 @@ for (let attempt = 1; attempt <= SMOKE_TEST_ATTEMPTS; attempt += 1) {
 
 if (problems.length === 0) {
   console.log(
-    `${siteUrl} serves the ${pages.length} pages and ${files.length} files of the build.`,
+    `${siteUrl} serves the ${pages.length} pages, ${files.length} files and ${redirects.length} redirects of the build.`,
   );
 } else {
   problems.forEach(problem => writeAnnotation({ level: 'error', message: problem }));

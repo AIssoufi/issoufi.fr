@@ -1,5 +1,29 @@
 # Changelog
 
+## [1.7.0](https://github.com/AIssoufi/issoufi.fr/compare/v1.6.3...v1.7.0) (2026-10-28)
+
+
+### Features
+
+* **cv:** align the experiences on the left and keep the profile and the skills justified ([d4b8ee3](https://github.com/AIssoufi/issoufi.fr/commit/d4b8ee35c6fba9955726ba9bac74d95e381bde5c))
+* **cv:** condense the CV texts so that page 2 holds only the early roles ([188fea1](https://github.com/AIssoufi/issoufi.fr/commit/188fea19f49e4e3313020a7c434bdb487c068232))
+* **cv:** give the CV its own job title, followed by the line about design on one line ([4095fb4](https://github.com/AIssoufi/issoufi.fr/commit/4095fb4c8acdd4bbaa6ffd78c5c08ed36c7c4f02))
+* **cv:** leave the projects of the Projects page out of the CV ([ca0fbdd](https://github.com/AIssoufi/issoufi.fr/commit/ca0fbddcbf91943e650794412f0901ff5fc57fdd))
+* **cv:** link the code and the method of the site through its short links ([06034e9](https://github.com/AIssoufi/issoufi.fr/commit/06034e99e87cddb49b89d20d893d10ba76c4c1e0))
+* **cv:** link the roles of each company on a timeline and drop the line under the header ([3946aa4](https://github.com/AIssoufi/issoufi.fr/commit/3946aa4f0687f2bede2f0c5eb216225548e7bffa))
+* **cv:** put the contact details on one line and open each company with a tinted band ([4f32c7c](https://github.com/AIssoufi/issoufi.fr/commit/4f32c7cfe60c878ef47af1d29209bc89c43bd5b5))
+* serve the short links /code and /method of the CVs ([83bba77](https://github.com/AIssoufi/issoufi.fr/commit/83bba77123476108f04b3937cae3f0d4440ffa7d))
+
+
+### Code Refactoring
+
+* **ci:** split the workflow runs helpers by topic ([a2e0288](https://github.com/AIssoufi/issoufi.fr/commit/a2e02887b667898f665e80102a9290c905dc0368))
+
+
+### Documentation
+
+* **testing:** explain the lost navigation of WebKit ([398d135](https://github.com/AIssoufi/issoufi.fr/commit/398d1358868a5414aac9a9b90e96f44079b83e59))
+
 ## [1.6.3](https://github.com/AIssoufi/issoufi.fr/compare/v1.6.2...v1.6.3) (2026-10-24)
 
 

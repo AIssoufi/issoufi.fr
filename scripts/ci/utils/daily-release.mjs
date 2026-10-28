@@ -1,9 +1,9 @@
 // @ts-check
 import { RELEASE_MERGE_ATTEMPTS } from '../constants.mjs';
+import { shortenSha } from './commit-sha.mjs';
 import { mergeReleasePullRequest } from './release-merge.mjs';
 import { publishRelease } from './release-publish.mjs';
 import { fetchReleasePullRequest } from './release-pull-request.mjs';
-import { shortenSha } from './workflow-runs.mjs';
 
 /**
  * What the daily release did, for the annotation that ends its log.
@@ -18,9 +18,9 @@ import { shortenSha } from './workflow-runs.mjs';
  * @typedef {object} ReleaseVersionOfTheDayParams
  * @property {boolean} [isDryRun] - Whether to stop before the merge, once the release pull request
  * passed its CI and can merge. Defaults to `false`.
- * @property {import('./workflow-runs.mjs').RunLookupOptions} [runLookup] - How long to look for
+ * @property {import('./run-waiting.mjs').RunLookupOptions} [runLookup] - How long to look for
  * the run of the CI of the release pull request. Defaults to the options of `waitForLatestRun`.
- * @property {import('./workflow-runs.mjs').RunWaitOptions} [runWait] - How long to wait for each
+ * @property {import('./run-waiting.mjs').RunWaitOptions} [runWait] - How long to wait for each
  * run of the CI. Defaults to the options of `waitForRun`.
  * @property {import('./mergeability.mjs').MergeableWaitOptions} [mergeableWait] - How long to
  * wait for GitHub to say that the release pull request can merge. Defaults to the options of

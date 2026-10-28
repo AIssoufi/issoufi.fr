@@ -8,8 +8,8 @@ import {
   REPOSITORY_PATTERN,
   TRAILING_SLASH_PATTERN,
 } from '../constants.mjs';
+import { isCommitSha, shortenSha } from './commit-sha.mjs';
 import { toList } from './lists.mjs';
-import { isCommitSha, shortenSha } from './workflow-runs.mjs';
 
 /**
  * A commit deployed to production, read from `git log` by {@link parseCommitLog}.

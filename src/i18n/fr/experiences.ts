@@ -24,6 +24,10 @@ export const frExperiences = {
     b1: 'Développement avec des agents IA (Claude Code, Codex, OpenCode), après GitHub Copilot puis Cursor\u00a0: serveurs MCP (Jira, Confluence, Chrome DevTools, Figma, GitLab), sous-agents spécialisés, skills et rules maison, trois ou quatre sujets en parallèle avec Git worktree',
     b2: 'Facturation électronique (France, Belgique, Espagne), catalogue et prix, stock et location, tableaux de bord, intégration du legacy PHP',
     b3: 'Filtres de l’UI Kit, l’un des composants les plus utilisés\u00a0: d’une architecture monolithique à 13 packages composables, puis migration de toutes les pages, une vingtaine d’incohérences corrigées',
+    cvIntro:
+      'L’un des trois développeurs front de l’équipe Core. Je reste responsable de l’UI Kit.',
+    cvB1: 'Développement avec des agents IA (Claude Code, Codex, OpenCode), après GitHub Copilot puis Cursor\u00a0: serveurs MCP, sous-agents spécialisés, skills et rules maison, trois ou quatre sujets en parallèle avec Git worktree',
+    cvB2: 'Facturation électronique (France, Belgique, Espagne), catalogue et prix, tableaux de bord, intégration du legacy PHP',
   },
   sewanUiKit: {
     title: 'Développeur Front-End Senior · Responsable de l’UI Kit',
@@ -48,6 +52,11 @@ export const frExperiences = {
       'Temps médian du pipeline de merge request ramené de 17\u00a0min 24\u00a0s à 9\u00a0min (48\u202f% de moins, sur 2\u202f600 jobs)',
     proj1B5:
       '661 tests sur 142 fichiers, 93 des 118 packages avec au moins un test, 33\u00a0secondes d’exécution',
+    cvIntro1: 'Responsable de l’UI Kit interne\u00a0: ',
+    cvB1: 'Architecture composable\u00a0: monopackage historique éclaté en packages versionnés séparément (Changesets), Table v2 conçue en 11 packages et 15 fonctionnalités, dont la virtualisation',
+    cvB2: 'Thème personnalisable de l’offre en marque blanche\u202f; design tokens des designers (Figma) portés dans le thème (xstyled)',
+    cvB3: 'Refonte de l’outillage sans rupture pour les équipes consommatrices\u00a0: migration TypeScript intégrale (771 fichiers), npm vers pnpm, Node 16 vers 22, Jest vers Vitest, Webpack vers tsup et Vite',
+    cvB4: 'Temps médian du pipeline de merge request ramené de 17\u00a0min 24\u00a0s à 9\u00a0min (48\u202f% de moins, sur 2\u202f600 jobs)\u202f; 661 tests, 93 des 118 packages avec au moins un test',
   },
   sewanFoundation: {
     title: 'Développeur Front-End · Socle applicatif Sophia GO',
@@ -60,6 +69,9 @@ export const frExperiences = {
     b1: 'Châssis applicatif des 49 applications du monorepo\u00a0: layout responsive, sidebar contextuelle, topbar, navigation sur trois niveaux (organisations, sites, comptes)',
     b2: 'Permissions front et feature flagging (Optimizely), toujours utilisés par toutes les équipes pour livrer en continu',
     b3: 'Trois applications créées de zéro, passerelles avec la plateforme historique, internationalisation (i18next, Lokalise), premiers resolvers GraphQL',
+    cvIntro2:
+      ', la nouvelle plateforme de Sewan, dès son démarrage\u00a0: 611 commits, 245 tickets livrés et trois applications créées de zéro.',
+    cvB1: 'Châssis applicatif des 49 applications du monorepo\u00a0: layout responsive, navigation sur trois niveaux (organisations, sites, comptes)',
   },
   wibilong: {
     title: 'Full-stack JavaScript Engineer (React.js, Redux.js, Node.js and AWS)',
@@ -73,6 +85,8 @@ export const frExperiences = {
     b1: 'Réalisation des écrans à partir des maquettes produit, puis des services nécessaires à leur fonctionnement (API Node.js et fonctions serverless AWS), documentés avec Swagger',
     b2: 'Maintien en condition opérationnelle et correction d’anomalies sur les trois produits',
     b3: 'Participation aux choix techniques de la V3 de WiService',
+    cvIntro:
+      'Fonctionnalités front et back de trois solutions SaaS, dans une équipe de deux développeurs\u00a0: écrans à partir des maquettes produit, API Node.js et fonctions serverless AWS.',
   },
   supralog: {
     name: 'Supralog',
@@ -89,6 +103,8 @@ export const frExperiences = {
       'Au sein d’une équipe de sept développeurs, participation à la refonte du front-end du SI CLARIS, conçu pour ',
     proj1Strong: 'Eurovent Certita Certification SAS',
     proj1Desc2: ', leader européen de la certification.',
+    cvIntro:
+      'Participation à la refonte du front-end d’un SI de certification en TypeScript, dans une équipe de sept développeurs.',
   },
   supralogFfbad: {
     title: 'Apprenti développeur full-stack JavaScript (React.js, Redux.js, Next.js, Docker, GCP)',
@@ -100,6 +116,8 @@ export const frExperiences = {
     proj1Strong: 'Fédération Française de Badminton',
     proj1Desc2:
       ' (190\u202f000 licenciés) à partir des maquettes et du cahier des charges, puis implémentation et déploiement de 3 microservices.',
+    cvIntro1: 'En binôme, espace licencié de la ',
+    cvIntro2: ' (190\u202f000 licenciés)\u00a0: pages front et 3 microservices déployés.',
   },
   beepeers: {
     title: 'Développeur React.js',
@@ -116,5 +134,7 @@ export const frExperiences = {
     proj1B2:
       'Réalisation en React, en partie à partir de composants existants\u202f; réservation de billet et d’hôtel (Fasticket) et paiement par carte bancaire (Weezevent)',
     proj1B3: 'Maintenance des sites existants en AngularJS',
+    cvIntro:
+      'Site du Dream Nation Festival 2017, avec réservation (billet et hôtel) et paiement en ligne.',
   },
 } as const;

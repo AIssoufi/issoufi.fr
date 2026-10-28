@@ -10,9 +10,11 @@
 //   node scripts/ci/check-develop-ci.mjs
 import { DEVELOP_BRANCH } from './constants.mjs';
 import { writeAnnotation } from './utils/annotations.mjs';
+import { isCommitSha } from './utils/commit-sha.mjs';
 import { getErrorMessage } from './utils/errors.mjs';
+import { getCiVerdict } from './utils/run-outcome.mjs';
+import { waitForLatestRunToFinish } from './utils/run-waiting.mjs';
 import { setStepOutput } from './utils/step-output.mjs';
-import { getCiVerdict, isCommitSha, waitForLatestRunToFinish } from './utils/workflow-runs.mjs';
 
 const sha = process.env.DEPLOY_SHA;
 

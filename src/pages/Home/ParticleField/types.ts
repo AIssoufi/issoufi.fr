@@ -1,13 +1,13 @@
 /** State of one dot of the particle field. */
 export interface Particle {
-  /** Horizontal position, in canvas pixels. */
+  /** Horizontal position, in CSS pixels. */
   x: number;
-  /** Vertical position, in canvas pixels. */
+  /** Vertical position, in CSS pixels. */
   y: number;
-  /** Horizontal velocity, in pixels per frame. */
+  /** Horizontal velocity, in CSS pixels per frame. */
   vx: number;
-  /** Vertical velocity, in pixels per frame. */
+  /** Vertical velocity, in CSS pixels per frame. */
   vy: number;
-  /** Radius of the dot, in pixels. */
+  /** Radius of the dot, in CSS pixels. */
   size: number;
 }

@@ -24,7 +24,7 @@ describe('renderCvHtml', () => {
     const document = renderDocument(ENGLISH_CV);
 
     expect(document.documentElement.lang).toBe('en');
-    expect(document.title).toBe('CV - ADAM Issoufi - Full-stack JavaScript Developer');
+    expect(document.title).toBe('CV - ADAM Issoufi - Senior Front-End Developer');
     expect(document.querySelector('meta[name="author"]').content).toBe('ADAM Issoufi');
   });
 
@@ -42,7 +42,6 @@ describe('renderCvHtml', () => {
       'Profil',
       'Compétences',
       'Expériences',
-      'Projets',
       'Formation',
     ]);
   });
@@ -112,28 +111,46 @@ describe('renderCvHtml', () => {
     );
   });
 
-  it('writes the design skills of the line under the job title in bold', () => {
+  it('writes the line about design after the job title, on its line, its skills in bold', () => {
     const document = renderDocument(FRENCH_CV);
 
+    expect(document.querySelector('.job-title').textContent).toBe(
+      'Développeur Front-End Senior passionné par l’UX et l’UI\u00a0Design',
+    );
     expect(document.querySelector('.tagline').textContent).toBe(
       'passionné par l’UX et l’UI\u00a0Design',
     );
     expect(getTexts({ document, selector: '.tagline strong' })).toEqual(['UX', 'UI']);
   });
 
-  it('links the contact details that have a URL, and only them, then the profiles on their line', () => {
+  it('writes the line about design alone when the job title is empty', () => {
+    const document = renderDocument({ ...FRENCH_CV, jobTitle: '' });
+
+    expect(document.querySelector('.job-title').textContent).toBe(
+      document.querySelector('.tagline').textContent,
+    );
+  });
+
+  it('links the contact details that have a URL, and only them, then the profiles on one line', () => {
     const document = renderDocument(FRENCH_CV);
-    const [contactList, profileList] = document.querySelectorAll('.contacts');
-    const readItems = list =>
-      [...list.querySelectorAll('li')].map(item => ({
-        text: item.textContent,
-        url: item.querySelector('a')?.getAttribute('href') ?? '',
-      }));
+    const lists = document.querySelectorAll('.contacts');
+    const items = [...lists[0].querySelectorAll('li')].map(item => ({
+      text: item.textContent,
+      url: item.querySelector('a')?.getAttribute('href') ?? '',
+    }));
 
     const toItem = ({ text, url }) => ({ text, url });
 
-    expect(readItems(contactList)).toEqual(FRENCH_CV.contacts.map(toItem));
-    expect(readItems(profileList)).toEqual(FRENCH_CV.profiles.map(toItem));
+    expect(lists).toHaveLength(1);
+    expect(items).toEqual([...FRENCH_CV.contacts, ...FRENCH_CV.profiles].map(toItem));
+  });
+
+  it('writes the profiles alone on the line of the contact details when there are none', () => {
+    const document = renderDocument({ ...FRENCH_CV, contacts: [] });
+
+    expect(getTexts({ document, selector: '.contacts li' })).toEqual(
+      FRENCH_CV.profiles.map(({ text }) => text),
+    );
   });
 
   it('writes the icon of each contact detail before its text, hidden from screen readers', () => {
@@ -147,6 +164,7 @@ describe('renderCvHtml', () => {
         { text: 'adam@example.com', url: 'mailto:adam@example.com', icon: 'email' },
         { text: 'Paris', url: '', icon: 'location' },
       ],
+      profiles: [],
     };
     const html = renderCvHtml({ content, styles, fontFaces: '', icons });
 
@@ -182,19 +200,34 @@ describe('renderCvHtml', () => {
   });
 
   it('writes the status of a project after its title, and its technologies under it', () => {
-    const document = renderDocument(FRENCH_CV);
-    const [project] = document.querySelectorAll('.project');
+    const [company] = FRENCH_CV.experiences.items;
+    const project = { description: [], bullets: [], technologies: [] };
+    const role = {
+      ...company.roles[0],
+      projects: [
+        { ...project, title: 'Outillage', state: '' },
+        {
+          ...project,
+          title: 'CLARIS',
+          state: '3 sprints livrés',
+          technologies: ['React.js', 'Redux.js'],
+        },
+      ],
+    };
+    const document = renderDocument({
+      ...FRENCH_CV,
+      experiences: { ...FRENCH_CV.experiences, items: [{ ...company, roles: [role] }] },
+    });
+    const [firstProject] = document.querySelectorAll('.project');
 
-    expect(project.querySelector('.project-title').textContent).toBe(
-      'Refonte de l’outillage, sans rupture pour les équipes consommatrices',
-    );
-    expect(project.querySelector('.technologies')).toBeNull();
+    expect(firstProject.querySelector('.project-title').textContent).toBe('Outillage');
+    expect(firstProject.querySelector('.technologies')).toBeNull();
     expect(getTexts({ document, selector: '.project-title' })).toContain(
-      'CLARIS\u00a0: refonte du SI de certification\u00a0· 3 sprints livrés',
+      'CLARIS\u00a0· 3 sprints livrés',
     );
-    expect(getTexts({ document, selector: '.project .technologies' })).toContain(
-      'React.js\u00a0· Redux.js\u00a0· TypeScript\u00a0· ChartJS',
-    );
+    expect(getTexts({ document, selector: '.project .technologies' })).toEqual([
+      'React.js\u00a0· Redux.js',
+    ]);
   });
 
   it.each([
@@ -216,26 +249,12 @@ describe('renderCvHtml', () => {
     },
   );
 
-  it('links each project of the Projects page that has a URL to its demo', () => {
-    const document = renderDocument(FRENCH_CV);
-    const links = [...document.querySelectorAll('.entries a')];
-
-    expect(links.map(link => [link.textContent, link.getAttribute('href')])).toEqual([
-      ['Kane Riviera Transfert', 'https://kane.issoufi.fr/'],
-      ['Jeu d’échecs', 'https://chess.issoufi.fr/'],
-      ['Magasin de plugins audio', 'https://pedalboards.issoufi.fr/'],
-      ['Puissance 4', 'https://connect-four.issoufi.fr/'],
-      ['Calculatrice', 'https://calculator.issoufi.fr/'],
-    ]);
-  });
-
   it('writes each degree with its years and its school', () => {
     const document = renderDocument(FRENCH_CV);
 
     expect(getTexts({ document, selector: '.degree' })).toEqual([
       'Master 2 MIAGE, spécialité MBDS',
       'DUT Informatique',
-      'Classe préparatoire',
     ]);
     expect(getTexts({ document, selector: '.degree-entry .details' })[0]).toBe(
       '2016 – 2019\u00a0· Université de Nice',
@@ -280,31 +299,9 @@ describe('renderCvHtml', () => {
     const document = renderDocument(content);
 
     expect(document.querySelector('.tagline')).toBeNull();
+    expect(document.querySelector('.job-title').textContent).toBe(FRENCH_CV.jobTitle);
     expect(document.querySelector('.company-name').textContent).toBe('Acme');
     expect(document.querySelector('.role-title').hasAttribute('lang')).toBe(false);
     expect(document.querySelector('.role').querySelectorAll('p, ul')).toHaveLength(0);
-  });
-
-  it('writes each project of a group in its entry, one without URL by its name alone', () => {
-    const content = {
-      ...FRENCH_CV,
-      projects: {
-        title: 'Projets',
-        items: [
-          {
-            title: 'Projets personnels',
-            items: [
-              { name: 'Calculatrice', url: '' },
-              { name: 'Jeu d’échecs', url: 'https://chess.issoufi.fr/' },
-            ],
-          },
-        ],
-      },
-    };
-    const document = renderDocument(content);
-
-    expect(document.querySelector('.entries').innerHTML).toBe(
-      '<span class="entry">Calculatrice</span>&nbsp;· <span class="entry"><a href="https://chess.issoufi.fr/">Jeu d’échecs</a></span>',
-    );
   });
 });

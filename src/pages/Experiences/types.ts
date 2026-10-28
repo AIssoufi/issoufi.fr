@@ -20,8 +20,9 @@ export interface ProjectData {
   /** Translation keys of the bullet points under the description, in order. */
   bulletKeys?: string[];
   /**
-   * Translation keys of the bullet points of `bulletKeys` that the CV writes, a selection that
-   * keeps it within its page budget. Missing when the CV writes them all.
+   * Translation keys of the bullet points that the CV writes instead of `bulletKeys`, in its
+   * order: some of them, or texts of the CV only, whose last part starts with `cv`
+   * (`exp.sewanUiKit.cvB1`). Missing when the CV writes `bulletKeys`, empty for none.
    */
   cvBulletKeys?: string[];
   /** Technologies of the project, proper names written the same in every language. */
@@ -48,17 +49,33 @@ export interface RoleData {
   endKey?: string;
   /** Introduction of the role, piece by piece. */
   intro?: TextSegmentData[];
+  /**
+   * Introduction that the CV writes instead of `intro`, shorter, with texts of the page or of
+   * the CV only. Missing when the CV writes `intro`, empty for none.
+   */
+  cvIntro?: TextSegmentData[];
   /** Translation keys of the bullet points under the introduction, in order. */
   bulletKeys?: string[];
   /**
-   * Translation keys of the bullet points of `bulletKeys` that the CV writes, a selection that
-   * keeps it within its page budget. Missing when the CV writes them all.
+   * Translation keys of the bullet points that the CV writes instead of `bulletKeys`, in its
+   * order: some of them, or texts of the CV only, whose last part starts with `cv`
+   * (`exp.sewanUiKit.cvB1`). Missing when the CV writes `bulletKeys`, empty for none.
    */
   cvBulletKeys?: string[];
   /** Projects of the role, in order. */
   projects?: ProjectData[];
+  /**
+   * Projects that the CV writes instead of `projects`. Missing when it writes them, empty for
+   * none.
+   */
+  cvProjects?: ProjectData[];
   /** Technologies of the role, proper names written the same in every language. */
   technologies?: string[];
+  /**
+   * Technologies that the CV writes instead of `technologies`. Missing when it writes them, empty
+   * for none.
+   */
+  cvTechnologies?: string[];
 }
 
 /**
