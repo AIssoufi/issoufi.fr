@@ -475,6 +475,36 @@ export const NARROW_GUTTER_TABLET_SCREENS = [
   { width: 834, height: 1194 },
 ] as const;
 
+/**
+ * Windows past the tablets held upright and below the `floating-language-toggle` breakpoint, where
+ * a floating toggle would cover the controls that reach the right edge of the page: a 4:3 tablet of
+ * 12.9 inches held sideways (1366 × 1024), a common monitor (1280 × 1024), small laptops
+ * (1280 × 720, 1366 × 768), a laptop (1440 × 900), tall windows, and the last width where the page
+ * reaches under the place of a floating toggle (1683 × 1200).
+ */
+export const WIDE_TOGGLE_SCREENS = [
+  { width: 1025, height: 1300 },
+  { width: 1280, height: 720 },
+  { width: 1280, height: 1024 },
+  { width: 1280, height: 1200 },
+  { width: 1366, height: 768 },
+  { width: 1366, height: 1024 },
+  { width: 1440, height: 900 },
+  { width: 1440, height: 1200 },
+  { width: 1600, height: 1200 },
+  { width: 1683, height: 1200 },
+] as const;
+
+/**
+ * Windows on each side of the `floating-language-toggle` breakpoint: the last one where the
+ * language toggle sits in the bar of the header, then the first one where it floats, which the page
+ * must leave room for.
+ */
+export const TOGGLE_SWITCH_SCREENS = [
+  { viewport: { width: 1719, height: 1200 }, isInHeaderBar: true },
+  { viewport: { width: 1720, height: 1200 }, isInHeaderBar: false },
+] as const;
+
 /** Controls of a page that a finger taps: the links and the buttons. */
 export const CONTROL_SELECTOR = 'a[href], button';
 
@@ -485,8 +515,8 @@ export const CONTROL_SELECTOR = 'a[href], button';
 export const SKIP_LINK_SELECTOR = `a[href="#${MAIN_CONTENT_ID}"]`;
 
 /**
- * Header of the site, right inside the app grid, which stays at the top of the screen, and past
- * the tablets holds the language toggle that floats on the right edge, over the page.
+ * Header of the site, right inside the app grid, which stays at the top of the screen, and on the
+ * widest screens holds the language toggle that floats on the right edge, beside the page.
  */
 export const SITE_HEADER_SELECTOR = '[data-testid="app"] > header';
 

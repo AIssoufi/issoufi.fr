@@ -248,7 +248,7 @@ export const theme = {
     raised: zIndices[1],
     raisedMore: zIndices[2],
     raisedMost: zIndices[3],
-    /** Full-screen mobile menu, and the language toggle floating on desktop. */
+    /** Full-screen mobile menu, and the language toggle floating on the widest screens. */
     overlay: zIndices[9],
     /** Header and burger icon, above the mobile menu. */
     header: zIndices[11],
@@ -274,18 +274,19 @@ export const theme = {
      */
     'three-project-columns': breakpoints['53.625'],
     /**
-     * From this width, 1025 px, past the 1024 px of the widest tablet held upright, the language
-     * toggle floats on the right edge of the screen. Below, it sits in the bar of the header, as
-     * it would cover the controls of the project cards that reach that edge, on a page that a
-     * tall tablet cannot scroll to move them.
-     */
-    'floating-language-toggle': breakpoints['64.0625'],
-    /**
      * From this width, 1600 px, the layout scales up one step, so that a large screen shows the
      * content in proportion instead of a narrow column in its middle: the app container widens to
      * `container-wide`, and the pages enlarge their texts and their cards with it.
      */
     wide: breakpoints[100],
+    /**
+     * From this width, 1720 px, the language toggle floats on the right edge of the screen, beside
+     * the content of the app container. It clears the content of `container-wide`, inside the page
+     * gutters, from 1684 px, and this leaves room for the 17 px of a classic scrollbar, which the
+     * width of a media query counts. Below, it sits in the bar of the header, as it would cover the
+     * controls that reach the right edge of the page.
+     */
+    'floating-language-toggle': breakpoints['107.5'],
   },
   /**
    * Screen heights where the layout changes, in `em` like `screens`, kept apart from them since
