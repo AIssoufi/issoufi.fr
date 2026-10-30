@@ -29,7 +29,7 @@ export const URL_QUERY_AND_FRAGMENT_PATTERN = /[?#].*$/s;
 
 /**
  * Methods of the requests that read a file, which the middlewares of the preview answer or give
- * headers; the others reach Vite as is.
+ * headers; the others reach Vite as is, unless a rule of `_redirects` answers them first.
  */
 export const READ_REQUEST_METHODS: ReadonlySet<string> = new Set(['GET', 'HEAD']);
 
@@ -71,8 +71,11 @@ export const CANONICAL_REDIRECT_STATUS = 308;
 /** Name of the HTTP header that gives the URL of a redirect. */
 export const LOCATION_HEADER = 'Location';
 
-/** Origin against which a request URL, a path, is parsed to read its query. */
+/** Origin against which a URL given as a path, as a request's is, is parsed to read its query. */
 export const REQUEST_URL_BASE = 'http://localhost';
+
+/** Place of a query in the target of a redirect: before its fragment, or at its end. */
+export const TARGET_QUERY_POSITION_PATTERN = /(?=#|$)/;
 
 /**
  * Files of the root of the build that Cloudflare Pages reads and does not serve, answering their

@@ -325,10 +325,11 @@ const TEST_TIMEOUT_MS = 10_000;
  * a chunk per lazy page and named chunks for the libraries and the shared modules (see
  * {@link CODE_SPLITTING_GROUPS}), the dev and preview servers on the port of the worktree (see
  * {@link getServerPorts}), which fail when it is taken, the preview server with the security
- * headers, the redirects to the canonical path of each page and the hidden configuration files
- * of Cloudflare Pages (see {@link cloudflareRoutes}), the not found pages of the site, with their
- * status 404, as Cloudflare Pages serves them (see {@link notFoundPages}), and the cache policy
- * of the `_headers` rules (see {@link cacheHeaders}), and the tests in jsdom with coverage.
+ * headers, the redirects of `_redirects` and to the canonical path of each page and the hidden
+ * configuration files of Cloudflare Pages (see {@link cloudflareRoutes}), the not found pages of
+ * the site, with their status 404, as Cloudflare Pages serves them (see {@link notFoundPages}),
+ * and the cache policy of the `_headers` rules (see {@link cacheHeaders}), and the tests in jsdom
+ * with coverage.
  * Node.js loads it as it is, its types stripped (`--configLoader native` in the scripts of
  * `package.json`): every relative import of the modules that it loads names its `.ts` file, and a
  * JSON import says `with { type: 'json' }`.

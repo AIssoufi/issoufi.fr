@@ -290,10 +290,29 @@ export const REDIRECTED_ROUTES: readonly { path: string; location: string }[] = 
 ];
 
 /**
- * Path of the headers file of Cloudflare Pages at the root of the build, which it reads and
- * answers with the not found page of the default language.
+ * Paths of the configuration files of Cloudflare Pages at the root of the build, which it reads
+ * and answers with the not found page of the default language.
  */
-export const HEADERS_FILE_ROUTE = '/_headers';
+export const CLOUDFLARE_CONFIG_FILE_ROUTES: readonly string[] = ['/_headers', '/_redirects'];
+
+/** Address of the short link `/code`, the repository of the site. */
+const CODE_SHORT_LINK_TARGET = 'https://github.com/AIssoufi/issoufi.fr';
+
+/** HTTP status of the short links, as `public/_redirects` gives it. */
+export const SHORT_LINK_STATUS = 302;
+
+/**
+ * Short links of `public/_redirects`, with the location that issoufi.fr and `pnpm preview` answer:
+ * the target of the link, with the query of the request.
+ */
+export const SHORT_LINK_ROUTES: readonly { path: string; location: string }[] = [
+  { path: '/code', location: CODE_SHORT_LINK_TARGET },
+  { path: '/method', location: `${CODE_SHORT_LINK_TARGET}/tree/develop/docs/ai-workflow` },
+  { path: '/code?a=1', location: `${CODE_SHORT_LINK_TARGET}?a=1` },
+];
+
+/** Paths close to a short link that issoufi.fr answers with a 404: a source matches as a whole. */
+export const NOT_SHORT_LINK_ROUTES: readonly string[] = ['/code/', '/Code', '/c%6Fde', '/en/code'];
 
 /**
  * Card of each project of the Projects page: an item of the list of cards of its section, which
