@@ -274,6 +274,13 @@ export const theme = {
      */
     'three-project-columns': breakpoints['53.625'],
     /**
+     * From this width, 1025 px, past the 1024 px of the widest tablet held upright, the language
+     * toggle floats on the right edge of the screen. Below, it sits in the bar of the header, as
+     * it would cover the controls of the project cards that reach that edge, on a page that a
+     * tall tablet cannot scroll to move them.
+     */
+    'floating-language-toggle': breakpoints['64.0625'],
+    /**
      * From this width, 1600 px, the layout scales up one step, so that a large screen shows the
      * content in proportion instead of a narrow column in its middle: the app container widens to
      * `container-wide`, and the pages enlarge their texts and their cards with it.

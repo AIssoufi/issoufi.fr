@@ -121,7 +121,7 @@ for (const language of LANGUAGES) {
             element: header.getByRole('link', { name, exact: true }),
           });
         }
-        // Then the language toggle, which floats under the bar on the right edge of the screen
+        // Then the language toggle, which follows the bar, or floats under it on the right edge
         for (const element of languageLinks) {
           await expectTabToFocus({ page, element });
         }
@@ -129,8 +129,10 @@ for (const language of LANGUAGES) {
           .getByRole('link', { name: translations.cvLink.text })
           .boundingBox();
         const toggleBox = await languageToggle.boundingBox();
-        expect(toggleBox?.y, 'top of the language toggle, under the CV link').toBeGreaterThan(
-          getBoxBottom(cvLinkBox),
+        const isUnderCvLink = (toggleBox?.y ?? 0) > getBoxBottom(cvLinkBox);
+        const isPastCvLink = (toggleBox?.x ?? 0) >= getBoxRight(cvLinkBox);
+        expect(isUnderCvLink || isPastCvLink, 'language toggle under or past the CV link').toBe(
+          true,
         );
         expect(
           getBoxRight(toggleBox),

@@ -445,6 +445,17 @@ export const DESKTOP_LAYOUT_TOUCH_SCREENS = [
   { width: 1180, height: 820 },
 ] as const;
 
+/**
+ * Tablets held upright on which the desktop layout leaves a gutter narrower than the language
+ * toggle: a common Android tablet (800 × 1280), an iPad Air (820 × 1180) and an iPad Pro 11
+ * (834 × 1194).
+ */
+export const NARROW_GUTTER_TABLET_SCREENS = [
+  { width: 800, height: 1280 },
+  { width: 820, height: 1180 },
+  { width: 834, height: 1194 },
+] as const;
+
 /** Controls of a page that a finger taps: the links and the buttons. */
 export const CONTROL_SELECTOR = 'a[href], button';
 
@@ -455,8 +466,8 @@ export const CONTROL_SELECTOR = 'a[href], button';
 export const SKIP_LINK_SELECTOR = `a[href="#${MAIN_CONTENT_ID}"]`;
 
 /**
- * Header of the site, right inside the app grid, which stays at the top of the screen, and from
- * tablet up holds the language toggle that floats on the right edge, over the page.
+ * Header of the site, right inside the app grid, which stays at the top of the screen, and past
+ * the tablets holds the language toggle that floats on the right edge, over the page.
  */
 export const SITE_HEADER_SELECTOR = '[data-testid="app"] > header';
 
