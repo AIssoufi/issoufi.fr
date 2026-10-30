@@ -14,6 +14,8 @@ flowchart LR
 
 A ticket starts from a request of the owner, a `FINDING:` of a worker or a finding of the auditor. The master looks for a duplicate, then writes the issue in English with its context, its evidence, a proposed solution and its acceptance criteria, and adds it to the GitHub project of the repository. The reference of a ticket, such as `ISF-35`, is the autolink of issue `#35`.
 
+`create-issue.mjs` (`github-issue-follow-ups` skill) files a ticket in one call. It creates the issue, adds it to the project, with its `Priority` when `--priority` gives one, and, under a master, writes the `issue.create` line of the [fleet journal](journal.md#the-fleet-journal). On request, it also queues the ticket in the ready list of the master's [state file](journal.md#the-fleet-journal) and answers the worker of a finding. Exit code 3 reports a partial success: the issue is there, one of the next steps failed and its warning says which, so the master completes that step by hand rather than running the script again, which would open a duplicate.
+
 The `Priority` field of the project orders the work:
 
 | Priority | For                                                                                     |
