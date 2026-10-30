@@ -1,7 +1,7 @@
 import type { TextSegmentData } from './CompanyEntry/RoleDescription/TextSegments/TextSegments.tsx';
 
 /** A project carried out within a role: a block with a title, a status badge and a description. */
-export interface ProjectData {
+export interface RoleProjectData {
   /** Translation key of the project name. */
   titleKey?: string;
   /** Translation key of its status badge, e.g. "Livré dans les délais". */
@@ -54,12 +54,12 @@ export interface RoleData {
    */
   cvBulletKeys?: string[];
   /** Projects of the role, in order. */
-  projects?: ProjectData[];
+  projects?: RoleProjectData[];
   /**
    * Projects that the CV writes instead of `projects`. Missing when it writes them, empty for
    * none.
    */
-  cvProjects?: ProjectData[];
+  cvProjects?: RoleProjectData[];
   /** Technologies of the role, proper names written the same in every language. */
   technologies?: string[];
   /**

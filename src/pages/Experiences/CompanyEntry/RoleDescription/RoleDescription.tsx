@@ -2,7 +2,7 @@ import { useTranslation } from 'react-i18next';
 
 import { translateKey } from '../../../../i18n/utils.ts';
 import Project from '../../Project/index.ts';
-import type { ProjectData, RoleData } from '../../types.ts';
+import type { RoleData, RoleProjectData } from '../../types.ts';
 import BulletPoints from './BulletPoints/index.ts';
 import TextSegments from './TextSegments/index.ts';
 
@@ -12,7 +12,7 @@ interface RoleDescriptionProps {
   role?: RoleData;
 }
 
-const NO_PROJECTS: ProjectData[] = [];
+const NO_PROJECTS: RoleProjectData[] = [];
 
 /**
  * Description of a role of the Experiences page, in the active language and without a wrapping
