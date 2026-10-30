@@ -6,31 +6,7 @@ import {
   fetchWorkflowRuns,
   getWorkflowRunsUrl,
 } from './run-requests.mjs';
-import { CREATED_AT, SHA, stubGitHub, stubGitHubEnv } from './testUtils.js';
-
-const RUN_URL = 'https://github.com/AIssoufi/issoufi.fr/actions/runs/123';
-
-/** A run of the REST API answer, as GitHub writes it. */
-const apiRun = (fields = {}) => ({
-  id: 123,
-  head_sha: SHA,
-  status: 'completed',
-  conclusion: 'success',
-  created_at: CREATED_AT,
-  html_url: RUN_URL,
-  ...fields,
-});
-
-/** A run as readLatestRun returns it. */
-const run = (fields = {}) => ({
-  id: 123,
-  sha: SHA,
-  status: 'completed',
-  conclusion: 'success',
-  createdAt: new Date(CREATED_AT),
-  url: RUN_URL,
-  ...fields,
-});
+import { SHA, apiRun, stubGitHub, stubGitHubEnv, workflowRun } from './testUtils.js';
 
 describe('getWorkflowRunsUrl', () => {
   it('filters the runs of the CI on a branch, a push and a commit', () => {
@@ -90,7 +66,7 @@ describe('getWorkflowRunsUrl', () => {
 });
 
 describe('assertRunId', () => {
-  it.each([1, 123])('accepts the run %i', runId => {
+  it.each([1, 501])('accepts the run %i', runId => {
     expect(() => assertRunId(runId)).not.toThrow();
   });
 
@@ -99,7 +75,7 @@ describe('assertRunId', () => {
     [-1, '"-1"'],
     [1.5, '"1.5"'],
     [Number.NaN, '"NaN"'],
-    ['123', '"123"'],
+    ['501', '"501"'],
     [undefined, '""'],
     [null, '""'],
   ])('throws for the run %o', (runId, shownId) => {
@@ -110,8 +86,8 @@ describe('assertRunId', () => {
 /** Route of the list of the runs of the CI. */
 const CI_RUNS_ROUTE = 'GET /actions/workflows/ci.yml/runs';
 
-/** Route of the run 123. */
-const RUN_ROUTE = 'GET /actions/runs/123';
+/** Route of the run 501. */
+const RUN_ROUTE = 'GET /actions/runs/501';
 
 describe('fetchLatestRun', () => {
   /** Answers the list of the runs of the CI with the given status and JSON body. */
@@ -129,7 +105,7 @@ describe('fetchLatestRun', () => {
 
   it('asks the API of GitHub Actions for the latest run, with the token', async () => {
     const requests = stubRuns();
-    await expect(fetchLatestRun({ branch: 'develop', sha: SHA })).resolves.toEqual(run());
+    await expect(fetchLatestRun({ branch: 'develop', sha: SHA })).resolves.toEqual(workflowRun());
     expect(requests).toEqual([
       {
         route: CI_RUNS_ROUTE,
@@ -203,7 +179,7 @@ describe('fetchLatestRun', () => {
 describe('the API calls on runs', () => {
   const RUNS_API_URL = 'https://api.github.com/repos/AIssoufi/issoufi.fr/actions';
 
-  /** Answers the reads of the run 123 with the given JSON bodies in turn, then the last again. */
+  /** Answers the reads of the run 501 with the given JSON bodies in turn, then the last again. */
   const stubRun = (...bodies) => stubGitHub({ [RUN_ROUTE]: bodies.map(body => ({ body })) });
 
   beforeEach(() => {
@@ -219,18 +195,18 @@ describe('the API calls on runs', () => {
   describe('fetchRun', () => {
     it('reads a run by its identifier', async () => {
       const requests = stubRun(apiRun({ status: 'in_progress', conclusion: null }));
-      await expect(fetchRun({ runId: 123 })).resolves.toEqual(
-        run({ status: 'in_progress', conclusion: null }),
+      await expect(fetchRun({ runId: 501 })).resolves.toEqual(
+        workflowRun({ status: 'in_progress', conclusion: null }),
       );
-      expect(requests[0].url).toBe(`${RUNS_API_URL}/runs/123`);
+      expect(requests[0].url).toBe(`${RUNS_API_URL}/runs/501`);
     });
 
     it('resolves to undefined for an answer that is not a run', async () => {
       stubRun({ message: 'odd' });
-      await expect(fetchRun({ runId: 123 })).resolves.toBeUndefined();
+      await expect(fetchRun({ runId: 501 })).resolves.toBeUndefined();
     });
 
-    it.each([undefined, 0, -1, 1.5, Number.NaN, '123'])(
+    it.each([undefined, 0, -1, 1.5, Number.NaN, '501'])(
       'throws without asking the API for the run %o',
       async runId => {
         const requests = stubRun(apiRun());
@@ -241,13 +217,13 @@ describe('the API calls on runs', () => {
   });
 
   describe('approveRun', () => {
-    const APPROVE_ROUTE = 'POST /actions/runs/123/approve';
+    const APPROVE_ROUTE = 'POST /actions/runs/501/approve';
 
     it('approves a held run', async () => {
       const requests = stubGitHub({ [APPROVE_ROUTE]: [{ status: 201 }] });
-      await expect(approveRun({ runId: 123 })).resolves.toBeUndefined();
+      await expect(approveRun({ runId: 501 })).resolves.toBeUndefined();
       const [{ route, url, headers }] = requests;
-      expect(url).toBe(`${RUNS_API_URL}/runs/123/approve`);
+      expect(url).toBe(`${RUNS_API_URL}/runs/501/approve`);
       expect(route).toBe(APPROVE_ROUTE);
       expect(headers.Authorization).toBe('Bearer token');
     });
@@ -258,12 +234,12 @@ describe('the API calls on runs', () => {
           { status: 403, body: { message: 'Resource not accessible by integration' } },
         ],
       });
-      await expect(approveRun({ runId: 123 })).rejects.toThrow(
-        `The GitHub API answered 403 to ${RUNS_API_URL}/runs/123/approve: Resource not accessible by integration`,
+      await expect(approveRun({ runId: 501 })).rejects.toThrow(
+        `The GitHub API answered 403 to ${RUNS_API_URL}/runs/501/approve: Resource not accessible by integration`,
       );
     });
 
-    it.each([undefined, 0, 1.5, '123'])(
+    it.each([undefined, 0, 1.5, '501'])(
       'throws without asking the API for the run %o',
       async runId => {
         const requests = stubGitHub({ [APPROVE_ROUTE]: [{ status: 201 }] });
@@ -282,7 +258,7 @@ describe('the API calls on runs', () => {
       });
       await expect(
         fetchWorkflowRuns({ workflow: 'deploy-production.yml', event: 'schedule', perPage: 20 }),
-      ).resolves.toEqual([run(), run({ id: 122 })]);
+      ).resolves.toEqual([workflowRun(), workflowRun({ id: 122 })]);
       expect(requests[0].url).toBe(
         `${RUNS_API_URL}/workflows/deploy-production.yml/runs?event=schedule&per_page=20`,
       );

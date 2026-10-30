@@ -4,10 +4,9 @@ import {
   parseCommitLog,
   renderDeployReport,
 } from './deploy-report.mjs';
-import { OTHER_SHA, SHA } from './testUtils.js';
+import { OTHER_SHA, RUNS_URL, SHA } from './testUtils.js';
 
 const REPOSITORY_URL = 'https://github.com/AIssoufi/issoufi.fr';
-const RUN_URL = `${REPOSITORY_URL}/actions/runs/123`;
 
 describe('parseCommitLog', () => {
   it('reads the SHA and the subject of each line', () => {
@@ -101,14 +100,14 @@ describe('renderDeployReport', () => {
       renderDeployReport({
         commits,
         deploySha: SHA,
-        ciRunUrl: RUN_URL,
+        ciRunUrl: `${RUNS_URL}/501`,
         repositoryUrl: REPOSITORY_URL,
       }),
     ).toBe(
       [
         '## Production deploy',
         '',
-        `Deployed develop to main, up to [\`58ff9ea\`](${REPOSITORY_URL}/commit/${SHA}): 2 commits. The [CI of main](${RUN_URL}) now tests, builds and deploys it to production.`,
+        `Deployed develop to main, up to [\`58ff9ea\`](${REPOSITORY_URL}/commit/${SHA}): 2 commits. The [CI of main](${RUNS_URL}/501) now tests, builds and deploys it to production.`,
         '',
         `- [\`58ff9ea\`](${REPOSITORY_URL}/commit/${SHA}) Merge pull request #140 from AIssoufi/ISF-134`,
         `- [\`9ff31f7\`](${REPOSITORY_URL}/commit/${OTHER_SHA}) Merge pull request #138 from AIssoufi/ISF-133`,
@@ -123,7 +122,7 @@ describe('renderDeployReport', () => {
         commits: commits.slice(0, 1),
         deploySha: SHA,
         isDryRun: true,
-        ciRunUrl: RUN_URL,
+        ciRunUrl: `${RUNS_URL}/501`,
         repositoryUrl: REPOSITORY_URL,
       }),
     ).toBe(

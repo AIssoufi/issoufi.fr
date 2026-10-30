@@ -19,7 +19,7 @@ import {
   getUtcOffsetMinutes,
   mergeScheduledRuns,
 } from './schedule.mjs';
-import { stubGitHub, stubGitHubEnv } from './testUtils.js';
+import { RUNS_URL, apiRun, stubGitHub, stubGitHubEnv, workflowRun } from './testUtils.js';
 
 describe('getUtcOffsetMinutes', () => {
   afterEach(() => {
@@ -128,24 +128,9 @@ describe('formatLocalTime', () => {
   );
 });
 
-const RUNS_URL = 'https://github.com/AIssoufi/issoufi.fr/actions/runs';
-
 /** A scheduled run of deploy-production.yml, as fetchWorkflowRuns returns it. */
-const scheduledRun = ({
-  id = 1,
-  createdAt,
-  status = 'completed',
-  conclusion = 'success',
-  title,
-}) => ({
-  id,
-  sha: '58ff9ea0c3f4e1b2a9d8c7b6a5f4e3d2c1b0a9f8',
-  status,
-  conclusion,
-  createdAt: new Date(createdAt),
-  url: `${RUNS_URL}/${id}`,
-  ...(title !== undefined && { title }),
-});
+const scheduledRun = ({ id = 1, createdAt, ...fields }) =>
+  workflowRun({ id, createdAt: new Date(createdAt), ...fields });
 
 /** A run that the Cloudflare trigger started, under the title of the scheduled runs. */
 const triggerRun = fields => scheduledRun({ title: SCHEDULED_RUN_TITLE, ...fields });
@@ -184,15 +169,8 @@ describe('fetchScheduledRuns', () => {
   const API_URL = 'https://api.github.com/repos/AIssoufi/issoufi.fr/actions/workflows';
 
   /** A run of the REST API answer, as GitHub writes it. */
-  const apiRun = ({ id, createdAt, title = 'Deploy to production' }) => ({
-    id,
-    head_sha: '58ff9ea0c3f4e1b2a9d8c7b6a5f4e3d2c1b0a9f8',
-    status: 'completed',
-    conclusion: 'success',
-    created_at: createdAt,
-    html_url: `${RUNS_URL}/${id}`,
-    display_title: title,
-  });
+  const scheduledApiRun = ({ id, createdAt, title = 'Deploy to production' }) =>
+    apiRun({ id, created_at: createdAt, display_title: title });
 
   /** Route of the runs of deploy-production.yml. */
   const RUNS_ROUTE = 'GET /actions/workflows/deploy-production.yml/runs';
@@ -209,14 +187,20 @@ describe('fetchScheduledRuns', () => {
   it('reads the runs of the crons and those of the trigger, newest first', async () => {
     const requests = stubGitHub({
       [`${RUNS_ROUTE}?event=schedule&per_page=20`]: [
-        { body: { workflow_runs: [apiRun({ id: 1, createdAt: '2026-10-20T04:07:00Z' })] } },
+        {
+          body: { workflow_runs: [scheduledApiRun({ id: 1, createdAt: '2026-10-20T04:07:00Z' })] },
+        },
       ],
       [`${RUNS_ROUTE}?event=workflow_dispatch&per_page=20`]: [
         {
           body: {
             workflow_runs: [
-              apiRun({ id: 3, createdAt: '2026-10-20T04:35:00Z', title: SCHEDULED_RUN_TITLE }),
-              apiRun({ id: 2, createdAt: '2026-10-20T04:10:00Z' }),
+              scheduledApiRun({
+                id: 3,
+                createdAt: '2026-10-20T04:35:00Z',
+                title: SCHEDULED_RUN_TITLE,
+              }),
+              scheduledApiRun({ id: 2, createdAt: '2026-10-20T04:10:00Z' }),
             ],
           },
         },
