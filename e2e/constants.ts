@@ -455,8 +455,8 @@ export const CONTROL_SELECTOR = 'a[href], button';
 export const SKIP_LINK_SELECTOR = `a[href="#${MAIN_CONTENT_ID}"]`;
 
 /**
- * Header of the site, right inside the app grid, which stays at the top of the screen, and from
- * tablet up holds the language toggle that floats on the right edge, over the page.
+ * Header of the site, right inside the app grid, which stays at the top of the screen, and past
+ * the tablets holds the language toggle that floats on the right edge, over the page.
  */
 export const SITE_HEADER_SELECTOR = '[data-testid="app"] > header';
 

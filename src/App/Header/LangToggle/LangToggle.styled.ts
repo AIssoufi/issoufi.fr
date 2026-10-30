@@ -39,7 +39,7 @@ export const Wrapper = styled.div`
     }
   }
 
-  @media (min-width: ${th('screens.tablet')}) {
+  @media (min-width: ${th('screens.floating-language-toggle')}) {
     flex-direction: column;
   }
 `;
@@ -59,7 +59,7 @@ export const Indicator = styled.div<{ $index: number }>`
   transition: transform ${th.duration(350)} ${th.timingFunction('spring')};
   pointer-events: none;
 
-  @media (min-width: ${th('screens.tablet')}) {
+  @media (min-width: ${th('screens.floating-language-toggle')}) {
     transform: translateY(calc(${({ $index }) => $index} * (100% + ${linkGap})));
   }
 
@@ -121,8 +121,8 @@ export const LanguageLink = styled(Link)<{ $active: boolean }>`
     }
   }
 
-  /* And in a column from tablet up */
-  @media (min-width: ${th('screens.tablet')}) {
+  /* And in a column once the toggle floats */
+  @media (min-width: ${th('screens.floating-language-toggle')}) {
     &:first-of-type::after {
       inset: auto auto ${halfGapOutside} ${fingerTargetCenteringOffset};
     }

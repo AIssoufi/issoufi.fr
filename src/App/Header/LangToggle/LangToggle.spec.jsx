@@ -222,7 +222,7 @@ describe('LangToggle', () => {
     expect(getComputedStyle(getIndicator()).transform).toContain('calc(1 *');
   });
 
-  it('stays in the page flow below the tablet breakpoint, so it covers no content', () => {
+  it('stays in the page flow below the breakpoint from which it floats, so it covers no content', () => {
     // jsdom applies no media query, so these are the narrow-screen styles
     renderAt();
 
@@ -236,7 +236,7 @@ describe('LangToggle', () => {
     const fingerTarget = theme.sizes['finger-target'];
     const halfGapOutside = `calc(${theme.space[4]} / -2)`;
     const centeringOffset = `calc((100% - ${fingerTarget}) / 2)`;
-    const tabletMedia = `(min-width: ${theme.screens.tablet})`;
+    const floatingMedia = `(min-width: ${theme.screens['floating-language-toggle']})`;
     const targetInset = ({ pseudo, media = '' }) =>
       declaredStyle({ element: getFrenchLink(), property: 'inset', pseudo, media });
     const inset = value => serializeCssValue({ property: 'inset', value });
@@ -253,10 +253,10 @@ describe('LangToggle', () => {
     expect(targetInset({ pseudo: ':last-of-type::after' })).toBe(
       inset(`${centeringOffset} auto auto ${halfGapOutside}`),
     );
-    expect(targetInset({ pseudo: ':first-of-type::after', media: tabletMedia })).toBe(
+    expect(targetInset({ pseudo: ':first-of-type::after', media: floatingMedia })).toBe(
       inset(`auto auto ${halfGapOutside} ${centeringOffset}`),
     );
-    expect(targetInset({ pseudo: ':last-of-type::after', media: tabletMedia })).toBe(
+    expect(targetInset({ pseudo: ':last-of-type::after', media: floatingMedia })).toBe(
       inset(`${halfGapOutside} auto auto ${centeringOffset}`),
     );
     expect(getComputedStyle(screen.getByRole('group')).gap).toBe(theme.space[4]);

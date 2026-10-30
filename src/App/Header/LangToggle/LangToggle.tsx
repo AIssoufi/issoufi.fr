@@ -26,13 +26,13 @@ interface SelectLanguageParams {
  * and back, keeping the query string and the fragment, with an indicator sliding under the
  * language of the URL. They are plain links, which work without JavaScript and which crawlers
  * follow; with it, the router follows them without reloading the page, and the texts follow the
- * new URL (see `UrlLanguage` in `src/App`). Below the `tablet` breakpoint it sits horizontally in
- * its parent's flow, the header row, so it never covers the page; from `tablet` up it is vertical,
- * and the header floats it on the right edge of the screen. The chosen language is also stored, so
- * the root URL opens in it on the next visit (see `src/i18n/storage.ts`); the language still
- * changes, without being remembered, when the browser blocks the storage. The link of the active
- * language stays on the page, where a click only stores the choice. Must be rendered inside a
- * router.
+ * new URL (see `UrlLanguage` in `src/App`). Below the `floating-language-toggle` breakpoint it
+ * sits horizontally in its parent's flow, the header row, so it never covers the page; from that
+ * width up it is vertical, and the header floats it on the right edge of the screen. The chosen
+ * language is also stored, so the root URL opens in it on the next visit (see
+ * `src/i18n/storage.ts`); the language still changes, without being remembered, when the browser
+ * blocks the storage. The link of the active language stays on the page, where a click only stores
+ * the choice. Must be rendered inside a router.
  *
  * The page that the build renders knows no query string nor fragment, nor the path that its not
  * found page answers, whose links lead to the home of each language: the links get them once the
