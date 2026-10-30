@@ -115,3 +115,87 @@ export const measureHitAreas = ({
 
   return [...document.querySelectorAll(controlSelector)].filter(isMeasured).map(measure);
 };
+
+/** Control of the page, and the points of it that the overlay covers. */
+export interface ControlCover {
+  /** Name of the control: its `aria-label`, or else its text, without the spaces around it. */
+  name: string;
+  /** Points of the control where the element on top lies in the overlay, in CSS pixels. */
+  coveredPoints: ScreenPoint[];
+}
+
+/** Options of {@link listControlCovers}, the argument that `page.evaluate` passes to it. */
+export interface ListControlCoversOptions {
+  /** Selector of the controls to check, such as `a[href], button`. */
+  controlSelector: string;
+  /** Selector of the controls left out, such as a skip link. */
+  excludedSelector: string;
+  /** Selector of the element that must cover no control, such as a sticky header. */
+  overlaySelector: string;
+  /**
+   * Distance from the edges of a control to its corners as checked, in pixels: an element takes
+   * no point on its right and bottom edges, so a corner on them would always miss the control.
+   */
+  edgeInsetPx: number;
+}
+
+/**
+ * Checks what stands over each control of the page, at its center and its four corners. Each
+ * control is first scrolled to the middle of the screen, in its scrolling row too, where it comes
+ * under what is fixed on the middle of the screen, as the page can bring it there. A point counts
+ * as covered only when the element on top lies in the overlay, not when it merely misses the
+ * control: the corners of a round button, or those of a card clipped by its row, show what is
+ * behind them. Leaves out the controls of the overlay, those with no width or height, as in a
+ * closed menu, and those inside an inert element. Runs in the browser, passed to `page.evaluate`,
+ * so it uses nothing from outside its own body.
+ *
+ * @param options - The argument that `page.evaluate` passes to it.
+ * @returns Each control checked, in the order of the page, with its covered points.
+ *
+ * @example
+ * await page.evaluate(listControlCovers, {
+ *   controlSelector: 'a[href], button',
+ *   excludedSelector: 'a[href="#main"]',
+ *   overlaySelector: 'body > header',
+ *   edgeInsetPx: 1,
+ * });
+ * // [{ name: 'Show all (5)', coveredPoints: [{ x: 734, y: 576 }] }, …]
+ */
+export const listControlCovers = ({
+  controlSelector,
+  excludedSelector,
+  overlaySelector,
+  edgeInsetPx,
+}: ListControlCoversOptions): ControlCover[] => {
+  const overlay = document.querySelector(overlaySelector);
+  const isInOverlay = (element: Element) => overlay?.contains(element) ?? false;
+  const isChecked = (control: Element) => {
+    const { width, height } = control.getBoundingClientRect();
+    const hasSize = width > 0 && height > 0;
+    const isInert = control.closest('[inert]') !== null;
+    return hasSize && !isInert && !control.matches(excludedSelector) && !isInOverlay(control);
+  };
+  const isCovered = ({ x, y }: ScreenPoint) => {
+    const [topElement] = document.elementsFromPoint(x, y);
+    return topElement !== undefined && isInOverlay(topElement);
+  };
+
+  const check = (control: Element): ControlCover => {
+    const name = (control.getAttribute('aria-label') ?? control.textContent ?? '').trim();
+    control.scrollIntoView({ block: 'center', inline: 'center' });
+
+    const { left, top, right, bottom, width, height } = control.getBoundingClientRect();
+    const [insetLeft, insetRight] = [left + edgeInsetPx, right - edgeInsetPx];
+    const [insetTop, insetBottom] = [top + edgeInsetPx, bottom - edgeInsetPx];
+    const points = [
+      { x: left + width / 2, y: top + height / 2 },
+      { x: insetLeft, y: insetTop },
+      { x: insetRight, y: insetTop },
+      { x: insetLeft, y: insetBottom },
+      { x: insetRight, y: insetBottom },
+    ];
+    return { name, coveredPoints: points.filter(isCovered) };
+  };
+
+  return [...document.querySelectorAll(controlSelector)].filter(isChecked).map(check);
+};

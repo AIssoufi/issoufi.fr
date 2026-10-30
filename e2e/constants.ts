@@ -445,6 +445,17 @@ export const DESKTOP_LAYOUT_TOUCH_SCREENS = [
   { width: 1180, height: 820 },
 ] as const;
 
+/**
+ * Tablets held upright on which the desktop layout leaves a gutter narrower than the language
+ * toggle: a common Android tablet (800 × 1280), an iPad Air (820 × 1180) and an iPad Pro 11
+ * (834 × 1194).
+ */
+export const NARROW_GUTTER_TABLET_SCREENS = [
+  { width: 800, height: 1280 },
+  { width: 820, height: 1180 },
+  { width: 834, height: 1194 },
+] as const;
+
 /** Controls of a page that a finger taps: the links and the buttons. */
 export const CONTROL_SELECTOR = 'a[href], button';
 
