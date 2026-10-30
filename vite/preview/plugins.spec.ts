@@ -129,16 +129,30 @@ describe('with a build', () => {
       expect(Object.fromEntries(answer.headers)).toEqual({ ...HEADERS, Location: '/en/' });
     });
 
+    it('answers the redirects of _redirects, with the headers of the preview', () => {
+      const middleware = configurePreviewServer({ plugin: cloudflareRoutes() });
+
+      const answer = serve({ middleware, url: '/code?a=1' });
+
+      expect(answer.statusCode).toBe(302);
+      expect(Object.fromEntries(answer.headers)).toEqual({
+        ...HEADERS,
+        Location: 'https://example.com/code?a=1',
+      });
+    });
+
     it('reads an absolute build folder', () => {
       const middleware = configurePreviewServer({ plugin: cloudflareRoutes(), outDir: root });
 
       expect(serve({ middleware, url: '/en' }).statusCode).toBe(CANONICAL_REDIRECT_STATUS);
+      expect(serve({ middleware, url: '/code' }).statusCode).toBe(302);
     });
 
     it('redirects nothing when the build folder is elsewhere', () => {
       const middleware = configurePreviewServer({ plugin: cloudflareRoutes(), outDir: 'build' });
 
       expect(serve({ middleware, url: '/en' }).isPassed).toBe(true);
+      expect(serve({ middleware, url: '/code' }).isPassed).toBe(true);
     });
   });
 });

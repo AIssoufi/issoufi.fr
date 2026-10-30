@@ -5,7 +5,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
 import { NOT_FOUND_PAGE_MEDIA_TYPE, NOT_FOUND_STATUS } from '../constants.ts';
-import { sendNotFoundResponse, setResponseHeaders } from './responses.ts';
+import { sendNotFoundResponse, sendRedirectResponse, setResponseHeaders } from './responses.ts';
 
 /** Files of the fake build, from its root, each holding its own path. */
 const BUILD_FILES = ['404.html', 'en/404.html'];
@@ -67,6 +67,40 @@ describe('setResponseHeaders', () => {
     const { response, headers } = createFakeResponse();
     setResponseHeaders({ response, headers: {} });
     expect(headers.size).toBe(0);
+  });
+});
+
+describe('sendRedirectResponse', () => {
+  it('answers with its status, its location, the headers of the preview and no body', () => {
+    const { response, headers, readBody, isEnded } = createFakeResponse();
+
+    sendRedirectResponse({ response, status: 302, location: '/en/', headers: HEADERS });
+
+    expect(response.statusCode).toBe(302);
+    expect(Object.fromEntries(headers)).toEqual({ ...HEADERS, Location: '/en/' });
+    expect(readBody()).toBeUndefined();
+    expect(isEnded()).toBe(true);
+  });
+
+  it('sends only its location without headers', () => {
+    const { response, headers } = createFakeResponse();
+
+    sendRedirectResponse({ response, status: 308, location: 'https://example.com/a' });
+
+    expect(Object.fromEntries(headers)).toEqual({ Location: 'https://example.com/a' });
+  });
+
+  it('keeps its location over a header of the preview of that name', () => {
+    const { response, headers } = createFakeResponse();
+
+    sendRedirectResponse({
+      response,
+      status: 301,
+      location: '/a',
+      headers: { Location: '/preview' },
+    });
+
+    expect(headers.get('Location')).toBe('/a');
   });
 });
 

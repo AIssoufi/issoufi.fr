@@ -20,6 +20,7 @@ export const BUILD_FILES: Record<string, string> = {
   'en/404.html': '<title>Page not found</title>',
   'assets/index-a1b2.js': 'console.log(1);',
   _headers: '/*\n  X-Frame-Options: DENY\n',
+  _redirects: '/code https://example.com/code 302\n/moved /en/ 301\n',
 };
 
 /** HTTP headers that the fake preview sends with every file. */
