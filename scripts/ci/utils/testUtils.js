@@ -14,7 +14,7 @@ export const SHA = '58ff9ea0c3f4e1b2a9d8c7b6a5f4e3d2c1b0a9f8';
 export const RUNS_URL = `https://github.com/${REPOSITORY}/actions/runs`;
 
 /** When the workflow runs of the specs started, as the REST API writes it. */
-export const CREATED_AT = '2026-10-19T04:07:00Z';
+const CREATED_AT = '2026-10-19T04:07:00Z';
 
 /**
  * Full SHA of a commit other than {@link SHA}, such as a newer head that release-please pushed
@@ -43,6 +43,17 @@ export const apiRun = ({ id = 501, ...fields } = {}) => ({
   conclusion: 'success',
   created_at: CREATED_AT,
   html_url: `${RUNS_URL}/${id}`,
+  ...fields,
+});
+
+/** The same run as {@link apiRun}, as `readRun` gives it. */
+export const workflowRun = ({ id = 501, ...fields } = {}) => ({
+  id,
+  sha: SHA,
+  status: 'completed',
+  conclusion: 'success',
+  createdAt: new Date(CREATED_AT),
+  url: `${RUNS_URL}/${id}`,
   ...fields,
 });
 
