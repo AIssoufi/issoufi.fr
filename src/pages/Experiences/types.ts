@@ -1,13 +1,4 @@
-/**
- * One piece of a paragraph of `.data/experiences.json`: a text named by its translation key,
- * which the page writes after the previous piece, in bold when `isStrong` is true.
- */
-export interface TextSegmentData {
-  /** Translation key of the text, e.g. `exp.sewanUiKit.intro1`. */
-  key?: string;
-  /** Whether the text is in bold, as a company or a client name. @default false */
-  isStrong?: boolean;
-}
+import type { TextSegmentData } from './CompanyEntry/RoleDescription/TextSegments/TextSegments.tsx';
 
 /** A project carried out within a role: a block with a title, a status badge and a description. */
 export interface ProjectData {
