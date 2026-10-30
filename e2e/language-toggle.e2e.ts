@@ -14,9 +14,12 @@ import {
   PROJECTS_ROUTE,
   SITE_HEADER_SELECTOR,
   SKIP_LINK_SELECTOR,
+  TOGGLE_SWITCH_SCREENS,
+  WIDE_TOGGLE_SCREENS,
 } from './constants.ts';
+import { showAllProjects } from './projects.ts';
 import { type ControlCover, listControlCovers, type ListControlCoversOptions } from './targets.ts';
-import { getBoxCenter, getCheckedRoutes } from './utils.ts';
+import { getBoxCenter, getCheckedRoutes, isBoxInside } from './utils.ts';
 
 /** Name of the like buttons of the Projects page in each language, whatever their project. */
 const LIKE_BUTTON_NAMES: Record<Language, RegExp> = {
@@ -54,7 +57,7 @@ const openPage = async ({ page, route }: OpenPageParams) => {
 const isCovered = ({ coveredPoints }: ControlCover) => coveredPoints.length > 0;
 
 // A fixed element over the page: only a real browser tells which element a tap reaches
-for (const viewport of NARROW_GUTTER_TABLET_SCREENS) {
+for (const viewport of [...NARROW_GUTTER_TABLET_SCREENS, ...WIDE_TOGGLE_SCREENS]) {
   test.describe(`on a ${viewport.width} × ${viewport.height} px touch screen`, () => {
     test.use({ viewport, hasTouch: true, isMobile: true, reducedMotion: 'reduce' });
 
@@ -73,10 +76,23 @@ for (const viewport of NARROW_GUTTER_TABLET_SCREENS) {
 
       const projectsRoute = localizePath({ path: PROJECTS_ROUTE, language });
 
+      test(`the header and the language toggle cover no control of ${projectsRoute} with every card shown`, async ({
+        page,
+      }) => {
+        await openPage({ page, route: projectsRoute });
+        await showAllProjects(page);
+
+        const covers = await page.evaluate(listControlCovers, COVER_OPTIONS);
+
+        expect(covers.filter(isCovered), 'controls covered').toEqual([]);
+      });
+
       test(`a tap on each like button of ${projectsRoute} likes its project and keeps the language`, async ({
         page,
       }) => {
         await openPage({ page, route: projectsRoute });
+        // Every card: the page then scrolls on any window, so a like button can reach the middle
+        await showAllProjects(page);
         const likeButtons = await page
           .getByRole('button', { name: LIKE_BUTTON_NAMES[language] })
           .filter({ visible: true })
@@ -84,7 +100,8 @@ for (const viewport of NARROW_GUTTER_TABLET_SCREENS) {
 
         expect(likeButtons.length, 'like buttons shown').toBeGreaterThan(0);
         for (const likeButton of likeButtons) {
-          await likeButton.scrollIntoViewIfNeeded();
+          // The middle of the screen, where a floating toggle stands
+          await likeButton.evaluate(element => element.scrollIntoView({ block: 'center' }));
           // A tap on the screen, where a locator would refuse a button under the language toggle.
           // Without a box, the coordinates are NaN, which the tap refuses, so the test fails.
           const center = getBoxCenter(await likeButton.boundingBox());
@@ -95,5 +112,29 @@ for (const viewport of NARROW_GUTTER_TABLET_SCREENS) {
         }
       });
     }
+  });
+}
+
+// The width where the toggle changes place: a raised breakpoint would pass every test above
+for (const { viewport, isInHeaderBar } of TOGGLE_SWITCH_SCREENS) {
+  test.describe(`on a ${viewport.width} × ${viewport.height} px screen`, () => {
+    test.use({ viewport, reducedMotion: 'reduce' });
+
+    test(`the language toggle ${isInHeaderBar ? 'sits in the bar of the header' : 'floats out of the header'}, and covers no control of ${PROJECTS_ROUTE}`, async ({
+      page,
+    }) => {
+      await openPage({ page, route: PROJECTS_ROUTE });
+      await showAllProjects(page);
+      const header = page.getByRole('banner');
+      const languageToggle = header.getByRole('group', { name: fr.langToggle.label });
+      await expect(languageToggle).toBeVisible();
+
+      const box = await languageToggle.boundingBox();
+      const container = await header.boundingBox();
+      const covers = await page.evaluate(listControlCovers, COVER_OPTIONS);
+
+      expect(isBoxInside({ box, container }), 'toggle inside the header').toBe(isInHeaderBar);
+      expect(covers.filter(isCovered), 'controls covered').toEqual([]);
+    });
   });
 }

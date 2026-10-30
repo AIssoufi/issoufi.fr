@@ -93,7 +93,7 @@ const getLinkedInLink = () => screen.getByRole('link', { name: LINKEDIN_LINK_NAM
 /** The element holding the language toggle, which floats on its own on wide screens. */
 const getFloatingControls = () => screen.getByRole('group', { name: 'Langue' }).parentElement;
 
-/** Media query of the screens past the tablets held upright, on which the toggle floats. */
+/** Media query of the screens that leave the toggle room beside the page, where it floats. */
 const FLOATING_TOGGLE_MEDIA_QUERY = `(min-width: ${theme.screens['floating-language-toggle']})`;
 
 /** Media query of the short screens, as a phone held sideways, on which the header is compact. */
@@ -204,7 +204,7 @@ describe('Header', () => {
   });
 
   describe('floating controls', () => {
-    it('floats the language toggle alone on the right edge past the tablets, centered vertically', () => {
+    it('floats the language toggle alone on the right edge of the widest screens, centered vertically', () => {
       renderHeader();
 
       const floatingControls = getFloatingControls();
@@ -221,7 +221,7 @@ describe('Header', () => {
       expect(floatingStyle('transform')).toBe('translateY(-50%)');
     });
 
-    it('keeps the language toggle after the bar in the row of the header on tablets', () => {
+    it('keeps the language toggle after the bar in the row of the header from tablet up', () => {
       renderHeader();
 
       const floatingControls = getFloatingControls();

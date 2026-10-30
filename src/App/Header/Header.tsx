@@ -29,11 +29,11 @@ import {
  * the burger button that opens it. The navigation holds the links to the pages, in the language of
  * the current URL, then the GitHub and LinkedIn icons and the link that downloads the CV (see
  * `NavMenu`). From tablet up, it is a bar of the header, followed by the language toggle, which
- * floats alone on the right edge of the screen past the widest tablets held upright. Owns the open
- * state of the mobile menu, and closes it when one of its links is followed and when the screen
- * grows to the desktop layout, as when a tablet is rotated. It stays at the top of the screen down
- * to the end of every page, and is compact on a short screen, as on a phone held sideways, so the
- * page keeps most of it. Must be rendered inside a router.
+ * floats alone on the right edge of the screen once the page leaves it room, on the widest screens.
+ * Owns the open state of the mobile menu, and closes it when one of its links is followed and when
+ * the screen grows to the desktop layout, as when a tablet is rotated. It stays at the top of the
+ * screen down to the end of every page, and is compact on a short screen, as on a phone held
+ * sideways, so the page keeps most of it. Must be rendered inside a router.
  *
  * `Tab` follows the screen: the logo, the navigation, then the language toggle, which comes after
  * the navigation in the page, as it follows the bar or floats on the middle right of the screen

@@ -54,11 +54,11 @@ export const BuildVersion = styled.span`
 `;
 
 /* Holds the language toggle in the row of the header on mobile, above the open menu like the
-   burger, so the language can change while the menu is open, and after the bar on tablets, where
-   it floats over the controls of the cards otherwise. It floats alone on the right edge of the
-   screen on wider ones, centered vertically. It follows the navigation in the page, so that Tab
-   reaches it after the links, as on the screen from tablet up, but stays before the burger in the
-   row on mobile */
+   burger, so the language can change while the menu is open, and after the bar from tablet up,
+   where it floats over the controls of the cards otherwise. It floats alone on the right edge of
+   the screen once the page leaves it room, centered vertically. It follows the navigation in the
+   page, so that Tab reaches it after the links, as on the screen from tablet up, but stays before
+   the burger in the row on mobile */
 export const FloatingControls = styled.div`
   position: relative;
   z-index: ${th.zIndex('header')};

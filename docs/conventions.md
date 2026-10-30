@@ -42,7 +42,7 @@ The agents read these rules, one line each, in [`CLAUDE.md`](../CLAUDE.md).
 - From the `wide` breakpoint, 1600 px, the layout widens. A component that should grow with it adds a step for it.
 - Hover effects apply with a mouse only, so that a tap leaves none behind.
 - Every control offers a finger a target of 44 px.
-- The language toggle follows the bar of the header up to 1024 px, and floats on the right edge past it: floating over the narrow gutter of a tablet, it covers the buttons of the cards under it.
+- The language toggle follows the bar of the header up to 1719 px, and floats on the right edge past it: below 1684 px, the page reaches under its place, so it covers the buttons of the cards at any height, and 1720 px leaves room for a scrollbar.
 - No text is under 12 px.
 
 ## Accessibility
