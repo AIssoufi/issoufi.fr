@@ -40,7 +40,7 @@ const commitRoute = async ({ page, route }: GotoRouteParams) => {
  * a tab to a new process, and WebKit drops that navigation with no error when the local server
  * answers too fast ({@link https://bugs.webkit.org/show_bug.cgi?id=327297 bug 327297}): a bare
  * `page.goto` then waits on a blank page until the test times out. Every spec of the `webkit`
- * project opens its pages with it.
+ * project opens its pages with it, as ESLint requires of the files of `e2e/webkit-specs.js`.
  *
  * @returns The answer to the navigation, as `page.goto` gives it.
  * @throws Rejects with the error of the second navigation, and with that of the first when it was

@@ -31,7 +31,7 @@ flowchart LR
 A rule that matters is also checked by the code, so an agent that misses it fails the CI:
 
 - a test refuses a raw value in a style file;
-- ESLint refuses a relative import without its extension, a direct `styled-components` import, a `ul` outside `List`, a link to a new tab outside `NewTabLink` and a comment line over 100 characters;
+- ESLint refuses a relative import without its extension, a direct `styled-components` import, a `ul` outside `List`, a link to a new tab outside `NewTabLink`, a bare `page.goto` in the specs of the `webkit` project and a comment line over 100 characters;
 - knip refuses a file that no entry point reaches, an export that no other module imports (a type that its own file uses may stay) and a dependency that nothing uses;
 - the specs check each page and every generated file;
 - the browser tests check the layout, the accessibility and the security policy.

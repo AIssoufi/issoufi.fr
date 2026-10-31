@@ -1,6 +1,7 @@
 import { defineConfig, devices } from '@playwright/test';
 import { loadEnv } from 'vite';
 
+import { WEBKIT_SPECS } from './e2e/webkit-specs.js';
 import { ALL_ENV_VARIABLES_PREFIX } from './vite/constants.ts';
 import { getServerPorts } from './vite/utils/ports.ts';
 
@@ -41,19 +42,11 @@ export const CHROMIUM_PROJECT = { name: 'chromium', use: { ...devices['Desktop C
  * the layout, the menu and the touch targets of a phone, where Safari differs the most from
  * Chromium, the redirects that it follows and the cache of its fonts. Each spec that depends on
  * the size of the screen still sets it, and each one opens its pages with `gotoRoute`, which
- * survives the navigations that WebKit loses.
+ * survives the navigations that WebKit loses, as ESLint requires of the files of `WEBKIT_SPECS`.
  */
 const WEBKIT_PROJECT = {
   name: 'webkit',
-  testMatch: [
-    '**/axe.e2e.ts',
-    '**/font-cache.e2e.ts',
-    '**/horizontal-overflow.e2e.ts',
-    '**/mobile-menu.e2e.ts',
-    '**/no-script-navigation.e2e.ts',
-    '**/redirects.e2e.ts',
-    '**/touch-targets.e2e.ts',
-  ],
+  testMatch: WEBKIT_SPECS,
   timeout: WEBKIT_TEST_TIMEOUT_MS,
   use: {
     ...devices['iPhone 13'],
