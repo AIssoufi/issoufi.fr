@@ -35,5 +35,6 @@ The workflows of [`.github/workflows/`](../../.github/workflows/):
 | `standalone-build.yml`   | For each release of `release.yml`, or by hand with a tag: attaches the standalone build to its release ([releases](../releases.md#standalone-build))          |
 | `deploy-production.yml`  | Every morning: releases `develop` to `main`, which deploys production ([deployment](../deployment.md))                                                        |
 | `rebuild.yml`            | Every month: rebuilds production, so that the years of experience stay right                                                                                  |
+| `live-check.yml`         | Every hour, and by hand: runs the smoke test and the redirect check against production ([deployment](../deployment.md#live-check))                            |
 
 The site is hosted on Cloudflare Pages, and each branch gets a preview at `<branch>.issoufi-fr.pages.dev`, which the visual tester can open. A Cloudflare Worker, the deploy trigger of [`scripts/deploy-trigger/`](../../scripts/deploy-trigger/), starts the daily deploy, since GitHub's scheduler delays or drops its runs ([#321](https://github.com/AIssoufi/issoufi.fr/issues/321), [decision 0016](../decisions/0016-cloudflare-worker-deploy-trigger.md)).
