@@ -28,6 +28,17 @@ On every pull request, and on every push to `develop` and `main`, GitHub Actions
 
 The title of a pull request has a workflow of its own, [`pull-request-title.yml`](../.github/workflows/pull-request-title.yml), which lints it on each push and on each edit of the pull request: an edit starts no other check.
 
+## Live check
+
+[`live-check.yml`](../.github/workflows/live-check.yml) runs the smoke test and the redirect check against `https://issoufi.fr/` every hour, and by hand from _Actions → Live check → Run workflow_, so that an outage of the host or of the domain shows on a day without a deployment. It needs no secret and only reads the repository.
+
+- It builds the head of `main`, not `develop` where a cron runs, whose changes are only online the next morning.
+- It checks production only once the CI of that commit has passed, since that CI deploys it about 8 minutes after the push: comparing production with a build not online yet would fail. Until then the run stays green with a warning and checks nothing, so a red CI of `main` turns the check off until the next commit.
+- On June 1 it does not compare the web manifests: they state the years of experience, which change at midnight UTC, hours before a deployment brings them online.
+- A check that fails runs again a minute later, and the run turns red only when it fails again. A green run may show the error annotations of a failed first attempt.
+- A red run reaches one person: GitHub sends the notifications of a scheduled workflow to the [user who last changed its cron](https://docs.github.com/en/actions/concepts/workflows-and-actions/notifications-for-workflow-runs), who gets them under the _Actions_ settings of their own [notifications](https://github.com/settings/notifications). So the site owner must keep them on, and whoever changes the cron, or turns the workflow back on, receives them from then on. Each failed run sends one, so an outage brings one an hour. A run started by hand notifies the user who started it.
+- GitHub may start a cron late or drop it ([decision 0016](decisions/0016-cloudflare-worker-deploy-trigger.md)), and turns the crons of a public repository off after 60 days without any activity: the check then stops without a word, until someone turns it back on in the Actions tab.
+
 ## Daily release and deploy
 
 Every morning between 6:00 and 7:00, Paris time, a Cloudflare Worker starts a workflow that:
