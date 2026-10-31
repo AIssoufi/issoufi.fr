@@ -2,7 +2,17 @@ import { Fragment } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { translateKey } from '../../../../../i18n/utils.ts';
-import type { TextSegmentData } from '../../../types.ts';
+
+/**
+ * One piece of a paragraph of `.data/experiences.json`: a text named by its translation key,
+ * which the page writes after the previous piece, in bold when `isStrong` is true.
+ */
+export interface TextSegmentData {
+  /** Translation key of the text, e.g. `exp.sewanUiKit.intro1`. */
+  key?: string;
+  /** Whether the text is in bold, as a company or a client name. @default false */
+  isStrong?: boolean;
+}
 
 /** Props of {@link TextSegments}. */
 interface TextSegmentsProps {
