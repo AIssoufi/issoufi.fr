@@ -23,8 +23,16 @@ describe('renderHeaderRules', () => {
     );
     const [firstRule] = renderHeaderRules().split('\n\n');
 
-    expect(securityLines).toHaveLength(5);
+    expect(securityLines).toHaveLength(7);
     expect(firstRule).toBe(['/*', ...securityLines].join('\n'));
+  });
+
+  it('states by default the two headers that Cloudflare also sends, with the same values', () => {
+    const [firstRule] = renderHeaderRules().split('\n\n');
+    const lines = firstRule?.split('\n');
+
+    expect(lines).toContain('  X-Content-Type-Options: nosniff');
+    expect(lines).toContain('  Referrer-Policy: strict-origin-when-cross-origin');
   });
 
   it('asks browsers for HTTPS only for a year, on this host alone, by default', () => {

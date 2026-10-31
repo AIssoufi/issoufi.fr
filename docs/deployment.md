@@ -49,8 +49,9 @@ Every morning between 6:00 and 7:00, Paris time, a Cloudflare Worker starts a wo
 
 ## HTTP headers
 
-- Every file gets security headers: a Content Security Policy, HSTS, a Permissions-Policy and frame protection.
-- The policy allows the files of the site only, and no inline script.
+- Every file gets security headers: a Content Security Policy, HSTS, a Permissions-Policy, frame protection, `X-Content-Type-Options` and a Referrer-Policy.
+- Cloudflare sends these last two by default. The site states them with the same values, so that `pnpm preview` and the browser tests run under them, and a change of those defaults changes nothing here.
+- The Content Security Policy allows the files of the site only, and no inline script.
 - The files whose name holds a hash of their content are cached for a year; the others are revalidated.
 
 ## Dependencies

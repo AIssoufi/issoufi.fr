@@ -130,7 +130,13 @@ export const HSTS_MAX_AGE_SECONDS = 31_536_000;
  * never uses;
  * - `X-Frame-Options`: no frame, for the browsers that do not read `frame-ancestors`;
  * - `Cross-Origin-Opener-Policy`: a page opened from another site gets no handle on the window of
- * the site, nor the other way round.
+ * the site, nor the other way round;
+ * - `X-Content-Type-Options`: a browser reads a file as the type that the response declares, and
+ * never guesses another one from its content;
+ * - `Referrer-Policy`: another site learns which origin sent a visitor, never the path of the page.
+ *
+ * Cloudflare sends these last two by default: stating them keeps the browser tests under them, and
+ * keeps a change of those defaults from changing what the site sends.
  */
 export const SECURITY_HEADERS: Readonly<Record<string, string>> = {
   'Content-Security-Policy': CONTENT_SECURITY_POLICY_DIRECTIVES.join('; '),
@@ -138,6 +144,8 @@ export const SECURITY_HEADERS: Readonly<Record<string, string>> = {
   'Permissions-Policy': 'camera=(), microphone=(), geolocation=(), browsing-topics=()',
   'X-Frame-Options': 'DENY',
   'Cross-Origin-Opener-Policy': 'same-origin',
+  'X-Content-Type-Options': 'nosniff',
+  'Referrer-Policy': 'strict-origin-when-cross-origin',
 };
 
 /**
