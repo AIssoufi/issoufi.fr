@@ -4,6 +4,7 @@ import { join } from 'node:path';
 import { getPage, NOT_FOUND_PATH, SITE_URL } from '../../../src/utils/pages.ts';
 import cvData from '../../cv/.data/cv.json';
 import { MAX_REDIRECT_HOPS, PUBLIC_DIR, REDIRECT_STATUSES, REDIRECTS_FILE } from '../constants.mjs';
+import { getErrorMessage } from './errors.mjs';
 import {
   checkRedirect,
   compareRedirect,
@@ -417,6 +418,19 @@ describe('checkRedirect', () => {
     );
     await expect(checkRedirect({ url: URL_HTTP, expectedUrl: EXPECTED_URL })).resolves.toEqual([
       `${URL_HTTP}: request failed (offline)`,
+    ]);
+  });
+
+  it('reports a failure that a template literal cannot write', async () => {
+    const failure = Symbol('offline');
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async () => {
+        throw failure;
+      }),
+    );
+    await expect(checkRedirect({ url: URL_HTTP, expectedUrl: EXPECTED_URL })).resolves.toEqual([
+      `${URL_HTTP}: request failed (${getErrorMessage(failure)})`,
     ]);
   });
 

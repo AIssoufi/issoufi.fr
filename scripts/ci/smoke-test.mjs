@@ -18,6 +18,7 @@ import {
   SMOKE_TEST_RETRY_DELAY_MS,
 } from './constants.mjs';
 import { writeAnnotation } from './utils/annotations.mjs';
+import { getErrorMessage } from './utils/errors.mjs';
 import { appendJobSummary } from './utils/job-summary.mjs';
 import {
   compareFile,
@@ -96,7 +97,7 @@ const checkRoute = async ({ check, compare }) => {
       built: readFileSync(join(DIST_DIR, check.file), 'utf8'),
     });
   } catch (error) {
-    return [`${check.route}: request failed (${error instanceof Error ? error.message : error})`];
+    return [`${check.route}: request failed (${getErrorMessage(error)})`];
   }
 };
 

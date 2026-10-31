@@ -10,6 +10,7 @@ import {
   REDIRECT_PATTERN_MARK_PATTERN,
   REDIRECT_STATUSES,
 } from '../constants.mjs';
+import { getErrorMessage } from './errors.mjs';
 import { toList } from './lists.mjs';
 
 /**
@@ -252,7 +253,7 @@ export const checkRedirect = async ({ url, expectedUrl }) => {
     });
     return compareRedirectChain({ answers, expectedUrl });
   } catch (error) {
-    return [`${url}: request failed (${error instanceof Error ? error.message : error})`];
+    return [`${url}: request failed (${getErrorMessage(error)})`];
   }
 };
 
