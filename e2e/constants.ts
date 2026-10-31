@@ -298,6 +298,9 @@ export const CLOUDFLARE_CONFIG_FILE_ROUTES: readonly string[] = ['/_headers', '/
 /** Address of the short link `/code`, the repository of the site. */
 const CODE_SHORT_LINK_TARGET = 'https://github.com/AIssoufi/issoufi.fr';
 
+/** Address of the short link `/method`, the AI workflow of the repository. */
+const METHOD_SHORT_LINK_TARGET = `${CODE_SHORT_LINK_TARGET}/tree/develop/docs/ai-workflow`;
+
 /** HTTP status of the short links, as `public/_redirects` gives it. */
 export const SHORT_LINK_STATUS = 302;
 
@@ -307,12 +310,15 @@ export const SHORT_LINK_STATUS = 302;
  */
 export const SHORT_LINK_ROUTES: readonly { path: string; location: string }[] = [
   { path: '/code', location: CODE_SHORT_LINK_TARGET },
-  { path: '/method', location: `${CODE_SHORT_LINK_TARGET}/tree/develop/docs/ai-workflow` },
+  { path: '/code/', location: CODE_SHORT_LINK_TARGET },
+  { path: '/method', location: METHOD_SHORT_LINK_TARGET },
+  { path: '/method/', location: METHOD_SHORT_LINK_TARGET },
   { path: '/code?a=1', location: `${CODE_SHORT_LINK_TARGET}?a=1` },
+  { path: '/code/?a=1', location: `${CODE_SHORT_LINK_TARGET}?a=1` },
 ];
 
 /** Paths close to a short link that issoufi.fr answers with a 404: a source matches as a whole. */
-export const NOT_SHORT_LINK_ROUTES: readonly string[] = ['/code/', '/Code', '/c%6Fde', '/en/code'];
+export const NOT_SHORT_LINK_ROUTES: readonly string[] = ['/Code', '/c%6Fde', '/en/code'];
 
 /**
  * Card of each project of the Projects page: an item of the list of cards of its section, which

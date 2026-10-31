@@ -14,7 +14,7 @@ Only a tested build goes online, and a smoke test then checks the deployed site.
 
 ## Short links
 
-`public/_redirects` holds the redirects that Cloudflare Pages serves, in 302 so that a target can change: the CVs link to `issoufi.fr/code`, the repository, and `issoufi.fr/method`, the [AI workflow](ai-workflow/README.md). A short link has no language prefix, and its spec checks that no page nor file of the site uses its path. The smoke test requests each one on the deployed site and expects its target in one hop; a redirect whose source holds a splat (`*`) or a placeholder (`:name`) gets no check.
+`public/_redirects` holds the redirects that Cloudflare Pages serves, in 302 so that a target can change: the CVs link to `issoufi.fr/code`, the repository, and `issoufi.fr/method`, the [AI workflow](ai-workflow/README.md). Cloudflare Pages compares the whole path, so each short link has a second rule for its form with a trailing slash, `/code/` and `/method/`, with the same target. A short link has no language prefix, and its spec checks that no page nor file of the site uses its path. The smoke test requests each one on the deployed site and expects its target in one hop; a redirect whose source holds a splat (`*`) or a placeholder (`:name`) gets no check.
 
 ## Continuous integration
 
