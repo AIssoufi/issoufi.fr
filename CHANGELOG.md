@@ -1,5 +1,29 @@
 # Changelog
 
+## [1.7.1](https://github.com/AIssoufi/issoufi.fr/compare/v1.7.0...v1.7.1) (2026-10-31)
+
+
+### Bug Fixes
+
+* **header:** keep the language toggle in the bar up to 1024 px ([910dd88](https://github.com/AIssoufi/issoufi.fr/commit/910dd88eec0ae65df036510d0cae2271d803beed))
+* **header:** keep the language toggle in the bar up to 1719 px ([fd1932e](https://github.com/AIssoufi/issoufi.fr/commit/fd1932edc82ffaf4b9b0725f323351b2feaa663b))
+
+
+### Code Refactoring
+
+* **ci:** share getErrorMessage in the last two scripts ([c5ab6c0](https://github.com/AIssoufi/issoufi.fr/commit/c5ab6c07199093c144460265e406e1f248d3fb62))
+* **experiences:** keep TextSegmentData in TextSegments ([1658171](https://github.com/AIssoufi/issoufi.fr/commit/1658171e3ee9b2957122e703547fd1b2af21b0c5))
+* **experiences:** rename ProjectData to RoleProjectData ([f2ebbb0](https://github.com/AIssoufi/issoufi.fr/commit/f2ebbb04c9a44014f6ade6fe676408c7e4617cb9))
+* **home:** move the particle animation into a hook ([73fe5f1](https://github.com/AIssoufi/issoufi.fr/commit/73fe5f18c5d109c2dc2bba13bea53439637774e7))
+* **projects:** keep the thumbnail types in thumbnails.ts ([38f8a33](https://github.com/AIssoufi/issoufi.fr/commit/38f8a33c450390c9473857072d05552a0091dbce))
+
+
+### Documentation
+
+* **ai-workflow:** describe the state file and create-issue.mjs ([bb23ef9](https://github.com/AIssoufi/issoufi.fr/commit/bb23ef962f7c690a551789ffad46e3e77b5cffda))
+* **build:** state that public/_redirects reaches the build as it is ([9da1bf1](https://github.com/AIssoufi/issoufi.fr/commit/9da1bf1842d1dcf478d3394a6afabe421f9aeeac))
+* **testing:** describe the redirects of _redirects in the preview ([f08c710](https://github.com/AIssoufi/issoufi.fr/commit/f08c7108089cf09bd03201a8adddc0b502c1f602))
+
 ## [1.7.0](https://github.com/AIssoufi/issoufi.fr/compare/v1.6.3...v1.7.0) (2026-10-28)
 
 
