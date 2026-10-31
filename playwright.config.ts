@@ -40,7 +40,8 @@ export const CHROMIUM_PROJECT = { name: 'chromium', use: { ...devices['Desktop C
  * Project of the phone tests in WebKit, the engine of Safari, on an iPhone: the specs that check
  * the layout, the menu and the touch targets of a phone, where Safari differs the most from
  * Chromium, the redirects that it follows and the cache of its fonts. Each spec that depends on
- * the size of the screen still sets it.
+ * the size of the screen still sets it, and each one opens its pages with `gotoRoute`, which
+ * survives the navigations that WebKit loses.
  */
 const WEBKIT_PROJECT = {
   name: 'webkit',

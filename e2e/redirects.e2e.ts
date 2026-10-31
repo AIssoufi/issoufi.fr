@@ -13,6 +13,7 @@ import {
   SHORT_LINK_ROUTES,
   SHORT_LINK_STATUS,
 } from './constants.ts';
+import { gotoRoute } from './navigation.ts';
 
 // The preview redirects each other path of a page to its canonical one as Cloudflare Pages does,
 // so a test never passes at a URL that production redirects
@@ -27,7 +28,7 @@ for (const { path: route, location } of REDIRECTED_ROUTES) {
   });
 
   test(`a visit of ${route} ends at ${location}`, async ({ page, baseURL }) => {
-    const response = await page.goto(route);
+    const response = await gotoRoute({ page, route });
 
     expect(response?.ok(), 'page served').toBe(true);
     expect(page.url()).toBe(new URL(location, baseURL).href);
@@ -67,7 +68,7 @@ for (const route of NOT_SHORT_LINK_ROUTES) {
 // Cloudflare Pages reads these files of the build and never serves them
 for (const route of CLOUDFLARE_CONFIG_FILE_ROUTES) {
   test(`${route} answers with the not found page and the status 404`, async ({ page }) => {
-    const response = await page.goto(route);
+    const response = await gotoRoute({ page, route });
 
     expect(response?.status(), 'status of the page').toBe(NOT_FOUND_STATUS);
     await expect(page.locator(ROBOTS_META_SELECTOR)).toHaveAttribute('content', NO_INDEX_ROBOTS);

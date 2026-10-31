@@ -966,3 +966,14 @@ export const NOT_FOUND_STATUS_MESSAGE_PATTERN = /status of 404\b/;
  * durations of the jobs, which the build counts up to its own month, read otherwise in the browser.
  */
 export const VISITOR_MONTHS_AFTER_BUILD = 14;
+
+/** URL of a tab before its first navigation commits. */
+export const BLANK_PAGE_URL = 'about:blank';
+
+/**
+ * Time a navigation may take to commit, in milliseconds. After it, a tab still blank counts as a
+ * navigation that WebKit lost, and the test of any other tab fails, before its own timeout. The
+ * local server answers within milliseconds: the wide margin keeps a slow navigation from being
+ * started twice, which WebKit bug 327297 warns about.
+ */
+export const NAVIGATION_COMMIT_TIMEOUT_MS = 10_000;
