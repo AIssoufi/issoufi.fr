@@ -14,6 +14,7 @@ import {
   PAGE_SELECTOR,
   SCREEN_HEIGHT_PX,
 } from './constants.ts';
+import { gotoRoute } from './navigation.ts';
 import { getCheckedRoutes } from './utils.ts';
 
 /** Translations of each language, to find the burger button of the mobile menu. */
@@ -31,7 +32,7 @@ interface OpenPageParams {
 
 /** Opens a route once its page and its fonts are shown, so that axe-core measures its texts. */
 const openPage = async ({ page, route, language }: OpenPageParams) => {
-  await page.goto(route);
+  await gotoRoute({ page, route });
   // A route that lost its language would check the default language twice
   await expect(page.locator('html')).toHaveAttribute('lang', language);
   // The pages loaded lazily show their content once their chunk is loaded, after the header

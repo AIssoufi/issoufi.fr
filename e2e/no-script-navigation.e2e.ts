@@ -21,6 +21,7 @@ import {
   NO_SCRIPT_SCREENS,
   PAGE_HEADINGS,
 } from './constants.ts';
+import { gotoRoute } from './navigation.ts';
 import { getPageScrollY } from './scroll.ts';
 
 /** Translations of each language, to find the links of the header by their names. */
@@ -127,7 +128,7 @@ for (const { width, height, isMobileLayout } of NO_SCRIPT_SCREENS) {
         }) => {
           for (const destination of getDestinations({ route, language })) {
             await test.step(destination.name, async () => {
-              await page.goto(route);
+              await gotoRoute({ page, route });
               if (isMobileLayout) await openMenu({ page, translations });
 
               // A click fails when the link is hidden or covered
@@ -147,7 +148,7 @@ for (const { width, height, isMobileLayout } of NO_SCRIPT_SCREENS) {
       test('the cross closes the menu that the burger opened, and leaves the page where it was', async ({
         page,
       }) => {
-        await page.goto(LONG_PAGE_ROUTE);
+        await gotoRoute({ page, route: LONG_PAGE_ROUTE });
         // Playwright turns no mouse wheel in mobile WebKit, so the test scrolls the page itself
         await page.evaluate(top => window.scrollTo(0, top), MENU_OPENING_SCROLL_Y_PX);
         await expect.poll(() => page.evaluate(getPageScrollY)).toBe(MENU_OPENING_SCROLL_Y_PX);
@@ -169,7 +170,7 @@ for (const { width, height, isMobileLayout } of NO_SCRIPT_SCREENS) {
       test('shows no link of the burger, whose navigation is a bar of the header', async ({
         page,
       }) => {
-        await page.goto(LONG_PAGE_ROUTE);
+        await gotoRoute({ page, route: LONG_PAGE_ROUTE });
 
         await expect(page.getByRole('navigation')).toBeVisible();
         await expect(page.getByRole('link', { name: fr.burgerMenu.open })).toBeHidden();
