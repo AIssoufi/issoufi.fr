@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.7.2](https://github.com/AIssoufi/issoufi.fr/compare/v1.7.1...v1.7.2) (2026-10-31)
+
+
+### Bug Fixes
+
+* answer the short links /code and /method with a trailing slash ([6da5529](https://github.com/AIssoufi/issoufi.fr/commit/6da55290279e855aecd2ce5fd24b9bbc5e5c40da))
+
+
+### Documentation
+
+* **testing:** name gotoRoute in the pitfall of the lost navigations ([856e838](https://github.com/AIssoufi/issoufi.fr/commit/856e8385128c862f28ae885a2d2591977bc05a68))
+
 ## [1.7.1](https://github.com/AIssoufi/issoufi.fr/compare/v1.7.0...v1.7.1) (2026-10-31)
 
 
