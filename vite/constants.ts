@@ -72,7 +72,7 @@ export const HEADERS_FILE_NAME = '_headers';
 
 /**
  * Name of the file that sets the redirects of Cloudflare Pages, which reads it at the root of the
- * build and does not serve it. A `public/_redirects` would reach the build as it is.
+ * build and does not serve it. `public/_redirects` reaches the build as it is.
  * @see https://developers.cloudflare.com/pages/configuration/redirects/
  */
 export const REDIRECTS_FILE_NAME = '_redirects';

@@ -90,8 +90,11 @@ const LINKEDIN_LINK_NAME = 'Profil LinkedIn d’ADAM Issoufi (nouvel onglet)';
 /** The LinkedIn icon of the navigation. */
 const getLinkedInLink = () => screen.getByRole('link', { name: LINKEDIN_LINK_NAME, hidden: true });
 
-/** The element holding the language toggle, which floats on its own from tablet up. */
+/** The element holding the language toggle, which floats on its own on wide screens. */
 const getFloatingControls = () => screen.getByRole('group', { name: 'Langue' }).parentElement;
+
+/** Media query of the screens that leave the toggle room beside the page, where it floats. */
+const FLOATING_TOGGLE_MEDIA_QUERY = `(min-width: ${theme.screens['floating-language-toggle']})`;
 
 /** Media query of the short screens, as a phone held sideways, on which the header is compact. */
 const SHORT_SCREEN_MEDIA_QUERY = `(max-height: ${theme.screenHeights.short})`;
@@ -201,17 +204,29 @@ describe('Header', () => {
   });
 
   describe('floating controls', () => {
-    it('floats the language toggle alone on the right edge from tablet up, centered vertically', () => {
+    it('floats the language toggle alone on the right edge of the widest screens, centered vertically', () => {
       renderHeader();
 
       const floatingControls = getFloatingControls();
+      const floatingStyle = property =>
+        declaredStyle({
+          element: floatingControls,
+          property,
+          media: FLOATING_TOGGLE_MEDIA_QUERY,
+        });
       expect([...floatingControls.children]).toEqual([getLanguageToggle()]);
-      expect(desktopStyle({ element: floatingControls, property: 'position' })).toBe('fixed');
-      expect(desktopStyle({ element: floatingControls, property: 'right' })).toBe(theme.space[20]);
-      expect(desktopStyle({ element: floatingControls, property: 'top' })).toBe('50%');
-      expect(desktopStyle({ element: floatingControls, property: 'transform' })).toBe(
-        'translateY(-50%)',
-      );
+      expect(floatingStyle('position')).toBe('fixed');
+      expect(floatingStyle('right')).toBe(theme.space[20]);
+      expect(floatingStyle('top')).toBe('50%');
+      expect(floatingStyle('transform')).toBe('translateY(-50%)');
+    });
+
+    it('keeps the language toggle after the bar in the row of the header from tablet up', () => {
+      renderHeader();
+
+      const floatingControls = getFloatingControls();
+      expect(desktopStyle({ element: floatingControls, property: 'order' })).toBe('0');
+      expect(desktopStyle({ element: floatingControls, property: 'position' })).toBe('');
     });
 
     it('comes after the navigation with Tab, as on the screen from tablet up', async () => {

@@ -1,5 +1,5 @@
 // @vitest-environment node
-import { rmSync } from 'node:fs';
+import { rmSync, writeFileSync } from 'node:fs';
 import type { IncomingMessage, ServerResponse } from 'node:http';
 import { join } from 'node:path';
 
@@ -71,6 +71,59 @@ describe('createCloudflareRoutesMiddleware', () => {
     expect(answer.headers.get('Location')).toBe('/en/');
   });
 
+  it.each([
+    ['/code', 302, 'https://example.com/code'],
+    ['/code?a=1', 302, 'https://example.com/code?a=1'],
+    ['/moved', 301, '/en/'],
+  ])('redirects %s with the status %i to %s, from _redirects', (url, status, location) => {
+    const middleware = createCloudflareRoutesMiddleware({ root, headers: HEADERS });
+
+    const answer = serve({ middleware, url });
+
+    expect(answer.isPassed).toBe(false);
+    expect(answer.statusCode).toBe(status);
+    expect(Object.fromEntries(answer.headers)).toEqual({ ...HEADERS, Location: location });
+    expect(answer.body).toBeUndefined();
+  });
+
+  it.each(['GET', 'HEAD', 'POST', 'PUT', 'DELETE', 'OPTIONS', ''])(
+    'redirects a %s request from _redirects, as Cloudflare Pages does',
+    method => {
+      const middleware = createCloudflareRoutesMiddleware({ root });
+
+      const answer = serve({ middleware, url: '/code', method });
+
+      expect(answer.statusCode).toBe(302);
+      expect(answer.headers.get('Location')).toBe('https://example.com/code');
+    },
+  );
+
+  it('prefers a redirect of _redirects to the file of its source', () => {
+    writeFileSync(join(root, '_redirects'), '/projects /en/ 302\n');
+    const middleware = createCloudflareRoutesMiddleware({ root });
+
+    const answer = serve({ middleware, url: '/projects' });
+
+    expect(answer.statusCode).toBe(302);
+    expect(answer.headers.get('Location')).toBe('/en/');
+  });
+
+  it('reads _redirects again for each request, as the other files of the build', () => {
+    const middleware = createCloudflareRoutesMiddleware({ root });
+    expect(serve({ middleware, url: '/code' }).statusCode).toBe(302);
+
+    rmSync(join(root, '_redirects'));
+
+    expect(serve({ middleware, url: '/code' }).isPassed).toBe(true);
+  });
+
+  it('leaves every request to the next middlewares from an empty _redirects', () => {
+    writeFileSync(join(root, '_redirects'), '');
+    const middleware = createCloudflareRoutesMiddleware({ root });
+
+    expect(serve({ middleware, url: '/code' }).isPassed).toBe(true);
+  });
+
   it.each(['/_headers', '/_redirects', '/_headers?a=1'])(
     'answers %s with the not found page and the status 404',
     url => {
@@ -116,6 +169,10 @@ describe('createCloudflareRoutesMiddleware', () => {
     '/en/_headers',
     '/_Headers',
     '/_headers/',
+    '/code/',
+    '/Code',
+    '/c%6Fde',
+    '/en/code',
   ])('leaves %s to the next middlewares', url => {
     const middleware = createCloudflareRoutesMiddleware({ root, headers: HEADERS });
 
@@ -157,5 +214,6 @@ describe('createCloudflareRoutesMiddleware', () => {
 
     expect(serve({ middleware, url: '/en' }).isPassed).toBe(true);
     expect(serve({ middleware, url: '/projects.html' }).isPassed).toBe(true);
+    expect(serve({ middleware, url: '/code' }).isPassed).toBe(true);
   });
 });

@@ -2,7 +2,7 @@ import { readFileSync } from 'node:fs';
 import type { OutgoingHttpHeaders, ServerResponse } from 'node:http';
 import { join } from 'node:path';
 
-import { NOT_FOUND_PAGE_MEDIA_TYPE, NOT_FOUND_STATUS } from '../constants.ts';
+import { LOCATION_HEADER, NOT_FOUND_PAGE_MEDIA_TYPE, NOT_FOUND_STATUS } from '../constants.ts';
 
 /** Parameters of {@link setResponseHeaders}. */
 interface SetResponseHeadersParams {
@@ -22,6 +22,36 @@ export const setResponseHeaders = ({ response, headers }: SetResponseHeadersPara
   Object.entries(headers).forEach(([name, value]) => {
     if (value !== undefined) response.setHeader(name, value);
   });
+};
+
+/** Parameters of {@link sendRedirectResponse}. */
+interface SendRedirectResponseParams {
+  /** Response to write and end. */
+  response: ServerResponse;
+  /** HTTP status of the redirect. */
+  status: number;
+  /** Value of the `Location` header. */
+  location: string;
+  /** HTTP headers that the preview sends with every file, such as the security headers. */
+  headers?: OutgoingHttpHeaders;
+}
+
+/**
+ * Answers a request with a redirect without a body, which carries the headers of the preview.
+ *
+ * @example
+ * sendRedirectResponse({ response, status: 308, location: '/en/', headers });
+ */
+export const sendRedirectResponse = ({
+  response,
+  status,
+  location,
+  headers = {},
+}: SendRedirectResponseParams) => {
+  response.statusCode = status;
+  setResponseHeaders({ response, headers });
+  response.setHeader(LOCATION_HEADER, location);
+  response.end();
 };
 
 /** Parameters of {@link sendNotFoundResponse}. */

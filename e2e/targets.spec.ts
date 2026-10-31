@@ -1,4 +1,9 @@
-import { measureHitAreas, type MeasureHitAreasOptions } from './targets.ts';
+import {
+  listControlCovers,
+  type ListControlCoversOptions,
+  measureHitAreas,
+  type MeasureHitAreasOptions,
+} from './targets.ts';
 
 /** Box that catches the points of an element, in pixels, and the element that the points hit. */
 interface HitBox {
@@ -269,6 +274,195 @@ describe('measureHitAreas', () => {
       fakeLayout({});
 
       expect(measureHitAreas(OPTIONS)).toEqual([]);
+    });
+  });
+});
+
+describe('listControlCovers', () => {
+  /** Options of the check, with a header over the page and a skip link left out. */
+  const COVER_OPTIONS: ListControlCoversOptions = {
+    controlSelector: 'a[href], button',
+    excludedSelector: '.skip-link',
+    overlaySelector: 'header',
+    edgeInsetPx: 1,
+  };
+
+  /** Box of a 44 × 44 px control whose top left corner is at (100, 100). */
+  const CONTROL_BOX = boxAt({ width: 44, height: 44 });
+
+  /** The five points of {@link CONTROL_BOX} that the check reads. */
+  const CONTROL_POINTS = {
+    center: { x: 122, y: 122 },
+    topLeft: { x: 101, y: 101 },
+    topRight: { x: 143, y: 101 },
+    bottomLeft: { x: 101, y: 143 },
+    bottomRight: { x: 143, y: 143 },
+  };
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+    document.body.innerHTML = '';
+    Reflect.deleteProperty(document, 'elementsFromPoint');
+    Reflect.deleteProperty(Element.prototype, 'scrollIntoView');
+  });
+
+  it('finds no covered point on a control that nothing covers, once scrolled to the middle', () => {
+    const get = renderPage('<header><a href="/fr">FR</a></header><button>Like</button>');
+    const { scrollIntoView } = fakeLayout({
+      boxes: new Map([[get('button'), CONTROL_BOX]]),
+      hitBoxes: [{ element: get('button'), ...CONTROL_BOX }],
+    });
+
+    expect(listControlCovers(COVER_OPTIONS)).toEqual([{ name: 'Like', coveredPoints: [] }]);
+    expect(scrollIntoView).toHaveBeenCalledExactlyOnceWith({ block: 'center', inline: 'center' });
+  });
+
+  it.each([
+    ['its center', boxAt({ x: 110, y: 110, width: 24, height: 24 }), [CONTROL_POINTS.center]],
+    [
+      'its top left corner',
+      boxAt({ x: 90, y: 90, width: 12, height: 12 }),
+      [CONTROL_POINTS.topLeft],
+    ],
+    [
+      'its top right corner',
+      boxAt({ x: 143, y: 90, width: 12, height: 12 }),
+      [CONTROL_POINTS.topRight],
+    ],
+    [
+      'its bottom left corner',
+      boxAt({ x: 90, y: 143, width: 12, height: 12 }),
+      [CONTROL_POINTS.bottomLeft],
+    ],
+    [
+      'its bottom right corner',
+      boxAt({ x: 143, y: 143, width: 12, height: 12 }),
+      [CONTROL_POINTS.bottomRight],
+    ],
+    ['all of it', boxAt({ x: 90, y: 90, width: 64, height: 64 }), Object.values(CONTROL_POINTS)],
+  ])(
+    'finds the points of a control when the overlay covers %s',
+    (_case, coverBox, coveredPoints) => {
+      const get = renderPage('<header><a href="/fr">FR</a></header><button>Like</button>');
+      fakeLayout({
+        boxes: new Map([[get('button'), CONTROL_BOX]]),
+        hitBoxes: [
+          { element: get('button'), ...CONTROL_BOX },
+          { element: get('header a'), ...coverBox },
+        ],
+      });
+
+      const [cover] = listControlCovers(COVER_OPTIONS);
+
+      expect(cover?.coveredPoints).toEqual(expect.arrayContaining(coveredPoints));
+      expect(cover?.coveredPoints).toHaveLength(coveredPoints.length);
+    },
+  );
+
+  it('reads the box of a control once scrolled, where it stands when the points are checked', () => {
+    const get = renderPage('<header><a href="/fr">FR</a></header><button>Like</button>');
+    const scrolledBox = boxAt({ x: 700, y: 500, width: 44, height: 44 });
+    fakeLayout({
+      boxes: new Map([[get('button'), CONTROL_BOX]]),
+      hitBoxes: [
+        { element: get('button'), ...CONTROL_BOX },
+        { element: get('header a'), ...scrolledBox },
+      ],
+    });
+    vi.spyOn(Element.prototype, 'scrollIntoView').mockImplementation(() => {
+      const { left, top, right, bottom } = scrolledBox;
+      vi.mocked(get('button').getBoundingClientRect).mockReturnValue(
+        DOMRect.fromRect({ x: left, y: top, width: right - left, height: bottom - top }),
+      );
+    });
+
+    expect(listControlCovers(COVER_OPTIONS)[0]?.coveredPoints).toHaveLength(5);
+  });
+
+  describe('edge cases', () => {
+    it('counts no point of an overlay that starts on the right edge, past the corners it reads', () => {
+      const get = renderPage('<header><a href="/fr">FR</a></header><button>Like</button>');
+      fakeLayout({
+        boxes: new Map([[get('button'), CONTROL_BOX]]),
+        hitBoxes: [
+          { element: get('button'), ...CONTROL_BOX },
+          // Starts on the right edge, 1 px past the corners that the check reads
+          { element: get('header a'), ...boxAt({ x: 144, y: 90, width: 20, height: 64 }) },
+        ],
+      });
+
+      expect(listControlCovers(COVER_OPTIONS)[0]?.coveredPoints).toEqual([]);
+    });
+
+    it('does not count a point that merely misses the control, as the corner of a round button', () => {
+      const get = renderPage('<header></header><article><button>Like</button></article>');
+      fakeLayout({
+        boxes: new Map([[get('button'), CONTROL_BOX]]),
+        hitBoxes: [
+          { element: get('article'), ...boxAt({ x: 90, y: 90, width: 64, height: 64 }) },
+          { element: get('button'), ...boxAt({ x: 110, y: 110, width: 24, height: 24 }) },
+        ],
+      });
+
+      expect(listControlCovers(COVER_OPTIONS)).toEqual([{ name: 'Like', coveredPoints: [] }]);
+    });
+
+    it('does not count a point outside the screen, where no element stands', () => {
+      const get = renderPage('<header></header><button>Like</button>');
+      fakeLayout({ boxes: new Map([[get('button'), CONTROL_BOX]]) });
+
+      expect(listControlCovers(COVER_OPTIONS)).toEqual([{ name: 'Like', coveredPoints: [] }]);
+    });
+
+    it('leaves out the controls of the overlay, the excluded ones, those of an inert element, and those with no width or height', () => {
+      const get = renderPage(
+        [
+          '<header><a href="/fr">FR</a></header>',
+          '<a class="skip-link" href="#main">Skip to content</a>',
+          '<div inert><button>Behind the menu</button></div>',
+          '<button class="closed">In the closed menu</button>',
+          '<button class="flat">Flat</button>',
+          '<button class="shown">Shown</button>',
+        ].join(''),
+      );
+      fakeLayout({
+        boxes: new Map([
+          [get('header a'), CONTROL_BOX],
+          [get('.skip-link'), CONTROL_BOX],
+          [get('[inert] button'), CONTROL_BOX],
+          [get('.closed'), boxAt({})],
+          [get('.flat'), boxAt({ height: 44 })],
+          [get('.shown'), CONTROL_BOX],
+        ]),
+      });
+
+      expect(listControlCovers(COVER_OPTIONS).map(({ name }) => name)).toEqual(['Shown']);
+    });
+
+    it('finds no covered point on a page without the overlay', () => {
+      const get = renderPage('<button>Like</button><div class="cover"></div>');
+      fakeLayout({
+        boxes: new Map([[get('button'), CONTROL_BOX]]),
+        hitBoxes: [{ element: get('.cover'), ...CONTROL_BOX }],
+      });
+
+      expect(listControlCovers(COVER_OPTIONS)).toEqual([{ name: 'Like', coveredPoints: [] }]);
+    });
+
+    it('names a control by its label, or with an empty name when its text content is null', () => {
+      const get = renderPage('<button aria-label="Like"><svg></svg></button><button>Next</button>');
+      const controls = ['button[aria-label]', 'button:not([aria-label])'].map(get);
+      Object.defineProperty(get('button:not([aria-label])'), 'textContent', { get: () => null });
+      fakeLayout({ boxes: new Map(controls.map(control => [control, CONTROL_BOX])) });
+
+      expect(listControlCovers(COVER_OPTIONS).map(({ name }) => name)).toEqual(['Like', '']);
+    });
+
+    it('checks nothing on a page without controls', () => {
+      renderPage('<p>Nothing to tap</p>');
+      fakeLayout({});
+
+      expect(listControlCovers(COVER_OPTIONS)).toEqual([]);
     });
   });
 });

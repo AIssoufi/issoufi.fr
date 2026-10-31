@@ -32,7 +32,9 @@
     "forceConsistentCasingInFileNames": true,
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
-    "resolveJsonModule": true
+    "resolveJsonModule": true,
+    // The preview reads the types of a script, `scripts/ci/utils/redirects.mjs`, from its JSDoc
+    "allowJs": true
   },
   "include": [
     "vite",

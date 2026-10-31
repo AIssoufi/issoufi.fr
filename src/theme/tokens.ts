@@ -311,4 +311,5 @@ export const breakpoints = {
   50: '50em',
   53.625: '53.625em',
   100: '100em',
+  107.5: '107.5em',
 } as const;

@@ -1,5 +1,29 @@
 import { isNonBlankString } from '../../../../utils/strings.ts';
-import type { ThumbnailFile, ThumbnailSources } from '../types.ts';
+
+/** One file of the screenshot of a project: the same image as the other files, at one width. */
+export interface ThumbnailFile {
+  /**
+   * Absolute URL of the file in `public/`, e.g. `/chess-480.webp`, written whole: the standalone
+   * build rewrites it into a relative URL.
+   */
+  url: string;
+  /** Width of the file in pixels, its `w` descriptor in `srcset`. */
+  width: number;
+  /** Height of the file in pixels. */
+  height: number;
+}
+
+/** Attributes of the `img` of a thumbnail, built by `getThumbnailSources` from its files. */
+interface ThumbnailSources {
+  /** Widest file, for the browsers that ignore `srcset`. */
+  src: string;
+  /** Every file with its width (`/chess-480.webp 480w, …`), among which the browser picks. */
+  srcSet: string;
+  /** Width of the widest file, which gives the `img` the ratio of the screenshot. */
+  width: number;
+  /** Height of the widest file. */
+  height: number;
+}
 
 /** Any white space character, which would split a URL of a `srcset` in two. */
 const WHITE_SPACE_PATTERN = /\s/;

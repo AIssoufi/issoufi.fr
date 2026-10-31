@@ -1,41 +1,17 @@
 import { readRun } from './run-reading.mjs';
 import { waitForLatestRun, waitForLatestRunToFinish, waitForRun } from './run-waiting.mjs';
-import { CREATED_AT, SHA, stubGitHub, stubGitHubEnv } from './testUtils.js';
-
-const RUN_URL = 'https://github.com/AIssoufi/issoufi.fr/actions/runs/123';
-
-/** A run of the REST API answer, as GitHub writes it. */
-const apiRun = (fields = {}) => ({
-  id: 123,
-  head_sha: SHA,
-  status: 'completed',
-  conclusion: 'success',
-  created_at: CREATED_AT,
-  html_url: RUN_URL,
-  ...fields,
-});
-
-/** A run as readLatestRun returns it. */
-const run = (fields = {}) => ({
-  id: 123,
-  sha: SHA,
-  status: 'completed',
-  conclusion: 'success',
-  createdAt: new Date(CREATED_AT),
-  url: RUN_URL,
-  ...fields,
-});
+import { RUNS_URL, SHA, apiRun, stubGitHub, stubGitHubEnv, workflowRun } from './testUtils.js';
 
 /** Route of the list of the runs of the CI. */
 const CI_RUNS_ROUTE = 'GET /actions/workflows/ci.yml/runs';
 
-/** Route of the run 123. */
-const RUN_ROUTE = 'GET /actions/runs/123';
+/** Route of the run 501. */
+const RUN_ROUTE = 'GET /actions/runs/501';
 
 describe('the API calls on runs', () => {
   const RUNS_API_URL = 'https://api.github.com/repos/AIssoufi/issoufi.fr/actions';
 
-  /** Answers the reads of the run 123 with the given JSON bodies in turn, then the last again. */
+  /** Answers the reads of the run 501 with the given JSON bodies in turn, then the last again. */
   const stubRun = (...bodies) => stubGitHub({ [RUN_ROUTE]: bodies.map(body => ({ body })) });
 
   beforeEach(() => {
@@ -57,7 +33,7 @@ describe('the API calls on runs', () => {
 
     it('looks for the run until GitHub created it', async () => {
       const requests = stubRunLists({ workflow_runs: [] }, { workflow_runs: [apiRun()] });
-      await expect(waitForLatestRun({ ...filters, delayMs: 0 })).resolves.toEqual(run());
+      await expect(waitForLatestRun({ ...filters, delayMs: 0 })).resolves.toEqual(workflowRun());
       expect(requests).toHaveLength(2);
       expect(requests[0].url).toBe(
         `${RUNS_API_URL}/workflows/ci.yml/runs?branch=release&event=pull_request&head_sha=${SHA}&per_page=1`,
@@ -82,7 +58,7 @@ describe('the API calls on runs', () => {
       await vi.advanceTimersByTimeAsync(9_999);
       expect(requests).toHaveLength(1);
       await vi.advanceTimersByTimeAsync(1);
-      await expect(promise).resolves.toEqual(run());
+      await expect(promise).resolves.toEqual(workflowRun());
     });
 
     it('throws when a lookup fails', async () => {
@@ -94,7 +70,7 @@ describe('the API calls on runs', () => {
   });
 
   describe('waitForRun', () => {
-    /** Answers the reads of the run 123 with the given answers in turn, then the last again. */
+    /** Answers the reads of the run 501 with the given answers in turn, then the last again. */
     const stubReads = (...answers) => stubGitHub({ [RUN_ROUTE]: answers });
 
     it('reads the run until it is completed', async () => {
@@ -103,8 +79,8 @@ describe('the API calls on runs', () => {
         apiRun({ status: 'in_progress', conclusion: null }),
         apiRun({ conclusion: 'failure' }),
       );
-      await expect(waitForRun({ runId: 123, delayMs: 0 })).resolves.toEqual(
-        run({ conclusion: 'failure' }),
+      await expect(waitForRun({ runId: 501, delayMs: 0 })).resolves.toEqual(
+        workflowRun({ conclusion: 'failure' }),
       );
       expect(requests).toHaveLength(3);
     });
@@ -115,46 +91,46 @@ describe('the API calls on runs', () => {
         apiRun({ status: 'queued', conclusion: null }),
         apiRun(),
       );
-      await expect(waitForRun({ runId: 123, delayMs: 0 })).resolves.toEqual(run());
+      await expect(waitForRun({ runId: 501, delayMs: 0 })).resolves.toEqual(workflowRun());
       expect(requests).toHaveLength(3);
     });
 
     it('gives a run that stays held as last read', async () => {
       stubRun(apiRun({ conclusion: 'action_required' }));
-      await expect(waitForRun({ runId: 123, attempts: 2, delayMs: 0 })).resolves.toEqual(
-        run({ conclusion: 'action_required' }),
+      await expect(waitForRun({ runId: 501, attempts: 2, delayMs: 0 })).resolves.toEqual(
+        workflowRun({ conclusion: 'action_required' }),
       );
     });
 
     it('gives the run as last read when it is still going after every attempt', async () => {
       const requests = stubRun(apiRun({ status: 'in_progress', conclusion: null }));
-      await expect(waitForRun({ runId: 123, attempts: 2, delayMs: 0 })).resolves.toEqual(
-        run({ status: 'in_progress', conclusion: null }),
+      await expect(waitForRun({ runId: 501, attempts: 2, delayMs: 0 })).resolves.toEqual(
+        workflowRun({ status: 'in_progress', conclusion: null }),
       );
       expect(requests).toHaveLength(2);
     });
 
     it('resolves to undefined when the run can never be read', async () => {
       stubRun({});
-      await expect(waitForRun({ runId: 123, attempts: 3, delayMs: 0 })).resolves.toBeUndefined();
+      await expect(waitForRun({ runId: 501, attempts: 3, delayMs: 0 })).resolves.toBeUndefined();
     });
 
     it('reads the run once for a single attempt, and never for none', async () => {
       const requests = stubRun(apiRun({ status: 'in_progress', conclusion: null }));
-      await waitForRun({ runId: 123, attempts: 1, delayMs: 0 });
+      await waitForRun({ runId: 501, attempts: 1, delayMs: 0 });
       expect(requests).toHaveLength(1);
-      await expect(waitForRun({ runId: 123, attempts: 0, delayMs: 0 })).resolves.toBeUndefined();
+      await expect(waitForRun({ runId: 501, attempts: 0, delayMs: 0 })).resolves.toBeUndefined();
       expect(requests).toHaveLength(1);
     });
 
     it('waits between two reads', async () => {
       vi.useFakeTimers();
       const requests = stubRun(apiRun({ status: 'queued', conclusion: null }), apiRun());
-      const promise = waitForRun({ runId: 123 });
+      const promise = waitForRun({ runId: 501 });
       await vi.advanceTimersByTimeAsync(29_999);
       expect(requests).toHaveLength(1);
       await vi.advanceTimersByTimeAsync(1);
-      await expect(promise).resolves.toEqual(run());
+      await expect(promise).resolves.toEqual(workflowRun());
       expect(requests).toHaveLength(2);
     });
 
@@ -165,7 +141,7 @@ describe('the API calls on runs', () => {
         { status: 500, body: {} },
         { body: apiRun() },
       );
-      await expect(waitForRun({ runId: 123, delayMs: 0 })).resolves.toEqual(run());
+      await expect(waitForRun({ runId: 501, delayMs: 0 })).resolves.toEqual(workflowRun());
       expect(requests).toHaveLength(4);
     });
 
@@ -174,25 +150,25 @@ describe('the API calls on runs', () => {
         { body: apiRun({ status: 'in_progress', conclusion: null }) },
         { status: 500, body: {} },
       );
-      await expect(waitForRun({ runId: 123, attempts: 3, delayMs: 0 })).resolves.toEqual(
-        run({ status: 'in_progress', conclusion: null }),
+      await expect(waitForRun({ runId: 501, attempts: 3, delayMs: 0 })).resolves.toEqual(
+        workflowRun({ status: 'in_progress', conclusion: null }),
       );
     });
 
     it('resolves to undefined when the only answer was not a run and the other reads failed', async () => {
       stubReads({ status: 500, body: {} }, { body: {} }, { status: 500, body: {} });
-      await expect(waitForRun({ runId: 123, attempts: 3, delayMs: 0 })).resolves.toBeUndefined();
+      await expect(waitForRun({ runId: 501, attempts: 3, delayMs: 0 })).resolves.toBeUndefined();
     });
 
     it('throws the error of the last read when every read failed', async () => {
       const requests = stubReads({ status: 500, body: {} });
-      await expect(waitForRun({ runId: 123, attempts: 3, delayMs: 0 })).rejects.toThrow(
+      await expect(waitForRun({ runId: 501, attempts: 3, delayMs: 0 })).rejects.toThrow(
         'The GitHub API answered 500',
       );
       expect(requests).toHaveLength(3);
     });
 
-    it.each([undefined, 0, -1, 1.5, Number.NaN, '123'])(
+    it.each([undefined, 0, -1, 1.5, Number.NaN, '501'])(
       'throws at once without asking the API for the run %o',
       async runId => {
         const requests = stubRun(apiRun());
@@ -205,10 +181,10 @@ describe('the API calls on runs', () => {
   describe('waitForLatestRunToFinish', () => {
     const filters = { branch: 'develop', event: null, sha: SHA };
     const LIST_URL = `${RUNS_API_URL}/workflows/ci.yml/runs?branch=develop&head_sha=${SHA}&per_page=1`;
-    const RUN_API_URL = `${RUNS_API_URL}/runs/123`;
+    const RUN_API_URL = `${RUNS_API_URL}/runs/501`;
     const runningApiRun = (status = 'in_progress') => apiRun({ status, conclusion: null });
 
-    /** Answers the list of the runs with the given answer, and the reads of the run 123 in turn. */
+    /** Answers the list of the runs with the given answer, and the reads of the run 501 in turn. */
     const stubWait = ({ list, reads = [] }) =>
       stubGitHub({ [CI_RUNS_ROUTE]: [list], [RUN_ROUTE]: reads });
 
@@ -253,10 +229,10 @@ describe('the API calls on runs', () => {
         });
         await expect(
           waitForLatestRunToFinish({ ...filters, runWait: { delayMs: 0 } }),
-        ).resolves.toEqual(run({ conclusion: 'failure' }));
+        ).resolves.toEqual(workflowRun({ conclusion: 'failure' }));
         expect(requests.map(({ url }) => url)).toEqual([LIST_URL, RUN_API_URL, RUN_API_URL]);
         expect(console.log).toHaveBeenCalledWith(
-          `Waiting for the run still going on 58ff9ea (${status}): ${RUN_URL}`,
+          `Waiting for the run still going on 58ff9ea (${status}): ${RUNS_URL}/501`,
         );
       },
     );
@@ -268,7 +244,7 @@ describe('the API calls on runs', () => {
       });
       await expect(
         waitForLatestRunToFinish({ ...filters, runWait: { attempts: 2, delayMs: 0 } }),
-      ).resolves.toEqual(run({ status: 'in_progress', conclusion: null }));
+      ).resolves.toEqual(workflowRun({ status: 'in_progress', conclusion: null }));
       expect(requests).toHaveLength(3);
     });
 
@@ -276,14 +252,14 @@ describe('the API calls on runs', () => {
       stubListedRun({ listedRun: runningApiRun(), readRuns: [{ message: 'odd' }] });
       await expect(
         waitForLatestRunToFinish({ ...filters, runWait: { attempts: 2, delayMs: 0 } }),
-      ).resolves.toEqual(run({ status: 'in_progress', conclusion: null }));
+      ).resolves.toEqual(workflowRun({ status: 'in_progress', conclusion: null }));
     });
 
     it('gives the run as listed when the wait has no attempt', async () => {
       const requests = stubListedRun({ listedRun: runningApiRun() });
       await expect(
         waitForLatestRunToFinish({ ...filters, runWait: { attempts: 0 } }),
-      ).resolves.toEqual(run({ status: 'in_progress', conclusion: null }));
+      ).resolves.toEqual(workflowRun({ status: 'in_progress', conclusion: null }));
       expect(requests).toHaveLength(1);
     });
 
@@ -297,7 +273,7 @@ describe('the API calls on runs', () => {
       await vi.advanceTimersByTimeAsync(29_999);
       expect(requests).toHaveLength(2);
       await vi.advanceTimersByTimeAsync(1);
-      await expect(promise).resolves.toEqual(run());
+      await expect(promise).resolves.toEqual(workflowRun());
       expect(requests).toHaveLength(3);
     });
 
@@ -306,7 +282,7 @@ describe('the API calls on runs', () => {
         'GET /api/v3/repos/owner/repo/actions/workflows/ci.yml/runs': [
           { body: { workflow_runs: [runningApiRun()] } },
         ],
-        'GET /api/v3/repos/owner/repo/actions/runs/123': [{ body: apiRun() }],
+        'GET /api/v3/repos/owner/repo/actions/runs/501': [{ body: apiRun() }],
       });
       await waitForLatestRunToFinish({
         ...filters,
@@ -317,7 +293,7 @@ describe('the API calls on runs', () => {
       });
       const [{ url: listUrl }, { url: runUrl, headers }] = requests;
       expect(listUrl).toMatch(/^https:\/\/example\.com\/api\/v3\/repos\/owner\/repo\/actions\//);
-      expect(runUrl).toBe('https://example.com/api/v3/repos/owner/repo/actions/runs/123');
+      expect(runUrl).toBe('https://example.com/api/v3/repos/owner/repo/actions/runs/501');
       expect(headers.Authorization).toBe('Bearer other');
     });
 

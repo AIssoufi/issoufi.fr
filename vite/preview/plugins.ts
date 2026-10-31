@@ -44,12 +44,13 @@ export const cacheHeaders = (): Plugin => ({
 
 /**
  * Vite plugin that makes `vite preview` answer, as Cloudflare Pages does, the paths that it
- * answers before serving a file (see {@link createCloudflareRoutesMiddleware}): `_headers` and
- * `_redirects` with the not found page and the status 404, and the other paths of a page with a
- * redirect 308 to its canonical path, where Vite would serve the page, or the home page through
- * its single page fallback. The browser tests then follow the redirects that a visitor follows.
- * It runs before the other middlewares, so a redirect carries no cache policy, as on Cloudflare
- * Pages, and changes neither the build nor the dev server.
+ * answers before serving a file (see {@link createCloudflareRoutesMiddleware}): the redirects of
+ * `_redirects` with their status, `_headers` and `_redirects` with the not found page and the
+ * status 404, and the other paths of a page with a redirect 308 to its canonical path, where Vite
+ * would serve the page, or the home page through its single page fallback. The browser tests then
+ * follow the redirects that a visitor follows. It runs before the other middlewares, so a redirect
+ * carries no cache policy, as on Cloudflare Pages, and changes neither the build nor the dev
+ * server.
  */
 export const cloudflareRoutes = (): Plugin => ({
   name: CLOUDFLARE_ROUTES_PLUGIN_NAME,

@@ -8,7 +8,6 @@ import {
 import { approveHeldRuns, nameRun } from './held-runs.mjs';
 import {
   BRANCH,
-  CREATED_AT,
   REPOSITORY,
   RUNS_URL,
   SHA,
@@ -16,6 +15,7 @@ import {
   routesOf,
   stubGitHub,
   stubGitHubEnv,
+  workflowRun,
 } from './testUtils.js';
 import { findKeyLines, listYamlFiles } from './yaml.mjs';
 
@@ -33,15 +33,7 @@ const TITLE_RUNS_ROUTE = `GET /actions/workflows/${TITLE_WORKFLOW_FILE}/runs`;
 const FORBIDDEN = { status: 403, body: { message: 'Resource not accessible by integration' } };
 
 /** A run as `readRun` gives it, by default the held run of the CI. */
-const workflowRun = ({ id = 501, ...fields } = {}) => ({
-  id,
-  sha: SHA,
-  status: 'completed',
-  conclusion: 'action_required',
-  createdAt: new Date(CREATED_AT),
-  url: `${RUNS_URL}/${id}`,
-  ...fields,
-});
+const heldWorkflowRun = fields => workflowRun({ conclusion: 'action_required', ...fields });
 
 /** A run as the REST API writes it, by default the held run of the title lint. */
 const apiTitleRun = fields => apiRun({ id: 511, conclusion: 'action_required', ...fields });
@@ -81,7 +73,7 @@ describe('approveHeldRuns', () => {
   it('approves the held CI, then the held run of the title lint on its head', async () => {
     const requests = stubGitHub(heldRoutes());
 
-    await expect(approveFrom(workflowRun())).resolves.toBeUndefined();
+    await expect(approveFrom(heldWorkflowRun())).resolves.toBeUndefined();
     expect(routesOf(requests)).toEqual([
       'POST /actions/runs/501/approve',
       TITLE_RUNS_ROUTE,
@@ -102,7 +94,7 @@ describe('approveHeldRuns', () => {
   it('approves the held title lint alone when GitHub does not hold the CI', async () => {
     const requests = stubGitHub(heldRoutes());
 
-    await expect(approveFrom(workflowRun({ conclusion: 'success' }))).resolves.toBeUndefined();
+    await expect(approveFrom(workflowRun())).resolves.toBeUndefined();
     expect(routesOf(requests)).toEqual([TITLE_RUNS_ROUTE, 'POST /actions/runs/511/approve']);
   });
 
@@ -119,12 +111,12 @@ describe('approveHeldRuns', () => {
   ])('approves the held CI alone %s of the title lint', async (_case, titleRuns) => {
     const requests = stubGitHub({ ...heldRoutes(), [TITLE_RUNS_ROUTE]: [{ body: titleRuns }] });
 
-    await expect(approveFrom(workflowRun())).resolves.toBeUndefined();
+    await expect(approveFrom(heldWorkflowRun())).resolves.toBeUndefined();
     expect(routesOf(requests)).toEqual(['POST /actions/runs/501/approve', TITLE_RUNS_ROUTE]);
   });
 
   it('stops at the held CI that GitHub refuses to let it approve', async () => {
-    const ciRun = workflowRun();
+    const ciRun = heldWorkflowRun();
     const requests = stubGitHub({ ...heldRoutes(), 'POST /actions/runs/501/approve': [FORBIDDEN] });
 
     await expect(approveFrom(ciRun)).resolves.toEqual({
@@ -139,9 +131,9 @@ describe('approveHeldRuns', () => {
   it('gives the held title lint that GitHub refuses to let it approve after the CI', async () => {
     stubGitHub({ ...heldRoutes(), 'POST /actions/runs/511/approve': [FORBIDDEN] });
 
-    await expect(approveFrom(workflowRun())).resolves.toEqual({
+    await expect(approveFrom(heldWorkflowRun())).resolves.toEqual({
       workflow: TITLE_WORKFLOW_FILE,
-      run: workflowRun({ id: 511 }),
+      run: heldWorkflowRun({ id: 511 }),
       reason: `The GitHub API answered 403 to https://api.github.com/repos/${REPOSITORY}/actions/runs/511/approve: Resource not accessible by integration`,
     });
     expect(console.log).toHaveBeenCalledTimes(1);
@@ -150,7 +142,7 @@ describe('approveHeldRuns', () => {
   it('writes a failed approval that is not an error as text', async () => {
     stubGitHub({ ...heldRoutes(), 'POST /actions/runs/501/approve': [{ rejection: 'offline' }] });
 
-    await expect(approveFrom(workflowRun())).resolves.toMatchObject({ reason: 'offline' });
+    await expect(approveFrom(heldWorkflowRun())).resolves.toMatchObject({ reason: 'offline' });
   });
 
   it('throws when the runs of the title lint cannot be listed', async () => {
@@ -159,7 +151,7 @@ describe('approveHeldRuns', () => {
       [TITLE_RUNS_ROUTE]: [{ status: 500, body: { message: 'Server Error' } }],
     });
 
-    await expect(approveFrom(workflowRun())).rejects.toThrow('The GitHub API answered 500');
+    await expect(approveFrom(heldWorkflowRun())).rejects.toThrow('The GitHub API answered 500');
     expect(routesOf(requests)).toEqual(['POST /actions/runs/501/approve', TITLE_RUNS_ROUTE]);
   });
 });

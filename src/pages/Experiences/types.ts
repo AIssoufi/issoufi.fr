@@ -1,16 +1,7 @@
-/**
- * One piece of a paragraph of `.data/experiences.json`: a text named by its translation key,
- * which the page writes after the previous piece, in bold when `isStrong` is true.
- */
-export interface TextSegmentData {
-  /** Translation key of the text, e.g. `exp.sewanUiKit.intro1`. */
-  key?: string;
-  /** Whether the text is in bold, as a company or a client name. @default false */
-  isStrong?: boolean;
-}
+import type { TextSegmentData } from './CompanyEntry/RoleDescription/TextSegments/TextSegments.tsx';
 
 /** A project carried out within a role: a block with a title, a status badge and a description. */
-export interface ProjectData {
+export interface RoleProjectData {
   /** Translation key of the project name. */
   titleKey?: string;
   /** Translation key of its status badge, e.g. "Livré dans les délais". */
@@ -63,12 +54,12 @@ export interface RoleData {
    */
   cvBulletKeys?: string[];
   /** Projects of the role, in order. */
-  projects?: ProjectData[];
+  projects?: RoleProjectData[];
   /**
    * Projects that the CV writes instead of `projects`. Missing when it writes them, empty for
    * none.
    */
-  cvProjects?: ProjectData[];
+  cvProjects?: RoleProjectData[];
   /** Technologies of the role, proper names written the same in every language. */
   technologies?: string[];
   /**

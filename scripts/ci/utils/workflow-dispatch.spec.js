@@ -1,15 +1,17 @@
 import { dispatchWorkflow, readDispatchedRun } from './workflow-dispatch.mjs';
-import { stubGitHub, stubGitHubEnv } from './testUtils.js';
-
-const RUN_URL = 'https://github.com/AIssoufi/issoufi.fr/actions/runs/123';
+import { RUNS_URL, stubGitHub, stubGitHubEnv } from './testUtils.js';
 
 describe('readDispatchedRun', () => {
-  const RUN_API_URL = 'https://api.github.com/repos/AIssoufi/issoufi.fr/actions/runs/123';
+  const RUN_API_URL = 'https://api.github.com/repos/AIssoufi/issoufi.fr/actions/runs/501';
 
   it('reads the run that the dispatch started', () => {
     expect(
-      readDispatchedRun({ workflow_run_id: 123, run_url: RUN_API_URL, html_url: RUN_URL }),
-    ).toEqual({ id: 123, url: RUN_URL });
+      readDispatchedRun({
+        workflow_run_id: 501,
+        run_url: RUN_API_URL,
+        html_url: `${RUNS_URL}/501`,
+      }),
+    ).toEqual({ id: 501, url: `${RUNS_URL}/501` });
   });
 
   it.each([
@@ -17,15 +19,15 @@ describe('readDispatchedRun', () => {
     null,
     '',
     {},
-    { workflow_run_id: 123 },
-    { html_url: RUN_URL },
-    { workflow_run_id: 0, html_url: RUN_URL },
-    { workflow_run_id: -1, html_url: RUN_URL },
-    { workflow_run_id: 1.5, html_url: RUN_URL },
-    { workflow_run_id: Number.NaN, html_url: RUN_URL },
-    { workflow_run_id: '123', html_url: RUN_URL },
-    { workflow_run_id: 123, html_url: '' },
-    { workflow_run_id: 123, html_url: 42 },
+    { workflow_run_id: 501 },
+    { html_url: `${RUNS_URL}/501` },
+    { workflow_run_id: 0, html_url: `${RUNS_URL}/501` },
+    { workflow_run_id: -1, html_url: `${RUNS_URL}/501` },
+    { workflow_run_id: 1.5, html_url: `${RUNS_URL}/501` },
+    { workflow_run_id: Number.NaN, html_url: `${RUNS_URL}/501` },
+    { workflow_run_id: '501', html_url: `${RUNS_URL}/501` },
+    { workflow_run_id: 501, html_url: '' },
+    { workflow_run_id: 501, html_url: 42 },
   ])('returns undefined for %o', response => {
     expect(readDispatchedRun(response)).toBeUndefined();
   });
@@ -45,19 +47,19 @@ describe('the API calls on runs', () => {
   });
 
   describe('dispatchWorkflow', () => {
-    /** Answers the start of the given workflow with the run 123. */
+    /** Answers the start of the given workflow with the run 501. */
     const stubDispatch = workflow =>
       stubGitHub({
         [`POST /actions/workflows/${workflow}/dispatches`]: [
-          { body: { workflow_run_id: 123, html_url: RUN_URL } },
+          { body: { workflow_run_id: 501, html_url: `${RUNS_URL}/501` } },
         ],
       });
 
     it('starts a workflow on a branch and reads the run it started', async () => {
       const requests = stubDispatch('ci.yml');
       await expect(dispatchWorkflow({ workflow: 'ci.yml', ref: 'develop' })).resolves.toEqual({
-        id: 123,
-        url: RUN_URL,
+        id: 501,
+        url: `${RUNS_URL}/501`,
       });
       const [{ route, url, body }] = requests;
       expect(url).toBe(`${RUNS_API_URL}/workflows/ci.yml/dispatches`);
