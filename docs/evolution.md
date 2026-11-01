@@ -227,4 +227,14 @@ Measured on 2026-10-24.
 | Requests in production        | 10                                   | 10, 9 from the cache, on 2026-11-01   |
 | Font files in `dist/`         | 58,720 bytes                         | 96,676 bytes                          |
 
-Decision: [0015](decisions/0015-render-at-build-time.md), [0016](decisions/0016-cloudflare-worker-deploy-trigger.md), [0017](decisions/0017-typescript-6.md), [0018](decisions/0018-pnpm-12.md), [0019](decisions/0019-locked-build-chain.md), [0020](decisions/0020-vitest-5.md), [0021](decisions/0021-knip.md), [0022](decisions/0022-chromium-libraries-from-runner-image.md), [0023](decisions/0023-phone-browser-tests-in-webkit.md), [0024](decisions/0024-webkit-in-playwright-image.md), [0025](decisions/0025-hashed-web-fonts.md).
+On 2026-11-01, the build, the tests and the CI move to Node.js 26, LTS since 2026-10-28, with `@types/node` 26 and pnpm 12.15.0 ([#495](https://github.com/AIssoufi/issoufi.fr/issues/495)). The WebKit shards run it too: `actions/setup-node` puts it before the Node.js 24 of the image of Playwright. Before, Node.js 24.22.0 and pnpm 12.14.0; after, Node.js 26.13.0 and pnpm 12.15.0.
+
+Measured on 2026-11-01.
+
+| Figure        | Before                | After                 |
+| ------------- | --------------------- | --------------------- |
+| Clean install | 0.6 s (0.6 to 0.6)    | 0.6 s (0.6 to 0.6)    |
+| Build         | 4.6 s (3.7 to 5.1)    | 4.5 s (3.7 to 4.5)    |
+| Unit tests    | 39.0 s (38.5 to 39.9) | 35.5 s (35.1 to 35.8) |
+
+Decision: [0015](decisions/0015-render-at-build-time.md), [0016](decisions/0016-cloudflare-worker-deploy-trigger.md), [0017](decisions/0017-typescript-6.md), [0018](decisions/0018-pnpm-12.md), [0019](decisions/0019-locked-build-chain.md), [0020](decisions/0020-vitest-5.md), [0021](decisions/0021-knip.md), [0022](decisions/0022-chromium-libraries-from-runner-image.md), [0023](decisions/0023-phone-browser-tests-in-webkit.md), [0024](decisions/0024-webkit-in-playwright-image.md), [0025](decisions/0025-hashed-web-fonts.md), [0026](decisions/0026-node-26.md).

@@ -66,7 +66,7 @@ A new route needs its entry in `src/utils/pages.ts`: without its HTML file, a re
 ## Browsers
 
 - The build targets the browsers of 2023 on: Chrome and Edge 111, Firefox 114, Safari 16.4.
-- The app is type-checked against these browsers, and the tests and tools against Node.js 24.
+- The app is type-checked against these browsers, and the tests and tools against Node.js 26.
 
 ## Project structure
 
