@@ -216,6 +216,13 @@ describe('findRedirectRule', () => {
     expect(findRedirectRule({ rules, url: '/blog/*' })).toBe(SPLAT_RULE);
   });
 
+  it('finds a source with a trailing slash at that path alone', () => {
+    const slashRule = { ...CODE_RULE, source: '/code/' };
+
+    expect(findRedirectRule({ rules: [slashRule], url: '/code/?a=1' })).toBe(slashRule);
+    expect(findRedirectRule({ rules: [slashRule], url: '/code' })).toBeUndefined();
+  });
+
   it('finds the first redirect of a source that two give', () => {
     const later = { ...CODE_RULE, target: '/later' };
 

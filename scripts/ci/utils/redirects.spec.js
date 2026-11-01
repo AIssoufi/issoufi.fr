@@ -531,14 +531,24 @@ describe('getRedirectChecks', () => {
 describe(`the ${REDIRECTS_FILE} of ${PUBLIC_DIR}/`, () => {
   const rules = parseRedirectRules(readFileSync(join(PUBLIC_DIR, REDIRECTS_FILE), 'utf8'));
   const sources = rules.map(({ source }) => source);
+  const hasNoTrailingSlash = source => !source.endsWith('/');
+  const findTarget = source => rules.find(rule => rule.source === source)?.target;
 
   it('serves the short links of the CVs, with a 302 to an address of their own', () => {
-    expect(sources).toEqual(['/code', '/method']);
+    expect(sources).toEqual(['/code', '/code/', '/method', '/method/']);
     rules.forEach(({ target, status }) => {
       expect(status).toBe(302);
       expect(new URL(target).protocol).toBe('https:');
     });
   });
+
+  it.each(sources.filter(hasNoTrailingSlash))(
+    'sends %s with a trailing slash to the same target',
+    source => {
+      expect(findTarget(source)).toBeDefined();
+      expect(findTarget(`${source}/`)).toBe(findTarget(source));
+    },
+  );
 
   it.each(sources)('shadows no page nor file of the site with %s', source => {
     expect(getPage(source)).toBeUndefined();

@@ -51,26 +51,16 @@ const expectBandOnHeader = async (header: Locator) => {
 
 /**
  * Lists the boxes of the links and buttons shown in the row of the header, such as the logo, the
- * burger or the navigation links, leaving out the controls fixed elsewhere on the screen, such as
- * the language toggle floating on the right edge of the widest screens. Runs in the browser, so it
- * uses nothing from outside its own body.
+ * burger or the navigation links. Runs in the browser, so it uses nothing from outside its own
+ * body.
  */
-const listHeaderRowControlBoxes = (header: Element) => {
-  const hasFixedAncestorInHeader = (element: Element) => {
-    for (let current = element.parentElement; current && current !== header;) {
-      if (getComputedStyle(current).position === 'fixed') return true;
-      current = current.parentElement;
-    }
-    return false;
-  };
-  const isShownInHeaderRow = (control: Element) =>
-    control.checkVisibility() && !hasFixedAncestorInHeader(control);
-
-  return [...header.querySelectorAll('a, button')].filter(isShownInHeaderRow).map(control => {
-    const { x, y, width, height } = control.getBoundingClientRect();
-    return { label: control.textContent?.trim() || control.localName, x, y, width, height };
-  });
-};
+const listHeaderRowControlBoxes = (header: Element) =>
+  [...header.querySelectorAll('a, button')]
+    .filter(control => control.checkVisibility())
+    .map(control => {
+      const { x, y, width, height } = control.getBoundingClientRect();
+      return { label: control.textContent?.trim() || control.localName, x, y, width, height };
+    });
 
 // jsdom computes no layout and scrolls nothing, so only a real browser sees the header leave the
 // screen, or its band blur the page alone

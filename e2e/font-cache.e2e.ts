@@ -3,6 +3,7 @@ import { expect, test } from '@playwright/test';
 import { FONT_FILE_FORMAT } from '../src/theme/constants.ts';
 import { PAGE_SELECTOR, TIMELINE_ROUTE } from './constants.ts';
 import { waitForPageContent } from './loading.ts';
+import { gotoRoute } from './navigation.ts';
 
 /** Times the test loads the page in one tab: the first load downloads the fonts, not the next. */
 const LOAD_COUNT = 3;
@@ -30,7 +31,7 @@ test(`${TIMELINE_ROUTE} downloads its web fonts on its first load only, of ${LOA
 }) => {
   const transferSizesPerLoad: number[][] = [];
   for (let load = 0; load < LOAD_COUNT; load += 1) {
-    await page.goto(TIMELINE_ROUTE);
+    await gotoRoute({ page, route: TIMELINE_ROUTE });
     await expect(page.locator(PAGE_SELECTOR)).toBeVisible();
     await page.evaluate(waitForPageContent);
     transferSizesPerLoad.push(await page.evaluate(readFontTransferSizes, FONT_FILE_FORMAT));

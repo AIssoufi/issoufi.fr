@@ -1,4 +1,7 @@
 # Short links of the CVs, which Cloudflare Pages redirects to their target (docs/deployment.md).
 # 302, so that a target can change: browsers and search engines keep a 301.
+# A source matches the whole path, so a trailing slash needs a rule of its own.
 /code https://github.com/AIssoufi/issoufi.fr 302
+/code/ https://github.com/AIssoufi/issoufi.fr 302
 /method https://github.com/AIssoufi/issoufi.fr/tree/develop/docs/ai-workflow 302
+/method/ https://github.com/AIssoufi/issoufi.fr/tree/develop/docs/ai-workflow 302

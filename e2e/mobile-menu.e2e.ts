@@ -19,6 +19,7 @@ import {
   SHORTER_THAN_MENU_SCREEN,
 } from './constants.ts';
 import { scrollDownWithGesture, type ScrollGestureSource } from './gestures.ts';
+import { gotoRoute } from './navigation.ts';
 import { getPageScrollY } from './scroll.ts';
 import { doBoxesOverlapHorizontally, getScreenBox, getScreenCenter, isBoxInside } from './utils.ts';
 
@@ -150,7 +151,7 @@ for (const language of LANGUAGES) {
       test('the open mobile menu shows each of its links whole, without scrolling', async ({
         page,
       }) => {
-        await page.goto(route);
+        await gotoRoute({ page, route });
         const navigation = await openMenu({ page, translations });
 
         for (const { name, link } of getMenuLinks({ navigation, translations })) {
@@ -179,7 +180,7 @@ for (const language of LANGUAGES) {
     test.use({ viewport: SHORTER_THAN_MENU_SCREEN });
 
     test('the open mobile menu scrolls to show each of its links whole', async ({ page }) => {
-      await page.goto(route);
+      await gotoRoute({ page, route });
       const navigation = await openMenu({ page, translations });
       expect(await navigation.evaluate(isScrollable), 'menu higher than the screen').toBe(true);
       await expectLinksBesideToggle({ page, navigation, translations });
@@ -200,7 +201,7 @@ for (const language of LANGUAGES) {
       browserName,
     }) => {
       test.skip(lacksDevToolsProtocol(browserName), DEVTOOLS_PROTOCOL_SKIP_REASON);
-      await page.goto(route);
+      await gotoRoute({ page, route });
       const navigation = await openMenu({ page, translations });
       expect(
         await navigation.evaluate(element => element.scrollTop),
@@ -227,7 +228,7 @@ for (const viewport of MOBILE_LAYOUT_SCREENS) {
       browserName,
     }) => {
       test.skip(lacksDevToolsProtocol(browserName), DEVTOOLS_PROTOCOL_SKIP_REASON);
-      await page.goto(LONG_PAGE_ROUTE);
+      await gotoRoute({ page, route: LONG_PAGE_ROUTE });
       await expect(page.locator(PAGE_SELECTOR)).toBeVisible();
       await page.evaluate(top => window.scrollTo(0, top), MENU_OPENING_SCROLL_Y_PX);
       expect(await page.evaluate(getPageScrollY), 'scroll position before the menu opens').toBe(
@@ -265,7 +266,7 @@ for (const viewport of MOBILE_LAYOUT_SCREENS) {
     test('the open mobile menu marks the link of the current page with its color and its weight', async ({
       page,
     }) => {
-      await page.goto(PROJECTS_ROUTE);
+      await gotoRoute({ page, route: PROJECTS_ROUTE });
       const navigation = await openMenu({ page, translations: fr });
       const currentLink = navigation.getByRole('link', { name: fr.nav.projects, exact: true });
       await expect(currentLink).toHaveAttribute('aria-current', 'page');
@@ -289,7 +290,7 @@ for (const viewport of MOBILE_LAYOUT_SCREENS) {
       browserName,
     }) => {
       const nextLinkKey = NEXT_LINK_KEYS[browserName];
-      await page.goto(LONG_PAGE_ROUTE);
+      await gotoRoute({ page, route: LONG_PAGE_ROUTE });
       const burgerBox = await page.getByRole('button', { name: fr.burgerMenu.open }).boundingBox();
       const navigation = await openMenu({ page, translations: fr });
       const burger = page.getByRole('button', { name: fr.burgerMenu.close });

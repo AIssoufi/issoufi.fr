@@ -1,0 +1,64 @@
+name: Live check
+
+# Checks production on a day without a deployment: the smoke test of ci.yml only runs after one
+on:
+  schedule:
+    # GitHub may start a cron late or drop it (ADR 0016), which an hourly check accepts
+    - cron: '17 * * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  live-check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      # The smoke test retries for 20 seconds, the redirect check not at all: this pause lets a
+      # network blip pass before each one runs a second time
+      RETRY_DELAY_SECONDS: 60
+    steps:
+      # main, not develop where a cron runs: a change merged into develop is only online the next
+      # morning
+      - uses: actions/checkout@v7
+        with:
+          ref: main
+          persist-credentials: false
+      # main moves minutes before its CI deploys it, a window that this cron hits most mornings, and
+      # comparing production with a build it does not serve would fail until the deployment. So the
+      # next steps wait for a passing CI of this commit, which a red one puts off until the next
+      # commit. Filtering on push leaves out a pull request from the main branch of a fork.
+      - id: deployed
+        name: Check that production serves this commit
+        run: |
+          commit="$(git rev-parse HEAD)"
+          conclusion="$(gh run list --repo "$GITHUB_REPOSITORY" --workflow ci.yml --branch main \
+            --event push --commit "$commit" --limit 1 --json conclusion \
+            --jq '.[0].conclusion // ""')"
+          if [ "$conclusion" = success ]; then
+            echo 'online=true' >> "$GITHUB_OUTPUT"
+          else
+            echo "::warning::Live check skipped: the CI of $commit has not passed"
+          fi
+        env:
+          GH_TOKEN: ${{ github.token }}
+      # The smoke test compares the site with dist/. The artifact of the CI expires after 7 days,
+      # sooner than a deployment may come
+      - uses: ./.github/actions/setup
+        if: steps.deployed.outputs.online == 'true'
+      - if: steps.deployed.outputs.online == 'true'
+        run: pnpm build
+      # The web manifests state the years of experience, which change at midnight UTC on June 1
+      # (CAREER_START_DATE of src/utils/career.ts), hours before rebuild.yml or the morning
+      # deployment puts them online: this build would differ from production until then. The smoke
+      # test only checks the files that dist/ holds
+      - name: Leave out the web manifests on June 1
+        if: steps.deployed.outputs.online == 'true'
+        run: if [ "$(date -u +%m-%d)" = 06-01 ]; then find dist -name manifest.webmanifest -delete; fi
+      - name: Smoke-test the production site
+        if: steps.deployed.outputs.online == 'true'
+        run: node scripts/ci/smoke-test.mjs || { sleep "$RETRY_DELAY_SECONDS"; node scripts/ci/smoke-test.mjs; }
+      - name: Check the redirects to the production site
+        if: ${{ !cancelled() && steps.deployed.outputs.online == 'true' }}
+        run: node scripts/ci/check-redirects.mjs || { sleep "$RETRY_DELAY_SECONDS"; node scripts/ci/check-redirects.mjs; }

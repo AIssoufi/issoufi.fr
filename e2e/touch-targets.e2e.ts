@@ -11,6 +11,7 @@ import {
   SITE_HEADER_SELECTOR,
   SKIP_LINK_SELECTOR,
 } from './constants.ts';
+import { gotoRoute } from './navigation.ts';
 import { type HitArea, measureHitAreas, type MeasureHitAreasOptions } from './targets.ts';
 import { getCheckedRoutes } from './utils.ts';
 
@@ -54,7 +55,7 @@ for (const { viewport, hasMobileMenu } of touchScreens) {
       test(`every control of ${route} takes the taps of a finger over ${FINGER_TARGET_SIZE_PX} × ${FINGER_TARGET_SIZE_PX} px at least`, async ({
         page,
       }) => {
-        await page.goto(route);
+        await gotoRoute({ page, route });
 
         await expectFingerTargets(page);
       });
@@ -65,7 +66,7 @@ for (const { viewport, hasMobileMenu } of touchScreens) {
     test('every control of the open mobile menu takes the taps of a finger as well', async ({
       page,
     }) => {
-      await page.goto('/');
+      await gotoRoute({ page, route: '/' });
       await page.getByRole('button', { name: fr.burgerMenu.open }).tap();
       await expect(page.getByRole('navigation')).toBeVisible();
 

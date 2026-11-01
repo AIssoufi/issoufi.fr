@@ -121,8 +121,9 @@ interface FindRedirectRuleParams {
 
 /**
  * Finds the first redirect whose source is the path of a request, as Cloudflare Pages matches it:
- * whole, case included and not decoded, so `/code/`, `/Code` and `/c%6Fde` match no `/code`. A
- * source with a splat or a placeholder only matches itself, since the preview reads no pattern.
+ * whole, case included and not decoded, so `/Code` and `/c%6Fde` match no `/code`, and `/code/`
+ * matches it only by a rule of its own. A source with a splat or a placeholder only matches
+ * itself, since the preview reads no pattern.
  *
  * @returns The redirect, or `undefined` when none matches or the URL is not a string.
  *

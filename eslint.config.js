@@ -5,6 +5,8 @@ import { defineConfig, globalIgnores } from 'eslint/config';
 import globals from 'globals';
 import tseslint from 'typescript-eslint';
 
+import { WEBKIT_SPECS } from './e2e/webkit-specs.js';
+
 /**
  * A relative module specifier that names no extension of a module or an asset, such as `./utils`
  * or `./Name.styled`. Add an extension to the list before importing a new kind of file. The `/`
@@ -121,6 +123,23 @@ export default defineConfig([
           message:
             'Render links to a new tab with NewTabLink (src/components/NewTabLink), or extend it with styled(NewTabLink): it tells screen readers that the link opens a new tab, and gives that tab no access to the site.',
         })),
+      ],
+    },
+  },
+  {
+    // WebKit loses a navigation now and then, which a bare goto waits on until the test times out.
+    // Any object counts, since a test may name its page otherwise. This block replaces the
+    // restrictions above, so it repeats them
+    files: WEBKIT_SPECS,
+    rules: {
+      'no-restricted-syntax': [
+        'error',
+        ...EXTENSION_RESTRICTIONS,
+        {
+          selector: "MemberExpression[property.name='goto']",
+          message:
+            'Open a page with gotoRoute (e2e/navigation.ts): a spec of the webkit project needs it to survive the navigations that WebKit loses, which a bare page.goto waits on until it times out.',
+        },
       ],
     },
   },

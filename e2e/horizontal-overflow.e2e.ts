@@ -10,6 +10,7 @@ import {
   SCREEN_WIDTHS_PX,
 } from './constants.ts';
 import { waitForPageContent } from './loading.ts';
+import { gotoRoute } from './navigation.ts';
 import { getCheckedRoutes } from './utils.ts';
 
 // jsdom computes no layout, so only a real browser sees a page wider than the screen
@@ -26,7 +27,7 @@ for (const language of LANGUAGES) {
       ];
       for (const route of routes) {
         test(`${route} does not scroll sideways`, async ({ page }) => {
-          await page.goto(route);
+          await gotoRoute({ page, route });
           // A route that lost its language would test the default language twice
           await expect(page.locator('html')).toHaveAttribute('lang', language);
           // Measured before its chunk is loaded, or if it failed to render, a page would pass
