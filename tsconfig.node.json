@@ -1,5 +1,5 @@
 {
-  // Type-checks the code that runs in Node.js 24 against ES2024, which it ships whole: the Vite
+  // Type-checks the code that runs in Node.js 26 against ES2024, which it ships whole: the Vite
   // configs and their plugins, the browser tests and the Playwright config, and the specs and test
   // helpers of the app, which Vitest runs in jsdom, hence the DOM types. Node.js loads the Vite
   // configs as they are, their types stripped (`--configLoader native`): every relative import
