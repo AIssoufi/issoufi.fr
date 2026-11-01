@@ -39,12 +39,15 @@ In [#333](https://github.com/AIssoufi/issoufi.fr/pull/333), for [#321](https://g
 
 ## Consequences
 
-| Figure                                                               | Before                                                                     | After                                                           |
-| -------------------------------------------------------------------- | -------------------------------------------------------------------------- | --------------------------------------------------------------- |
-| Start of the first scheduled run of the morning, after 6:00 in Paris | 5 h 30 min on 2026-10-19; none by 3 h 21 min on 2026-10-20 (9:21 in Paris) | not measured: the site owner deploys the Worker after the merge |
+Read on 2026-11-01 at 3:40 UTC with `gh run list --workflow deploy-production.yml --limit 400 --json displayTitle,event,createdAt,conclusion`: 22 runs titled _Scheduled deploy to production_, event `workflow_dispatch`, all successful, two per morning from 2026-10-21 to 2026-10-31.
+
+| Figure                                                               | Before                                                                     | After                                                                               |
+| -------------------------------------------------------------------- | -------------------------------------------------------------------------- | ----------------------------------------------------------------------------------- |
+| Start of the first scheduled run of the morning, after 6:00 in Paris | 5 h 30 min on 2026-10-19; none by 3 h 21 min on 2026-10-20 (9:21 in Paris) | 5 min 7 s on 7 mornings and 5 min 8 s on 4, of the 11 from 2026-10-21 to 2026-10-31 |
 
 - On a normal morning, the run of 6:05 in Paris deploys, and the runs of the crons of GitHub stop at their first step. When the Worker starts no run, the crons still deploy, late.
 - The token expires: the site owner stores a new one before its date. Without a valid token, each run of the Worker fails, with the answer of GitHub in its logs in Cloudflare. The warning of the schedule step counts the runs of both sources, so it says nothing while the crons of GitHub still start runs: a warning for that case is left to do ([#332](https://github.com/AIssoufi/issoufi.fr/issues/332)).
 - The site owner deploys the Worker by hand, with `wrangler deploy`: a change of its code or of its crons is online after the next of these deploys only.
 - The tests, the lint and the type-check of the repository cover the Worker, at 100 % coverage. The site, its build and its Content Security Policy do not change.
-- The start delays of the Worker are not measured yet: the runs titled _Scheduled deploy to production_ give them, from its first morning, and fill the _After_ column above.
+- The _After_ column above comes from the first of the two runs of each morning, at 6:05 in Paris; the second one started between 6:35:07 and 6:35:08, both in summer time and after the change to winter time on 2026-10-25.
+- The 11 `schedule` runs of those mornings, the fallback, started between 10:06 and 11:51 in Paris, 4 h 6 min to 5 h 51 min after 6:00: the crons of GitHub stayed as late as before the Worker.
