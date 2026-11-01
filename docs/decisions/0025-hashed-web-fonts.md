@@ -27,20 +27,21 @@ In the pull request of [#426](https://github.com/AIssoufi/issoufi.fr/issues/426)
 
 ## Consequences
 
-Response headers from `curl -sI`. Font requests of ten loads of `/experiences` in WebKit, through Playwright: in a new browser context for each load, then ten loads in one context, at 1024 px and on the device of an iPhone 13. Before: `develop`, before the first commit of the branch, in `pnpm preview` and on https://issoufi.fr. After: the branch of #426, in `pnpm preview`.
+Response headers from `curl -sI`. Font requests of ten loads of `/experiences` in WebKit, through Playwright: in a new browser context for each load, then ten loads in one context, at 1024 px and on the device of an iPhone 13. Before: `develop`, before the first commit of the branch, in `pnpm preview` and on https://issoufi.fr. After: the branch of #426, in `pnpm preview`. The production figures of the After column were read on https://issoufi.fr on 2026-11-01, with `curl -sI https://issoufi.fr/assets/montserrat-latin-l_AIctKy.woff2`, and in WebKit 27.2 through Playwright, with `page.goto` and with `page.reload`, at both sizes. A load transferred the font when the `transferSize` of the font in `performance.getEntriesByType('resource')` is not 0.
 
-| Figure                                         | Before                               | After                                                       |
-| ---------------------------------------------- | ------------------------------------ | ----------------------------------------------------------- |
-| URL of the font of the pages                   | `/fonts/montserrat-latin.woff2`      | `/assets/montserrat-latin-l_AIctKy.woff2`                   |
-| `Cache-Control` in production                  | `public, max-age=0, must-revalidate` | `public, max-age=31536000, immutable`, from `dist/_headers` |
-| `Cache-Control` in `pnpm preview`              | `no-cache`                           | `no-cache`                                                  |
-| Requests, one context per load, preview        | 10, at both sizes                    | 10, at both sizes                                           |
-| Requests, ten loads in one context, preview    | 15, at both sizes                    | 15, at both sizes                                           |
-| Requests, ten loads in one context, production | 10                                   | not measured: after the deploy                              |
-| Late requests or loads without `networkidle`   | 0                                    | 0                                                           |
-| Font files in `dist/`                          | 2, 58,720 bytes                      | 3, 96,676 bytes                                             |
+| Figure                                                | Before                               | After                                                    |
+| ----------------------------------------------------- | ------------------------------------ | -------------------------------------------------------- |
+| URL of the font of the pages                          | `/fonts/montserrat-latin.woff2`      | `/assets/montserrat-latin-l_AIctKy.woff2`                |
+| `Cache-Control` in production                         | `public, max-age=0, must-revalidate` | `public, max-age=31536000, immutable`                    |
+| `Cache-Control` in `pnpm preview`                     | `no-cache`                           | `no-cache`                                               |
+| Requests, one context per load, preview               | 10, at both sizes                    | 10, at both sizes                                        |
+| Requests, ten loads in one context, preview           | 15, at both sizes                    | 15, at both sizes                                        |
+| Requests, ten loads in one context, production        | 10                                   | 10, at both sizes                                        |
+| Of those, loads that transferred the font, production | not measured                         | 1, at both sizes: the other 9 show a `transferSize` of 0 |
+| Late requests or loads without `networkidle`          | 0                                    | 0                                                        |
+| Font files in `dist/`                                 | 2, 58,720 bytes                      | 3, 96,676 bytes                                          |
 
 - A browser that loaded the font keeps it a year, and asks for it again only when its content, so its name, changes.
 - `pnpm preview` still sends `no-cache`, so the browser tests see no change: in one context, WebKit requested the font twice on every other reload, before and after.
 - `dist/` holds the font twice, 37,956 bytes each, under both names: only the hashed copy is loaded by the pages.
-- Left to do: check the header of the hashed font with curl on https://issoufi.fr after the deploy, and the requests of ten loads in one context there.
+- In production, Playwright still reports 10 requests for ten loads, since it also reports those that the cache answers: the 9 loads after the first show a `transferSize` of 0, with `page.goto` as with `page.reload`, so the gain is the revalidation that `max-age=0` asked for on every load.

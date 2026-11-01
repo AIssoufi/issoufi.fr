@@ -224,7 +224,7 @@ Measured on 2026-10-24.
 | ----------------------------- | ------------------------------------ | ------------------------------------- |
 | `Cache-Control` in production | `public, max-age=0, must-revalidate` | `public, max-age=31536000, immutable` |
 | Requests in `pnpm preview`    | 15                                   | 15                                    |
-| Requests in production        | 10                                   | not measured: after the deploy        |
+| Requests in production        | 10                                   | 10, 9 from the cache, on 2026-11-01   |
 | Font files in `dist/`         | 58,720 bytes                         | 96,676 bytes                          |
 
 Decision: [0015](decisions/0015-render-at-build-time.md), [0016](decisions/0016-cloudflare-worker-deploy-trigger.md), [0017](decisions/0017-typescript-6.md), [0018](decisions/0018-pnpm-12.md), [0019](decisions/0019-locked-build-chain.md), [0020](decisions/0020-vitest-5.md), [0021](decisions/0021-knip.md), [0022](decisions/0022-chromium-libraries-from-runner-image.md), [0023](decisions/0023-phone-browser-tests-in-webkit.md), [0024](decisions/0024-webkit-in-playwright-image.md), [0025](decisions/0025-hashed-web-fonts.md).
