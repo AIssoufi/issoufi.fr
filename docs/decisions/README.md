@@ -67,3 +67,4 @@ An ADR is not rewritten later: a new decision supersedes it, and the old one get
 | [0023](0023-phone-browser-tests-in-webkit.md)        | 2026-10-23 | Run the phone browser tests in WebKit too              |
 | [0024](0024-webkit-in-playwright-image.md)           | 2026-10-23 | Run the WebKit tests in the image of Playwright        |
 | [0025](0025-hashed-web-fonts.md)                     | 2026-10-24 | Serve the web fonts under hashed names, cached a year  |
+| [0026](0026-node-26.md)                              | 2026-11-01 | Update Node.js to 26                                   |

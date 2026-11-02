@@ -2,7 +2,7 @@
 
 ## Prerequisites
 
-- Node.js 24, read from `.nvmrc`.
+- Node.js 26, read from `.nvmrc`.
 - pnpm 12, at the exact version of the `packageManager` field of `package.json`, which the CI installs. pnpm does not switch to it on its own ([0018](decisions/0018-pnpm-12.md)): install it with `pnpm self-update <that version>`.
 - Chromium for the browser tests and the generators, and WebKit for the phone tests, installed once:
   `pnpm exec playwright install --only-shell chromium webkit`.
