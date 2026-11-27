@@ -24,6 +24,7 @@ const FRENCH_CARDS = [
   ['Magasin de plugins audio', 'Application web'],
   ['Puissance 4', 'Application web'],
   ['Calculatrice', 'Application web'],
+  ['Actu-Infos.fr', 'Site d’actualités'],
   ['Study SARL', 'Site web'],
   ['Kane Riviera Transfert', 'Application web'],
   ['Trouillet Décors', 'Site vitrine'],
@@ -37,6 +38,7 @@ const ENGLISH_CARDS = [
   ['Audio plugin store', 'Web application'],
   ['Connect Four', 'Web application'],
   ['Calculator', 'Web application'],
+  ['Actu-Infos.fr', 'News website'],
   ['Study SARL', 'Website'],
   ['Kane Riviera Transfert', 'Web application'],
   ['Trouillet Décors', 'Brochure website'],
@@ -50,6 +52,7 @@ const DEMO_LINKS = [
   ['Magasin de plugins audio', 'https://pedalboards.issoufi.fr/'],
   ['Puissance 4', 'https://connect-four.issoufi.fr/'],
   ['Calculatrice', 'https://calculator.issoufi.fr/'],
+  ['Actu-Infos.fr', 'https://actu-infos.fr/'],
 ];
 
 /** A text that holds more than whitespace. */

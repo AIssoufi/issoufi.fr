@@ -23,10 +23,12 @@ export const frProjects = {
     trouilletDecors: 'Trouillet Décors',
     yyServicies: 'Y-YServicies',
     babyGifts: 'Cadeaux de naissance',
+    actuInfos: 'Actu-Infos.fr',
   },
   types: {
     webApp: 'Application web',
     website: 'Site web',
     showcaseWebsite: 'Site vitrine',
+    newsWebsite: 'Site d’actualités',
   },
 } as const;
