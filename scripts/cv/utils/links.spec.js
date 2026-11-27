@@ -26,8 +26,8 @@ describe('toLinkUrl', () => {
 
 describe('toLinkText', () => {
   it.each([
-    ['https://www.linkedin.com/in/issoufiadam', 'linkedin.com/in/issoufiadam'],
-    ['https://www.linkedin.com/in/issoufiadam/', 'linkedin.com/in/issoufiadam'],
+    ['https://www.linkedin.com/in/issoufi', 'linkedin.com/in/issoufi'],
+    ['https://www.linkedin.com/in/issoufi/', 'linkedin.com/in/issoufi'],
     ['https://github.com/AIssoufi', 'github.com/AIssoufi'],
     ['https://issoufi.fr/', 'issoufi.fr'],
     ['http://localhost:4173/en//', 'localhost:4173/en'],

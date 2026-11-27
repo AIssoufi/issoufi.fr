@@ -136,7 +136,7 @@ describe('listCvLinks', () => {
       'mailto:contact@issoufi.fr',
       'tel:+33695758632',
       'https://issoufi.fr/',
-      'https://www.linkedin.com/in/issoufiadam',
+      'https://www.linkedin.com/in/issoufi',
       'https://issoufi.fr/code',
       'https://issoufi.fr/method',
     ]);

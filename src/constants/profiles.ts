@@ -9,4 +9,4 @@ export const GITHUB_PROFILE_URL = 'https://github.com/AIssoufi';
  * and the structured data of the pages name. Written without a trailing slash, which LinkedIn
  * would redirect from.
  */
-export const LINKEDIN_PROFILE_URL = 'https://www.linkedin.com/in/issoufiadam';
+export const LINKEDIN_PROFILE_URL = 'https://www.linkedin.com/in/issoufi';
