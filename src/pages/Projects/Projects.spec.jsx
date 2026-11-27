@@ -50,7 +50,6 @@ const DEMO_LINKS = [
   ['Magasin de plugins audio', 'https://pedalboards.issoufi.fr/'],
   ['Puissance 4', 'https://connect-four.issoufi.fr/'],
   ['Calculatrice', 'https://calculator.issoufi.fr/'],
-  ['Kane Riviera Transfert', 'https://kane.issoufi.fr/'],
 ];
 
 /** A text that holds more than whitespace. */
