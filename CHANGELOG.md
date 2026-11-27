@@ -1,5 +1,18 @@
 # Changelog
 
+## [1.8.0](https://github.com/AIssoufi/issoufi.fr/compare/v1.7.2...v1.8.0) (2026-11-27)
+
+
+### Features
+
+* add the actu-infos.fr news site to the freelance projects ([41865dd](https://github.com/AIssoufi/issoufi.fr/commit/41865dde1eb8a7bdaf1484566b1578345b52b22d))
+
+
+### Bug Fixes
+
+* point the LinkedIn links to linkedin.com/in/issoufi ([a841eb1](https://github.com/AIssoufi/issoufi.fr/commit/a841eb14e9434f45425659ef458d5320568f6db6))
+* **projects:** stop linking the Kane Riviera Transfert card to its site ([779d311](https://github.com/AIssoufi/issoufi.fr/commit/779d3113fe3c16572cd6b1d13c2ad059573d8c4f))
+
 ## [1.7.2](https://github.com/AIssoufi/issoufi.fr/compare/v1.7.1...v1.7.2) (2026-11-01)
 
 
