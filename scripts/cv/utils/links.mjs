@@ -21,8 +21,8 @@ export const toLinkUrl = value => {
 /**
  * Writes a web address the way people read it: without its scheme, `www.` and the slash that
  * ends it.
- * @param {unknown} value - Web address, e.g. `https://www.linkedin.com/in/issoufiadam/`.
- * @returns {string} The address to write, e.g. `linkedin.com/in/issoufiadam`, or `''` when it is
+ * @param {unknown} value - Web address, e.g. `https://www.linkedin.com/in/issoufi/`.
+ * @returns {string} The address to write, e.g. `linkedin.com/in/issoufi`, or `''` when it is
  * not a web address.
  * @example
  * toLinkText('https://github.com/AIssoufi'); // 'github.com/AIssoufi'
