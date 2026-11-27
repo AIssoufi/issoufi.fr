@@ -1,7 +1,10 @@
 // @ts-check
 // Constants of the formats that the helpers of `pnpm cv` read and write: the SVG drawings of the
 // icons, the PDF that Chromium prints (its fonts, its dates, its trailer and its document
-// information), and the URLs and addresses of the contact details.
+// information), the fonts that pdf.js draws it with, and the URLs and addresses of the contact
+// details.
+import { createRequire } from 'node:module';
+import { dirname, join, sep } from 'node:path';
 
 /** XML declarations and comments of an SVG file, which an icon inside the page leaves out. */
 export const XML_PROLOG_AND_COMMENTS_PATTERN = /<\?xml[\s\S]*?\?>|<!--[\s\S]*?-->/g;
@@ -100,3 +103,13 @@ export const WWW_PREFIX = 'www.';
 
 /** Slashes that end the path of a URL, which the CV leaves out of the text of a link. */
 export const TRAILING_SLASHES_PATTERN = /\/+$/;
+
+/**
+ * Folder of the font files that pdf.js draws the standard fonts of a PDF with (Helvetica, Times,
+ * Courier…) when the PDF does not embed them, ending with a separator as pdf.js asks. Without it,
+ * pdf.js falls back to the fonts of the system, which differ from one runner image to another.
+ */
+export const PDFJS_STANDARD_FONTS_FOLDER = `${join(
+  dirname(createRequire(import.meta.url).resolve('pdfjs-dist/package.json')),
+  'standard_fonts',
+)}${sep}`;

@@ -1,5 +1,18 @@
+import { existsSync } from 'node:fs';
+
+import { getDocument } from 'pdfjs-dist/legacy/build/pdf.mjs';
+
 import { formatPdfText, renderPdfPages, toPageImageName } from './audit.mjs';
+import { PDFJS_STANDARD_FONTS_FOLDER } from './constants.mjs';
 import { buildPdf } from './pdfTestUtils.js';
+
+vi.mock('pdfjs-dist/legacy/build/pdf.mjs', async importOriginal => {
+  const pdfjs = await importOriginal();
+  return { ...pdfjs, getDocument: vi.fn(pdfjs.getDocument) };
+});
+
+/** Font file that pdf.js draws Helvetica with, when a PDF does not embed it. */
+const HELVETICA_FONT_FILE = 'LiberationSans-Regular.ttf';
 
 /** First bytes of every PNG file. */
 const PNG_SIGNATURE = Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]);
@@ -95,6 +108,16 @@ describe('renderPdfPages', () => {
     const [blank] = await renderPdfPages({ data: buildPage(''), scale: 1 });
 
     expect(withText).not.toEqual(blank);
+  });
+
+  it('draws a non-embedded font with the fonts of pdf.js, not the system ones', async () => {
+    await renderPdfPages({ data: buildPdf({ pages: [{ text: 'ADAM Issoufi' }] }), scale: 1 });
+
+    expect(getDocument).toHaveBeenLastCalledWith(
+      expect.objectContaining({ standardFontDataUrl: PDFJS_STANDARD_FONTS_FOLDER }),
+    );
+    expect(PDFJS_STANDARD_FONTS_FOLDER).toMatch(/[/\\]$/);
+    expect(existsSync(`${PDFJS_STANDARD_FONTS_FOLDER}${HELVETICA_FONT_FILE}`)).toBe(true);
   });
 
   it('refuses data that is not a PDF', async () => {
