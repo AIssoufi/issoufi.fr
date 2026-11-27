@@ -1,7 +1,7 @@
 // @ts-check
 import { getDocument, VerbosityLevel } from 'pdfjs-dist/legacy/build/pdf.mjs';
 
-import { DESCRIPTIVE_INFO_KEYS } from './constants.mjs';
+import { DESCRIPTIVE_INFO_KEYS, PDFJS_STANDARD_FONTS_FOLDER } from './constants.mjs';
 
 /** @typedef {import('./pdf.mjs').PdfSummary} PdfSummary */
 
@@ -60,8 +60,13 @@ export const formatPdfText = ({ fileName, pdf }) => {
  * const [firstPage] = await renderPdfPages({ data: readFileSync(file), scale: 2 });
  */
 export const renderPdfPages = async ({ data, scale }) => {
-  // pdf.js takes the buffer it reads: a copy leaves the caller's one untouched
-  const loadingTask = getDocument({ data: new Uint8Array(data), verbosity: VerbosityLevel.ERRORS });
+  const loadingTask = getDocument({
+    // pdf.js takes the buffer it reads: a copy leaves the caller's one untouched
+    data: new Uint8Array(data),
+    // A font that the PDF does not embed is drawn the same way on every machine
+    standardFontDataUrl: PDFJS_STANDARD_FONTS_FOLDER,
+    verbosity: VerbosityLevel.ERRORS,
+  });
 
   try {
     const document = await loadingTask.promise;
